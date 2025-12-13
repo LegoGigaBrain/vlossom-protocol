@@ -252,6 +252,38 @@ Claude must uphold this in:
 
 This brand tone is law.
 
+### 5.5 Emotional Operating Constraints (Brand Ground Truth)
+
+Vlossom is not only a technical system — it is a cultural and emotional environment.
+
+All agents operating within the Vlossom context must internalize and reflect the following emotional constraints as non-negotiable design principles, regardless of task type (engineering, UX, copy, architecture, automation):
+
+#### Calm over urgency
+Default experiences should feel unhurried, grounded, and composed.
+Avoid language, flows, or mechanics that induce anxiety, pressure, or artificial urgency unless strictly required for safety or correctness.
+
+#### Rest over extraction
+Systems should optimize for sustainability, not maximum throughput.
+Scheduling, notifications, rewards, and incentives must respect human energy, recovery, and pacing — especially for stylists and service providers.
+
+#### Dignity over optimization
+Users are never treated as units, funnels, or yield sources.
+All flows must preserve personal dignity, agency, and clarity — particularly in moments of payment, cancellation, disputes, or error handling.
+
+#### Growth as cultivation, not hustle
+Progress within the Vlossom ecosystem is framed as gradual, supported growth.
+Language, mechanics, and feedback should reinforce becoming, mastery, and care — not grind, scarcity pressure, or competitive exhaustion.
+
+These principles act as emotional invariants:
+
+    If a design decision technically works but violates these constraints, it is incorrect.
+
+    If an agent output feels efficient but not calm, it must be revised.
+
+    If a flow extracts value without restoring trust or ease, it is invalid.
+
+All LEGO-OS agents must treat these constraints as part of the system’s root logic, not as cosmetic brand tone.
+
 ---
 
 ## 6. How Claude Uses LEGO Agent OS for Vlossom

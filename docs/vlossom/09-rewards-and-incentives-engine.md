@@ -571,25 +571,516 @@ The Rewards & Incentives Engine:
 
 This is the psychological engine that keeps the Vlossom ecosystem healthy, professional, and thriving.
 
+---
 
+# 09 — Rewards & Incentives Engine (v1.1)
 
+Unified Points, Reputation Signals, Referrals, Streaks & Identity-Based Rewards for Vlossom Protocol
 
+---
 
+## 1. Purpose of This Document
 
+This document defines the reward systems that reinforce Vlossom’s core brand philosophy:
 
+    Grow from Rest
 
+    Consistency over hustle
 
+    Dignity, professionalism, and care
 
+    Long-term trust between stylists, properties, and customers
 
+It describes all mechanisms that allocate non-financial value:
 
+    points
 
+    badges
 
+    streaks
 
+    tier progression
 
+    referral milestones
 
+    TPS-integrated rewards
 
+    LP pool unlock criteria
 
+    compliance & fairness rules
 
+…and how they interact with:
+
+    AA Wallet
+
+    Booking Events
+
+    Reputation Registry (Document 08)
+
+    Referral Registry
+
+    DeFi Tiers (Document 11 & 12)
+
+Rewards in Vlossom are utility-driven and non-transferable.
+No speculation, no token volatility — only identity, trust, mastery, and belonging.
+
+---
+
+## 2. Design Principles
+
+### 2.1 Rewards reinforce desired behaviors
+
+We reward:
+
+    punctuality
+
+    consistency
+
+    care for customers
+
+    high hospitality
+
+    low cancellation rate
+
+    property cleanliness & reliability
+
+    customer loyalty
+
+    honest reviews
+
+These directly align with brand values and marketplace health.
+
+### 2.2 Rewards never replace revenue
+
+Stylists are rewarded for good behavior, not exploited for it.
+Points = privilege, not payment.
+
+### 2.3 Soulbound, not financial
+
+Points, badges, tiers cannot be traded or sold.
+
+They represent:
+
+    mastery
+
+    identity
+
+    growth
+
+    professionalism
+
+They are earned, not bought.
+
+### 2.4 Vlossom Wallet Integration
+
+Rewards appear in Wallet → Rewards tab, but DO NOT:
+
+    affect wallet balance
+
+    act like crypto tokens
+
+Users feel progression, but the system stays clean & compliant.
+
+### 2.5 Rewards feed into Vlossom ecosystem loops
+
+referrals grow the network
+
+good performance unlocks opportunities
+
+LP tier unlocks build DeFi momentum
+
+positive behavior becomes visible on profiles
+
+high tiers yield better matching (search ranking)
+
+---
+
+## 3. Reward Categories
+
+The Vlossom ecosystem uses five parallel reward systems, all unified under one registry:
+
+| Category                      | Purpose                                           |
+| ----------------------------- | ------------------------------------------------- |
+| **Experience Points (XP)**    | Universal progress for all actors                 |
+| **Role Points**               | Stylist, Customer, Property Owner specializations |
+| **Reputation-Linked Bonuses** | TPS, rating, consistency rewards                  |
+| **Referral Scores**           | Unlocks LP pools + bonuses                        |
+| **Badges & SBT Achievements** | Identity, milestones, honors                      |
+
+---
+
+## 4. Experience Points (Global XP)
+
+Everyone earns XP through core interactions.
+
+### 4.1 Earning XP (all roles)
+
+| Action                      | XP      |
+| --------------------------- | ------- |
+| Completing a booking        | +10     |
+| Consecutive bookings streak | +5–25   |
+| Leaving reviews             | +2      |
+| Receiving reviews           | +3      |
+| Completing special events   | +20     |
+| Early arrival / punctuality | +3      |
+| Resolving disputes amicably | +5      |
+| Referrals                   | +10–100 |
+
+XP is used to:
+
+show maturity in the system
+
+unlock cosmetic profile elements
+
+unlock special Vlossom experiences
+
+XP is not tied to money — only presence & participation.
+
+---
+
+## 5. Role Points (Per Actor Type)
+
+Each role has its own reward logic.
+
+### 5.1 Stylist Points
+
+Earned through:
+
+| Stylist Behavior                               | Points      |
+| ---------------------------------------------- | ----------- |
+| 5-star customer rating                         | +10         |
+| Completing 10 bookings with no cancellations   | +25         |
+| Fast approval (< 20 min)                       | +3          |
+| High TPS scores                                | +10 monthly |
+| Providing amenities                            | +5          |
+| Excellent hospitality (future ML verification) | +?          |
+
+Stylist Points unlock:
+
+    early access to premium customers
+
+    eligibility for community pool creation
+
+    higher ranking in search
+
+    badges (Master Braider, Trusted Stylist, etc.)
+
+### 5.2 Customer Points
+
+Rewards loyalty and good etiquette.
+
+| Customer Behavior                | Points  |
+| -------------------------------- | ------- |
+| Early confirmation of completion | +2      |
+| No-show avoidance streak         | +5      |
+| Rebooking within 30 days         | +5      |
+| Referral milestones              | +10–500 |
+| Consistent tipping (optional)    | +2      |
+
+Customer points unlock:
+
+    priority booking slots
+
+    access to exclusive stylists with limited availability
+
+    loyalty experience badges
+
+    seasonal perks
+
+### 5.3 Property Owner Points
+
+Rewards reliability, cleanliness, and professionalism.
+
+| Property Behavior            | Points |
+| ---------------------------- | ------ |
+| High stylist satisfaction    | +10    |
+| No double-booking mistakes   | +5     |
+| Low cancellation rate        | +10    |
+| Amenities quality            | +5     |
+| Chair utilization milestones | +20    |
+
+Unlocks:
+
+    visibility boost
+
+    better ranking in location-based search
+
+    premium listing badge
+
+---
+
+## 6. Reputation-Linked Bonuses (TPS Engine)
+
+TPS (Time Performance Score) feeds into rewards.
+
+Stylists earn bonuses for:
+
+    being on time
+
+    approving quickly
+
+    consistent service duration
+
+    no excessive delays
+
+Customers earn bonuses for:
+
+    arriving on time
+
+    confirming completion on time
+
+    not canceling last minute
+
+Properties earn bonuses for:
+
+    honoring approval requests
+
+    keeping chairs available as scheduled
+
+This ensures rewards reflect professionalism, not just activity.
+
+---
+
+## 7. Referral Engine Rewards
+
+Vlossom referral system is central to growth.
+
+### 7.1 Referral XP + Referral Score
+
+Every new user onboarded through referral gives:
+
+XP (for identity/progression)
+
+Referral Score (for LP pool unlock tiers)
+
+### 7.2 Referral Score → DeFi Unlocks
+
+Top referrers (percentile-based) unlock:
+
+| Percentile | Reward                     |
+| ---------- | -------------------------- |
+| Top 30%    | Access Tier 3 LP Pools     |
+| Top 15%    | Access Tier 2 LP Pools     |
+| Top 5%     | Can Create Community Pools |
+
+Score =
+    bookings volume of all referred users
+
+    retention
+
+    their referrals
+
+    overall engagement
+
+This builds a network marketing–like onboarding flywheel, but in a healthy, non-exploitative form.
+
+---
+
+## 8. Badges & SBT Achievements
+
+Badges live in Wallet → Rewards and in Profile.
+
+They are soulbound and reflect identity, not speculation.
+
+Examples:
+
+    Master Braider
+
+    Elite Host (Property)
+
+    100 Appointments Club
+
+    Perfect TPS Month
+
+    Top Referrer 2025
+
+    Healing Hands Award (brand-driven)
+
+    Garden of Growth (seasonal badge for consistent care)
+
+Badges are emotional — strengthening belonging and pride.
+
+---
+
+## 9. Streaks (Consistency Engine)
+
+Growth from rest = consistency, not grind.
+
+Streaks measure healthy professionalism, not addiction.
+
+Streak Examples:
+
+    Customer: 3 bookings in 90 days
+
+    Stylist: 5 on-time months
+
+    Property: 30 days of zero double-bookings
+
+---
+
+## 10. Rewards → Wallet Integration
+
+Rewards live in Wallet → Rewards Tab:
+
+    XP
+
+    Points
+
+    Badges
+
+    Referral status
+
+    LP unlock status
+
+Wallet never confuses:
+
+    points with money
+
+    badges with NFTs
+
+    rewards with crypto
+
+This preserves simplicity for Web2.5 users.
+
+---
+
+## 11. Notification Hooks (Cross-System)
+
+Every reward event triggers:
+
+    a push notification
+
+    a card in Notifications tab
+
+    a feed update on the user’s profile
+
+Examples:
+
+    “You earned 15 Stylist Points for perfect punctuality today.”
+
+    “New badge unlocked: Trusted Customer.”
+
+    “Congratulations! You’re now in the Top 15% referrers.”
+
+---
+
+## 12. Smart Contract Touchpoints
+
+(Full spec in Doc 13; here is how contracts integrate.)
+
+### RewardsVault Contract
+
+Stores:
+
+    XP
+
+    Role points
+
+    Referral score
+
+Called by:
+
+    BookingEscrow (on settlement)
+
+    ReputationRegistry (TPS → point deltas)
+
+    ReferralRegistry (referral → score deltas)
+
+### ReputationRegistry
+
+Provides:
+
+    TPS values
+
+    rating aggregates
+
+    cancellation stats
+
+RewardsVault reads these to compute monthly bonuses.
+
+### ReferralRegistry
+
+Feeds referral volume → DeFi tier unlock logic.
+
+---
+
+## 13. Anti-Gaming Rules
+
+To maintain fairness:
+
+    XP caps per day
+
+    Referral fraud detection
+
+    No XP awarded for declined bookings
+
+    No points for fraudulent reviews
+
+    Cancellation penalties outweigh reward gains
+
+    Duplicate device referrals flagged
+
+Rewards should be earned, not exploited.
+
+---
+
+## 4. Summary
+
+This v1.1 unified reward engine now:
+
+    aligns with brand identity
+
+    integrates wallet-first experience
+
+    supports gasless UX
+
+    strengthens trust loops across actors
+
+    powers DeFi onboarding flywheels
+
+    reinforces consistent, dignified professional conduct
+
+    supports non-financial identity through badges & SBTs
+
+It is now fully compatible with all updated documents (05–07 and 13–15).
+
+---
+
+## Δ — DELTA LOG (v1.0 → v1.1)
+
+### Added
+
+    XP + Role Points split
+
+    TPS-based bonuses
+
+    Referral Score → LP unlock tiers
+
+    Wallet Rewards tab integration
+
+    Anti-gaming systems
+
+    Badges (brand-aligned)(SBT)
+
+    Streaks
+
+    Multi-actor rewards (Customers, Stylists, Properties)
+
+    Event-driven notifications
+
+### Modified
+
+    Referrals now include retention + downstream tree
+
+    Points separated from financial incentives
+
+    RewardsVault contract expanded
+
+### Removed
+
+    Any token-like representation
+
+    Any financialized reward mechanic
 
 
 

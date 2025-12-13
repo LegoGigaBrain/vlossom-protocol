@@ -1303,23 +1303,281 @@ It is now ready to guide:
 
     Claude Code agent implementation for contract generation and integration.
 
+---
 
+# 12 — Liquidity Pool Architecture
 
+## v1.1 Addendum — Global Wallet, AA Settlement & Gasless Operations
 
+This addendum extends the original Liquidity Pool Architecture to align with the introduction of the Global Wallet, Account Abstraction (AA), and Paymaster-sponsored gasless UX, without modifying the original economic, tiering, or risk logic.
 
+---
 
+## A. Scope of This Addendum
 
+This addendum clarifies:
 
+    How liquidity pools integrate with the Global Wallet
 
+    How AA wallets act as the sole interaction point for LP actions
 
+    How gasless transactions are enforced via the Paymaster
 
+    How deposits, withdrawals, and yield distributions route through the wallet
 
+    How the Liquidity Pool layer fits into the Wallet → DeFi tab UX
 
+All pool math, yield logic, tiering, caps, and risk models defined in the original document remain unchanged.
 
+---
 
+## B. Wallet-First Liquidity Constraint
 
+### B.1 Canonical Entry & Exit Point
 
+All liquidity pool interactions MUST route through the Vlossom Global Wallet.
 
+This enforces:
+
+    consistent accounting
+
+    unified transaction history
+
+    predictable UX
+
+    clean on-chain invariants
+
+Deposit Path (Canonical)
+
+    Fiat → Onramp → Global Wallet (USDC) → pool.deposit()
+
+Withdrawal Path (Canonical)
+
+    pool.withdraw() → Global Wallet (USDC) → optional Offramp
+
+Pools never interact directly with fiat rails or off-ramp providers.
+
+### B.2 AA Wallet as Sole Caller
+
+All pool functions assume:
+
+    msg.sender == AA Wallet Address
+
+Direct EOA-to-pool interaction is not supported in MVP.
+
+This ensures:
+
+    compatibility with gas sponsorship
+
+    unified identity across roles
+
+    consistent permissions & rate limiting
+
+---
+
+## C. Deposit Flow Clarification
+
+### C.1 Deposit Execution
+
+When a user deposits liquidity:
+
+    User initiates action from Wallet → DeFi tab
+
+    AA wallet signs a deposit(amount) call
+
+    Paymaster sponsors gas
+
+    Pool contract mints LP shares
+
+    Wallet balance decreases accordingly
+
+    Transaction is recorded as DeFi → Deposit
+
+All approval logic (token allowance, signature handling) is abstracted by wallet middleware and never exposed in UX.
+
+### C.2 Insufficient Wallet Balance
+
+If wallet balance is insufficient:
+
+    user is prompted to Add Funds
+
+    onramp completes
+
+    deposit resumes automatically
+
+No partial deposits occur.
+
+---
+
+## D. Withdrawal Flow Clarification
+
+### D.1 Withdrawal Execution
+
+When a user withdraws liquidity:
+
+    User initiates action from Wallet → DeFi tab
+
+    AA wallet signs withdraw(shares)
+
+    Paymaster sponsors gas
+
+    Pool burns LP shares
+
+    USDC is returned to the Global Wallet
+
+    Transaction is recorded as DeFi → Withdrawal
+
+Offramping is a separate, optional wallet action and never occurs directly from a pool.
+
+---
+
+## E. Yield Distribution → Wallet
+
+### E.1 Yield Settlement
+
+All yield distributions settle into the Global Wallet.
+
+    Yield Engine → Pool → AA Wallet (USDC)
+
+Yield is displayed as:
+
+    Fiat amount (primary)
+
+    Stablecoin amount (secondary)
+
+    Category: DeFi Yield
+
+This ensures yield feels like part of the everyday Vlossom economy, not a separate financial silo.
+
+---
+
+## F. Paymaster & Gasless DeFi Operations
+
+### F.1 Sponsored Pool Interactions
+
+All liquidity pool interactions are gasless for users:
+
+    deposit
+
+    withdraw
+
+    claim yield
+
+    create pool (once unlocked)
+
+Gas is sponsored by the Vlossom Paymaster.
+
+### F.2 Paymaster Safeguards
+
+The Paymaster enforces:
+
+    per-wallet operation limits
+
+    pool creation eligibility checks
+
+    contract allowlisting (only approved pool contracts)
+
+    abuse protection (rate limiting, denial of spam patterns)
+
+Gas costs are funded by the Protocol Treasury, replenished via platform fees and buffer contributions.
+
+---
+
+## G. Pool Creation (Factory) — Wallet Context
+
+When a qualified referrer unlocks pool creation:
+
+    Action is initiated from Wallet → DeFi tab
+
+    AA wallet calls PoolFactory.createPool(...)
+
+    Paymaster sponsors gas
+
+    New pool is registered and indexed
+
+    Pool becomes visible to eligible participants
+
+No EOA-level pool creation is permitted.
+
+---
+
+## H. DeFi Tab UX Assumptions (Informational)
+
+While this document remains technical, it assumes the following UX realities (defined in Document 15):
+
+    Liquidity pools are accessed exclusively via Wallet → DeFi
+
+    Users do not manage pools outside the wallet context
+
+    Pool metrics (APY, caps, utilization) are read-only indicators
+
+    All actions resolve through wallet-mediated calls
+
+This section exists to guide frontend and indexer implementations.
+
+---
+
+## I. Invariants Introduced by v1.1
+
+The following invariants now apply to all liquidity pools:
+
+### Wallet Invariant
+All LP funds must pass through the Global Wallet.
+
+### Gasless Invariant
+No pool interaction requires user-paid gas.
+
+### Settlement Invariant
+Yield and withdrawals always settle into the wallet first.
+
+### Isolation Invariant
+Wallet integration does not alter pool isolation, caps, or risk boundaries.
+
+---
+
+## J. Delta Summary (v1.0 → v1.1)
+
+Added
+
+    wallet-first deposit & withdrawal routing
+
+    AA wallet caller constraint
+
+    paymaster-sponsored pool interactions
+
+    yield → wallet settlement clarification
+
+    DeFi tab UX assumptions
+
+Not Changed
+
+    pool math
+
+    APY logic
+
+    tier unlock rules
+
+    caps & risk models
+
+    smoothing buffer behavior
+
+    treasury relationships
+
+---
+
+##  K. Closing Note
+
+This addendum ensures the Liquidity Pool Architecture is:
+
+    fully compatible with the Global Wallet
+
+    aligned with AA-based identity
+
+    seamless for Web2.5 users
+
+    ready for DeFi activation at any time
+
+It completes the financial substrate of the Vlossom Protocol without compromising its original economic design.
 
 
 

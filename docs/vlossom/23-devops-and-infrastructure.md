@@ -50,6 +50,12 @@ This is the operational blueprint for engineering, SRE, and Claude Code agent wo
 
 ## 2. Architectural Overview
 
+### Wallet-First Infrastructure Model
+
+Vlossom operates on a wallet-first architecture. The Account Abstraction (AA) wallet is the primary financial and transactional interface for all users, mediating bookings, payouts, P2P transfers, liquidity actions, and rewards.
+
+Backend services treat the wallet as the canonical financial state, rather than a secondary or auxiliary system. All infrastructure components—indexers, APIs, risk engines, and admin tooling—are designed around this assumption.
+
 Vlossom’s technical stack has four major layers:
 
 ### 2.1 Client Layer
@@ -420,9 +426,17 @@ Track:
 
     anomalous tx attempts
 
+**Operational Importance**  
+The Paymaster is a critical production dependency, equivalent in importance to the booking engine and escrow services. Its availability directly impacts the ability of users to interact with the platform.
+
+Paymaster balances, failure rates, and rejection reasons must be monitored with the same priority as booking throughput and payment settlement.
+
 ---
 
 ## 11. Disaster Recovery Strategy
+
+**User-Facing Incident Response**  
+All user-facing incident communication must prioritize calm, clarity, and dignity. Messaging should avoid alarmist language, clearly explain impact, and always provide a next step or reassurance where possible.
 
 ### Backups
 

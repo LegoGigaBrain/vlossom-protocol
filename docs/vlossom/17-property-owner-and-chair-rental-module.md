@@ -540,6 +540,90 @@ Property owner rating is derived from:
 
     payout confirmations
 
+### 11.7 Wallet & Escrow Integration (Critical Clarification)
+
+Property owners interact with Vlossom’s Global Wallet System, not a separate “property wallet”.
+
+Each property owner has one primary Vlossom wallet that:
+
+    receives chair rental payouts
+
+    receives per-booking chair fee splits
+
+    processes refunds and dispute resolutions
+
+    interfaces with escrow outcomes
+
+    supports future DeFi participation (via Wallet → DeFi tab)
+
+#### Chair Rental Payout Flow
+
+For any booking or fixed-term chair rental:
+
+    Customer or stylist funds are locked in BookingEscrow
+
+    Upon successful completion or rental start:
+
+        chair fee is released from escrow
+
+        funds are routed to the property owner’s global wallet
+
+    Wallet balance updates immediately
+
+    Transaction appears in:
+
+        Wallet → Transaction History
+
+        Property Owner Dashboard → Financials
+
+#### Refunds & Disputes
+
+Property owners may be required to:
+
+    approve refunds
+
+    accept partial payouts
+
+    return funds to escrow (e.g. booking rejection, dispute resolution)
+
+In these cases:
+
+    funds are deducted from the same global wallet
+
+    escrow enforces invariants (no overdrafts, no double-spend)
+
+    all actions are logged for admin oversight
+
+#### Wallet Balance Checks (Fixed-Term Rentals)
+
+For day / week / month chair rentals:
+
+    stylist wallet balance is checked before escrow lock
+
+    if balance is insufficient:
+
+        onramp flow is triggered
+
+        or booking is blocked until funded
+
+This mirrors booking flows and keeps financial logic consistent across the platform.
+
+#### Future Compatibility
+
+Because payouts live in the global wallet:
+
+property owners can later:
+
+    stake into Vlossom LPs
+
+    manage treasury via multi-sig (future)
+
+    allocate earnings across businesses or staff
+
+no migration is required when these features are enabled
+
+This design ensures financial clarity, composability, and future-proofing.
+
 ---
 
 ## 12. User Stories (Clear Alignment)

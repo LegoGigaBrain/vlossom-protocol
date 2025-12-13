@@ -783,48 +783,653 @@ This architecture blueprint defines how the entire Vlossom system operates at a 
 
 This file ensures a unified mental model for all contributors and AI agents.
 
+---
 
+# 05 — System Architecture Blueprint (v1.1)
 
+Lightly Brand-Infused • Updated for Global Wallet, AA Gasless, DeFi Tab, P2P, Onramp/Offramp, and Revised Booking Engine
 
+---
 
+## 1. Purpose of This Document
 
+This Blueprint defines the complete technical architecture of the Vlossom platform.
 
+It describes:
 
+    The system modules (backend, smart contracts, AA wallet infra, paymaster, database, indexer)
 
+    The data flows that orchestrate bookings, escrow, payouts, wallet actions, referrals, rewards, and DeFi
 
+    The frontend → backend → chain interaction pipeline
 
+    The architectural principles that ensure:
 
+        calmness
 
+        predictability
 
+        trust
 
+        low cognitive load
 
+Vlossom must feel effortless and reassuring — this document ensures the technology supports that experience.
 
+This file is the reference for:
 
+    Backend engineers
 
+    Smart contract developers
 
+    DevOps
 
+    API designers
 
+    Claude Code agents
 
+---
 
+## 2. Architecture Overview (Updated v1.1)
 
+Vlossom is built on a multi-layer architecture, optimized for Web2.5 ease with Web3 infrastructure underneath.
 
+CLIENTS
+ ├─ Mobile App (iOS/Android)
+ ├─ Web App (Customer, Stylist, Owner Dashboards)
+ │
+BACKEND SERVICES (Orchestrators)
+ ├─ API Gateway
+ ├─ Booking Service
+ ├─ Wallet Orchestration Service (NEW)
+ ├─ Payment Orchestration Service
+ ├─ Onramp/Offramp Adapter
+ ├─ Scheduling Engine
+ ├─ Property & Chair Service
+ ├─ Stylist Availability Engine
+ ├─ Notification Service
+ ├─ Identity & Roles Service
+ ├─ Reputation Aggregation Service
+ ├─ Rewards Service
+ │
+CHAIN INTERACTION LAYER
+ ├─ AA Wallet Factory
+ ├─ Paymaster (Gasless)
+ ├─ Signing & UserOp Service
+ ├─ Tx Relayer
+ │
+BLOCKCHAIN (Business Logic)
+ ├─ BookingRegistry
+ ├─ PaymentEscrow
+ ├─ PropertyChairRegistry
+ ├─ ReputationRegistry
+ ├─ ReferralRegistry
+ ├─ RewardsVault
+ ├─ Liquidity Pools (VLP, community pools)
+ ├─ ProtocolTreasury
+ │
+DATA LAYER
+ ├─ PostgreSQL (Primary transactional DB)
+ ├─ Redis (Sessions, queues)
+ ├─ Event Indexer (From chain → DB)
+ ├─ Object Storage (media)
+ │
+INFRA
+ ├─ Kubernetes / Serverless
+ ├─ Observability (Logs, Metrics, Tracing)
+ ├─ CI/CD
 
+### Brand Principle Infusion:
 
+    The architecture reduces user stress by ensuring smooth transitions, predictable state, and instant feedback loops.
 
+---
 
+## 3. Core Platform Principles (With Light Brand Influence)
 
+### 3.1 Calm by Design
 
+    No abrupt UX moments
 
+    Architecture minimizes edge-case exposure
 
+    All async processes provide state updates
 
+### 3.2 Trust Through Transparency
 
+    Deterministic event logs
 
+    Clear status transitions
 
+    On-chain escrow = visible safety
 
+### 3.3 Ease Through Predictable Automation
 
+    balance-first payment resolution
 
+    silent AA wallet creation
 
+    auto-syncing availability
 
+    automated approvals when rules allow
+
+### 3.4 Stability & Dignity in Performance
+
+    deterministic scheduling engine
+
+    chain interactions abstracted away
+
+    low-latency architecture supports “effortless” feel
+
+---
+
+## 4. Actor-Specific Architecture Paths
+
+### 4.1 Customer Path
+
+User → App → API → Wallet Orchestration → Paymaster → Smart Contracts → Indexer → App
+
+Tasks supported:
+
+    discover services/stylists/salons
+
+    create bookings
+
+    pay from wallet
+
+    P2P payments
+
+    onramp → complete booking
+
+    monitor booking lifecycle
+
+    receive notifications
+
+    withdraw funds
+
+The architecture ensures:
+
+    instant wallet balance updates
+
+    reliable approval flows
+
+    predictable completion and payout events
+
+### 4.2 Stylist Path
+
+User → App → Schedule Engine → Booking Service → Wallet → Chain
+
+Supports:
+
+    approval flows
+
+    travel & availability logic
+
+    earnings & payouts
+
+    special event workflow
+
+Emphasis on predictable schedule updates and minimal friction.
+
+### 4.3 Property Owner Path
+
+User → App → Property Service → Booking Service → Escrow → Payouts
+
+Supports:
+
+    chair registration
+
+    amenity mapping
+
+    rental approval rules
+
+    chair-level scheduling
+
+    payouts to treasury wallet
+
+### 4.4 LP / Referrer Path
+
+User → Wallet → DeFi Tab → API → Pool Contracts
+
+Supports:
+
+    staking
+
+    yield
+
+    pool creation (if eligible)
+
+    referrals influencing pool tiers
+
+### 4.5 Admin Path
+
+Admin → Panel → Admin Service → DB / Chain / Wallets
+
+Supports:
+
+    risk controls
+
+    dispute resolution
+
+    financial monitoring
+
+    user moderation
+
+    paymaster funding
+
+---
+
+## 5. Domain Modules (Updated)
+
+### 5.1 Wallet Orchestration Module (New)
+
+Handles:
+
+    balance checks
+
+    escrow preflight
+
+    P2P
+
+    onramp/offramp flows
+
+    LP interactions
+
+    payment routing
+
+    currency display logic
+
+Inputs:
+
+    booking engine
+
+    fee engine
+
+    DeFi engine
+
+Outputs:
+
+    signed UserOps
+
+    contract calls
+
+    wallet updates
+
+    notifications
+
+### 5.2 Account Abstraction Layer
+
+    VlossomAccountFactory: creates wallets
+
+    Paymaster: sponsors gas
+
+    Relayer: sends txs
+
+    Session keys (future)
+
+Ensures:
+
+    smooth UX
+
+    no visible blockchain friction
+
+### 5.3 Booking & Scheduling Module
+
+Handles:
+
+    booking creation
+
+    rules for approvals
+
+    chair availability
+
+    travel feasibility
+
+    conflict detection
+
+    TPS inputs
+
+    special events
+
+Consumes:
+
+    DB
+
+    chain events
+
+    property registry
+
+    stylist schedule
+
+### 5.4 Escrow Module
+
+Manages:
+
+    locking funds
+
+    settlement
+
+    cancellation
+
+    penalties
+
+    fee distributions
+
+    buffer integration
+
+    pool incentives
+
+Strict invariants guarantee safety.
+
+### 5.5 DeFi Engine
+
+Handles:
+
+    staking
+
+    yield
+
+    tier unlock logic
+
+    pool creation
+
+    pool APY models
+
+Connected to:
+
+    Wallet
+
+    Rewards
+
+    Referrals
+
+    Treasury
+
+### 5.6 Reputation Engine
+
+Primarily off-chain aggregation.
+
+Chain stores compact hashes.
+
+Inputs:
+
+    booking outcomes
+
+    ratings
+
+    TPS
+
+    cancellations
+
+    disputes
+
+###  5.7 Notification Orchestrator
+
+Consumes events from:
+
+    backend services
+
+    scheduler
+
+    wallet
+
+    pool engine
+
+    chain indexer
+
+Produces UI notifications:
+
+    booking updates
+
+    approvals
+
+    payouts
+
+    yield
+
+    referrals
+
+    social follow
+
+### 5.8 Identity & Roles Module
+
+Controls:
+
+    customer / stylist / owner enabling
+
+    role switching
+
+    permissions
+
+    KYC anchoring (future)
+
+---
+
+## 6. Updated Data Flows
+
+### 6.1 Booking Lifecycle (Updated)
+
+    User creates booking
+
+    Backend computes quote
+
+    Wallet module checks balance
+
+    If insufficient → trigger onramp
+
+    PaymentEscrow.lockFunds
+
+    BookingRegistry.create
+
+    Stylist approval
+
+    Property approval (if required)
+
+    Appointment active
+
+    Completion
+
+    Settlement
+
+    Reputation update
+
+    Rewards update
+
+### 6.2 Wallet & Payments
+
+Flows:
+
+    onramp → wallet
+
+    wallet → escrow
+
+    escrow → distribution
+
+    LP → wallet → pool
+
+    pool → wallet (yield)
+
+    P2P wallet → wallet
+
+All amounts displayed in fiat, stored/transacted in stablecoin.
+
+### 6.3 Notification Flow
+
+Event sources:
+
+    Chain (escrow, bookings)
+
+    Backend (availability, schedule)
+
+    DeFi engine
+
+    Wallet service
+
+Events → Notification Service → User.
+
+---
+
+## 7. Architecture Principles (Light Brand Infusion)
+
+### 7.1 Smoothing User Experience
+
+Architecture must minimize jarring transitions:
+
+    predictable state
+
+    real-time sync
+
+    low latency
+
+    cached fallback views
+
+### 7.2 Clarity is Kindness
+
+Every system state must be:
+
+    observable
+
+    knowable
+
+    explainable
+
+Brand value: reduce stress, empower the user.
+
+### 7.3 Trust is Engineered
+
+    deterministic contract behavior
+
+    transparent state machine
+
+    reliable payouts
+
+    visible histories
+
+### 7.4 Operational Calmness
+
+    circuit breakers
+
+    retry queues
+
+    fail-soft mechanisms
+
+The system must feel “steady.”
+
+---
+
+## 8. Interfaces & Responsibilities
+
+### Frontend
+
+    UI flows
+
+    state machines
+
+    wallet interactions
+
+    notifications
+
+### Backend
+
+    compute orchestration
+
+    rules engines
+
+    validations
+
+    chain adapters
+
+### Blockchain Contracts
+
+    escrow
+
+    booking state
+
+    property registry
+
+    reputation anchors
+
+    liquidity pools
+
+### Paymaster / AA
+
+    gas sponsorship
+
+    transaction bundling
+
+### Indexer
+
+    reflect chain reality into DB
+
+    feed notifications
+
+    feed reputation engine
+
+---
+
+## 9. Non-Functional Requirements
+
+### Performance
+
+    <150ms backend latency
+
+    <1s booking confirmation
+
+    <2s wallet transitions
+
+### Reliability
+
+    99.9% uptime
+
+    replay protection
+
+    deterministic retries
+
+### Security
+
+    strict contract access roles
+
+    encrypted wallet metadata
+
+    protected paymaster
+
+### Scalability
+
+    modular services
+
+    contract upgrade paths
+
+    event-driven backend
+
+### Accessibility
+
+    mobile-first
+
+    readable typography
+
+    high contrast modes
+
+---
+
+## 10. Summary
+
+This v1.1 architecture:
+
+    integrates the global wallet hub
+
+    unifies gasless AA experiences
+
+    cleanly embeds DeFi as a wallet mode
+
+    supports complex booking + chair logic
+
+    ensures predictable, calm, luxurious UX
+
+    remains chain-agnostic
+
+    sets the foundation for all future expansions
+
+It preserves rigor while softly reflecting Vlossom’s brand philosophy:
+    ease, dignity, trust, and growth without friction.
 
 
 

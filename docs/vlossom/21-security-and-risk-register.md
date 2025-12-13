@@ -209,6 +209,15 @@ Mitigation:
 
 ## 5. Account Abstraction + Paymaster Risks
 
+**Sustainability Consideration**  
+As Vlossom sponsors gas for all user actions, the Paymaster represents both a security and economic surface. Unbounded gas sponsorship could create long-term cost pressure or abuse vectors.
+
+**Mitigations**
+- Per-user and per-role daily gas limits
+- Dynamic throttling based on reputation and usage history
+- Coupling Paymaster funding to platform fee flows and treasury budgets
+- Real-time monitoring of gas spend anomalies
+
 ### 5.1 Paymaster Drain
 
 Description:
@@ -534,6 +543,29 @@ Mitigation:
 
 ## 14. Financial & DeFi Risks
 
+### Global Wallet Concentration Risk
+
+**Description**  
+Vlossom operates on a global wallet model, where each user (customer, stylist, or property owner) has a single Account Abstraction (AA) wallet that mediates bookings, P2P transfers, rewards, liquidity participation, and payouts.
+
+While this simplifies UX and reduces fragmentation, it concentrates financial activity into one primary wallet surface per user.
+
+**Potential Risks**
+- Unauthorized access leading to multi-surface fund movement
+- Abuse of session keys across different app features
+- Compounded impact of credential compromise
+
+**Mitigations**
+- Scoped session keys with time, function, and value limits
+- Biometric or high-trust confirmation for sensitive actions (withdrawals, refunds, LP actions)
+- Clear transaction labeling and confirmation screens across all wallet interactions
+- Platform-admin ability to temporarily freeze wallets in response to detected abuse
+
+**Monitoring**
+- Abnormal transaction velocity across features
+- Cross-feature abuse patterns (e.g., booking → P2P → withdraw loops)
+- Alerts triggered via backend risk engine and indexer
+
 ### 14.1 Liquidity Pool Abuse
 
 Mitigation:
@@ -563,6 +595,10 @@ Mitigation:
     Transparent yield calculation
 
     Non-custodial predictable engine
+
+
+**Isolation Principle**  
+All DeFi interactions within Vlossom are strictly opt-in and isolated from core booking and escrow flows. Customer booking funds are never exposed to DeFi risk, and no booking settlement depends on liquidity pool performance.
 
 ---
 

@@ -1153,6 +1153,363 @@ This keeps AI-generated components aligned with the design system, not one-off s
 
     Later, Vlossom visual identity can be plugged in by swapping token + icon config.
 
+---
+
+# UI Components & Design System v1.2
+
+Brand-Ready, Token-Driven Interface Architecture for Vlossom.
+
+---
+
+## 1. Purpose of This Document
+
+This document defines the structural design system for the Vlossom platform.
+
+It specifies:
+
+    how UI components are composed
+
+    how visual decisions are abstracted into tokens
+
+    how brand identity can evolve independently of logic
+
+    how designers and engineers collaborate without friction
+
+This document deliberately avoids final aesthetic decisions.
+Instead, it ensures that brand identity can be injected, swapped, and refined without rewriting components or flows.
+
+It serves as the bridge between:
+
+    UX logic (Document 15)
+
+    brand identity system (in progress)
+
+    frontend implementation (React / Tailwind / CSS-in-JS)
+
+    Claude Code agent workflows
+
+---
+
+## 2. Design System Philosophy
+
+### 2.1 Separation of Concerns
+
+Vlossom’s UI system separates:
+
+    Structure → what a component is and does
+
+    Theme → how it looks and feels
+
+No component should ever depend on:
+
+    hard-coded colors
+
+    hard-coded fonts
+
+    brand-specific imagery
+
+This ensures:
+
+    brand evolution without regressions
+
+    rapid experimentation
+
+    long-term maintainability
+
+---
+
+## 3. Theme Token Architecture
+
+All brand expression lives inside theme tokens, not components.
+
+### 3.1 Theme Token Files
+
+Theme tokens are defined in versioned JSON (or TS) files:
+
+/theme
+  ├─ vlossom-default.json   (MVP neutral theme)
+  ├─ vlossom-brand-v1.json  (future brand system)
+  └─ vlossom-dark.json      (future)
+
+Switching brand identity = switching theme file.
+
+### 3.2 Core Token Categories
+
+#### Color Tokens
+
+color.background.primary
+color.background.secondary
+color.text.primary
+color.text.muted
+color.action.primary
+color.action.secondary
+color.accent
+color.border.subtle
+color.status.success
+color.status.warning
+color.status.error
+
+Components never reference hex values directly
+
+#### Typography Tokens
+
+font.family.primary
+font.family.display
+font.size.body
+font.size.label
+font.size.heading.sm
+font.size.heading.md
+font.size.heading.lg
+font.weight.regular
+font.weight.medium
+font.weight.bold
+line.height.default
+
+This allows:
+
+    serif → sans changes
+
+    editorial vs utilitarian pivots
+
+    accessibility scaling
+
+#### Spacing & Rhythm Tokens
+
+space.xs
+space.sm
+space.md
+space.lg
+space.xl
+radius.sm
+radius.md
+radius.lg
+
+Enables:
+
+    calm, breathable layouts
+
+    “growth from rest” pacing
+
+    consistent rhythm across screens
+
+#### Motion Tokens
+
+motion.fast
+motion.medium
+motion.slow
+motion.ease.standard
+motion.ease.gentle
+
+Used for:
+
+    state transitions
+
+    loading feedback
+
+    modal entrances
+
+Motion should never feel urgent.
+
+---
+
+## 4. Component Taxonomy
+
+Components are grouped by intent, not visuals.
+
+### 4.1 Primitive Components
+
+Foundational building blocks:
+
+    Button
+
+    Text
+
+    Icon
+
+    Divider
+
+    Avatar
+
+    Badge
+
+These consume tokens directly.
+
+### 4.2 Composite Components
+
+Built from primitives:
+
+    BookingCard
+
+    WalletBalanceCard
+
+    NotificationCard
+
+    ReviewItem
+
+    CalendarBlock
+
+    StatTile
+
+They define layout + behavior, not style.
+
+### 4.3 Layout Components
+
+Structural scaffolding:
+
+    PageShell
+
+    Section
+
+    Stack
+
+    Grid
+
+    Modal
+
+    Drawer
+
+Used to enforce consistency across flows.
+
+---
+
+## 5. Brand-Safe Component Rules
+
+All components must obey:
+
+No hard-coded copy (text comes from copy layer)
+
+    No embedded brand metaphors
+
+    No emotional language inside components themselves
+
+Emotion is expressed via:
+
+    copy
+
+    spacing
+
+    motion
+
+    hierarchy
+
+Not via logic.
+
+---
+
+## 6. Iconography System
+
+Icons are referenced semantically:
+
+icon.stylist
+icon.salon
+icon.wallet
+icon.booking
+icon.approval
+icon.location
+
+Actual SVG assets are resolved via the theme layer.
+
+This allows:
+
+    outline → filled swaps
+
+    illustrative → minimal transitions
+
+    cultural refinement over time
+
+---
+
+## 7. Accessibility & Calm-First Design
+
+Vlossom prioritizes emotional accessibility, not just technical compliance.
+
+Design system requirements:
+
+    minimum tap target sizes
+
+    readable contrast ratios
+
+    non-alarming color usage
+
+    no flashing or aggressive motion
+
+    clear focus states
+
+Accessibility is treated as care, not compliance.
+
+---
+
+## 8. Designer–Developer Workflow
+
+### 8.1 Designer Responsibilities
+
+    Define brand tokens
+
+    Design component variants using token references
+
+    Never “design in hex”
+
+### 8.2 Developer Responsibilities
+
+    Enforce token usage
+
+    Reject hard-coded styles
+
+    Keep components stateless where possible
+
+### 8.3 Claude Code Role
+
+Claude Code agents:
+
+    consume tokens as constants
+
+    generate components using semantic props
+
+    never invent visual styles
+
+---
+
+## 9. Future-Ready Extensions
+
+This system supports future additions without refactor:
+
+    dark mode
+
+    seasonal themes
+
+    regional themes
+
+    campaign skins
+
+    accessibility presets
+
+All via token swaps.
+
+---
+
+## 10. Summary
+
+The Vlossom UI system is:
+
+    brand-agnostic by default
+
+    emotionally intentional by design
+
+    structurally consistent
+
+    future-proof
+
+This document ensures that when the Vlossom brand identity is finalized, the product will receive it effortlessly — like water filling a well-prepared vessel.
+
+
+
+
+
+
+
+
+
+
 
 
 

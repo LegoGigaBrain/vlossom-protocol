@@ -334,6 +334,19 @@ Shows:
 
     Per-user gas quota usage
 
+Additional controls:
+
+    per-user daily gas allowance
+    per-role gas profiling (customer vs stylist vs owner)
+    emergency gas throttling
+    abuse pattern alerts (spam tx attempts)
+
+Admins can:
+
+    top up paymaster from treasury
+    pause sponsorship for specific accounts
+    globally pause gas sponsorship in emergencies
+
 ### 7.4 Onramp / Offramp Reconciliation
 
 Tracks:
@@ -359,6 +372,32 @@ Admin view includes:
     check P2P patterns
 
     enforce limits
+
+### 7.6 Global Wallet & Account Abstraction Governance
+
+Admins oversee all user wallets through a unified Account Abstraction (AA) model.
+
+Admin visibility includes:
+
+    AA wallet address (per actor)
+    linked external addresses (if any)
+    wallet role context (customer / stylist / owner / LP)
+    balance snapshots (stablecoin-denominated)
+    transaction history (bookings, P2P, LP, refunds)
+
+Admin actions:
+
+    freeze wallet (halts all outgoing actions)
+    unfreeze wallet
+    temporarily restrict actions (P2P only / booking only / LP only)
+    inspect abnormal wallet behavior (velocity, laundering patterns)
+    trigger forced refunds (via escrow, not direct wallet drain)
+
+Important invariants:
+
+    Admins cannot arbitrarily seize user funds.
+    All wallet freezes are reversible and logged.
+    Escrowed funds follow BookingEscrow rules even during wallet freezes.
 
 ---
 
@@ -559,6 +598,8 @@ Logs must be:
     exportable
 
     filterable
+
+All wallet freezes, escrow overrides, refunds, and paymaster interventions emit immutable on-chain or indexed events for auditability.
 
 ### 13.2 System Health Alerts
 

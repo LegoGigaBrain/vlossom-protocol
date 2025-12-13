@@ -542,40 +542,560 @@ Vlossom’s Pricing & Fees Model:
 
 It is the financial grammar of the entire Vlossom ecosystem.
 
+---
 
+# 10 — Pricing & Fees Model (v1.1)
 
+Transparent, Gentle, Wallet-First Pricing Architecture for the Vlossom Ecosystem
 
+---
 
+## 1. Purpose of This Document
 
+This document defines all pricing, fees, economic routes, and settlement flows in Vlossom Protocol.
 
+It answers:
 
+    How service pricing works
 
+    How add-ons influence totals
 
+    How chair fees are applied
 
+    How platform fees work
 
+    How refunds / cancellations are calculated
 
+    How tips, P2P flows, and special events are handled
 
+    How funds flow on-chain through escrow → stylist → property → treasury → LPs → smoothing buffer
 
+    How to keep pricing clear, kind, and predictable
 
+The pricing architecture must:
 
+    reflect Vlossom’s brand values (rest, clarity, dignity, no surprises)
 
+    support stylists, customers, and property owners fairly
 
+    integrate smoothly with AA wallets and stablecoin escrow
 
+    be fully compatible with future DeFi activation
 
+---
 
+## 2. Design Principles
 
+### 2.1 “No Surprise Pricing”
 
+Vlossom always shows:
 
+    a single all-inclusive total
 
+    a clean breakdown beneath
 
+    zero hidden fees
 
+    zero unexpected charges
 
+This is central to the rest-first, trust-driven brand.
 
+### 2.2 Stylist-Centered Earnings
 
+Stylists should feel:
 
+    respected
 
+    treated fairly
 
+    not exploited
 
+    empowered to price according to skill
+
+The system supports fair earnings through:
+
+    transparent fee structures
+
+    dynamic soft ranges
+
+    flexible add-on logic
+
+    chair rental clarity
+
+    no-fee tipping
+
+### 2.3 Wallet-First Payments
+
+Pricing integrates with AA wallet logic:
+
+    If wallet balance ≥ total → pay instantly → least cognitive load
+
+    If insufficient → top up gracefully
+
+    If card/Google Pay/Apple Pay → funds → stablecoin → escrow
+
+Everything must feel soft and seamless.
+
+### 2.4 Modular, Expandable, Future-Proof
+
+The pricing engine supports:
+
+    new beauty verticals (nails, makeup, etc.)
+
+    multi-day special events
+
+    travel, cross-border service routing
+
+    RWA / salon tokenization (future)
+
+    subscription models (future)
+
+---
+
+## 3. Service Pricing Model
+
+Every service cost is:
+
+Total Price = Base Price 
+            + Add-ons
+            + Travel Fee (if mobile)
+            + Chair Fee (if in property)
+            + Platform Fee
+            + Buffer Contribution (tiny percentage)
+
+### 3.1 Base Price
+
+Stylist-defined:
+
+    minimum
+
+    maximum
+
+    soft-range classification (market-informed)
+
+Soft ranges do not enforce prices — they guide fairness and UX communication:
+
+    “Gentle pricing”
+
+    “Fair market range”
+
+    “Premium specialist pricing”
+
+### 3.2 Add-Ons
+
+Add-ons include:
+
+    hair length
+
+    thickness/workload
+
+    treatments
+
+    wash
+
+    styling finishing
+
+    premium options (luxury braiding, advanced loc work, etc.)
+
+Each add-on contributes:
+
+    price delta
+
+    duration delta
+
+    The pricing engine recalculates final cost automatically.
+
+### 3.3 Travel Fee
+
+If stylist travels to customer:
+
+    Travel Fee = per-km rate OR zone-based bracket (configurable)
+
+Brand principle:
+
+    Travel fee is clear and honest — never hidden.
+
+    Travel is part of the “rest” philosophy (stylist brings ease to you).
+
+### 3.4 Chair Fee
+
+If booking happens in a property:
+
+    Chair Fee = property-defined (hourly or per booking)
+
+Chair fees are:
+
+    always shown
+
+    always included in the customer’s price
+
+    automatically routed to property owner’s wallet
+
+### 3.5 Platform Fee
+
+Two categories:
+
+    Customer Platform Fee
+
+    Soft, visible, capped.
+        
+        Supports:
+
+            gas sponsorship
+
+            infrastructure
+
+            real-time scheduling engine
+
+            support & safety
+
+Stylist Platform Fee
+
+    Percentage taken from stylist payout.
+    Kept low to avoid burdening stylists.
+
+### 3.6 Buffer Contribution
+
+Tiny percentage (0.1% – 0.5%).
+
+Goes to:
+
+    Smoothing Buffer (instant payouts)
+
+    Risk reserves for dispute resolution
+
+    Paymaster gas fund
+
+This ensures stylists ALWAYS get their money instantly, even if user’s payment is still settling.
+
+---
+
+## 4. Refund, Cancellation & Dispute Pricing Model
+
+### 4.1 Customer-Initiated Cancellation
+
+| Timing     | Refund | Notes                      |
+| ---------- | ------ | -------------------------- |
+| ≥ 24 hours | 100%   | No penalty                 |
+| 4–24 hours | 70%    | Partial penalty to stylist |
+| < 4 hours  | 0–50%  | Based on stylist policy    |
+
+### 4.2 Stylist-Initiated Cancellation
+
+Customer receives:
+
+    full refund
+
+        loyalty compensation (points)
+
+        platform credit (optional later)
+
+Stylist receives reputation penalties.
+
+### 4.3 Property-Initiated Cancellation
+
+If a property double-books or cancels: (although platform should make sure chair booking does not double book)
+
+    customer fully refunded
+
+    stylist receives partial compensation
+
+    property receives penalties
+
+### 4.4 Dispute Flow Pricing
+
+Funds remain locked until:
+
+    amicable resolution → split according to agreement
+
+    admin resolution → weighted split
+
+    timeout → platform decides based on evidence
+
+---
+
+## 5. Special Event Pricing Model
+
+Special events generate custom quotes:
+
+    weddings
+
+    photoshoots
+
+    brand campaigns
+
+    international travel
+
+Pricing parameters:
+
+    base multi-day rate
+
+    travel distance / accommodation
+
+    group sizing
+
+    urgency / special requirements
+
+    stylist tier
+
+Quote Flow:
+
+    Customer submits event request
+
+    Stylist creates custom quote
+
+    Customer reviews and accepts
+
+    Partial deposit → escrow
+
+    inal settlement after event
+
+---
+
+## 6. Tipping, P2P & Non-Booking Payments
+
+### 6.1 Tips
+
+    0,1% platform fee
+
+    0,1% property fee
+
+    100% to stylist
+
+    Encouraged but entirely optional
+
+Tips flow through:
+
+    Customer Wallet → Stylist Wallet
+
+Brand tone: tipping is gratitude, not obligation.
+
+### 6.2 P2P Payments
+
+Used for:
+
+    assistants
+
+    manual reimbursements
+
+    courtesy adjustments
+
+    informal exchanges
+
+0–minimal routing fee for sustainability.
+
+---
+
+## 7. Wallet-Centric Payment Routing
+
+When customer confirms booking:
+
+If wallet balance ≥ total:
+    → deduct balance → convert pricing → lock in escrow
+
+If insufficient:
+    → ask to “Top Up Wallet”
+    → pay difference
+    → continue booking
+
+If paying by card:
+    → card → onramp → USDC → escrow
+
+---
+
+## 8. Settlement Routing Model
+
+When stylist completes and customer confirms:
+
+Escrow → 
+   stylistShare → Stylist AA Wallet
+   propertyShare → Property AA Wallet
+   platformShare → Treasury
+   bufferContribution → Smoothing Buffer
+   optionalLPFee → Genesis Pool
+
+### 8.1 Settlement Percentages Example
+
+| Party          | Example Share                |
+| -------------- | ---------------------------- |
+| Stylist        | 85%                          |
+| Property Owner | 5–10% depending on chair fee |
+| Platform       | 7–10%                        |
+| Buffer         | 0.25%                        |
+| LP             | optional 0.5–1%              |
+
+All values configurable in VlossomConfig.
+
+---
+
+## 9. DeFi Integration (LP Yield Model)
+
+As defined in Docs 11 & 12, Vlossom activates LP pools later, but pricing supports them from day 1:
+
+Platform Fee splits support:
+
+    LP yield
+
+    smoothing buffer
+
+    liquidity engine
+
+Referrals fuel pool unlock tiering:
+
+    Top 30% → Tier 3 pools
+
+    Top 15% → Tier 2 pools
+
+    Top 5% → Pool Creators
+
+This pricing model ensures:
+
+    LP yields are stable
+
+    instant payouts are possible
+
+    risk is minimized
+
+---
+
+## 10. Brand Alignment: “Ease, Clarity, Beauty”
+
+Pricing copy, UX, and UI reflect:
+
+    softness
+
+    trust
+
+    forward clarity
+
+    emotional safety
+
+Examples:
+
+    “Everything included.”
+
+    “No surprises.”
+
+    “Your stylist earns most of this payment.”
+
+    “Your payment is safely held until your hair is done.”
+
+    “Instant payout guaranteed.”
+
+Pricing becomes a comforting moment, not a stressful one.
+
+---
+
+## 11. Notifications & Transparency Hooks
+
+Whenever price changes or fees apply:
+
+    Notifications show why
+
+    Explanations always match brand tone
+
+    Users understand exactly what they are paying
+
+For stylists:
+
+    “Your payout for this booking will be R___.”
+
+For customers:
+
+    “Here’s your all-inclusive price, no surprises.”
+
+---
+
+## 12. Smart Contract Touchpoints
+
+From BookingEscrow:
+
+    lockFunds
+
+    releaseFunds
+
+    refund
+
+    dispute
+
+From Config:
+
+    fee percentages
+
+    buffer percentage
+
+    LP yield routing
+
+From PropertyRegistry:
+
+    chair pricing
+
+    approval logic
+
+From ReferralRegistry:
+
+    LP tier unlock impacts fee routing
+
+---
+
+## 13. Summary
+
+This Pricing & Fees Model:
+
+    aligns with brand philosophy (rest, clarity, fairness)
+
+    ensures stylists earn well
+
+    ensures properties earn fairly
+
+    keeps customer pricing predictable
+
+    integrates smoothly with wallet-first UX
+
+    plugs seamlessly into DeFi architecture
+
+    supports future expansion into beauty verticals, subscriptions, and RWAs
+
+It is now fully consistent with all updated documents:
+05, 06, 07, 09, 11, 12, 13, 15, 17, 22.
+
+---
+
+## Δ — DELTA LOG (v1.0 → v1.1)
+
+### Added
+
+    wallet-first pricing logic
+
+    soft-range price intelligence
+
+    smoothing buffer contributions
+
+    DeFi LP fee split routing
+
+    refund table and brand-aligned cancellation rules
+
+    special event pricing
+
+    tipping and P2P pricing model
+
+    brand voice aligned transparency rules
+
+    instant payout economics
+
+### Modified
+
+    simplified fee display
+
+    platform fee split clarified
+
+    improved settlement routing
+
+### Removed
+
+    any volatile token pricing
+
+    any incentive structures that could burden stylists
 
 
 

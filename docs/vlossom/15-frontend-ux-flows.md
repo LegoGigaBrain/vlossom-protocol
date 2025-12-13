@@ -176,6 +176,29 @@ The UX adapts based on enabled profiles, but all roles share:
 
     one reputation spine
 
+### 2.9 Brand Experience Principles (Vlossom)
+
+The Vlossom experience is designed to feel like a sanctuary — calm, reassuring, and intentional.
+
+All user interactions should reflect the following principles:
+
+Growth from rest
+    The interface never rushes the user. Time, availability, and progress are framed gently, without urgency loops or pressure mechanics.
+
+Care before transaction
+    Every booking, payment, or approval should feel guided and supportive, not mechanical or extractive.
+
+Soft confidence
+    The system communicates certainty and trust without dominance or command-style language.
+
+Predictability and safety
+    Money, bookings, and reputation states are always clearly explained. Nothing feels hidden or ambiguous.
+
+Dignified progress
+    Rewards, referrals, and reputation are framed as natural growth — not grinding, competition, or gamification.
+
+This philosophy applies across all roles: customers, stylists, property owners, and liquidity participants.
+
 ---
 
 ## 3. Global Navigation & Layout
@@ -216,6 +239,20 @@ The Notifications tab surfaces a unified feed of booking, payout, DeFi, and soci
 ## 4. Global Wallet Hub UX
 
 All actors share the same wallet architecture with different context surfaces.
+
+### Emotional Safety Layer — Wallet Experience
+
+Although the wallet is powered by on-chain infrastructure and smart contracts, the experience must feel as familiar and reassuring as a trusted banking app.
+
+Users should feel that:
+
+    their money is safe
+
+    nothing happens without their awareness
+
+    the system is working with them, not against them
+
+Crypto-native complexity remains hidden by default, revealed only by choice (Advanced Mode).
 
 ### 4.1 Wallet Tab Structure
 
@@ -1240,402 +1277,281 @@ From Profile → Settings:
 
 ## 12. Cross-Cutting Flows
 
-### 12.1 Notifications UX
+### 2.1 Notifications UX 
 
-Vlossom uses a dedicated Notifications tab in the bottom nav as well as inline toasts/banners.
+Vlossom uses a dedicated Notifications tab in the global navigation, supported by contextual inline notifications (toasts / banners).
 
-Notifications Tab (Global Inbox)
+Notifications are event-driven, state-aware, and actionable.
+They never exist purely “for information” — every notification resolves to a clear next step.
 
-Central feed for:
+### Emotional Tone for Notifications
+
+Notifications should feel like gentle check-ins, not system alerts.
+
+Wherever possible, notification copy should:
+
+    acknowledge the user’s presence
+
+    explain what’s happening in plain language
+
+    suggest the next step without urgency
+
+Tone guidelines:
+
+    Prefer reassurance over warning
+
+    refer explanation over instruction
+
+    Prefer invitation over command
+
+Example framing (guidance only):
+
+    Instead of: “Action required”
+    Use: “When you’re ready, you can…”
+
+    Instead of: “Approval pending”
+    Use: “Your request is being reviewed”
+
+#### 12.1.1 Notifications Tab (Global Inbox)
+
+The Notifications tab acts as the single source of truth for all system events across roles.
+
+It aggregates notifications for:
+
     booking requests & approvals
 
-    booking reminders and status changes
+    booking reminders & status changes
 
-    payout confirmations and wallet events
+    wallet events (payments, payouts, refunds)
 
-    LP yield and pool unlock updates
+    LP yield updates & pool unlocks
 
     referral milestones
 
     new reviews
 
-    new posts / announcements from followed stylists and salons
+    posts / announcements from followed stylists or salons
 
-    chair availability updates and special event responses
+    chair availability updates
 
-Each notification appears as a card with:
-    actor avatar + role (Customer / Stylist / Owner / Vlossom)
+    special event responses
 
-    short title + description
+Notifications are grouped by date (Today / Yesterday / Earlier).
 
-    timestamp
+Unread notifications are visually distinct and cleared on interaction.
 
-    status (unread / read)
+##### 12.1.2 Notification Card Pattern (Reusable Component)
 
-    deep link: CTA (e.g. “View booking”, “Open wallet”, “Respond to event request”).
-
-Inline notifications:
-
-Still appear in context for:
-
-    payment success/failure
-
-    booking creation or updates
-
-    sensitive actions (withdrawals, onramp errors)
-
-Tapping an inline toast can also route to the Notifications tab → specific item.
-
-#### 12.1.1 Notification Card Patterns
-
-Notifications in Vlossom are displayed as consistent, reusable card components.
-They appear primarily in the Notifications tab, but compact variants may surface inline within booking, wallet, or profile screens when contextually relevant.
+All notifications are rendered as cards with a consistent structure.
 
 Each notification card contains:
 
-    Actor avatar or system icon
+    Header
 
-    Title (high-signal summary)
+        Actor avatar or system icon
 
-    Body text (1–2 lines of context)
+        Actor label + role
 
-    Meta row:
+            e.g. Stylist • Ivy Mokoena
 
-        timestamp
+            or Vlossom System
 
-        status chip (New, Pending, Action Required, Completed)
+    Body
 
-    Primary Call-to-Action (e.g., “View booking”, “Respond”, “Open wallet”)
+        Title — short, high-signal text
 
-    Optional Secondary Action (e.g., “Message”, “View profile”)
+        Description — 1–2 lines of contextual detail
 
-Cards are grouped by date within the Notifications tab.
+    Meta Row
 
-Below are defined notification patterns per actor and event type.
+        Timestamp
 
-##### 12.1.1.A — Customer Notification Patterns
+        Status chip:
+
+            New
+
+            Pending
+
+            Action Required
+
+            Completed
+
+Primary CTA
+
+    Deep-link action (e.g. View booking, Approve request, Open wallet)
+
+Optional Secondary CTA
+
+    e.g. Message, View profile, Respond
+
+This card pattern is reused across:
+
+    Notifications tab
+
+    Booking detail screens (compact version)
+
+    Dashboard alerts (stylist / owner)
+
+##### 12.1.3 Customer-Facing Notification Examples
 
 Type A — Booking Approved
 
-    Trigger:
+Trigger
+Stylist approves booking.
 
-        Stylist accepts customer’s booking.
+Card
 
-    Card:
+    Title: Booking confirmed with [Stylist Name]
 
-        Title: Booking confirmed with [Stylist Name]
+    Body: [Service] on [Date, Time] at [Location]
 
-        Body: [Service] on [Date, Time] at [Location].
+    Meta: Just now • Confirmed
 
-        Meta: Just now • Confirmed
-
-        CTA: View booking
+    CTA: View booking
 
 Type B — Booking Declined
 
-    Trigger:
+Trigger
+Stylist declines or booking times out.
 
-        Stylist declines or approval times out.
+Card
 
-    Card:
+    Title: Booking request declined
 
-        Title: Booking declined by [Stylist Name]
+    Body: Your request with [Stylist Name] was not accepted.
 
-        Body: Your payment has been returned to your Vlossom wallet.
+    Meta: 2 min ago • Completed
 
-        Meta: Refunded
+    CTA: View alternatives
 
-        CTA: Find another stylist
+Type C — Action Required (Payment / Approval)
 
-Type C — Upcoming Appointment Reminder
+Trigger
+Dual-approval flow or wallet top-up required.
 
-    Trigger:
+Card
 
-        T-24h / T-2h before appointment.
+    Title: Action needed to secure your booking
 
-    Card:
+    Body: Approve payment or wait for property confirmation.
 
-        Title: Reminder: [Service] tomorrow at [Time]
+    Meta: Now • Action Required
 
-        Body: With [Stylist Name] at [Location].
+    CTA: Complete booking
 
-        Meta: Scheduled
+##### 12.1.4 Stylist-Facing Notification Examples
 
-        CTA: View details
+Type D — New Booking Request
 
-Type D — Service Completed → Review Prompt
+Trigger
+Customer submits booking request.
 
-    Trigger:
+Card
 
-        Stylist marks appointment complete.
+    Title: New booking request
 
-    Card:
+    Body: [Service] • [Date, Time] • [Location type]
 
-        Title: How was your appointment?
+    Meta: New • Pending
 
-        Body: Rate your stylist and, if applicable, the salon.
+    CTA: Review request
 
-        Meta: Awaiting review
+Type E — Upcoming Appointment Reminder
 
-        CTA: Leave a review
+Trigger
+Time-based system reminder.
 
-Type E — Wallet Events
+Card
 
-    Includes:
+    Title: Upcoming appointment in 1 hour
 
-        Onramp success
+    Body: [Customer Name] • [Service]
 
-        Offramp success
+    Meta: Reminder
 
-        P2P received
+    CTA: View booking
+
+##### 12.1.5 Property Owner-Facing Notification Examples
+
+Type F — Chair Booking Approval Required
+
+Trigger
+Stylist selects salon with approval enabled.
+
+Card
+
+    Title: Chair booking approval needed
+
+    Body: [Stylist Name] requests a chair on [Date]
+
+    Meta: Pending • Action Required
+
+    CTA: Review request
+
+##### 12.1.6 Wallet & Financial Notifications
+
+Financial events always route to the Wallet.
 
 Examples:
 
-    Onramp success
+    Payment successful
 
-        Title: Wallet topped up
+    Payout received
 
-        Body: R [amount] added to your Vlossom wallet.
+    Refund processed
 
-        CTA: View wallet
+    LP yield credited
 
-    P2P received
+    Card CTA: Open wallet
 
-        Title: You received R [amount] from @[username]
+##### 12.1.7 Inline Notifications (Contextual)
 
-        Body: “[Optional note]”
+Inline notifications appear as lightweight toasts or banners for:
 
-        CTA: View wallet
+    payment success / failure
 
-##### 12.1.1.B — Stylist Notification Patterns
+    booking state changes
 
-Type F — New Booking Request
+    sensitive actions (withdrawals, cancellations)
 
-    Trigger:
+Tapping an inline notification routes the user to:
+Notifications tab → highlighted card
 
-        Customer initiates booking pending stylist approval.
+##### 12.1.8 Notification Preferences (UX Rule)
 
-    Card:
+From Profile → Settings → Notifications, users can:
 
-        Title: New booking request from [Customer Name]
+toggle categories:
 
-        Body: [Service] on [Date, Time] at [Location].
+    bookings
 
-        Meta: Action required
+    wallet
 
-        CTA: Review & respond
+    reviews
 
-Type G — Special Event Proposal
+    LP & rewards
 
-    Trigger:
+    social updates
 
-        Customer submits special event brief.
+choose push vs in-app only
 
-    Card:
+mute specific stylists or salons (future)
 
-        Title: New special event request
+Critical system notifications (payments, disputes) cannot be disabled.
 
-        Body: [Event type] in [Location] on [Dates].
+##### 12.1.9 Design & Engineering Note
 
-        Meta: Special request
+Notifications are event-driven, not poll-driven.
 
-        CTA: Open proposal
+Backend emits events → indexer → notification service.
 
-Type H — Schedule Conflict Warning
+UI treats all notifications as:
 
-    Trigger:
+    immutable records
 
-        New request overlaps or blocks travel time.
+    rendered from shared card components
 
-    Card:
-
-        Title: Potential schedule conflict
-
-        Body: This request overlaps with an existing booking.
-
-        Meta: Warning
-
-        CTA: Review schedule
-
-Type I — Stylist Payout Received
-
-    Trigger:
-
-        Escrow releases after booking completion.
-
-    Card:
-
-        Title: Payout received
-
-        Body: R [amount] added to your Vlossom wallet.
-
-        CTA: View wallet
-
-Type J — New Review
-
-    Trigger:
-
-        Customer submits review.
-
-    Card:
-
-        Title: New review from [Customer Name]
-
-        Body: “[Short excerpt/preview]”
-
-        CTA: View review
-
-##### 12.1.1.C — Property Owner Notification Patterns
-
-Type K — Chair Booking Approval Needed
-
-    Trigger:
-
-        Booking requires property owner approval (based on rules).
-
-    Card:
-
-        Title: Approval needed for chair booking
-
-        Body: [Stylist Name] requests [Chair X] on [Date, Time].
-
-        Meta: Action required
-
-        CTA: Approve or decline
-
-Type L — Chair Rental Confirmed
-
-    Trigger:
-
-        Stylist books a chair for a time window.
-
-    Card:
-
-        Title: Chair rental confirmed
-
-        Body: [Stylist Name] booked [Chair X] from [Date range].
-
-        CTA: View schedule
-
-Type M — Property Owner Payout
-
-    Trigger:
-
-        Chair fee or booking split settles.
-
-    Card:
-
-        Title: Salon earnings received
-
-        Body: R [amount] added to your Vlossom wallet.
-
-        CTA: View wallet
-
-Type N — New Salon Review
-
-    Trigger:
-
-        Customer reviews salon property.
-
-    Card:
-
-        Title: New salon review from [Customer Name]
-
-        Body: “[Short excerpt/preview]”
-
-        CTA: View review
-
-##### 12.1.1.D — LP / Referrer Notification Patterns
-
-Type O — LP Yield / Pool Updates
-
-    Trigger:
-
-        Yield distribution or APR change.
-
-    Card:
-
-        Title: Yield update for [Pool Name]
-
-        Body: You earned R [amount].
-
-        CTA: Open DeFi
-
-Type P — Referral Milestones
-
-    Triggers include:
-
-        New referral
-
-        Tier upgrade
-
-    Examples:
-
-        New referral:
-
-            Title: New referral joined
-
-            Body: @[username] used your link.
-
-            CTA: View referrals
-
-    Tier upgrade:
-
-        Title: You reached Top [X]%
-
-        Body: You unlocked [Tier N] pools.
-
-        CTA: Browse pools
-
-Type Q — Pool Creation Rights Unlocked
-
-    Trigger:
-
-        User reaches required percentile.
-
-    Card:
-
-        Title: You can now create a liquidity pool
-
-        Body: As a Top [X]% referrer, you’ve unlocked pool creation rights.
-
-        CTA: Create pool
-
-##### 12.1.1.E — System & Security Notifications
-
-Type R — Security Events
-
-    Examples:
-
-        New device login
-
-    Title: New sign-in detected
-
-        Body: Your account was accessed from a new device.
-
-        CTA: Review security
-
-    Temporary wallet hold
-
-        Title: Wallet under review
-
-        Body: Some activity is being reviewed. Your funds are safe.
-
-        CTA: Contact support
-
-Type S — Product Announcements
-
-    Trigger:
-
-        New features or policy updates.
-
-    Card:
-
-        Title: New feature: Special Events
-
-        Body: You can now request multi-day event stylists.
-
-        CTA: Learn more
+Delivery may be async, but UX must feel immediate and calm.
 
 ### 12.2 Booking Card States
 
@@ -1753,7 +1669,21 @@ For Claude Code:
 
         DeFi & rewards hooks
 
-This document is now the canonical front-end UX map for the Vlossom ecosystem and should stay tightly aligned with:
+### Brand-Aligned Microcopy Patterns (Guidance)
+
+This section provides illustrative examples, not hard rules. It exists to guide tone across UI, notifications, and flows.
+
+| Functional Moment    | Preferred Tone                                               |
+| -------------------- | ------------------------------------------------------------ |
+| Booking confirmation | “You’re all set 🌸”                                          |
+| Awaiting approval    | “Your stylist is reviewing your request”                     |
+| Payment held         | “Your payment is safely held until your service is complete” |
+| Completion           | “Your session is complete — how was your experience?”        |
+| Cancellation         | “This booking has been gently released”                      |
+
+Avoid language that feels abrupt, punitive, or transactional.
+
+### This document is now the canonical front-end UX map for the Vlossom ecosystem and should stay tightly aligned with:
 
 10-pricing-and-fees-model.md
 
@@ -1766,3 +1696,5 @@ This document is now the canonical front-end UX map for the Vlossom ecosystem an
 17-stylist-schedule-simulation.md
 
 18-travel-and-cross-border-bookings.md
+
+The Vlossom frontend is not only a functional system — it is an emotional environment designed to support ease, trust, and growth over time.

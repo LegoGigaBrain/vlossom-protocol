@@ -904,37 +904,890 @@ Carefully design foreign key cascade behaviour:
 This schema is the current v1 foundation.
 Future iterations can expand it, but all major concepts we’ve discussed (multi-sided marketplace, chair rentals, travel, special events, reputation, liquidity) have a clear home here.
 
+---
 
+# 06 — Database Schema (v1.1)
 
+Relational Data Model for Vlossom Platform, Wallet, and Reputation
 
+---
 
+## 1. Purpose of This Document
 
+This document defines the relational database schema for the Vlossom platform.
 
+It is used by:
 
+  Backend engineers (service implementation, APIs)
 
+  Data engineers / analytics (reporting, dashboards)
 
+  Claude Code agents (when generating backend / indexer code)
 
+  Product & UX (understanding what is persistently stored)
 
+This v1.1 version extends the original schema with:
 
+  Global wallet support fields & history
 
+  Social link storage for profiles
 
+  External wallet address mapping
 
+  Onramp / off-ramp audit history
 
+It does not change file names or overall numbering in the docs set.
 
+---
 
+## 2. Design Principles
 
+### Single human, multiple roles
+One user record can act as customer, stylist, property owner, LP, or any combination.
 
+### Global wallet per user
+Each human has one primary Vlossom wallet (AA-based on-chain), with balances and history.
 
+### Immutable booking history
+Bookings, financial records, and reviews are append-only; updates are done via new rows, not overwrites where possible.
 
+### On-chain is source of truth for funds, DB for UX
+Stablecoin balances and escrow are enforced by contracts; database mirrors them for fast queries and UX.
 
+### Brand & context friendly
+Room for hair-type profiles, preferences, and narrative fields without compromising structure.
 
+---
 
+## 3. High-Level Entity Map
 
+Core domains:
 
+  Users & Roles
 
+    users
 
+    user_roles
 
+    user_profiles (optional extra fields / preferences)
 
+  Wallet & Money
+
+    wallets
+
+    wallet_balances
+
+    payment_transactions
+
+    topup_history (NEW v1.1)
+
+    withdraw_history (NEW v1.1)
+
+    external_addresses (NEW v1.1)
+
+  Properties, Chairs, and Spaces
+
+    properties
+
+    chairs
+
+    property_rules
+
+    Amenities
+
+  Bookings & Services
+
+    services
+
+    service_addons
+
+    booking_requests
+
+    booking_items
+
+    booking_status_history
+
+  Reputation, Reviews & Rewards
+
+    reviews
+
+    reputation_snapshots
+
+    reward_points
+
+    referrals
+
+  Social & Following
+
+    social_links (NEW v1.1)
+
+    user_follows
+
+  DeFi / Liquidity (DB reflection of on-chain)
+
+    liquidity_pools
+
+    liquidity_positions
+
+    pool_yield_snapshots
+
+  System & Admin
+
+    config
+
+    audit_logs
+
+Below is the table-level breakdown.
+
+---
+
+## 4. Users & Roles
+
+### 4.1 users
+
+Canonical record for each human.
+
+Columns (key ones):
+
+  id (PK, UUID)
+
+  created_at, updated_at
+
+  email (nullable if phone-only)
+
+  phone (nullable if email-only)
+
+  password_hash (if using local auth; nullable if social-only)
+
+  auth_provider (enum: password, google, apple, phone, wallet)
+
+  status (enum: active, suspended, deleted)
+
+  display_name
+
+  avatar_url
+
+  country_code
+
+  city
+
+  primary_language (e.g. en, xho, etc.)
+
+  wallet_id (FK → wallets.id)
+
+  wallet_preference_currency (NEW v1.1)
+
+    enum: ZAR, NGN, USD, EUR, etc.
+
+    Used to display balances & prices in preferred fiat.
+
+  hair_profile_json (JSON; hair type, porosity, goals – supporting “growth from rest” journeys)
+
+  bio (short text)
+
+## 4.2 user_roles
+
+Allows one person to have multiple roles.
+
+Columns:
+
+  id (PK)
+
+  user_id (FK → users.id)
+
+  role (enum: customer, stylist, property_owner, lp, admin)
+
+  created_at
+
+## 4.3 user_profiles (optional enrichment)
+
+Additional, slower-changing preferences.
+
+Columns:
+
+  id (PK)
+
+  user_id (FK → users.id)
+
+  notifications_enabled (bool)
+
+  marketing_opt_in (bool)
+
+  preferred_booking_radius_km (int)
+
+  preferred_service_categories (JSON array of service IDs)
+
+  time_zone (string)
+
+  extra_preferences_json (JSON)
+
+---
+
+## 5. Wallet & Money
+
+### 5.1 wallets
+
+Each human has one Vlossom wallet (AA on-chain account).
+
+Columns:
+
+  id (PK, UUID)
+
+  user_id (FK → users.id, unique)
+
+  onchain_address (string)
+
+  chain_id (int, EVM chain ID)
+
+  status (enum: active, frozen, closed)
+
+  created_at, updated_at
+
+### 5.2 wallet_balances
+
+Denormalized snapshot for quick display; on-chain is source of truth.
+
+Columns:
+
+id (PK)
+
+  wallet_id (FK → wallets.id)
+
+  token_symbol (e.g. USDC, USDT, VLPTOKEN)
+
+  token_contract_address
+
+  balance (decimal)
+
+  last_synced_at (timestamp)
+
+### 5.3 payment_transactions
+
+Generic ledger of money movements related to bookings, chair rentals, LP, and P2P.
+
+Columns:
+
+  id (PK, UUID)
+
+  created_at
+
+  wallet_id (FK → wallets.id)
+
+  counterparty_wallet_id (nullable, FK)
+
+  booking_id (nullable, FK → booking_requests.id)
+
+  property_id (nullable, FK)
+
+  pool_id (nullable, FK → liquidity_pools.id)
+
+  type (enum:
+
+    booking_payment
+
+    booking_payout
+
+    chair_rental_payment
+
+    chair_rental_payout
+
+    lp_deposit
+
+    lp_withdrawal
+
+    p2p_send
+
+    p2p_receive
+
+    reward_credit
+
+    refund
+    )
+
+  direction (enum: debit, credit)
+
+  amount_token (decimal)
+
+  token_symbol
+
+  amount_fiat (decimal, nullable; for reporting)
+
+  fiat_currency (nullable)
+
+  tx_hash (nullable)
+
+  status (enum: pending, confirmed, failed)
+
+### 5.4 topup_history (NEW v1.1)
+
+Audit log of onramp operations (fiat → stablecoin).
+
+Columns:
+
+  id (PK, UUID)
+
+  created_at, updated_at
+
+  wallet_id (FK → wallets.id)
+
+  user_id (FK → users.id)
+
+  provider (string: ramp_network, moonpay, local_bank_partner, etc.)
+
+  provider_reference (string)
+
+  amount_fiat (decimal)
+
+  fiat_currency (string)
+
+  amount_token (decimal)
+
+  token_symbol (string, e.g. USDC)
+
+  status (enum: pending, completed, failed, refunded)
+
+  error_code (nullable, string)
+
+  metadata_json (JSON; device, region, etc.)
+
+### 5.5 withdraw_history (NEW v1.1)
+
+Audit log of offramp operations (stablecoin → fiat).
+
+Columns:
+
+  id (PK, UUID)
+
+  created_at, updated_at
+
+  wallet_id (FK → wallets.id)
+
+  user_id (FK → users.id)
+
+  provider (string)
+
+  provider_reference (string)
+
+  amount_token (decimal)
+
+  token_symbol (string)
+
+  amount_fiat (decimal)
+
+  fiat_currency (string)
+
+  status (enum: pending, completed, failed, refunded)
+
+  error_code (nullable)
+
+  metadata_json (JSON)
+
+### 5.6 external_addresses (NEW v1.1)
+
+Linked external wallets (for “sign in with wallet” and advanced Web3 flows).
+
+Columns:
+
+  id (PK, UUID)
+
+  user_id (FK → users.id)
+
+  chain_id (int)
+
+  address (string)
+
+  label (string; e.g. MetaMask, Ledger, Abstract Global Wallet)
+
+  is_primary (bool)
+
+  created_at, updated_at
+
+---
+
+## 6. Properties, Chairs & Rules
+
+### 6.1 properties
+
+Registered salons / spaces.
+
+Columns:
+
+  id (PK, UUID)
+
+  owner_user_id (FK → users.id)
+
+  name
+
+  description
+
+  country_code
+
+  city
+
+  address_line_1, address_line_2
+
+  latitude, longitude
+
+  photos_json (array of URLs)
+
+  amenities_json (JSON of amenity flags)
+
+  status (enum: active, inactive, pending_review)
+
+  created_at, updated_at
+
+### 6.2 chairs
+
+Individual rentable seats.
+
+Columns:
+
+  id (PK, UUID)
+
+  property_id (FK → properties.id)
+
+  name (e.g. “Braids Chair 1”)
+
+  type (enum: braids, locs, wash_basin, barber, etc.)
+
+  amenities_json (JSON, chair-specific)
+
+  base_rate_hourly (decimal)
+
+  base_rate_daily (decimal)
+
+  base_rate_weekly (decimal)
+
+  base_rate_monthly (decimal)
+
+  soft_range_band (enum: budget, average, premium)
+
+  status (enum: active, inactive)
+
+  created_at, updated_at
+
+### 6.3 property_rules
+
+Config for approvals & blocklists.
+
+Columns:
+
+  id (PK)
+
+  property_id (FK → properties.id, unique)
+
+  requires_owner_approval (bool)
+
+  auto_approve_min_reputation (int)
+
+  auto_approve_min_tps (int)
+
+  blocked_stylists (JSON of user_ids)
+
+  allowed_stylists (JSON of user_ids, optional)
+
+  special_events_allowed (bool)
+
+  created_at, updated_at
+
+---
+
+## 7. Services, Add-ons & Bookings
+
+### 7.1 services
+
+Canonical catalog of service types.
+
+Columns:
+
+  id (PK)
+
+  category (e.g. braids, locs, natural_care, wig_installs, male_grooming, special_events)
+
+  name
+
+  description
+
+  base_duration_minutes
+
+  base_price_hint (optional)
+
+  active (bool)
+
+  metadata_json (JSON)
+
+### 7.2 service_addons
+
+Modular add-ons like wash, treatments, extra length, male grooming modules, etc.
+
+Columns:
+
+  id (PK)
+
+  service_id (FK → services.id, nullable if global)
+
+  name
+
+  description
+
+  duration_delta_minutes
+
+  price_delta_type (enum: flat, percentage, tiered)
+
+  price_delta_value (decimal or JSON, depending on type)
+
+  active (bool)
+
+  metadata_json (JSON: e.g. hair length, thickness tiers)
+
+(This is where male grooming combinations can be built as modular sets.)
+
+### 7.3 booking_requests
+
+Top-level booking record.
+
+Columns:
+
+  id (PK, UUID)
+
+  created_at, updated_at
+
+  customer_user_id (FK → users.id)
+
+  stylist_user_id (FK → users.id)
+
+  property_id (nullable, FK → properties.id)
+
+  chair_id (nullable, FK → chairs.id)
+
+  service_date (date)
+
+  start_time (timestamp)
+
+  end_time_estimated (timestamp)
+
+  location_type (enum: customer_location, stylist_base, property)
+
+  total_price_token (decimal)
+
+  token_symbol
+
+  total_price_fiat (decimal)
+
+  fiat_currency
+
+  pricing_band (enum: budget, average, premium)
+
+  requires_property_approval (bool)
+
+  special_event_flag (bool)
+
+  travel_flag (enum: none, domestic, international)
+
+  status (enum: draft, pending_payment, pending_approvals, confirmed, in_progress, awaiting_confirmation, completed, cancelled, disputed)
+
+  onchain_booking_id (string/hash, nullable until created)
+
+  notes_for_stylist (text)
+
+  notes_internal (text)
+
+### 7.4 booking_items
+
+Line items for services & add-ons within a booking.
+
+Columns:
+
+  id (PK)
+
+  booking_id (FK → booking_requests.id)
+
+  service_id (FK → services.id)
+
+  addon_ids_json (array of addon IDs)
+
+  duration_minutes
+
+  rice_token (decimal)
+
+  price_fiat (decimal)
+
+  metadata_json (JSON)
+
+### 7.5 booking_status_history
+
+Tracks how a booking moved through states.
+
+Columns:
+
+  id (PK)
+
+  booking_id (FK)
+
+  old_status (enum)
+
+  new_status (enum)
+
+  changed_by_user_id (FK → users.id, nullable if system)
+
+  changed_at
+
+  reason (text, optional)
+
+---
+
+## 8. Reputation, Reviews & Rewards
+8.1 reviews
+
+Detailed, human-readable reviews.
+
+Columns:
+
+  id (PK, UUID)
+
+  booking_id (FK → booking_requests.id)
+
+  reviewer_user_id (FK → users.id)
+
+  reviewed_user_id (FK → users.id) // stylist, customer, or owner
+
+  reviewed_role (enum: stylist, customer, property_owner)
+
+  rating (int, 1–5)
+
+  comment (text)
+
+  created_at
+
+### 8.2 reputation_snapshots
+
+Aggregate scores.
+
+Columns:
+
+  id (PK)
+
+  user_id (FK → users.id)
+
+  role (enum: stylist, customer, property_owner)
+
+  total_bookings_completed (int)
+
+  total_cancellations (int)
+
+  no_show_count (int)
+
+  average_rating (decimal)
+
+  tps_score (decimal) // time performance
+
+  dispute_count (int)
+
+  last_updated_at
+
+### 8.3 reward_points
+
+Simple points tracking (non-transferable).
+
+Columns:
+
+  id (PK)
+
+  user_id (FK → users.id)
+
+  role (enum: customer, stylist, property_owner, referrer)
+
+  points_balance (int)
+
+  lifetime_points (int)
+
+  tier (enum: none, bronze, silver, gold, platinum)
+
+  last_earned_at
+
+### 8.4 referrals
+
+Who brought whom into the garden.
+
+Columns:
+
+  id (PK)
+
+  referrer_user_id (FK → users.id)
+
+  referred_user_id (FK → users.id)
+
+  referred_role (enum)
+
+  created_at
+
+  attributed_volume_token (decimal)
+
+  attributed_bookings_count (int)
+
+---
+
+## 9. Social & Following
+
+### 9.1 social_links (NEW v1.1)
+
+External social accounts attached to a profile.
+
+Columns:
+
+  id (PK, UUID)
+
+  user_id (FK → users.id)
+
+  platform (enum: instagram, tiktok, x, youtube, whatsapp, other)
+
+  handle (string)
+
+  url (string)
+
+  is_public (bool)
+
+  is_verified (bool)
+
+  created_at, updated_at
+
+### 9.2 user_follows
+
+Basic follower graph for “follow stylist / follow salon”.
+
+Columns:
+
+  id (PK)
+
+  follower_user_id (FK → users.id)
+
+  followed_user_id (FK → users.id)
+
+  created_at
+
+Unique index on (follower_user_id, followed_user_id).
+
+---
+
+## 10. DeFi / Liquidity (DB Reflection)
+
+On-chain contracts are source of truth; DB is a mirror for analytics and UX.
+
+### 10.1 liquidity_pools
+
+Columns:
+
+  id (PK)
+
+  onchain_pool_address
+
+  name
+
+  type (enum: genesis, community)
+
+  creator_user_id (FK → users.id, nullable for genesis)
+
+  status (enum: active, frozen, closed)
+
+  chain_id
+
+  created_at, updated_at
+
+### 10.2 liquidity_positions
+
+Columns:
+
+  id (PK, UUID)
+
+  pool_id (FK → liquidity_pools.id)
+
+  user_id (FK → users.id)
+
+  shares (decimal)
+
+  amount_deposited_token (decimal)
+
+  amount_withdrawn_token (decimal)
+
+  last_updated_at
+
+### 10.3 pool_yield_snapshots
+
+Columns:
+
+  id (PK)
+
+  pool_id (FK)
+
+  timestamp
+
+  tvl_token (decimal)
+
+  estimated_apr (decimal)
+
+  metadata_json (JSON)
+
+---
+
+## 11. System & Admin
+
+### 11.1 config
+
+Key/value store for environment-level settings.
+
+Columns:
+
+  key (PK)
+
+  value (string or JSON)
+
+  updated_at
+
+### 11.2 audit_logs
+
+Tracks sensitive changes and admin activities.
+
+Columns:
+
+  id (PK)
+
+  created_at
+
+  actor_user_id (FK → users.id, nullable if system)
+
+  action (string)
+
+  entity_type (string)
+
+  entity_id (string)
+
+  details_json (JSON)
+
+---
+
+## 12. What Changed in v1.1 (Quick Diff View)
+
+To make your life easier when updating the existing file:
+
+New columns:
+
+  users.wallet_preference_currency
+
+New tables:
+
+  topup_history
+
+  withdraw_history
+
+  external_addresses
+
+  social_links
+
+  user_follows
+
+Light narrative alignment:
+
+A few fields (hair_profile_json, referrals/roles) support the “growth from rest” and relationship-centric brand philosophy, without changing any technical contract.
 
 
 

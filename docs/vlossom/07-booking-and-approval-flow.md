@@ -704,11 +704,609 @@ Implementation note:
 
 This document is the source of truth for how time, money, and trust move through a booking’s life in Vlossom.
 
+---
 
+# 07 — Booking & Approval Flow (v1.1)
 
+End-to-end booking lifecycle with AA wallet logic, gasless UX, property rules, TPS integration, refunds, and multi-actor state machines.
 
+---
 
+## 1. Purpose of This Document
 
+This document defines the complete on-chain + off-chain hybrid booking lifecycle for the Vlossom Platform, now updated for:
+
+    AA wallet–first payments
+
+    Gasless user operations (Paymaster-sponsored)
+
+    Dual-layer approvals (Stylist + Property)
+
+    TPS (Time Performance Score) logging
+
+    Wallet-based refunds
+
+    Special event booking flow
+
+    Real-time notifications
+
+    P2P tipping
+
+    Unified global wallet UX
+
+This ensures that all booking transitions are deterministic, audit-ready, and aligned with:
+
+    Document 05 (System Architecture Blueprint)
+
+    Document 06 (Database Schema)
+
+    Document 13 (Smart Contract Architecture v2)
+
+    Document 15 (Frontend UX Flows v1.1)
+
+---
+
+## 2. Core Booking Principles
+
+### 2.1 Wallet-first Funding
+
+    All bookings pull from AA wallet → escrow.
+
+    If balance is insufficient → inline top-up → resume booking.
+
+### 2.2 Gasless UX
+
+Every user call is a UserOp sponsored by Vlossom Paymaster:
+
+| Actor Action       | Gas Paid By |
+| ------------------ | ----------- |
+| Create booking     | Paymaster   |
+| Stylist approval   | Paymaster   |
+| Property approval  | Paymaster   |
+| Start + completion | Paymaster   |
+| Customer confirm   | Paymaster   |
+| Cancel / dispute   | Paymaster   |
+
+Users never see gas, chains, addresses, or signatures.
+
+### 2.3 Mandatory Stylist Approval
+
+    Stylist approval is always required.
+
+### 2.4 Conditional Property Approval
+
+Based on property rules:
+
+    auto-approve allowed stylists
+
+    require approval for new stylists
+
+    blocklist enforcement
+
+    TPS minimum threshold
+
+    amenity compatibility
+
+### 2.5 Immutable Pricing Once Booking Is Created
+
+Price breakdown cannot change after creation:
+
+    service price
+
+    add-ons
+
+    travel
+
+    chair fee
+
+    platform fee
+
+Cancellation modifies how funds are distributed — not the base price.
+
+### 2.6 Booking State Machine (Canonical)
+
+Draft → PendingPayment → PendingStylistApproval → PendingPropertyApproval
+    → Confirmed → InProgress → Completed → AwaitingCustomerConfirmation
+    → Settled OR Disputed → Resolved
+
+---
+
+## 3. Booking States in Detail
+
+### 3.1 Draft
+
+User has selected:
+
+    service
+
+    add-ons
+
+    stylist
+
+    location type (home, salon, property)
+
+    date/time slot
+
+System computes:
+
+    pricing
+
+    estimated duration
+
+    travel time
+
+    chair availability
+
+No record yet created on-chain.
+
+### 3.2 PendingPayment
+
+Triggered when customer taps Book Now.
+
+Flow:
+
+    Backend creates booking record off-chain
+
+    Calls lockFunds(bookingId) on-chain
+
+    AA wallet signs UserOp
+
+    Paymaster sponsors gas
+
+If insufficient funds:
+
+    Inline onramp modal → top up AA wallet
+
+    Auto-retry lockFunds
+
+### 3.3 Pending Stylist Approval (always required)
+
+Stylist receives:
+
+    full quote
+
+    location
+
+    travel time estimate
+
+    service duration
+
+    customer rating snapshot
+
+Stylist can:
+
+    Accept
+
+    Decline → instant refund to AA wallet
+
+    Timeout → refund to customer AA wallet
+
+    Suggest new time (phase 2)
+
+TPS Logging:
+
+    stylist approval time contributes to responsiveness.
+
+### 3.4 Pending Property Approval (conditional)
+
+Triggered only if property rules require manual checks.
+
+Property sees:
+
+    stylist profile
+
+    customer profile
+
+    chair requested
+
+    time slot
+
+    compatibility flags
+
+    reputation thresholds
+
+Possible outcomes:
+
+    Approve
+
+    Decline → refund (may apply penalties)
+
+    Auto-approve (if rules allow)
+
+TPS Logging:
+
+    property approval responsiveness is logged.
+
+---
+
+## 4. Confirmed State
+
+Booking enters Confirmed only when:
+
+    stylist approved
+
+    property approved (if required)
+
+    funds locked in escrow
+
+Customer receives:
+
+    confirmation card
+
+    calendar integration
+
+    appointment preparation notes
+
+Stylist receives:
+
+    booking added to schedule
+
+    travel time added to itinerary
+
+Property receives:
+
+    chair reserved
+
+    chair visibility updated
+
+---
+
+## 5. In Progress State
+
+Triggered by stylist tapping Start Appointment.
+
+System logs:
+
+    actual start time
+
+    travel delay (if stylist arrived late)
+
+    chair occupancy start
+
+TPS Logging:
+
+    lateness → TPS deduction
+
+    punctuality → TPS positive signal
+
+---
+
+## 6. Completed → AwaitingCustomerConfirmation
+
+Stylist taps Complete Service:
+
+    timestamp stored
+
+    potential add-on verification (future feature)
+
+Customer receives:
+
+    → “Confirm Completion” modal
+    with optional P2P tip prompt.
+
+If customer confirms:
+
+    → move to Settled
+
+If customer does not confirm in time window:
+
+    → auto-confirm
+    → move to Settled
+
+TPS Logging:
+
+    customer responsiveness tracked
+
+    stylist completion delay tracked
+
+## 7. Settlement Logic
+
+releaseOnComplete(bookingId) triggers:
+
+### 7.1 Revenue Split
+
+| Share                | Destination                 |
+| -------------------- | --------------------------- |
+| Stylist share        | stylist AA wallet           |
+| Property share       | property treasury AA wallet |
+| Platform fee         | Vlossom Treasury            |
+| Smoothing buffer fee | Vlossom Buffer (if enabled) |
+
+Payout is instant due to VLP + Smoothing Buffer integration.
+
+---
+
+## 8. Cancellation & Refund Logic
+
+Refund always goes to customer AA wallet.
+
+All refund calls are gasless.
+
+### 8.1 Customer-initiated Cancellation
+
+Based on timing:
+
+| Window             | Refund Outcome                                    |
+| ------------------ | ------------------------------------------------- |
+| Early cancellation | full refund                                       |
+| Mid window         | partial refund + penalty to stylist/property      |
+| Late / No show     | refund minus cancellation fee to stylist/property |
+
+### 8.2 Stylist-initiated Cancellation
+
+Always:
+
+    full refund to customer
+
+    penalty applied to stylist TPS
+
+    potential fee from stylist to platform (future)
+
+### 8.3 Property-initiated Cancellation
+
+If property revokes chair due to:
+
+    conflict
+
+    maintenance
+
+    emergency
+
+Outcome:
+
+    full refund
+
+    option to rebook elsewhere
+
+    property loses TPS
+
+---
+
+## 9. Dispute Flow
+
+Customer or stylist may open a dispute:
+
+Triggers:
+
+    poor service
+
+    incomplete service
+
+    price manipulation accusations
+
+    misrepresentation
+
+Flow:
+
+    move to Disputed
+
+    escrow frozen
+
+    admin panel opens dispute ticket
+
+    admins resolve: refund / partial / stylist win
+
+After resolution → Resolved
+
+    ReputationRegistry receives signals.
+
+---
+
+## 10. Special Event Booking Flow
+
+Special events differ from standard bookings.
+
+### 10.1 Request Phase
+
+Customer submits:
+
+    detailed brief
+
+    dates
+
+    location(s)
+
+    duration
+
+    required stylists
+
+Stylist receives → builds custom quote.
+
+### 10.2 Quoting Phase
+
+Stylist proposes:
+
+    deposit amount
+
+    total cost
+
+    travel fees
+
+    multi-day breakdown
+
+    optional assistants
+
+Customer accepts → deposit locked in escrow.
+
+### 10.3 Standard Lifecycle
+
+    Approved by stylist → property (if needed) → in-progress → completed.
+
+### 10.4 Settlement
+
+    Deposit + balance release conditions applied.
+
+---
+
+## 11. P2P Tipping & Add-ons
+
+After completion:
+
+    Customer may tip stylist directly
+
+    Tip uses AA wallet → AA wallet
+
+    Recorded in transaction history
+
+    Does not affect service rating
+
+---
+
+## 12. Notifications (Full Coverage)
+
+Every state transition emits:
+
+    push notification
+
+    in-app card
+
+    timeline marker
+
+Categories:
+
+    booking created
+
+    payment success/failure
+
+    stylist approval
+
+    property approval
+
+    start appointment
+
+    completion
+
+    confirmation required
+
+    dispute opened
+
+    dispute resolved
+
+    refund issued
+
+    rebook suggestion
+
+---
+
+## 13. TPS Integration
+
+The system logs:
+
+    approval latency
+
+    travel punctuality
+
+    start time variance
+
+    completion delay
+
+    customer confirmation delay
+
+    cancellation patterns
+
+TPS influences:
+
+    property approval rules
+
+    search ranking
+
+    stylist discovery visibility
+
+    property discovery visibility
+
+    long-term reputation badges
+
+---
+
+## 14. Booking Lifecycle Diagram
+
+Draft
+ ↓
+PendingPayment
+ ↓
+PendingStylistApproval
+ ↓
+(Possible) PendingPropertyApproval
+ ↓
+Confirmed
+ ↓
+InProgress
+ ↓
+Completed
+ ↓
+AwaitingCustomerConfirmation
+ ↓
+Settled → Reputation → Rewards
+        ↘
+         Disputed → Resolved
+
+---
+
+## 15. Summary
+
+This v1.1 version:
+
+    unifies wallet logic
+
+    integrates AA + Paymaster
+
+    clarifies dual approval flow
+
+    improves TPS-driven trust
+
+    formalizes cancellation & refunds
+
+    adds special event flow
+
+    aligns with smart contract architecture
+
+    creates deterministic, audit-ready transitions
+
+This is now the canonical booking flow document for Vlossom Protocol.
+
+---
+
+## Δ — DELTA LOG (v1.0 → v1.1)
+
+Added
+
+    AA wallet–first funding mechanism
+
+    Gasless UserOp transactions
+
+    Property approval logic formalization
+
+    TPS integration across lifecycle
+
+    Special event multi-step flow
+
+    Onramp inline fallback
+
+    P2P tipping model
+
+    Settlement split tables
+
+    Refund always to AA wallet
+
+    Full notification coverage list
+
+    Booking diagram
+
+Modified
+
+    Replaced card-payment→escrow with wallet→escrow
+
+    Enhanced cancellation timing logic
+
+    Improved chair compatibility logic
+
+    Clarified invariants around pricing immutability
+
+Removed
+
+    Direct payment via card
+
+    Any non-AA wallet transaction logic
 
 
 
