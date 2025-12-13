@@ -137,3 +137,27 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Turborepo
+.turbo
+
+# Hardhat
+contracts/cache
+contracts/artifacts
+contracts/typechain-types
+
+# IDE
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Local development
+*.local
+
+# Test output
+test-results/
+playwright-report/
+
+# Vercel
+.vercel

@@ -1,0 +1,42 @@
+# Vlossom API Dockerfile
+# Reference: docs/vlossom/23-devops-and-infrastructure.md
+
+FROM node:20-alpine AS base
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+WORKDIR /app
+
+# Install dependencies
+FROM base AS deps
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY packages/types/package.json ./packages/types/
+COPY services/api/package.json ./services/api/
+RUN pnpm install --frozen-lockfile
+
+# Build
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=deps /app/services/api/node_modules ./services/api/node_modules
+COPY . .
+RUN pnpm --filter @vlossom/api build
+
+# Production
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 vlossom
+
+COPY --from=builder /app/services/api/dist ./dist
+COPY --from=builder /app/services/api/package.json ./
+
+USER vlossom
+
+EXPOSE 3002
+
+CMD ["node", "dist/index.js"]

@@ -1,0 +1,10 @@
+{
+  "name": "@vlossom/config",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./eslint": "./eslint/index.js",
+    "./typescript": "./typescript/base.json",
+    "./tailwind": "./tailwind/index.js"
+  }
+}

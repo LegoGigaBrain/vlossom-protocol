@@ -1,0 +1,55 @@
+# Vlossom Local Development Stack
+# Reference: docs/vlossom/23-devops-and-infrastructure.md
+
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: vlossom-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: vlossom
+      POSTGRES_PASSWORD: vlossom_dev
+      POSTGRES_DB: vlossom
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vlossom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: vlossom-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Local Hardhat Node (for contract testing)
+  hardhat:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.hardhat
+    container_name: vlossom-hardhat
+    restart: unless-stopped
+    ports:
+      - "8545:8545"
+    profiles:
+      - chain
+
+volumes:
+  postgres_data:
+  redis_data:
