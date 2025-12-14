@@ -1,0 +1,22 @@
+{
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "timestamp": "2025-12-13T18:21:26.014Z",
+  "deployer": "0x65AfAFb64ccdefb29EfC67B2eD323c4e43315895",
+  "entryPoint": "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
+  "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "vlossomAccountFactory": "0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d",
+  "vlossomPaymaster": "0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D",
+  "escrow": "0x925E12051A6badb09D5a8a67aF9dD40ec5725E04",
+  "gasUsed": {
+    "factory": "1843338",
+    "paymaster": "932020",
+    "escrow": "802092",
+    "total": "3577450"
+  },
+  "ethSpent": {
+    "deployment": "0.00000429294",
+    "paymasterFunding": "0.3",
+    "total": "0.30000429294"
+  }
+}

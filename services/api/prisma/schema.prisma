@@ -1,0 +1,564 @@
+// Vlossom Protocol - Database Schema
+// Reference: docs/vlossom/06-database-schema.md
+// Reference: docs/specs/booking-flow-v1/feature-spec.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum ActorRole {
+  CUSTOMER
+  STYLIST
+  PROPERTY_OWNER
+  ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+  SUSPENDED
+}
+
+enum OperatingMode {
+  MOBILE
+  FIXED
+  HYBRID
+}
+
+enum LocationType {
+  STYLIST_BASE
+  CUSTOMER_HOME
+}
+
+enum BookingStatus {
+  PENDING_STYLIST_APPROVAL
+  PENDING_CUSTOMER_PAYMENT
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  AWAITING_CUSTOMER_CONFIRMATION
+  SETTLED
+  CANCELLED
+  DECLINED
+  DISPUTED
+}
+
+enum EscrowStatus {
+  LOCKED
+  RELEASED
+  REFUNDED
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER_IN
+  TRANSFER_OUT
+  ESCROW_LOCK
+  ESCROW_RELEASE
+  ESCROW_REFUND
+  FAUCET_CLAIM
+}
+
+enum TransactionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
+
+enum PaymentRequestStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+/// Core user entity - supports role fluidity
+model User {
+  id                 String             @id @default(uuid())
+  walletAddress      String             @unique
+  email              String?            @unique
+  phone              String?            @unique
+  passwordHash       String?            // bcrypt hash (only for email/password users)
+  displayName        String
+  avatarUrl          String?
+  roles              Json               @default("[]") // ActorRole[]
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  // Relations
+  stylistProfile      StylistProfile?
+  bookingsAsCustomer  Booking[]                @relation("CustomerBookings")
+  bookingsAsStylist   Booking[]                @relation("StylistBookings")
+  statusChanges       BookingStatusHistory[]
+  wallet              Wallet?
+  savedPaymentMethods SavedPaymentMethod[]
+
+  @@index([walletAddress])
+  @@index([email])
+  @@index([phone])
+  @@map("users")
+}
+
+/// Stylist profile data
+model StylistProfile {
+  id                  String        @id @default(uuid())
+  userId              String        @unique
+  bio                 String?
+  specialties         Json          @default("[]") // string[]
+  serviceCategories   Json          @default("[]") // string[]
+  portfolioImages     Json          @default("[]") // string[]
+  operatingMode       OperatingMode
+  serviceRadius       Int?          // km for mobile stylists
+  baseLocationLat     Float?
+  baseLocationLng     Float?
+  baseLocationAddress String?
+  isAcceptingBookings Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  // Relations
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services     StylistService[]
+  availability StylistAvailability?
+
+  @@index([userId])
+  @@index([isAcceptingBookings])
+  @@map("stylist_profiles")
+}
+
+/// Stylist weekly availability schedule and exceptions
+model StylistAvailability {
+  id        String   @id @default(uuid())
+  stylistId String   @unique
+  schedule  Json     @default("{}") // Weekly schedule: {mon: [{start: "09:00", end: "17:00"}], ...}
+  exceptions Json    @default("[]") // Date exceptions: [{date: "2025-12-25", blocked: true, note: "Christmas"}]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  stylist StylistProfile @relation(fields: [stylistId], references: [id], onDelete: Cascade)
+
+  @@index([stylistId])
+  @@map("stylist_availability")
+}
+
+/// Individual service offering by stylist
+model StylistService {
+  id                   String   @id @default(uuid())
+  stylistId            String
+  name                 String
+  category             String
+  description          String?
+  priceAmountCents     BigInt   // Use BigInt to avoid floating point issues
+  estimatedDurationMin Int
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  stylist  StylistProfile @relation(fields: [stylistId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([stylistId])
+  @@index([category])
+  @@index([isActive])
+  @@map("stylist_services")
+}
+
+/// Core booking entity
+model Booking {
+  id         String   @id @default(uuid())
+  customerId String
+  stylistId  String
+  serviceId  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Service details
+  serviceType          String
+  serviceCategory      String
+  estimatedDurationMin Int
+  actualDurationMin    Int?
+
+  // Scheduling
+  scheduledStartTime DateTime
+  scheduledEndTime   DateTime
+  actualStartTime    DateTime?
+  actualEndTime      DateTime?
+
+  // Location
+  locationType    LocationType
+  locationAddress String
+  locationLat     Float?
+  locationLng     Float?
+
+  // Pricing (all in cents, stored as BigInt)
+  quoteAmountCents    BigInt
+  finalAmountCents    BigInt?
+  platformFeeCents    BigInt
+  stylistPayoutCents  BigInt
+  propertyPayoutCents BigInt? @default(0)
+
+  // Status
+  status BookingStatus
+
+  // Escrow
+  escrowId     String?
+  escrowStatus EscrowStatus?
+
+  // Cancellation
+  cancelledAt     DateTime?
+  cancelledBy     String? // userId or "SYSTEM"
+  cancellationReason String?
+
+  // Relations
+  customer      User                   @relation("CustomerBookings", fields: [customerId], references: [id])
+  stylist       User                   @relation("StylistBookings", fields: [stylistId], references: [id])
+  service       StylistService?        @relation(fields: [serviceId], references: [id])
+  statusHistory BookingStatusHistory[]
+
+  @@index([customerId])
+  @@index([stylistId])
+  @@index([status])
+  @@index([scheduledStartTime])
+  @@index([createdAt])
+  @@map("bookings")
+}
+
+/// Audit trail for booking status changes
+model BookingStatusHistory {
+  id        String        @id @default(uuid())
+  bookingId String
+  fromStatus BookingStatus?
+  toStatus  BookingStatus
+  changedBy String
+  changedAt DateTime      @default(now())
+  reason    String?
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [changedBy], references: [id])
+
+  @@index([bookingId])
+  @@index([changedAt])
+  @@map("booking_status_history")
+}
+
+// ============================================================================
+// WALLET MODELS (AA Wallet SDK - Task 2)
+// ============================================================================
+
+/// ERC-4337 Smart Account wallet for a user
+model Wallet {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  address    String   @unique
+  chainId    Int      @default(8453) // Base mainnet
+  salt       String   // bytes32 for CREATE2 deterministic deployment
+  isDeployed Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions        WalletTransaction[]
+  moonPayTransactions MoonPayTransaction[]
+
+  @@index([address])
+  @@map("wallets")
+}
+
+/// Transaction history for wallet operations
+model WalletTransaction {
+  id           String            @id @default(uuid())
+  walletId     String
+  type         TransactionType
+  amount       BigInt            // Amount in smallest unit (e.g., USDC has 6 decimals)
+  token        String            @default("USDC")
+  counterparty String?           // Address of sender/recipient
+  txHash       String?           @unique
+  userOpHash   String?           @unique
+  status       TransactionStatus @default(PENDING)
+  memo         String?
+  createdAt    DateTime          @default(now())
+  confirmedAt  DateTime?
+
+  // Relations
+  wallet             Wallet              @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  moonPayTransaction MoonPayTransaction?
+
+  @@index([walletId, createdAt])
+  @@index([status])
+  @@map("wallet_transactions")
+}
+
+/// Payment request for P2P transfers (QR code payments)
+model PaymentRequest {
+  id          String               @id @default(uuid())
+  recipientId String               // User ID of recipient
+  amount      BigInt               // Amount in smallest unit
+  memo        String?
+  status      PaymentRequestStatus @default(PENDING)
+  expiresAt   DateTime
+  payerId     String?              // User ID of payer (set when fulfilled)
+  txHash      String?              // Transaction hash when fulfilled
+  createdAt   DateTime             @default(now())
+
+  @@index([recipientId])
+  @@index([status])
+  @@map("payment_requests")
+}
+
+// ============================================================================
+// MOONPAY MODELS (Fiat On/Off-Ramp)
+// ============================================================================
+
+/// MoonPay transaction for fiat on/off-ramp
+model MoonPayTransaction {
+  id        String   @id @default(uuid())
+  walletId  String
+  sessionId String   @unique // MoonPay transaction ID
+
+  // Transaction type
+  type String // "deposit" | "withdrawal"
+
+  // Status
+  status String // "pending" | "completed" | "failed"
+
+  // Amounts
+  fiatAmount     Decimal // e.g., 100.00 ZAR
+  fiatCurrency   String  // "ZAR" | "USD" | "EUR"
+  cryptoAmount   Decimal // e.g., 5.405405 USDC
+  cryptoCurrency String  @default("USDC")
+
+  // Payment details (deposit)
+  paymentMethod String? // "card" | "bank_transfer"
+  cardLast4     String? // Last 4 of card
+
+  // Withdrawal details (offramp)
+  bankAccountId String? // Reference to saved bank account
+  bankName      String?
+  accountLast4  String?
+
+  // Metadata
+  redirectUrl String? // MoonPay checkout URL
+  webhookData Json? // Raw webhook payload
+
+  // Linked to wallet transaction
+  walletTransactionId String?            @unique
+  walletTransaction   WalletTransaction? @relation(fields: [walletTransactionId], references: [id])
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
+  // Relations
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([sessionId])
+  @@index([status])
+  @@map("moonpay_transactions")
+}
+
+/// Saved payment methods for future use
+model SavedPaymentMethod {
+  id     String @id @default(uuid())
+  userId String
+
+  // Type
+  type String // "card" | "bank_account"
+
+  // Card details (masked)
+  cardBrand    String? // "visa" | "mastercard"
+  cardLast4    String?
+  cardExpMonth Int?
+  cardExpYear  Int?
+
+  // Bank account details (masked)
+  bankName     String?
+  accountLast4 String?
+  accountType  String? // "checking" | "savings"
+
+  // MoonPay reference
+  moonpayId String? @unique // MoonPay customer/card ID
+
+  // Defaults
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_payment_methods")
+}
+
+// ============================================================================
+// NOTIFICATION MODELS (F4.3: Multi-channel notifications)
+// ============================================================================
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_APPROVED
+  BOOKING_DECLINED
+  PAYMENT_CONFIRMED
+  SERVICE_STARTED
+  SERVICE_COMPLETED
+  BOOKING_CANCELLED
+  BOOKING_REMINDER
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+/// Notification record for audit trail and in-app display
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+
+  // Notification details
+  type      NotificationType
+  channel   NotificationChannel
+  status    NotificationStatus  @default(PENDING)
+
+  // Content
+  title     String
+  body      String
+
+  // Metadata (booking ID, deep link, etc.)
+  metadata  Json?
+
+  // Timestamps
+  sentAt    DateTime?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  // External service references
+  externalId String? // SendGrid message ID, SMS ID, etc.
+  error      String? // Error message if failed
+
+  @@index([userId, createdAt])
+  @@index([userId, status])
+  @@index([type])
+  @@map("notifications")
+}
+
+// ============================================================================
+// PAYMASTER MONITORING MODELS (F5.1: Gas Sponsorship Tracking)
+// ============================================================================
+
+enum PaymasterTxStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum AlertType {
+  LOW_BALANCE
+  HIGH_USAGE
+  ERROR_RATE
+}
+
+/// Tracks gas sponsorship for Account Abstraction UserOperations
+model PaymasterTransaction {
+  id         String            @id @default(uuid())
+  userOpHash String            @unique // UserOperation hash
+  sender     String            // AA wallet address that was sponsored
+
+  // Gas metrics
+  gasUsed    BigInt            // Actual gas used
+  gasPrice   BigInt            // Gas price in wei
+  totalCost  BigInt            // Total cost in wei (gasUsed * gasPrice)
+
+  // Transaction details
+  txHash     String?           // On-chain transaction hash
+  status     PaymasterTxStatus @default(PENDING)
+
+  // Error tracking
+  error      String?           // Error message if failed
+
+  // Timestamps
+  createdAt  DateTime          @default(now())
+  confirmedAt DateTime?
+
+  @@index([createdAt])
+  @@index([sender])
+  @@index([status])
+  @@map("paymaster_transactions")
+}
+
+/// Alert configuration for paymaster monitoring
+model PaymasterAlert {
+  id          String    @id @default(uuid())
+  type        AlertType
+  threshold   Float     // Threshold value (e.g., 0.01 ETH for LOW_BALANCE)
+  isActive    Boolean   @default(true)
+
+  // Last trigger info
+  lastTriggered DateTime?
+  lastValue     Float?    // Value when last triggered
+
+  // Notification settings
+  notifySlack   Boolean   @default(true)
+  notifyEmail   Boolean   @default(true)
+  emailRecipients String? // Comma-separated emails
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([type])
+  @@map("paymaster_alerts")
+}
+
+/// Daily aggregated stats for paymaster dashboard
+model PaymasterDailyStats {
+  id              String   @id @default(uuid())
+  date            DateTime @unique @db.Date // Date only, no time
+
+  // Transaction counts
+  totalTxCount    Int      @default(0)
+  successTxCount  Int      @default(0)
+  failedTxCount   Int      @default(0)
+
+  // Gas metrics
+  totalGasUsed    BigInt   @default(0)
+  totalCostWei    BigInt   @default(0)
+  avgGasPrice     BigInt   @default(0)
+
+  // Unique users
+  uniqueUsers     Int      @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([date])
+  @@map("paymaster_daily_stats")
+}

@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light Mode CSS Variables (Default) */
+  :root {
+    /* Fonts */
+    --font-inter: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-playfair: "Playfair Display", "Times New Roman", serif;
+
+    /* Colors - Light Mode */
+    --color-background: #FFFFFF;
+    --color-surface: #EFE3D0;
+    --color-surface-elevated: #FFFFFF;
+    --color-primary: #311E6B;
+    --color-primary-soft: #ADA5C4;
+    --color-secondary: #EFE3D0;
+    --color-accent: #FF510D;
+    --color-tertiary: #A9D326;
+    --color-success: #A9D326;
+    --color-warning: #FF510D;
+    --color-error: #D0021B;
+    --color-info: #ADA5C4;
+    --color-text-primary: #161616;
+    --color-text-secondary: #6F6F6F;
+    --color-text-inverse: #FFFFFF;
+    --color-text-muted: #9A9A9A;
+    --color-border-subtle: #E6E6E6;
+    --color-divider: #E6E6E6;
+    --color-overlay: rgba(22, 22, 22, 0.5);
+    --color-focus: #311E6B;
+
+    /* Shadows - Light Mode */
+    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.04);
+    --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.06);
+    --shadow-elevated: 0 20px 40px rgba(0, 0, 0, 0.08);
+    --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Dark Mode CSS Variables */
+  .dark {
+    --color-background: #161616;
+    --color-surface: #2A1F4D;
+    --color-surface-elevated: #3D2C6B;
+    --color-primary: #ADA5C4;
+    --color-primary-soft: #311E6B;
+    --color-secondary: #EFE3D0;
+    --color-accent: #FF510D;
+    --color-tertiary: #A9D326;
+    --color-success: #A9D326;
+    --color-warning: #FF510D;
+    --color-error: #FF6B6B;
+    --color-info: #ADA5C4;
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #ADA5C4;
+    --color-text-inverse: #161616;
+    --color-text-muted: #7A7290;
+    --color-border-subtle: #3D2C6B;
+    --color-divider: #3D2C6B;
+    --color-overlay: rgba(0, 0, 0, 0.7);
+    --color-focus: #ADA5C4;
+
+    /* Shadows - Dark Mode (stronger opacity) */
+    --shadow-soft: 0 4px 16px rgba(0, 0, 0, 0.15);
+    --shadow-card: 0 12px 30px rgba(0, 0, 0, 0.25);
+    --shadow-elevated: 0 20px 40px rgba(0, 0, 0, 0.35);
+    --shadow-modal: 0 24px 48px rgba(0, 0, 0, 0.45);
+  }
+
+  * {
+    @apply border-border-subtle;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Tabular numbers for prices and wallet amounts */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Focus states using brand color */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Brand-aligned motion utilities */
+  .transition-gentle {
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .transition-standard {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Calm, soft shadows for premium feel */
+  .shadow-vlossom {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-vlossom-soft {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-vlossom-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .shadow-vlossom-modal {
+    box-shadow: var(--shadow-modal);
+  }
+
+  /* Display font utility */
+  .font-display {
+    font-family: var(--font-playfair);
+  }
+
+  /* Text color utilities using CSS variables */
+  .text-themed-primary {
+    color: var(--color-text-primary);
+  }
+
+  .text-themed-secondary {
+    color: var(--color-text-secondary);
+  }
+
+  .text-themed-muted {
+    color: var(--color-text-muted);
+  }
+
+  /* Background utilities using CSS variables */
+  .bg-themed {
+    background-color: var(--color-background);
+  }
+
+  .bg-themed-surface {
+    background-color: var(--color-surface);
+  }
+
+  .bg-themed-elevated {
+    background-color: var(--color-surface-elevated);
+  }
+}

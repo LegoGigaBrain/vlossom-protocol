@@ -108,37 +108,63 @@ These tokens must be used everywhere. No ad-hoc styling.
 
 ### 3.1 Colors
 
-Brand Colors
+#### Brand Colors (Light Mode)
 
-    Vlossom Rose: #EA526F (warm, emotional, premium)
+    Primary Purple: #311E6B (deep purple - main CTAs, headers, brand anchor)
 
-    Deep Clay: #A33E55
+    Primary Soft: #ADA5C4 (muted purple - disabled states, subtle backgrounds)
 
-    Black Orchid: #121212
+    Secondary Cream: #EFE3D0 (cream - card backgrounds, soft containers)
 
-    Soft Linen: #F7F3F0 (background)
+    Accent Orange: #FF510D (orange - notifications, highlights, urgency)
 
-    White: #FFFFFF
+    Tertiary Green: #A9D326 (green - success states, confirmations, growth)
 
-Functional Colors
+    Black: #161616 (primary text, icons)
 
-    Success: #3BB273
+    White: #FFFFFF (page backgrounds, contrast text)
 
-    Warning: #F5A623
+#### Brand Colors (Dark Mode)
+
+    Background: #161616 (deep black - page background)
+
+    Surface: #2A1F4D (muted purple - card backgrounds, containers)
+
+    Surface Elevated: #3D2C6B (lighter purple - elevated cards, modals)
+
+    Primary: #ADA5C4 (soft purple - CTAs, interactive elements)
+
+    Primary Soft: #311E6B (deep purple - subtle backgrounds)
+
+    Secondary: #EFE3D0 (cream - accent text, highlights)
+
+    Accent: #FF510D (orange - notifications, highlights)
+
+    Tertiary: #A9D326 (green - success states)
+
+    Text Primary: #FFFFFF (main text)
+
+    Text Secondary: #ADA5C4 (muted text)
+
+#### Functional Colors
+
+    Success: #A9D326 (tertiary green)
+
+    Warning: #FF510D (accent orange)
 
     Error: #D0021B
 
-    Info: #4A90E2
+    Info: #ADA5C4 (primary soft)
 
-Neutral Palette
+#### Neutral Palette
 
-    Text Primary: #1A1A1A
+    Text Primary: #161616 (light mode) / #FFFFFF (dark mode)
 
-    Text Secondary: #6F6F6F
+    Text Secondary: #6F6F6F (light mode) / #ADA5C4 (dark mode)
 
-    Divider: #E6E6E6
+    Divider: #E6E6E6 (light mode) / #3D2C6B (dark mode)
 
-    Card Surface: #FFFFFF
+    Card Surface: #FFFFFF (light mode) / #2A1F4D (dark mode)
 
 Card Elevation Shadow: low blur for premium look
 
@@ -286,11 +312,13 @@ Each atomic component must be reusable with standardized props.
 
 Variants:
 
-    Primary (Vlossom Rose background, white text)
+    Primary (Primary Purple #311E6B background, white text)
 
-    Secondary (outline, black orchid text)
+    Secondary (outline, Primary Purple #311E6B text)
 
-    Tertiary (text button)
+    Tertiary (text button, Primary Soft #ADA5C4)
+
+    Accent (Accent Orange #FF510D background, white text)
 
     Danger (error red)
 
@@ -735,7 +763,7 @@ Visual cues for:
 
     pool yield updates
 
-Flash highlight color: Soft Linen → fade.
+Flash highlight color: Secondary Cream #EFE3D0 → fade.
 
 ---
 
@@ -777,23 +805,49 @@ Use minimal illustrations in brand style.
 
 ---
 
-## 10. Theming Support (Future-Proofing)
+## 10. Theming Support (Dark Mode & Future-Proofing)
 
-Support theme override:
+### 10.1 Supported Themes
 
-    light / dark mode
+The Vlossom design system supports:
 
-    regional themes (future)
+    Light Mode (vlossom-light.json) — Default theme with cream backgrounds
 
-    brand-sponsored themes (future)
+    Dark Mode (vlossom-dark.json) — Deep purple/black backgrounds leveraging brand identity
+
+### 10.2 Theme Switching
+
+Users can toggle between themes via:
+
+    Manual toggle button in settings/header
+
+    System preference detection (prefers-color-scheme)
+
+    Persistent user preference (stored in local storage or account settings)
+
+### 10.3 Future Theme Extensions
+
+The token architecture supports future additions:
+
+    Regional themes (cultural customization)
+
+    Seasonal themes (holiday campaigns)
+
+    Brand-sponsored themes (partner campaigns)
+
+    High-contrast accessibility themes
+
+### 10.4 Platform Portability
 
 The design system must be portable to:
 
-    React Native
+    React Native (mobile apps)
 
-    Web
+    Web (primary platform)
 
     Desktop (Electron) if needed
+
+Token files remain the same across platforms; only the consumption layer changes.
 
 ---
 
@@ -878,8 +932,11 @@ Recommended structure:
 
 /design
   /tokens
-    vlossom-default.json        # MVP neutral theme
-    vlossom-brand-v1.json       # future: full brand identity
+    vlossom-light.json          # Light mode brand theme
+    vlossom-dark.json           # Dark mode brand theme
+  /brand
+    /logos                      # Brand logos and lockups
+    /identity                   # Brand identity sheets
   /icons
     stylist-default.svg
     salon-default.svg
@@ -923,21 +980,26 @@ UI components never use raw hex values or arbitrary spacings.
 
 ## A.3 Token Shape (What Claude Should Expect)
 
-Example: vlossom-default.json (MVP neutral theme):
+Example: vlossom-light.json (Light Mode Brand Theme):
 
 {
   "color": {
     "background": "#FFFFFF",
-    "surface": "#F9F6F4",
-    "primary": "#EA526F",
-    "primarySoft": "#FCE7EC",
-    "accent": "#F6B8A8",
-    "success": "#28A745",
-    "warning": "#FFC107",
-    "error": "#DC3545",
-    "textPrimary": "#1F2226",
-    "textSecondary": "#5F6470",
-    "borderSubtle": "#E5E1DC"
+    "surface": "#EFE3D0",
+    "surfaceElevated": "#FFFFFF",
+    "primary": "#311E6B",
+    "primarySoft": "#ADA5C4",
+    "secondary": "#EFE3D0",
+    "accent": "#FF510D",
+    "tertiary": "#A9D326",
+    "success": "#A9D326",
+    "warning": "#FF510D",
+    "error": "#D0021B",
+    "textPrimary": "#161616",
+    "textSecondary": "#6F6F6F",
+    "textInverse": "#FFFFFF",
+    "borderSubtle": "#E6E6E6",
+    "divider": "#E6E6E6"
   },
   "font": {
     "primary": "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
@@ -964,7 +1026,53 @@ Example: vlossom-default.json (MVP neutral theme):
   }
 }
 
-Later, vlossom-brand-v1.json will keep the same keys, but with updated values that match the final brand identity.
+Example: vlossom-dark.json (Dark Mode Brand Theme):
+
+{
+  "color": {
+    "background": "#161616",
+    "surface": "#2A1F4D",
+    "surfaceElevated": "#3D2C6B",
+    "primary": "#ADA5C4",
+    "primarySoft": "#311E6B",
+    "secondary": "#EFE3D0",
+    "accent": "#FF510D",
+    "tertiary": "#A9D326",
+    "success": "#A9D326",
+    "warning": "#FF510D",
+    "error": "#FF6B6B",
+    "textPrimary": "#FFFFFF",
+    "textSecondary": "#ADA5C4",
+    "textInverse": "#161616",
+    "borderSubtle": "#3D2C6B",
+    "divider": "#3D2C6B"
+  },
+  "font": {
+    "primary": "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    "display": "'Playfair Display', 'Times New Roman', serif"
+  },
+  "radius": {
+    "sm": 6,
+    "md": 10,
+    "lg": 16,
+    "xl": 24,
+    "pill": 999
+  },
+  "shadow": {
+    "card": "0 12px 30px rgba(0,0,0,0.25)",
+    "soft": "0 4px 16px rgba(0,0,0,0.15)"
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "xxl": 32
+  }
+}
+
+The vlossom-light.json and vlossom-dark.json files share the same token structure, enabling seamless theme switching.
 
 ---
 
@@ -975,28 +1083,52 @@ Claude Code should create a BrandThemeProvider and a useBrandTheme() hook.
 Pseudo-implementation:
 
 // src/theme/tokens.ts
-import defaultTokens from '@/design/tokens/vlossom-default.json';
+import lightTokens from '@/design/tokens/vlossom-light.json';
+import darkTokens from '@/design/tokens/vlossom-dark.json';
 
-export type BrandTokens = typeof defaultTokens;
+export type BrandTokens = typeof lightTokens;
+export type ThemeMode = 'light' | 'dark';
 
-export const loadTokens = (): BrandTokens => {
-  // In MVP: always return default tokens
-  // Later: switch based on env, A/B, or remote config
-  return defaultTokens;
+export const loadTokens = (mode: ThemeMode = 'light'): BrandTokens => {
+  // Switch between light and dark themes
+  // Can be extended to support system preference or user preference
+  return mode === 'dark' ? darkTokens : lightTokens;
 };
 
 // src/theme/index.tsx
-import React, { createContext, useContext } from 'react';
-import { loadTokens, BrandTokens } from './tokens';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loadTokens, BrandTokens, ThemeMode } from './tokens';
 
-const ThemeContext = createContext<BrandTokens | null>(null);
+interface ThemeContextValue {
+  tokens: BrandTokens;
+  mode: ThemeMode;
+  setMode: (mode: ThemeMode) => void;
+  toggleMode: () => void;
+}
 
-export const BrandThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const tokens = loadTokens();
-  return <ThemeContext.Provider value={tokens}>{children}</ThemeContext.Provider>;
+const ThemeContext = createContext<ThemeContextValue | null>(null);
+
+export const BrandThemeProvider: React.FC<{
+  children: React.ReactNode;
+  defaultMode?: ThemeMode;
+}> = ({ children, defaultMode = 'light' }) => {
+  const [mode, setMode] = useState<ThemeMode>(defaultMode);
+  const [tokens, setTokens] = useState<BrandTokens>(loadTokens(defaultMode));
+
+  useEffect(() => {
+    setTokens(loadTokens(mode));
+  }, [mode]);
+
+  const toggleMode = () => setMode(prev => prev === 'light' ? 'dark' : 'light');
+
+  return (
+    <ThemeContext.Provider value={{ tokens, mode, setMode, toggleMode }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 };
 
-export const useBrandTheme = (): BrandTokens => {
+export const useBrandTheme = (): ThemeContextValue => {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error('useBrandTheme must be used inside BrandThemeProvider');
   return ctx;
@@ -1007,14 +1139,14 @@ Usage inside components:
 import { useBrandTheme } from '@/theme';
 
 export const ServiceCard: React.FC<ServiceCardProps> = (props) => {
-  const theme = useBrandTheme();
+  const { tokens } = useBrandTheme();
 
   return (
     <div
       style={{
-        borderRadius: theme.radius.lg,
-        boxShadow: theme.shadow.card,
-        backgroundColor: theme.color.surface
+        borderRadius: tokens.radius.lg,
+        boxShadow: tokens.shadow.card,
+        backgroundColor: tokens.color.surface
       }}
       className="p-4 flex flex-col gap-3"
     >
@@ -1023,8 +1155,26 @@ export const ServiceCard: React.FC<ServiceCardProps> = (props) => {
   );
 };
 
+// Theme toggle component example
+export const ThemeToggle: React.FC = () => {
+  const { mode, toggleMode, tokens } = useBrandTheme();
+
+  return (
+    <button
+      onClick={toggleMode}
+      style={{
+        backgroundColor: tokens.color.primary,
+        color: tokens.color.textInverse,
+        borderRadius: tokens.radius.md
+      }}
+    >
+      {mode === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+    </button>
+  );
+};
+
 Rule for Claude: no raw #hex colors inside components.
-Always go through theme.color.*, theme.radius.*, theme.shadow.*, etc.
+Always go through tokens.color.*, tokens.radius.*, tokens.shadow.*, etc.
 
 ---
 
@@ -1226,12 +1376,15 @@ All brand expression lives inside theme tokens, not components.
 
 Theme tokens are defined in versioned JSON (or TS) files:
 
-/theme
-  ├─ vlossom-default.json   (MVP neutral theme)
-  ├─ vlossom-brand-v1.json  (future brand system)
-  └─ vlossom-dark.json      (future)
+/design/tokens
+  ├─ vlossom-light.json    (Light mode brand theme)
+  └─ vlossom-dark.json     (Dark mode brand theme)
 
-Switching brand identity = switching theme file.
+/design/brand
+  ├─ /logos                (Brand logos and lockups)
+  └─ /identity             (Brand identity sheets)
+
+Switching themes = switching token file via ThemeProvider.
 
 ### 3.2 Core Token Categories
 

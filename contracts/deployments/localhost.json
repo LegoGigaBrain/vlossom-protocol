@@ -1,0 +1,24 @@
+{
+  "network": "localhost",
+  "chainId": 31337,
+  "timestamp": "2025-12-13T11:30:53.469Z",
+  "contracts": {
+    "MockUSDC": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "Escrow": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+    "MockEntryPoint": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+    "VlossomAccountFactory": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+    "VlossomAccount": "0x8aCd85898458400f7Db866d53FCFF6f0D49741FF",
+    "VlossomPaymaster": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
+  },
+  "config": {
+    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "relayer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "entryPoint": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
+  },
+  "notes": {
+    "escrow": "Relayer initialized at deployment. Deployer minted 10,000 USDC for testing.",
+    "paymaster": "Rate limit: 50 ops per day. Not funded on localhost (gas is free).",
+    "factory": "Uses CREATE2 for deterministic wallet addresses."
+  }
+}
