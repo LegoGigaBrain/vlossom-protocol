@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Settings, AlertTriangle } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 
 interface AlertConfig {
   type: "LOW_BALANCE" | "HIGH_USAGE" | "ERROR_RATE";
