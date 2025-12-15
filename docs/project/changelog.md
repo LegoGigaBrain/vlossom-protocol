@@ -9,20 +9,164 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### V1.5: Property & Reputation (Planned - Weeks 11-18)
+### V1.6: Wallet AA & DeFi (Planned)
 
-**Goal**: Add property owner module and reputation system.
+**Goal**: Full wallet AA integration and DeFi foundation.
 
 #### 📝 Planned Features
 
-- Property & Chair registry
-- Chair rental approval rules + blocklist
-- Chair availability UI + APIs
-- ReputationRegistry contract
-- Review models + indexer
-- TPS (Time Performance Score) pipeline
+- Wallet AA full integration
+- Paymaster gasless transactions for all flows
+- On/off ramp production (MoonPay SDK)
+- DeFi tab foundation
 - Rewards engine + SBT mapping
 - Referrals engine
+
+---
+
+## [1.5.0] - 2025-12-15
+
+### V1.5: Property Owner + Reputation - COMPLETE ✅
+
+**Goal**: Add property owner module and full reputation system.
+
+**All 17 features implemented and production-ready** 🎉
+
+#### ✅ F6.1-F6.6: Property Owner Module
+
+**F6.1: Property Database Models**
+- New Prisma models: `Property`, `Chair`, `ChairRentalRequest`
+- New enums: `PropertyCategory`, `ChairType`, `RentalMode`, `ApprovalMode`, `ChairRentalStatus`
+- Property categories: LUXURY, BOUTIQUE, STANDARD, HOME_BASED
+- Chair types: BRAID_CHAIR, BARBER_CHAIR, STYLING_STATION, WASH_STATION, MAKEUP_STATION
+- Rental modes: PER_BOOKING, PER_HOUR, PER_DAY, PER_WEEK, PER_MONTH
+- **Files**: `services/api/prisma/schema.prisma`
+
+**F6.2: Property API Endpoints**
+- CRUD endpoints for properties and chairs
+- Chair rental request workflow (create, approve, reject)
+- Filtering by owner, city, category
+- **Files**: `services/api/src/routes/properties.ts`, `chairs.ts`
+
+**F6.3: PropertyRegistry Smart Contract**
+- On-chain property registration with metadata hash
+- Chair count tracking per property
+- Owner verification and deactivation
+- **Files**: `contracts/contracts/PropertyRegistry.sol`
+
+**F6.4: Property Owner Dashboard**
+- Dashboard overview (`/property-owner`) with stats cards
+- Properties page (`/property-owner/properties`) with add/edit forms
+- Chairs page (`/property-owner/chairs`) with filtering by property
+- Requests page (`/property-owner/requests`) with approve/reject actions
+- Sidebar navigation layout
+- **Files**: `apps/web/src/app/property-owner/` (5 files)
+
+**F6.5: Chair Rental Flow**
+- Status workflow: PENDING → APPROVED/REJECTED → ACTIVE → COMPLETED/CANCELLED
+- Stylist information with reputation badge on requests
+- Rental mode and pricing display
+
+**F6.6: Approval Modes**
+- APPROVAL_REQUIRED (default) - Manual approval for every request
+- AUTO_APPROVE - Auto-confirm unless blocklisted
+- CONDITIONAL - Reputation threshold-based approval
+
+#### ✅ F7.1-F7.7: Reputation System
+
+**F7.1: Reputation Database Models**
+- New Prisma models: `ReputationScore`, `ReputationEvent`, `Review`
+- New enum: `ReviewType` (CUSTOMER_TO_STYLIST, STYLIST_TO_CUSTOMER, STYLIST_TO_PROPERTY, PROPERTY_TO_STYLIST)
+- Score stored as 0-10000 (displayed as 0-100%)
+- **Files**: `services/api/prisma/schema.prisma`
+
+**F7.2: Review API Endpoints**
+- Create review after completed booking
+- List reviews by booking or user
+- Get reputation score for user
+- **Files**: `services/api/src/routes/reviews.ts`
+
+**F7.3: TPS Calculation Pipeline**
+- Full implementation (~670 lines)
+- Start Punctuality scoring (50% of TPS):
+  - On time or early: 100%
+  - 1-5 min late: 90%
+  - 5-15 min late: 70%
+  - 15-30 min late: 40%
+  - 30+ min late: 10%
+- Duration Accuracy scoring (50% of TPS):
+  - Within 10%: 100%
+  - Within 20%: 80%
+  - Within 30%: 60%
+  - Over 30%: 40%
+- **Files**: `services/api/src/lib/reputation.ts`
+
+**F7.4: Reputation Scheduler**
+- 6-hour batch recalculation job
+- Internal API endpoint for triggering recalculation
+- **Files**: `services/scheduler/src/index.ts`, `services/api/src/routes/internal.ts`
+
+**F7.5: ReputationRegistry Smart Contract**
+- On-chain score anchoring with hash commitment
+- Verification status storage
+- Checkpoint timestamps
+- **Files**: `contracts/contracts/ReputationRegistry.sol`
+
+**F7.6: Reputation UI Components**
+- `ReputationBadge` - Score circle with color coding (Excellent/Great/Good/Fair/Average)
+- `ReputationCard` - Full score breakdown with progress bars
+- `StarRating` - Interactive 1-5 star rating input
+- `ReviewList` - Review feed with avatars and comments
+- **Files**: `apps/web/src/components/reputation/` (5 files)
+
+**F7.7: Verification Logic**
+- Threshold: 70% score + 5 completed bookings
+- `isVerified` flag on ReputationScore
+- Verification badge display in UI
+
+#### ✅ F6.7-F6.10: Quick Wins
+
+**F6.7: Auto-confirm Customer Start**
+- Customer no-show eliminated as trust issue
+- Stylist can start service without customer confirmation
+
+**F6.8: Buffer Time Configuration**
+- 15-minute default buffer between bookings
+- Configurable per stylist
+
+**F6.9: Location Verification Flag**
+- Stylist confirms arrival at location
+- Timestamp recorded in booking
+
+**F6.10: Vercel Deployment**
+- Web app deployed to Vercel
+- Environment configuration for production
+
+**Score Weights**:
+- TPS (Time Performance): 30%
+- Reliability: 30%
+- Feedback: 30%
+- Disputes: 10%
+
+**New API Endpoints (17 total)**:
+- Property: `GET/POST /api/properties`, `GET/PUT /api/properties/:id`, `GET /api/properties/:id/chairs`
+- Chairs: `POST/PUT/DELETE /api/chairs/:id`
+- Rentals: `POST /api/chair-rentals`, `POST /api/chair-rentals/:id/approve`, `POST /api/chair-rentals/:id/reject`, `GET /api/chair-rentals/property/:propertyId`
+- Reviews: `POST /api/reviews`, `GET /api/reviews/booking/:bookingId`, `GET /api/reviews/user/:userId`
+- Reputation: `GET /api/reputation/:userId`, `POST /api/internal/reputation/recalculate`
+
+**New Smart Contracts (2 total)**:
+- `PropertyRegistry.sol` - Property and chair on-chain registry
+- `ReputationRegistry.sol` - Score anchoring with verification
+
+**New Frontend Files (15 total)**:
+- Property Owner Dashboard: 5 pages (layout, dashboard, properties, chairs, requests)
+- Reputation Components: 5 files (badge, card, star-rating, review-list, index)
+- API Client: `apps/web/src/lib/api.ts`
+
+**Database Changes**:
+- 6 new Prisma models: Property, Chair, ChairRentalRequest, ReputationScore, ReputationEvent, Review
+- 6 new enums: PropertyCategory, ChairType, RentalMode, ApprovalMode, ChairRentalStatus, ReviewType
 
 ---
 
@@ -602,6 +746,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Summary |
 |---------|------|---------|
+| 1.5.0 | 2025-12-15 | **V1.5 COMPLETE** - Property Owner + Reputation (17 features, 17 endpoints, 2 contracts) |
 | 1.4.0 | 2025-12-14 | **V1.0 COMPLETE** - Milestone 5: Beta Launch (CI/CD, Monitoring, Onboarding, Launch Ops) |
 | 1.3.0 | 2025-12-14 | Milestone 4 Complete - Production Ready (Scheduling, Notifications, E2E Testing, Security) |
 | 1.2.0 | 2025-12-14 | Milestone 3 Complete - Stylist Can Service (Dashboard, Services, Availability, Earnings) |

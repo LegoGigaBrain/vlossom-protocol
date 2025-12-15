@@ -8,6 +8,9 @@ import stylistsRouter from "./routes/stylists";
 import walletRouter from "./routes/wallet";
 import notificationsRouter from "./routes/notifications";
 import uploadRouter from "./routes/upload";
+import internalRouter from "./routes/internal";
+import propertiesRouter from "./routes/properties";
+import reviewsRouter from "./routes/reviews";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { logger, logRequest, logResponse } from "./lib/logger";
 import { apiSecurityHeaders, corsHeaders } from "./middleware/security-headers";
@@ -58,6 +61,9 @@ app.use("/api/stylists", stylistsRouter);
 app.use("/api/wallet", walletRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/internal", internalRouter);
+app.use("/api/properties", propertiesRouter);
+app.use("/api/reviews", reviewsRouter);
 
 // 404 handler - must come after all routes
 app.use(notFoundHandler);

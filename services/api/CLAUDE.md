@@ -10,7 +10,7 @@
 
 ## Current Implementation Status
 
-**V1.0 Complete - Beta Launch Ready** (Dec 14, 2025)
+**V1.5 Complete - Property Owner + Reputation** (Dec 15, 2025)
 
 ## Key Files
 - `src/index.ts` — Express server entry point with security middleware
@@ -19,7 +19,7 @@
 - `src/middleware/` — Auth, security, and rate limiting
 - `prisma/schema.prisma` — Database schema
 
-## API Endpoints (60+ total)
+## API Endpoints (77+ total)
 
 ### Authentication (4 endpoints)
 ```
@@ -107,6 +107,50 @@ POST /api/admin/paymaster/alerts/config — Alert configuration
 GET  /api/health               — Health check with database/blockchain status
 ```
 
+### Properties (6 endpoints) - V1.5
+```
+GET    /api/properties              — List properties with filters
+POST   /api/properties              — Create property (owner only)
+GET    /api/properties/:id          — Get property details
+PUT    /api/properties/:id          — Update property
+DELETE /api/properties/:id          — Delete property
+GET    /api/properties/:id/chairs   — Get chairs for property
+```
+
+### Chairs (5 endpoints) - V1.5
+```
+GET    /api/chairs                  — List chairs with filters
+POST   /api/chairs                  — Create chair
+GET    /api/chairs/:id              — Get chair details
+PUT    /api/chairs/:id              — Update chair
+DELETE /api/chairs/:id              — Delete chair
+```
+
+### Chair Rentals (4 endpoints) - V1.5
+```
+GET    /api/rentals                 — List rental requests
+POST   /api/rentals                 — Create rental request
+POST   /api/rentals/:id/approve     — Approve rental
+POST   /api/rentals/:id/reject      — Reject rental
+```
+
+### Reputation (4 endpoints) - V1.5
+```
+GET    /api/reputation/:userId      — Get reputation score
+GET    /api/reputation/:userId/events — Get reputation event history
+POST   /api/reputation/:userId/calculate — Trigger score recalculation
+GET    /api/reputation/leaderboard  — Get top-rated users
+```
+
+### Reviews (5 endpoints) - V1.5
+```
+GET    /api/reviews/stylist/:id     — Get reviews for stylist
+POST   /api/reviews                 — Create review
+PUT    /api/reviews/:id             — Update review
+DELETE /api/reviews/:id             — Delete review
+GET    /api/reviews/booking/:id     — Get review for booking
+```
+
 ## Key Directories
 
 ### `src/lib/` — Business Logic
@@ -156,6 +200,18 @@ GET  /api/health               — Health check with database/blockchain status
 - `balance-alerts.ts` — Alert service with Slack/email notifications
 - `index.ts` — Barrel export
 
+**`property/`** — Property Owner Module (V1.5)
+- `property-service.ts` — Property CRUD operations
+- `chair-service.ts` — Chair inventory management
+- `rental-service.ts` — Chair rental workflow
+- `index.ts` — Barrel export
+
+**`reputation/`** — Reputation System (V1.5)
+- `reputation-service.ts` — Score calculation with TPS weighting
+- `review-service.ts` — Review CRUD operations
+- `tps-calculator.ts` — Time Performance Score calculation
+- `index.ts` — Barrel export
+
 ### `src/middleware/` — Middleware
 
 - `auth.ts` — JWT authentication
@@ -173,6 +229,11 @@ GET  /api/health               — Health check with database/blockchain status
 - `notifications.ts` — Notification endpoints (M4)
 - `upload.ts` — Cloudinary upload endpoints (M4)
 - `admin/paymaster.ts` — Admin paymaster endpoints (M5)
+- `properties.ts` — Property CRUD endpoints (V1.5)
+- `chairs.ts` — Chair management endpoints (V1.5)
+- `rentals.ts` — Chair rental workflow endpoints (V1.5)
+- `reputation.ts` — Reputation score endpoints (V1.5)
+- `reviews.ts` — Review CRUD endpoints (V1.5)
 
 ## Database Schema
 
@@ -188,6 +249,12 @@ GET  /api/health               — Health check with database/blockchain status
 - `PaymasterTransaction` — Sponsored tx history (M5)
 - `PaymasterAlert` — Alert configuration (M5)
 - `PaymasterDailyStats` — Daily gas stats (M5)
+- `Property` — Property owner venues (V1.5)
+- `Chair` — Rentable chairs at properties (V1.5)
+- `ChairRentalRequest` — Chair rental workflow (V1.5)
+- `ReputationScore` — Aggregated user reputation (V1.5)
+- `ReputationEvent` — Individual reputation events (V1.5)
+- `Review` — Customer/stylist reviews (V1.5)
 
 ## Security (M4)
 

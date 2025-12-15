@@ -499,7 +499,55 @@ Each phase is considered complete only when:
 
 integrations (wallet → booking → escrow → payout) succeed end-to-end
 
-## 8. Final Overview
+## 8. Implementation Status
+
+### V1.0 — Foundation Complete (December 2024)
+
+**37 Features Delivered** — Full MVP foundation with:
+- Monorepo structure (Turborepo + pnpm workspaces)
+- Database schema + Prisma ORM
+- Express.js API service with JWT authentication
+- Next.js 14 web app with App Router
+- Booking flow (create, approve, complete, cancel)
+- Smart contracts (Escrow, BookingRegistry)
+- Wallet integration scaffolding
+- UI component library (@vlossom/ui)
+- Basic notifications system
+
+### V1.5 — Property Owner + Reputation (December 2024)
+
+**Property Owner Module — COMPLETE**
+| Component | Status | Location |
+|-----------|--------|----------|
+| Database Models | ✅ Complete | `services/api/prisma/schema.prisma` |
+| API Endpoints | ✅ Complete | `services/api/src/routes/properties.ts`, `chairs.ts` |
+| Smart Contract | ✅ Complete | `contracts/contracts/PropertyRegistry.sol` |
+| UI Dashboard | ✅ Complete | `apps/web/src/app/property-owner/` |
+
+**Reputation System — COMPLETE**
+| Component | Status | Location |
+|-----------|--------|----------|
+| Database Models | ✅ Complete | `services/api/prisma/schema.prisma` |
+| Review API | ✅ Complete | `services/api/src/routes/reviews.ts` |
+| TPS Pipeline | ✅ Complete | `services/api/src/lib/reputation.ts` |
+| Scheduler Job | ✅ Complete | `services/scheduler/src/index.ts` |
+| Smart Contract | ✅ Complete | `contracts/contracts/ReputationRegistry.sol` |
+| UI Components | ✅ Complete | `apps/web/src/components/reputation/` |
+
+**Quick Wins Delivered**
+- Auto-confirm customer start (eliminates customer no-shows as trust issue)
+- Buffer time configuration (15-minute default between bookings)
+- Location verification flag (stylist confirms arrival)
+
+### V1.6 — Planned (Next Sprint)
+- Wallet AA integration
+- Paymaster gasless transactions
+- On/off ramp sandbox
+- DeFi tab foundation
+
+---
+
+## 9. Final Overview
 
 This roadmap ensures that Vlossom is built:
 

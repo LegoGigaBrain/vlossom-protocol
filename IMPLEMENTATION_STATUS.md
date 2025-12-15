@@ -1,14 +1,205 @@
 # Vlossom Protocol - Implementation Status
 
-**Last Updated**: December 14, 2025
-**Current Version**: 1.4.0
-**V1.0 Progress**: Milestone 5 Complete ✅ - BETA LAUNCH READY
+**Last Updated**: December 15, 2025
+**Current Version**: 1.5.0
+**V1.5 Progress**: Property Owner + Reputation Complete ✅
 
 ---
 
 ## Executive Summary
 
-Vlossom Protocol has completed **Milestone 5: Beta Launch**. The platform is now production-ready with CI/CD pipelines, production monitoring (Sentry + PostHog), paymaster monitoring dashboard, user onboarding materials, and comprehensive launch documentation. All 5 features (F5.1-F5.5) are fully implemented. **V1.0 is 100% complete with 37 features across 5 milestones.**
+Vlossom Protocol has completed **V1.5: Property Owner + Reputation Sprint**. Building on the V1.0 Beta Launch foundation (37 features), V1.5 adds the Property Owner module (chair rental marketplace) and full Reputation System (TPS calculation, reviews, verification). **V1.5 is 100% complete with 17 additional features.**
+
+---
+
+## ✅ V1.5: Property Owner + Reputation (Dec 15, 2025)
+
+### Property Owner Module - COMPLETE
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| F6.1 Property Database Models | Property, Chair, ChairRentalRequest Prisma models | ✅ |
+| F6.2 Property API Endpoints | CRUD for properties + chairs + rental requests | ✅ |
+| F6.3 PropertyRegistry Contract | On-chain property registration with metadata hash | ✅ |
+| F6.4 Property Owner Dashboard | 4-page dashboard (overview, properties, chairs, requests) | ✅ |
+| F6.5 Chair Rental Flow | Request → Approve/Reject → Active → Complete | ✅ |
+| F6.6 Approval Modes | APPROVAL_REQUIRED, AUTO_APPROVE, CONDITIONAL | ✅ |
+
+### Reputation System - COMPLETE
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| F7.1 Reputation Database Models | ReputationScore, ReputationEvent, Review models | ✅ |
+| F7.2 Review API Endpoints | Create review, list by booking/user, get reputation | ✅ |
+| F7.3 TPS Calculation Pipeline | Start punctuality + duration accuracy scoring | ✅ |
+| F7.4 Reputation Scheduler | 6-hour batch recalculation job | ✅ |
+| F7.5 ReputationRegistry Contract | On-chain score anchoring with verification | ✅ |
+| F7.6 Reputation UI Components | ReputationBadge, ReputationCard, StarRating, ReviewList | ✅ |
+| F7.7 Verification Logic | 70% score + 5 bookings = verified status | ✅ |
+
+### Quick Wins - COMPLETE
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| F6.7 Auto-confirm Customer Start | Customer no-show eliminated as trust issue | ✅ |
+| F6.8 Buffer Time Config | 15-minute default between bookings | ✅ |
+| F6.9 Location Verification | Stylist confirms arrival flag | ✅ |
+| F6.10 Vercel Deployment | Web app deployed to Vercel | ✅ |
+
+### New Files Created (V1.5)
+
+**Database Schema** (`services/api/prisma/schema.prisma`):
+- Property model (category, amenities, approval mode, operating hours)
+- Chair model (type, rental modes, pricing tiers)
+- ChairRentalRequest model (status workflow)
+- ReputationScore model (TPS, reliability, feedback, dispute scores)
+- ReputationEvent model (event log for score calculation)
+- Review model (multi-type: customer↔stylist, stylist↔property)
+- 6 new enums (PropertyCategory, ChairType, RentalMode, ApprovalMode, ChairRentalStatus, ReviewType)
+
+**API Routes** (`services/api/src/routes/`):
+- `properties.ts` - Property CRUD + chair listing
+- `chairs.ts` - Chair CRUD + rental requests
+- `reviews.ts` - Review creation + listing
+
+**API Libraries** (`services/api/src/lib/`):
+- `reputation.ts` - Full TPS calculation pipeline (~670 lines)
+  - `calculateTPS()` - Start punctuality + duration accuracy
+  - `recordBookingCompletionEvent()` - Event recording
+  - `recalculateAllScores()` - Batch recalculation
+  - `updateReputationScore()` - Score update with weights
+  - `getReputationSummary()` - Summary for API response
+
+**Scheduler** (`services/scheduler/src/index.ts`):
+- `triggerReputationRecalculation()` - 6-hour interval job
+
+**Smart Contracts** (`contracts/contracts/`):
+- `PropertyRegistry.sol` - Property + chair on-chain registry
+- `ReputationRegistry.sol` - Score anchoring with verification
+
+**Frontend Pages** (`apps/web/src/app/property-owner/`):
+- `layout.tsx` - Sidebar navigation
+- `page.tsx` - Dashboard overview with stats
+- `properties/page.tsx` - Property list + add form
+- `chairs/page.tsx` - Chair management + filtering
+- `requests/page.tsx` - Rental request approvals
+
+**Frontend Components** (`apps/web/src/components/`):
+- `reputation/reputation-badge.tsx` - Score circle with colors
+- `reputation/reputation-card.tsx` - Full score breakdown
+- `reputation/star-rating.tsx` - Interactive 1-5 rating
+- `reputation/review-list.tsx` - Review feed
+- `reputation/index.ts` - Barrel export
+
+**API Client** (`apps/web/src/lib/api.ts`):
+- Property, Chair, ChairRentalRequest, Review, ReputationScore types
+- Fetch functions with auth headers
+
+### New API Endpoints (V1.5)
+
+**Property Endpoints** (8 total):
+- `GET /api/properties` - List properties (filterable by owner, city, category)
+- `POST /api/properties` - Create property
+- `GET /api/properties/:id` - Get property details
+- `PUT /api/properties/:id` - Update property
+- `GET /api/properties/:id/chairs` - List chairs for property
+- `POST /api/chairs` - Create chair
+- `PUT /api/chairs/:id` - Update chair
+- `DELETE /api/chairs/:id` - Soft delete chair
+
+**Chair Rental Endpoints** (4 total):
+- `POST /api/chair-rentals` - Request chair rental
+- `POST /api/chair-rentals/:id/approve` - Approve rental
+- `POST /api/chair-rentals/:id/reject` - Reject rental
+- `GET /api/chair-rentals/property/:propertyId` - List rentals for property
+
+**Review Endpoints** (3 total):
+- `POST /api/reviews` - Create review
+- `GET /api/reviews/booking/:bookingId` - Get reviews for booking
+- `GET /api/reviews/user/:userId` - Get reviews for user
+
+**Reputation Endpoints** (2 total):
+- `GET /api/reputation/:userId` - Get reputation score
+- `POST /api/internal/reputation/recalculate` - Batch recalculate all scores
+
+### TPS Calculation Details
+
+**Score Weights**:
+- TPS (Time Performance): 30%
+- Reliability: 30%
+- Feedback: 30%
+- Disputes: 10%
+
+**Start Punctuality Scoring** (50% of TPS):
+| Lateness | Score |
+|----------|-------|
+| On time or early | 100% |
+| 1-5 minutes late | 90% |
+| 5-15 minutes late | 70% |
+| 15-30 minutes late | 40% |
+| 30+ minutes late | 10% |
+
+**Duration Accuracy Scoring** (50% of TPS):
+| Variance | Score |
+|----------|-------|
+| Within 10% | 100% |
+| Within 20% | 80% |
+| Within 30% | 60% |
+| Over 30% | 40% |
+
+**Verification Threshold**:
+- Minimum score: 70%
+- Minimum completed bookings: 5
+
+### Database Changes (V1.5)
+
+**New Prisma Models**:
+```prisma
+model Property {
+  id, ownerId, name, description, address, city, postalCode, country
+  latitude, longitude, category, photos[], amenities[], operatingHours
+  approvalMode, minReputation, isActive, chairs[], createdAt, updatedAt
+}
+
+model Chair {
+  id, propertyId, name, type, amenities[], rentalModes[]
+  pricePerBooking, pricePerHour, pricePerDay, pricePerWeek, pricePerMonth
+  isActive, rentals[], createdAt, updatedAt
+}
+
+model ChairRentalRequest {
+  id, chairId, stylistId, rentalMode, startDate, endDate
+  totalPrice, status, createdAt, updatedAt
+}
+
+model ReputationScore {
+  id, userId, userType, totalScore, tpsScore, reliabilityScore
+  feedbackScore, disputeScore, completedBookings, cancelledBookings
+  noShows, isVerified, lastCalculatedAt, createdAt, updatedAt
+}
+
+model ReputationEvent {
+  id, userId, eventType, score, metadata, createdAt
+}
+
+model Review {
+  id, bookingId, reviewerId, revieweeId, reviewType, overallRating
+  punctuality, professionalism, quality, communication, cleanliness
+  comment, createdAt
+}
+```
+
+**New Enums**:
+- `PropertyCategory`: LUXURY, BOUTIQUE, STANDARD, HOME_BASED
+- `ChairType`: BRAID_CHAIR, BARBER_CHAIR, STYLING_STATION, WASH_STATION, MAKEUP_STATION
+- `RentalMode`: PER_BOOKING, PER_HOUR, PER_DAY, PER_WEEK, PER_MONTH
+- `ApprovalMode`: APPROVAL_REQUIRED, AUTO_APPROVE, CONDITIONAL
+- `ChairRentalStatus`: PENDING, APPROVED, REJECTED, ACTIVE, COMPLETED, CANCELLED
+- `ReviewType`: CUSTOMER_TO_STYLIST, STYLIST_TO_CUSTOMER, STYLIST_TO_PROPERTY, PROPERTY_TO_STYLIST
+
+---
+
+## V1.0 Summary (Previously Completed)
 
 ---
 
@@ -738,10 +929,11 @@ model PaymasterDailyStats {
 | M3: Stylist Can Service | F3.1-F3.7 (7) | ✅ 100% | Dec 14, 2025 |
 | M4: Production Ready | F4.1-F4.7 (7) | ✅ 100% | Dec 14, 2025 |
 | M5: Beta Launch | F5.1-F5.5 (5) | ✅ 100% | Dec 14, 2025 |
+| **M6: Property Owner + Reputation** | F6.1-F7.7 (17) | ✅ 100% | Dec 15, 2025 |
 
-**Total Features Completed**: 37/37 (100%) 🎉
+**Total Features Completed**: 54/54 (100%) 🎉
 
-**V1.0 IS COMPLETE - BETA LAUNCH READY**
+**V1.5 IS COMPLETE - PROPERTY OWNER + REPUTATION LAUNCHED**
 
 ---
 
@@ -818,25 +1010,28 @@ model PaymasterDailyStats {
 
 ---
 
-## 🚀 V1.0 Complete - What's Next?
+## 🚀 V1.5 Complete - What's Next?
 
-**V1.0 Status**: ✅ COMPLETE (37 features across 5 milestones)
+**V1.5 Status**: ✅ COMPLETE (54 features across 6 milestones)
 
-**Beta Launch Ready**:
-- All features implemented and tested
-- CI/CD pipeline operational
-- Monitoring active (Sentry + PostHog)
-- Help center and onboarding published
-- Launch checklist verified
-- Rollback procedures documented
+**V1.5 Achievements**:
+- Property Owner module with full chair rental marketplace
+- Reputation system with TPS calculation pipeline
+- Review system (multi-directional: customer↔stylist↔property)
+- Verification logic (70% score + 5 bookings)
+- 17 new API endpoints
+- 2 new smart contracts (PropertyRegistry, ReputationRegistry)
+- Property Owner dashboard (4 pages)
+- Reputation UI components
 
-**Next Steps (V1.5 - Property & Reputation)**:
-- Property & Chair registry
-- Reputation & reviews system
-- TPS (Time Performance Score)
+**Next Steps (V1.6 - Wallet AA Integration)**:
+- Wallet AA full integration
+- Paymaster gasless transactions for all flows
+- On/off ramp production (MoonPay SDK)
+- DeFi tab foundation
 - Rewards engine
 - Referrals program
 
 ---
 
-*Last Updated: December 14, 2025*
+*Last Updated: December 15, 2025*

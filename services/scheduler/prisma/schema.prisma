@@ -1,0 +1,122 @@
+// Prisma schema for scheduler service
+// This is a reference to the main API schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Import models from main API schema by copying relevant models
+// Note: In a real setup, you might use a shared schema package
+
+enum BookingStatus {
+  PENDING_STYLIST_APPROVAL
+  PENDING_CUSTOMER_PAYMENT
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  AWAITING_CUSTOMER_CONFIRMATION
+  SETTLED
+  CANCELLED
+  DECLINED
+  DISPUTED
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_APPROVED
+  BOOKING_DECLINED
+  PAYMENT_CONFIRMED
+  SERVICE_STARTED
+  SERVICE_COMPLETED
+  BOOKING_CANCELLED
+  BOOKING_REMINDER
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+enum PaymentRequestStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id                 String   @id @default(uuid())
+  walletAddress      String   @unique
+  email              String?  @unique
+  phone              String?  @unique
+  displayName        String
+
+  bookingsAsCustomer Booking[] @relation("CustomerBookings")
+  bookingsAsStylist  Booking[] @relation("StylistBookings")
+
+  @@map("users")
+}
+
+model Booking {
+  id         String        @id @default(uuid())
+  customerId String
+  stylistId  String
+  status     BookingStatus
+  serviceType String
+
+  scheduledStartTime DateTime
+  scheduledEndTime   DateTime
+  actualEndTime      DateTime?
+
+  customer User @relation("CustomerBookings", fields: [customerId], references: [id])
+  stylist  User @relation("StylistBookings", fields: [stylistId], references: [id])
+
+  @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id         String         @id @default(uuid())
+  bookingId  String
+  fromStatus BookingStatus?
+  toStatus   BookingStatus
+  changedBy  String
+  changedAt  DateTime       @default(now())
+  reason     String?
+
+  @@map("booking_status_history")
+}
+
+model Notification {
+  id        String              @id @default(uuid())
+  userId    String
+  type      NotificationType
+  channel   NotificationChannel
+  status    NotificationStatus  @default(PENDING)
+  title     String
+  body      String
+  metadata  Json?
+  createdAt DateTime            @default(now())
+
+  @@map("notifications")
+}
+
+model PaymentRequest {
+  id        String               @id @default(uuid())
+  status    PaymentRequestStatus @default(PENDING)
+  expiresAt DateTime
+
+  @@map("payment_requests")
+}

@@ -718,7 +718,204 @@ External apps request chair inventory.
 
 ---
 
-## 15. Summary
+## 15. V1.5 Implementation Status
+
+The Property Owner module has been implemented in V1.5 with the following components:
+
+### Database Models (Prisma Schema)
+
+```prisma
+model Property {
+  id              String         @id @default(cuid())
+  ownerId         String
+  owner           User           @relation(fields: [ownerId], references: [id])
+  name            String
+  description     String?
+  address         String
+  city            String
+  postalCode      String?
+  country         String         @default("ZA")
+  latitude        Float?
+  longitude       Float?
+  category        PropertyCategory @default(STANDARD)
+  photos          String[]       @default([])
+  amenities       String[]       @default([])
+  operatingHours  Json?
+  approvalMode    ApprovalMode   @default(APPROVAL_REQUIRED)
+  minReputation   Int?
+  isActive        Boolean        @default(true)
+  chairs          Chair[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Chair {
+  id            String         @id @default(cuid())
+  propertyId    String
+  property      Property       @relation(fields: [propertyId], references: [id])
+  name          String
+  type          ChairType      @default(STYLING_STATION)
+  amenities     String[]       @default([])
+  rentalModes   RentalMode[]   @default([PER_BOOKING])
+  // Pricing in cents (BigInt for precision)
+  pricePerBooking BigInt?
+  pricePerHour    BigInt?
+  pricePerDay     BigInt?
+  pricePerWeek    BigInt?
+  pricePerMonth   BigInt?
+  isActive      Boolean        @default(true)
+  rentals       ChairRentalRequest[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model ChairRentalRequest {
+  id          String              @id @default(cuid())
+  chairId     String
+  chair       Chair               @relation(fields: [chairId], references: [id])
+  stylistId   String
+  stylist     User                @relation(fields: [stylistId], references: [id])
+  rentalMode  RentalMode
+  startDate   DateTime
+  endDate     DateTime
+  totalPrice  BigInt
+  status      ChairRentalStatus   @default(PENDING)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+enum PropertyCategory {
+  LUXURY
+  BOUTIQUE
+  STANDARD
+  HOME_BASED
+}
+
+enum ChairType {
+  BRAID_CHAIR
+  BARBER_CHAIR
+  STYLING_STATION
+  WASH_STATION
+  MAKEUP_STATION
+}
+
+enum RentalMode {
+  PER_BOOKING
+  PER_HOUR
+  PER_DAY
+  PER_WEEK
+  PER_MONTH
+}
+
+enum ApprovalMode {
+  APPROVAL_REQUIRED
+  AUTO_APPROVE
+  CONDITIONAL
+}
+
+enum ChairRentalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+```
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/properties` | GET | List properties (filterable) |
+| `/api/properties` | POST | Create property |
+| `/api/properties/:id` | GET | Get property details |
+| `/api/properties/:id` | PUT | Update property |
+| `/api/properties/:id/chairs` | GET | List chairs for property |
+| `/api/chairs` | POST | Create chair |
+| `/api/chairs/:id` | PUT | Update chair |
+| `/api/chairs/:id` | DELETE | Soft delete chair |
+| `/api/chair-rentals` | POST | Request chair rental |
+| `/api/chair-rentals/:id/approve` | POST | Approve rental |
+| `/api/chair-rentals/:id/reject` | POST | Reject rental |
+| `/api/chair-rentals/property/:propertyId` | GET | List rentals for property |
+
+### Smart Contract
+
+`PropertyRegistry.sol` provides on-chain registration:
+
+```solidity
+// Property structure stored on-chain
+struct Property {
+    address owner;
+    bytes32 metadataHash;  // Hash of off-chain metadata
+    uint256 chairCount;
+    bool isActive;
+    uint256 createdAt;
+}
+
+// Key functions
+function registerProperty(bytes32 metadataHash) external returns (uint256)
+function updateProperty(uint256 propertyId, bytes32 metadataHash) external
+function addChairs(uint256 propertyId, uint256 count) external
+function deactivateProperty(uint256 propertyId) external
+function getProperty(uint256 propertyId) external view returns (Property memory)
+function getPropertiesByOwner(address owner) external view returns (uint256[] memory)
+```
+
+### UI Dashboard
+
+Located at: `apps/web/src/app/property-owner/`
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Dashboard | `/property-owner` | Stats overview, quick actions |
+| Properties | `/property-owner/properties` | List/manage properties |
+| Chairs | `/property-owner/chairs` | Chair inventory management |
+| Requests | `/property-owner/requests` | Rental request approvals |
+
+**Dashboard Features:**
+- Property count and occupancy stats
+- Active chair count
+- Pending request notifications
+- Recent rental requests list
+- Quick action buttons (Add Property, Add Chair, View Requests)
+
+**Properties Page:**
+- Property cards with photo, address, chair count
+- Add new property form
+- Occupancy percentage per property
+- Edit/manage property details
+
+**Chairs Page:**
+- Filter chairs by property
+- Chair type badges (Styling Station, Barber Chair, etc.)
+- Pricing display (per booking/hour/day/week/month)
+- Add new chair form with property selection
+
+**Requests Page:**
+- Pending rental requests queue
+- Stylist information with reputation badge
+- Approve/Reject action buttons
+- Request details (dates, pricing, rental mode)
+
+### Implementation Notes
+
+**Approval Modes Supported (V1.5):**
+- APPROVAL_REQUIRED (Option A) — Every request needs manual approval
+- AUTO_APPROVE (Option B) — Auto-confirm unless blocklisted
+- CONDITIONAL (Option C) — Partial implementation (reputation threshold only)
+
+**Not Yet Implemented:**
+- Intelligent Approval (Option D) — ML-based auto-approval
+- Chair availability calendar UI
+- Maintenance block scheduling
+- Multi-sig salon treasury
+- Staff management
+
+---
+
+## 16. Summary
 
 The Property Owner & Chair Rental Module:
 

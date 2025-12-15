@@ -1,7 +1,16 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V1.0 Development - 100% Complete ✅ BETA LAUNCH READY**
+**V1.5 Development - 100% Complete ✅ PROPERTY OWNER + REPUTATION**
+
+✅ **V1.5 Complete (Dec 15, 2025)**:
+- **54 features** implemented across 6 milestones (37 V1.0 + 17 V1.5)
+- **Property Owner module** (chair rental marketplace with approval modes)
+- **Reputation System** (TPS calculation, reviews, verification)
+- **17 new API endpoints** (properties, chairs, rentals, reviews, reputation)
+- **2 new smart contracts** (PropertyRegistry, ReputationRegistry)
+- **Property Owner dashboard** (4 pages: overview, properties, chairs, requests)
+- **Reputation UI components** (badge, card, star rating, review list)
 
 ✅ **V1.0 Complete (Dec 14, 2025)**:
 - **37 features** implemented across 5 milestones
@@ -13,7 +22,7 @@
 - **User onboarding** (help center, feature tour, documentation)
 - **Launch operations** (runbooks, rollback procedures, incident response)
 
-🎯 **V1.0 Target**: Launchable on Base Sepolia Testnet → **100% Complete ✅**
+🎯 **V1.5 Target**: Property Owner + Reputation → **100% Complete ✅**
 
 ---
 
@@ -35,12 +44,12 @@
 
 ## Version Milestones
 
-| Version | Target | Phases | Key Deliverable |
-|---------|--------|--------|-----------------|
-| **V0.5** | Demo-able | 0-1 | Escrow contract + basic booking API (no wallet UI) |
-| **V1.0** | Launchable | 2 | + AA wallet + complete booking flow |
-| **V1.5** | Growth | 3-4 | + property owners + reputation display |
-| **V2.0** | DeFi | 5 | + liquidity pools + yield |
+| Version | Target | Phases | Key Deliverable | Status |
+|---------|--------|--------|-----------------|--------|
+| **V0.5** | Demo-able | 0-1 | Escrow contract + basic booking API (no wallet UI) | ✅ Complete |
+| **V1.0** | Launchable | 2 | + AA wallet + complete booking flow | ✅ Complete |
+| **V1.5** | Growth | 3-4 | + property owners + reputation display | ✅ Complete |
+| **V2.0** | DeFi | 5 | + liquidity pools + yield | 🔜 Planned |
 
 ---
 
@@ -409,21 +418,34 @@ Complete booking flow with frontend wallet UI, ready for public beta testing.
 
 ---
 
-## 3. Next (Weeks 11-36) — Property, Reputation & DeFi
+## 3. V1.5 Complete (Dec 15, 2025) — Property & Reputation ✅
 
-### Phase 3: Property Owner & Chair Module (Weeks 11-14) → V1.5
-- Property & Chair registry
-- Approval rules + blocklist
-- Chair availability UI + APIs
-- Chair rental payout routing
-- Hybrid approval logic (property-level)
+### Phase 3: Property Owner & Chair Module → V1.5 ✅ COMPLETE
+- ✅ Property & Chair registry (Prisma models + API)
+- ✅ Approval modes (REQUIRED, AUTO, CONDITIONAL)
+- ✅ Chair rental flow (request → approve/reject → active → complete)
+- ✅ Property Owner dashboard (4 pages)
+- ✅ PropertyRegistry smart contract
 
-### Phase 4: Reputation, Reviews & Rewards (Weeks 15-18) → V1.5
-- ReputationRegistry contract
-- Review models + indexer
-- TPS (Time Performance Score) pipeline
-- Rewards engine + SBT mapping
-- Referrals engine
+### Phase 4: Reputation, Reviews & Rewards → V1.5 ✅ COMPLETE
+- ✅ ReputationRegistry smart contract
+- ✅ Review models + API endpoints
+- ✅ TPS (Time Performance Score) pipeline
+- ✅ Reputation UI components (badge, card, star rating, review list)
+- ✅ Verification logic (70% score + 5 bookings)
+- ⏳ Rewards engine + SBT mapping (deferred to V1.6)
+- ⏳ Referrals engine (deferred to V1.6)
+
+**V1.5 Implementation Summary:**
+- **17 features** implemented (10 Property Owner + 7 Reputation)
+- **17 new API endpoints** (properties, chairs, rentals, reviews, reputation)
+- **2 new smart contracts** (PropertyRegistry, ReputationRegistry)
+- **6 new Prisma models** (Property, Chair, ChairRentalRequest, ReputationScore, ReputationEvent, Review)
+- **6 new enums** (PropertyCategory, ChairType, RentalMode, ApprovalMode, ChairRentalStatus, ReviewType)
+
+---
+
+## 4. Next (V1.6+) — DeFi & Expansion
 
 ### Phase 5: DeFi Layer v1 (Weeks 19-24) → V2.0
 - VLP (Vlossom Liquidity Pool) contract

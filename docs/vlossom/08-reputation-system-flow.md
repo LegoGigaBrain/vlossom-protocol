@@ -631,7 +631,126 @@ The goal:
 
 ---
 
-## 🌟 12. Final Summary
+## 🌟 12. V1.5 Implementation Status
+
+The reputation system has been implemented in V1.5 with the following components:
+
+### Database Models (Prisma Schema)
+
+```prisma
+model ReputationScore {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  userType           UserType
+  totalScore         Int      @default(10000)  // 0-10000 (displayed as 0-100%)
+  tpsScore           Int      @default(10000)  // Time Performance Score
+  reliabilityScore   Int      @default(10000)  // Booking reliability
+  feedbackScore      Int      @default(10000)  // Customer/stylist reviews
+  disputeScore       Int      @default(10000)  // Dispute-free bonus
+  completedBookings  Int      @default(0)
+  cancelledBookings  Int      @default(0)
+  noShows            Int      @default(0)
+  isVerified         Boolean  @default(false)  // 70% + 5 bookings
+  lastCalculatedAt   DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model ReputationEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  eventType  String   // BOOKING_COMPLETED, NO_SHOW, CANCELLATION, REVIEW_RECEIVED
+  score      Int      // Impact on score (-100 to +100)
+  metadata   Json?    // Event-specific data
+  createdAt  DateTime @default(now())
+}
+
+model Review {
+  id            String     @id @default(cuid())
+  bookingId     String
+  reviewerId    String
+  revieweeId    String
+  reviewType    ReviewType // CUSTOMER_TO_STYLIST, STYLIST_TO_CUSTOMER, etc.
+  overallRating Int        // 10-50 (displayed as 1-5 stars)
+  // Sub-ratings (all 10-50 scale)
+  punctuality   Int?
+  professionalism Int?
+  quality       Int?
+  communication Int?
+  cleanliness   Int?
+  comment       String?
+  createdAt     DateTime   @default(now())
+}
+```
+
+### TPS Calculation Pipeline
+
+Located at: `services/api/src/lib/reputation.ts`
+
+**Score Weights (V1 Implementation):**
+- TPS: 30%
+- Reliability: 30%
+- Feedback: 30%
+- Disputes: 10%
+
+**TPS Calculation Formula:**
+```typescript
+// Start Punctuality (50% of TPS)
+// - On time or early: 100%
+// - 1-5 min late: 90%
+// - 5-15 min late: 70%
+// - 15-30 min late: 40%
+// - 30+ min late: 10%
+
+// Duration Accuracy (50% of TPS)
+// - Within 10%: 100%
+// - Within 20%: 80%
+// - Within 30%: 60%
+// - Over 30%: 40%
+```
+
+**Verification Threshold:**
+- Minimum score: 70%
+- Minimum completed bookings: 5
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/reviews` | POST | Create a review |
+| `/api/reviews/booking/:bookingId` | GET | Get reviews for a booking |
+| `/api/reviews/user/:userId` | GET | Get reviews for a user |
+| `/api/reputation/:userId` | GET | Get reputation score |
+| `/api/internal/reputation/recalculate` | POST | Batch recalculate all scores |
+
+### Scheduler Integration
+
+The reputation recalculation runs every 6 hours via the scheduler service:
+```typescript
+const REPUTATION_RECALC_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+```
+
+### Smart Contract
+
+`ReputationRegistry.sol` stores on-chain anchors:
+- Score commitments (hash of off-chain score)
+- Verification status
+- Checkpoint timestamps
+
+### UI Components
+
+Located at: `apps/web/src/components/reputation/`
+
+| Component | Description |
+|-----------|-------------|
+| `ReputationBadge` | Score circle with color coding |
+| `ReputationCard` | Full score breakdown with progress bars |
+| `StarRating` | Interactive 1-5 star rating input |
+| `ReviewList` | List of reviews with avatars and comments |
+
+---
+
+## 🌟 13. Final Summary
 
 The Vlossom Reputation System:
 

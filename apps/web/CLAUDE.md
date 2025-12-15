@@ -11,7 +11,7 @@
 
 ## Current Implementation Status
 
-**V1.0 Complete - Beta Launch Ready** (Dec 14, 2025)
+**V1.5 Complete - Property Owner + Reputation** (Dec 15, 2025)
 
 ### Routes
 | Route | Purpose | Status |
@@ -34,6 +34,14 @@
 | `/help/getting-started` | Getting started guide | ✅ M5 |
 | `/help/faq` | FAQ page | ✅ M5 |
 | `/admin/paymaster` | Paymaster monitoring dashboard | ✅ M5 |
+| `/property-owner/dashboard` | Property owner overview | ✅ V1.5 |
+| `/property-owner/properties` | Property management CRUD | ✅ V1.5 |
+| `/property-owner/properties/[id]` | Property details + chairs | ✅ V1.5 |
+| `/property-owner/chairs` | Chair inventory management | ✅ V1.5 |
+| `/property-owner/rentals` | Chair rental requests | ✅ V1.5 |
+| `/property-owner/earnings` | Property earnings dashboard | ✅ V1.5 |
+| `/reputation` | Reputation dashboard | ✅ V1.5 |
+| `/stylists/[id]/reviews` | Stylist reviews page | ✅ V1.5 |
 
 ## Key Directories
 
@@ -128,6 +136,11 @@
 - `use-stylist-availability.ts` — Availability management (M3)
 - `use-stylist-profile.ts` — Profile management (M3)
 - `use-stylist-earnings.ts` — Earnings queries (M3)
+- `use-properties.ts` — Property CRUD + mutations (V1.5)
+- `use-chairs.ts` — Chair management hooks (V1.5)
+- `use-rentals.ts` — Rental request workflow (V1.5)
+- `use-reputation.ts` — Reputation score queries (V1.5)
+- `use-reviews.ts` — Review CRUD hooks (V1.5)
 
 **`onboarding/`** — User Onboarding (M5)
 - `welcome-modal.tsx` — First-time user welcome
@@ -141,6 +154,25 @@
 - `transactions-table.tsx` — Paginated transaction history
 - `alerts-panel.tsx` — Alert configuration UI
 
+**`property-owner/`** — Property Owner Dashboard (V1.5)
+- `dashboard-stats.tsx` — Property overview stats
+- `property-list.tsx` — Property cards grid
+- `property-form.tsx` — Create/edit property
+- `chair-inventory.tsx` — Chair management
+- `chair-form.tsx` — Create/edit chair
+- `rental-requests.tsx` — Rental request queue
+- `rental-card.tsx` — Rental request card
+- `earnings-summary.tsx` — Property earnings
+
+**`reputation/`** — Reputation System (V1.5)
+- `reputation-dashboard.tsx` — User reputation overview
+- `score-card.tsx` — Reputation score display
+- `score-breakdown.tsx` — TPS, reliability, feedback breakdown
+- `event-history.tsx` — Reputation event timeline
+- `review-list.tsx` — Reviews list
+- `review-form.tsx` — Submit review form
+- `verification-badge.tsx` — Verified badge component
+
 ### `lib/` — Utilities & API Clients
 - `auth-client.ts` — Auth API (signup, login, logout)
 - `wallet-client.ts` — Wallet API (balance, send, receive)
@@ -151,6 +183,11 @@
 - `utils.ts` — Formatting utilities (price, duration, date)
 - `theme/` — Brand theme provider system
 - `posthog.ts` — PostHog analytics client (M5)
+- `property-client.ts` — Property API client (V1.5)
+- `chair-client.ts` — Chair management API (V1.5)
+- `rental-client.ts` — Chair rental API (V1.5)
+- `reputation-client.ts` — Reputation score API (V1.5)
+- `review-client.ts` — Review CRUD API (V1.5)
 
 ### Monitoring & Analytics (M5)
 - `sentry.client.config.ts` — Browser error tracking

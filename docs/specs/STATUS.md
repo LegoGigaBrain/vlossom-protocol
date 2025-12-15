@@ -2,8 +2,8 @@
 
 Track implementation progress across all Vlossom features.
 
-**Last Updated**: December 14, 2025
-**Current Version**: V1.0 Complete ✅ - BETA LAUNCH READY 🎉
+**Last Updated**: December 15, 2025
+**Current Version**: V1.5 Complete ✅ - PROPERTY OWNER + REPUTATION 🎉
 
 ---
 
@@ -17,9 +17,11 @@ Track implementation progress across all Vlossom features.
 | **V1.0 Week 5-6 (Milestone 3)** | 7 | 7 ✅ | 0 | 0 |
 | **V1.0 Week 7-8 (Milestone 4)** | 7 | 7 ✅ | 0 | 0 |
 | **V1.0 Week 9-10 (Milestone 5)** | 5 | 5 ✅ | 0 | 0 |
-| **Total** | 39 | 39 | 0 | 0 |
+| **V1.5 Property Owner (Milestone 6)** | 10 | 10 ✅ | 0 | 0 |
+| **V1.5 Reputation (Milestone 6)** | 7 | 7 ✅ | 0 | 0 |
+| **Total** | 56 | 56 | 0 | 0 |
 
-**Completion Rate**: 100% (39/39) 🎉
+**Completion Rate**: 100% (56/56) 🎉
 
 ---
 
@@ -541,14 +543,80 @@ Track implementation progress across all Vlossom features.
 
 ---
 
-## 🔮 V1.5 Feature Specs (Planned)
+## ✅ V1.5 - Property Owner + Reputation (Dec 15, 2025)
 
-Placeholder directories created for upcoming features:
+### Property Owner Module - COMPLETE
+
+| Feature ID | Feature | Status |
+|------------|---------|--------|
+| F6.1 | Property Database Models (Property, Chair, ChairRentalRequest) | ✅ **COMPLETE** |
+| F6.2 | Property API Endpoints (CRUD + filtering) | ✅ **COMPLETE** |
+| F6.3 | PropertyRegistry Smart Contract | ✅ **COMPLETE** |
+| F6.4 | Property Owner Dashboard (4 pages) | ✅ **COMPLETE** |
+| F6.5 | Chair Rental Flow (Request → Approve/Reject → Active → Complete) | ✅ **COMPLETE** |
+| F6.6 | Approval Modes (REQUIRED, AUTO, CONDITIONAL) | ✅ **COMPLETE** |
+| F6.7 | Auto-confirm Customer Start | ✅ **COMPLETE** |
+| F6.8 | Buffer Time Configuration (15 min default) | ✅ **COMPLETE** |
+| F6.9 | Location Verification Flag | ✅ **COMPLETE** |
+| F6.10 | Vercel Deployment | ✅ **COMPLETE** |
+
+### Reputation System - COMPLETE
+
+| Feature ID | Feature | Status |
+|------------|---------|--------|
+| F7.1 | Reputation Database Models (ReputationScore, ReputationEvent, Review) | ✅ **COMPLETE** |
+| F7.2 | Review API Endpoints (create, list by booking/user) | ✅ **COMPLETE** |
+| F7.3 | TPS Calculation Pipeline (start punctuality + duration accuracy) | ✅ **COMPLETE** |
+| F7.4 | Reputation Scheduler (6-hour batch recalculation) | ✅ **COMPLETE** |
+| F7.5 | ReputationRegistry Smart Contract | ✅ **COMPLETE** |
+| F7.6 | Reputation UI Components (Badge, Card, StarRating, ReviewList) | ✅ **COMPLETE** |
+| F7.7 | Verification Logic (70% score + 5 bookings) | ✅ **COMPLETE** |
+
+### V1.5 Implementation Details
+
+**New API Endpoints (17 total)**:
+- `GET/POST /api/properties` - List/create properties
+- `GET/PUT /api/properties/:id` - Get/update property
+- `GET /api/properties/:id/chairs` - List chairs for property
+- `POST/PUT/DELETE /api/chairs/:id` - Chair CRUD
+- `POST /api/chair-rentals` - Request chair rental
+- `POST /api/chair-rentals/:id/approve` - Approve rental
+- `POST /api/chair-rentals/:id/reject` - Reject rental
+- `GET /api/chair-rentals/property/:propertyId` - List rentals
+- `POST /api/reviews` - Create review
+- `GET /api/reviews/booking/:bookingId` - Reviews for booking
+- `GET /api/reviews/user/:userId` - Reviews for user
+- `GET /api/reputation/:userId` - Get reputation score
+- `POST /api/internal/reputation/recalculate` - Batch recalculate
+
+**New Smart Contracts**:
+- `PropertyRegistry.sol` - On-chain property registration
+- `ReputationRegistry.sol` - Score anchoring with verification
+
+**New Frontend Pages**:
+- `/property-owner` - Dashboard overview
+- `/property-owner/properties` - Property management
+- `/property-owner/chairs` - Chair inventory
+- `/property-owner/requests` - Rental request approvals
+
+**New UI Components**:
+- `reputation/reputation-badge.tsx` - Score circle
+- `reputation/reputation-card.tsx` - Full breakdown
+- `reputation/star-rating.tsx` - Interactive rating
+- `reputation/review-list.tsx` - Review feed
+
+**Spec Location**: [docs/specs/v1.5-sprint/](./v1.5-sprint/)
+
+---
+
+## 🔮 V1.6 Feature Specs (Planned)
 
 | Module | Location | Status |
 |--------|----------|--------|
-| Property Owner | [docs/specs/property-owner/](./property-owner/) | Planned (Weeks 11-14) |
-| Reputation System | [docs/specs/reputation/](./reputation/) | Planned (Weeks 11-18) |
+| Wallet AA Integration | docs/specs/wallet-aa/ | Planned |
+| DeFi Tab Foundation | docs/specs/defi/ | Planned |
+| Rewards Engine | docs/specs/rewards/ | Planned |
+| Referrals Program | docs/specs/referrals/ | Planned |
 
 ---
 
@@ -586,7 +654,7 @@ This tracker is updated:
 
 ---
 
-**Next Update**: When V1.5 (Property & Reputation) features begin implementation
+**Next Update**: When V1.6 (Wallet AA Integration) features begin implementation
 
 ---
 

@@ -39,6 +39,7 @@ import {
   type Coordinates,
 } from "../lib/scheduling";
 import { notifyBookingEvent, NotificationType } from "../lib/notifications";
+import { recordBookingCompletionEvent, recordCancellationEvent } from "../lib/reputation";
 import { z } from "zod";
 import type { Address } from "viem";
 
@@ -1056,7 +1057,8 @@ router.post("/:id/complete", authenticate, async (req: AuthenticatedRequest, res
       actualDurationMin: actualDurationMin || undefined,
     }).catch((err) => console.error("Failed to send service completed notification:", err));
 
-    // TODO: Schedule auto-confirm job (24h timeout)
+    // Auto-confirm is handled by @vlossom/scheduler service polling
+    // for AWAITING_CUSTOMER_CONFIRMATION bookings older than 24h
 
     return res.json(finalBooking);
   } catch (error: any) {
@@ -1189,7 +1191,17 @@ router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res:
       // Continue - don't block booking confirmation on escrow failure
     }
 
-    // TODO: Update reputation scores
+    // Record reputation events for this booking completion
+    recordBookingCompletionEvent({
+      bookingId: id,
+      customerId: booking.customerId,
+      stylistId: booking.stylistId,
+      scheduledStart: booking.scheduledStartTime,
+      actualStart: booking.actualStartTime,
+      scheduledEnd: booking.scheduledEndTime,
+      actualEnd: booking.actualEndTime,
+      wasAutoConfirmed: false,
+    }).catch((err) => console.error("Failed to record reputation event:", err));
 
     return res.json(updatedBooking);
   } catch (error: any) {

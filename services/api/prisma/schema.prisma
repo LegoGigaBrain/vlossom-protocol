@@ -562,3 +562,339 @@ model PaymasterDailyStats {
   @@index([date])
   @@map("paymaster_daily_stats")
 }
+
+// ============================================================================
+// PROPERTY OWNER & CHAIR RENTAL MODELS (V1.5 - Property Owner Module)
+// Reference: docs/vlossom/17-property-owner-and-chair-rental-module.md
+// ============================================================================
+
+enum PropertyCategory {
+  LUXURY
+  BOUTIQUE
+  STANDARD
+  HOME_BASED
+}
+
+enum PropertyApprovalMode {
+  FULL_APPROVAL       // Every booking requires owner approval
+  NO_APPROVAL         // Auto-confirm unless blocklisted
+  CONDITIONAL         // Auto-approve based on rules
+}
+
+enum ChairType {
+  BRAID_CHAIR
+  BARBER_CHAIR
+  STYLING_STATION
+  WASH_STATION
+  MAKEUP_STATION
+  NAIL_STATION
+  GENERAL
+}
+
+enum ChairStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  BLOCKED
+}
+
+enum ChairRentalMode {
+  PER_BOOKING   // Split model - fee per booking
+  PER_HOUR
+  PER_DAY
+  PER_WEEK
+  PER_MONTH
+}
+
+enum ChairRentalStatus {
+  PENDING_APPROVAL
+  APPROVED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+/// Property/Salon entity - container for chairs
+model Property {
+  id          String           @id @default(uuid())
+  ownerId     String           // User ID of property owner
+  name        String
+  description String?
+  category    PropertyCategory @default(STANDARD)
+
+  // Location
+  address     String
+  city        String
+  country     String           @default("ZA")
+  lat         Float
+  lng         Float
+
+  // Media
+  images      Json             @default("[]") // string[] - Cloudinary URLs
+  coverImage  String?
+
+  // Operating hours (JSON: {mon: {open: "08:00", close: "18:00"}, ...})
+  operatingHours Json          @default("{}")
+
+  // Approval settings
+  approvalMode      PropertyApprovalMode @default(CONDITIONAL)
+  minStylistRating  Float?               // Minimum reputation score for auto-approval
+  minTpsScore       Float?               // Minimum TPS for auto-approval
+  allowedCategories Json                 @default("[]") // Service categories allowed
+  blockedCategories Json                 @default("[]") // Service categories blocked
+
+  // Status
+  isActive    Boolean          @default(true)
+  isVerified  Boolean          @default(false)
+
+  // Timestamps
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  chairs           Chair[]
+  blocklist        PropertyBlocklist[]
+  rentalRequests   ChairRentalRequest[]
+
+  @@index([ownerId])
+  @@index([city])
+  @@index([isActive])
+  @@index([lat, lng])
+  @@map("properties")
+}
+
+/// Individual rentable chair within a property
+model Chair {
+  id          String      @id @default(uuid())
+  propertyId  String
+  name        String      // "Chair 1", "Station A", etc.
+  type        ChairType   @default(GENERAL)
+  status      ChairStatus @default(AVAILABLE)
+
+  // Amenities (flags for filtering/matching)
+  amenities   Json        @default("[]") // string[]: "wash_basin", "mirror", "lighting", etc.
+
+  // Pricing (in cents)
+  hourlyRateCents   BigInt?
+  dailyRateCents    BigInt?
+  weeklyRateCents   BigInt?
+  monthlyRateCents  BigInt?
+  perBookingFeeCents BigInt?  // Fee added per booking when chair is used
+
+  // Rental modes enabled for this chair
+  rentalModesEnabled Json    @default("[\"PER_BOOKING\"]") // ChairRentalMode[]
+
+  // Availability exceptions (maintenance, blackouts)
+  exceptions  Json        @default("[]") // [{date: "2025-12-25", blocked: true, note: "Holiday"}]
+
+  // Status
+  isActive    Boolean     @default(true)
+
+  // Timestamps
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  property       Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rentals        ChairRentalRequest[]
+  reservations   ChairReservation[]
+
+  @@index([propertyId])
+  @@index([type])
+  @@index([status])
+  @@index([isActive])
+  @@map("chairs")
+}
+
+/// Chair rental request from stylist
+model ChairRentalRequest {
+  id          String            @id @default(uuid())
+  chairId     String
+  propertyId  String
+  stylistId   String            // User ID of stylist
+
+  // Rental details
+  rentalMode  ChairRentalMode
+  startTime   DateTime
+  endTime     DateTime
+
+  // Pricing (calculated at request time)
+  totalAmountCents BigInt
+  platformFeeCents BigInt
+  ownerPayoutCents BigInt
+
+  // Status
+  status      ChairRentalStatus @default(PENDING_APPROVAL)
+
+  // Approval tracking
+  approvedAt  DateTime?
+  approvedBy  String?           // User ID of approver (owner or auto)
+  rejectedAt  DateTime?
+  rejectionReason String?
+
+  // Escrow
+  escrowId    String?
+  escrowStatus EscrowStatus?
+
+  // Timestamps
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  chair       Chair             @relation(fields: [chairId], references: [id])
+  property    Property          @relation(fields: [propertyId], references: [id])
+
+  @@index([chairId])
+  @@index([propertyId])
+  @@index([stylistId])
+  @@index([status])
+  @@index([startTime])
+  @@map("chair_rental_requests")
+}
+
+/// Chair reservation for a specific booking (per-booking model)
+model ChairReservation {
+  id          String    @id @default(uuid())
+  chairId     String
+  bookingId   String    @unique // One chair per booking
+  startTime   DateTime
+  endTime     DateTime
+
+  // Fee for this reservation
+  feeCents    BigInt
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  chair       Chair     @relation(fields: [chairId], references: [id])
+
+  @@index([chairId])
+  @@index([bookingId])
+  @@index([startTime, endTime])
+  @@map("chair_reservations")
+}
+
+/// Stylist blocklist for a property
+model PropertyBlocklist {
+  id          String    @id @default(uuid())
+  propertyId  String
+  stylistId   String    // User ID of blocked stylist
+  reason      String?
+  blockedAt   DateTime  @default(now())
+  blockedBy   String    // User ID of owner who blocked
+
+  // Relations
+  property    Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, stylistId])
+  @@index([propertyId])
+  @@index([stylistId])
+  @@map("property_blocklist")
+}
+
+// ============================================================================
+// REPUTATION & REVIEW MODELS (V1.5 - Reputation System)
+// Reference: docs/vlossom/08-reputation-system-flow.md
+// ============================================================================
+
+enum ReviewType {
+  CUSTOMER_TO_STYLIST     // Customer reviews stylist after service
+  STYLIST_TO_CUSTOMER     // Stylist reviews customer after service
+  PROPERTY_TO_STYLIST     // Property owner reviews stylist
+  STYLIST_TO_PROPERTY     // Stylist reviews property/chair
+}
+
+/// Structured review after service completion
+model Review {
+  id          String     @id @default(uuid())
+  bookingId   String
+  reviewerId  String     // User ID of reviewer
+  revieweeId  String     // User ID of person being reviewed
+  reviewType  ReviewType
+
+  // Structured ratings (1-5 scale stored as 10-50 for precision)
+  overallRating       Int       // Required overall score
+  professionalismRating Int?    // For stylists: professionalism
+  communicationRating Int?      // Communication quality
+  cleanlinessRating   Int?      // For stylists/properties: cleanliness
+  punctualityRating   Int?      // Was on time?
+  qualityRating       Int?      // Service quality / space quality
+
+  // Optional text feedback
+  comment     String?   @db.VarChar(500)
+
+  // Review status
+  isPublic    Boolean   @default(true)
+  isVerified  Boolean   @default(false) // Verified completed booking
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([bookingId, reviewType]) // One review per type per booking
+  @@index([revieweeId])
+  @@index([reviewerId])
+  @@index([reviewType])
+  @@index([createdAt])
+  @@map("reviews")
+}
+
+/// Reputation event log for tracking all reputation-affecting actions
+model ReputationEvent {
+  id          String    @id @default(uuid())
+  actorId     String    // User ID affected
+  actorType   ActorRole // STYLIST, CUSTOMER, PROPERTY_OWNER
+  bookingId   String?
+
+  // Event details
+  eventType   String    // BOOKING_COMPLETED, ON_TIME_ARRIVAL, LATE_ARRIVAL, etc.
+  scoreImpact Int       // Positive or negative impact (-100 to +100)
+
+  // Metadata
+  metadata    Json      @default("{}") // Additional event-specific data
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+
+  @@index([actorId])
+  @@index([actorType])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("reputation_events")
+}
+
+/// Aggregated reputation score for an actor (cached/computed)
+model ReputationScore {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  actorType   ActorRole
+
+  // Score components (0-10000 representing 0.00-100.00)
+  totalScore        Int       @default(5000)
+  tpsScore          Int       @default(5000) // Time Performance Score
+  reliabilityScore  Int       @default(5000) // Booking completion rate
+  feedbackScore     Int       @default(5000) // Average review rating
+  disputeScore      Int       @default(10000) // Lower = more disputes
+
+  // Stats
+  completedBookings Int       @default(0)
+  cancelledBookings Int       @default(0)
+  totalReviews      Int       @default(0)
+  averageRating     Float?    // Computed average of all review ratings
+
+  // Verification status
+  isVerified        Boolean   @default(false)
+  verifiedAt        DateTime?
+
+  // Timestamps
+  lastCalculatedAt  DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([totalScore])
+  @@index([actorType])
+  @@index([isVerified])
+  @@map("reputation_scores")
+}

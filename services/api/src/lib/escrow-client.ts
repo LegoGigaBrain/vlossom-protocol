@@ -413,11 +413,13 @@ export async function getEscrowRecord(bookingId: string): Promise<EscrowRecord> 
 
 /**
  * Treasury address for platform fees
- * TODO: Move to environment variable or database config
+ * Configured via TREASURY_ADDRESS environment variable
+ * Default: Hardhat account #1 for local development
  */
-export const PLATFORM_TREASURY_ADDRESS: Address = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'; // Hardhat account #1
+export const PLATFORM_TREASURY_ADDRESS: Address = (process.env.TREASURY_ADDRESS || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8') as Address;
 
 /**
- * Platform fee percentage (10% of service amount)
+ * Platform fee percentage (configurable via environment)
+ * Default: 10% of service amount
  */
-export const PLATFORM_FEE_PERCENTAGE = 10;
+export const PLATFORM_FEE_PERCENTAGE = parseInt(process.env.PLATFORM_FEE_PERCENTAGE || '10', 10);
