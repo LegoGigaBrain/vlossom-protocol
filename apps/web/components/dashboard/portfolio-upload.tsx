@@ -56,12 +56,14 @@ export function PortfolioUpload({
     onImagesChange(newImages);
   };
 
-  const handleReorder = (fromIndex: number, toIndex: number) => {
+  // Reserved for future drag-and-drop reorder feature
+  const _handleReorder = (fromIndex: number, toIndex: number) => {
     const newImages = [...images];
     const [movedImage] = newImages.splice(fromIndex, 1);
     newImages.splice(toIndex, 0, movedImage);
     onImagesChange(newImages);
   };
+  void _handleReorder; // Suppress unused warning
 
   return (
     <div className="bg-background-primary rounded-card shadow-vlossom p-6">

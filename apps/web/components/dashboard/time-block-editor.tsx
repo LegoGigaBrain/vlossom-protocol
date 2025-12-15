@@ -35,7 +35,7 @@ interface TimeBlockEditorProps {
 }
 
 export function TimeBlockEditor({
-  day,
+  day: _day, // Reserved for future API integration
   dayLabel,
   slots: initialSlots,
   open,
@@ -43,6 +43,7 @@ export function TimeBlockEditor({
   onSave,
   isLoading,
 }: TimeBlockEditorProps) {
+  void _day; // Suppress unused warning
   const [isAvailable, setIsAvailable] = useState(initialSlots.length > 0);
   const [slots, setSlots] = useState<TimeSlot[]>(
     initialSlots.length > 0 ? initialSlots : [{ start: "09:00", end: "17:00" }]

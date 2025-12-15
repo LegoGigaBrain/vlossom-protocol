@@ -12,7 +12,9 @@
     "paths": {
       "@/*": ["./*"],
       "@/design/*": ["../../design/*"]
-    }
+    },
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "../../design/**/*.json"],
   "exclude": ["node_modules"]
