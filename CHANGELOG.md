@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2025-12-16 - SIWE Authentication
+
+### Summary
+V3.2.0 adds Sign-In with Ethereum (SIWE) authentication, allowing users to authenticate with their external wallets (MetaMask, Coinbase Wallet, WalletConnect). This release also includes account linking functionality to connect multiple authentication methods to a single account.
+
+### SIWE (Sign-In with Ethereum)
+
+#### Database Schema
+- **New enum**: `AuthProvider` (EMAIL, ETHEREUM)
+- **New model**: `ExternalAuthProvider` - Stores wallet authentication providers
+- **New model**: `LinkedAccount` - Manages linked authentication methods per user
+- **New model**: `SiweNonce` - Prevents replay attacks with nonce tracking
+
+#### Backend Implementation
+- **`POST /auth/siwe/challenge`** - Generate SIWE message with nonce for wallet signature
+- **`POST /auth/siwe`** - Verify signature, create account if new user, return JWT
+- **`GET /auth/linked-accounts`** - List all linked authentication methods
+- **`POST /auth/link-wallet`** - Link wallet to existing account (requires SIWE signature)
+- **`DELETE /auth/unlink-account/:id`** - Unlink authentication method (prevents unlinking last method)
+
+#### Frontend Implementation
+- **`apps/web/hooks/use-siwe.ts`** - React hook for SIWE authentication using wagmi
+- **`apps/web/components/auth/siwe-button.tsx`** - SIWE button with wallet connection flow
+- **`apps/web/components/settings/linked-accounts.tsx`** - Manage linked accounts UI
+- **`apps/web/lib/auth-client.ts`** - Added SIWE API functions
+
+#### Login Page Updates
+- Added "Sign in with Ethereum" button to login page
+- Updated to V3.2 Beta version indicator
+
+#### Error Handling
+- New error codes: `INVALID_SIWE_MESSAGE`, `INVALID_SIWE_SIGNATURE`, `SIWE_MESSAGE_EXPIRED`, `SIWE_NONCE_INVALID`, `SIWE_NONCE_USED`, `WALLET_ALREADY_LINKED`, `CANNOT_UNLINK_LAST_AUTH`, `AUTH_METHOD_NOT_FOUND`
+
+### Technical Details
+
+#### SIWE Message Format (EIP-4361)
+```
+Vlossom wants you to sign in with your Ethereum account:
+0x1234...5678
+
+Sign in to Vlossom with your Ethereum wallet.
+
+URI: http://localhost:3000
+Version: 1
+Chain ID: 84532
+Nonce: abc123
+Issued At: 2025-12-16T12:00:00.000Z
+Expiration Time: 2025-12-16T12:05:00.000Z
+```
+
+#### Security
+- Nonces expire after 5 minutes
+- SIWE messages expire after 5 minutes
+- Nonces are single-use (marked as used after verification)
+- Signature verification using viem's `recoverMessageAddress`
+- Account linking requires authenticated session + SIWE signature
+
+### New Files Created
+
+| File | Purpose |
+|------|---------|
+| `apps/web/hooks/use-siwe.ts` | SIWE authentication hook |
+| `apps/web/components/auth/siwe-button.tsx` | SIWE button components |
+| `apps/web/components/settings/linked-accounts.tsx` | Linked accounts management UI |
+
+### Files Modified
+
+| File | Changes |
+|------|---------|
+| `services/api/prisma/schema.prisma` | Added AuthProvider enum, ExternalAuthProvider, LinkedAccount, SiweNonce models |
+| `services/api/src/routes/auth.ts` | Added SIWE endpoints (challenge, verify, link, unlink) |
+| `services/api/src/middleware/error-handler.ts` | Added SIWE-specific error codes |
+| `apps/web/lib/auth-client.ts` | Added SIWE API functions |
+| `apps/web/app/(auth)/login/page.tsx` | Added SIWE button |
+
+---
+
 ## [3.1.0] - 2025-12-16 - Multi-Network Support & Wallet Connection
 
 ### Summary

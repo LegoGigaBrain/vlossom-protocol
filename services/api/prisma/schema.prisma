@@ -109,6 +109,10 @@ model User {
   wallet              Wallet?
   savedPaymentMethods SavedPaymentMethod[]
 
+  // V3.2: Multi-auth relations
+  externalProviders   ExternalAuthProvider[]
+  linkedAccounts      LinkedAccount[]
+
   @@index([walletAddress])
   @@index([email])
   @@index([phone])
@@ -967,5 +971,81 @@ model IdempotentRequest {
 
   @@index([expiresAt])
   @@map("idempotent_requests")
+}
+
+// ============================================================================
+// EXTERNAL AUTH PROVIDERS (V3.2: SIWE - Sign In With Ethereum)
+// Reference: docs/vlossom/14-backend-architecture-and-apis.md
+// ============================================================================
+
+enum AuthProvider {
+  EMAIL      // Traditional email/password
+  ETHEREUM   // SIWE - Sign In With Ethereum
+}
+
+/// External authentication provider for a user (SIWE, OAuth, etc.)
+/// V3.2: Enables wallet-based authentication alongside email/password
+model ExternalAuthProvider {
+  id         String       @id @default(uuid())
+  userId     String
+  provider   AuthProvider
+  address    String       @unique  // Wallet address for ETHEREUM provider
+  chainId    Int?                  // Chain ID for ETHEREUM provider
+
+  // Metadata
+  metadata   Json         @default("{}")  // Provider-specific data
+
+  // Timestamps
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, address])
+  @@index([userId])
+  @@index([address])
+  @@map("external_auth_providers")
+}
+
+/// Linked accounts for multi-auth support (email + wallet linking)
+/// V3.2: Allows users to link multiple authentication methods to one account
+model LinkedAccount {
+  id          String       @id @default(uuid())
+  userId      String
+  provider    AuthProvider
+  identifier  String       // Email address or wallet address
+  isPrimary   Boolean      @default(false)
+  verifiedAt  DateTime?    // When this auth method was verified
+
+  // Timestamps
+  createdAt   DateTime     @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider, identifier])
+  @@unique([provider, identifier])  // Prevent same identifier across users
+  @@index([userId])
+  @@map("linked_accounts")
+}
+
+// ============================================================================
+// SIWE NONCE TRACKING (V3.2: Replay Attack Prevention)
+// ============================================================================
+
+/// SIWE nonce for replay attack prevention
+/// V3.2: Each nonce is single-use and expires after 5 minutes
+model SiweNonce {
+  id         String   @id @default(uuid())
+  nonce      String   @unique
+  address    String?  // Optional: Pre-associate with address
+  isUsed     Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([nonce])
+  @@index([expiresAt])
+  @@map("siwe_nonces")
 }
 

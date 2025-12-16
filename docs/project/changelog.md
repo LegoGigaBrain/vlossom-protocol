@@ -7,6 +7,133 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.2.0] - 2025-12-16
+
+### V3.2.0: SIWE Authentication & Account Linking - COMPLETE ✅
+
+**Goal**: Add Sign-In with Ethereum (EIP-4361) support for external wallet authentication.
+
+#### ✅ SIWE (Sign-In with Ethereum)
+
+**Backend Implementation**
+- New SIWE challenge endpoint with nonce generation and expiry
+- SIWE authentication endpoint with signature verification using viem
+- Account creation for new wallet users (email=null, passwordHash=null)
+- AA wallet creation for SIWE-only users
+- JWT token issuance on successful authentication
+
+**Security Features**
+- 5-minute nonce expiry window
+- Nonces marked as used after verification (replay prevention)
+- Chain ID validation in SIWE message
+- Signature verification via `recoverMessageAddress`
+
+**Database Schema**
+```prisma
+enum AuthProvider {
+  EMAIL
+  ETHEREUM
+}
+
+model ExternalAuthProvider {
+  id        String       @id @default(uuid())
+  userId    String
+  provider  AuthProvider
+  address   String       @unique
+  chainId   Int?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  user      User         @relation(...)
+}
+
+model LinkedAccount {
+  id         String       @id @default(uuid())
+  userId     String
+  provider   AuthProvider
+  identifier String
+  isPrimary  Boolean      @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime     @default(now())
+  user       User         @relation(...)
+}
+
+model SiweNonce {
+  id        String   @id @default(uuid())
+  nonce     String   @unique
+  address   String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+```
+
+#### ✅ Account Linking
+
+**Link Wallet to Existing Account**
+- Users with email accounts can link external wallets
+- SIWE signature required to prove wallet ownership
+- Multiple wallets can be linked to one account
+
+**Linked Accounts Management**
+- List all linked authentication methods
+- Unlink auth methods (minimum 1 required)
+- Primary auth method designation
+
+#### ✅ Frontend Components
+
+**New Files Created**
+| File | Purpose |
+|------|---------|
+| `apps/web/hooks/use-siwe.ts` | SIWE authentication hook using wagmi |
+| `apps/web/components/auth/siwe-button.tsx` | Sign-in with Ethereum button |
+| `apps/web/components/settings/linked-accounts.tsx` | Linked accounts management UI |
+
+**Modified Files**
+| File | Changes |
+|------|---------|
+| `apps/web/lib/auth-client.ts` | SIWE client functions |
+| `apps/web/app/(auth)/login/page.tsx` | SIWE sign-in option |
+
+#### ✅ Backend Endpoints
+
+| Endpoint | Method | Auth | Purpose |
+|----------|--------|------|---------|
+| `/auth/siwe/challenge` | POST | No | Generate SIWE message with nonce |
+| `/auth/siwe` | POST | No | Verify signature, create/login user |
+| `/auth/link-wallet` | POST | Bearer | Link wallet to existing account |
+| `/auth/linked-accounts` | GET | Bearer | List all linked auth methods |
+| `/auth/unlink-account/:id` | DELETE | Bearer | Remove auth method (min 1 required) |
+
+#### ✅ Error Codes Added
+
+| Code | Status | Message |
+|------|--------|---------|
+| `INVALID_SIWE_MESSAGE` | 400 | Invalid SIWE message format |
+| `INVALID_SIWE_SIGNATURE` | 401 | Invalid signature |
+| `SIWE_MESSAGE_EXPIRED` | 401 | SIWE message has expired |
+| `SIWE_NONCE_INVALID` | 401 | Invalid or expired nonce |
+| `SIWE_NONCE_USED` | 401 | Nonce has already been used |
+| `WALLET_ALREADY_LINKED` | 409 | Wallet linked to another account |
+| `CANNOT_UNLINK_LAST_AUTH` | 400 | Cannot unlink only auth method |
+
+#### SIWE Message Format
+
+```
+vlossom.app wants you to sign in with your Ethereum account:
+0x1234...5678
+
+Sign in to Vlossom - Your beauty marketplace
+
+URI: https://vlossom.app
+Version: 1
+Chain ID: 84532
+Nonce: abc123xyz
+Issued At: 2025-12-16T12:00:00.000Z
+Expiration Time: 2025-12-16T12:05:00.000Z
+```
+
+---
+
 ## [3.1.0] - 2025-12-16
 
 ### V3.1.0: Multi-Network Support & Wallet Connection - COMPLETE ✅
@@ -1405,6 +1532,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Summary |
 |---------|------|---------|
+| **3.2.0** | 2025-12-16 | **SIWE AUTHENTICATION** - Sign-In with Ethereum, account linking, multi-auth support |
+| **3.1.0** | 2025-12-16 | **MULTI-NETWORK** - Arbitrum support, wallet connection UI, faucet component |
 | **2.0.0** | 2025-12-16 | **UX HARDENING** - WCAG 2.1 AA, accessibility, payment security, polish (Sprints 1-3) |
 | **1.9.0** | 2025-12-15 | **SECURITY HARDENING** - 14 findings (3 HIGH, 7 MEDIUM, 4 LOW), industry-standard security |
 | **1.8.0** | 2025-12-15 | **QUALITY EXCELLENCE** - 100/100 score, TypeScript strict (0 errors), test coverage 84%+ |

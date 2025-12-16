@@ -32,6 +32,16 @@ export const ERROR_CODES: Record<string, { status: number; message: string }> = 
   FORBIDDEN: { status: 403, message: 'Insufficient permissions' },
   ACCOUNT_LOCKED: { status: 423, message: 'Account temporarily locked due to too many failed attempts' },
 
+  // SIWE errors (V3.2)
+  INVALID_SIWE_MESSAGE: { status: 400, message: 'Invalid SIWE message format' },
+  INVALID_SIWE_SIGNATURE: { status: 401, message: 'Invalid signature' },
+  SIWE_MESSAGE_EXPIRED: { status: 401, message: 'SIWE message has expired' },
+  SIWE_NONCE_INVALID: { status: 401, message: 'Invalid or expired nonce' },
+  SIWE_NONCE_USED: { status: 401, message: 'Nonce has already been used' },
+  WALLET_ALREADY_LINKED: { status: 409, message: 'This wallet is already linked to another account' },
+  CANNOT_UNLINK_LAST_AUTH: { status: 400, message: 'Cannot unlink your only authentication method' },
+  AUTH_METHOD_NOT_FOUND: { status: 404, message: 'Authentication method not found' },
+
   // Validation errors
   VALIDATION_ERROR: { status: 400, message: 'Invalid input data' },
   MISSING_FIELD: { status: 400, message: 'Required field missing' },

@@ -664,7 +664,7 @@ router.post("/:id/confirm-payment", authenticate, async (req: AuthenticatedReque
       bookingId: id,
       customerName: updatedBooking!.customer.displayName,
       serviceName: updatedBooking!.serviceType,
-      amount: updatedBooking!.quoteAmountCents,
+      amount: Number(updatedBooking!.quoteAmountCents),
       txHash: input.escrowTxHash,
     }).catch((err) => logger.error("Failed to send payment confirmed notification", { error: err }));
 

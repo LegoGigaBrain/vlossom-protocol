@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 import { useAuth } from "../../../hooks/use-auth";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
+import { SiweButton, SiweDivider } from "../../../components/auth/siwe-button";
 import Link from "next/link";
 
 const loginSchema = z.object({
@@ -18,9 +20,25 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const router = useRouter();
+  const { login, refetch } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle successful SIWE authentication
+  const handleSiweSuccess = async (isNewUser: boolean) => {
+    await refetch();
+    if (isNewUser) {
+      router.push("/onboarding/complete");
+    } else {
+      router.push("/");
+    }
+  };
+
+  // Handle SIWE error
+  const handleSiweError = (errorMessage: string) => {
+    setError(errorMessage);
+  };
 
   const {
     register,
@@ -60,6 +78,19 @@ export default function LoginPage() {
 
         {/* Login Form */}
         <div className="bg-background-primary rounded-card shadow-vlossom p-8 space-y-6">
+          {/* SIWE Button - V3.2 */}
+          <div className="space-y-4">
+            <SiweButton
+              onSuccess={handleSiweSuccess}
+              onError={handleSiweError}
+              variant="outline"
+              className="w-full"
+              disabled={isLoading}
+            />
+          </div>
+
+          <SiweDivider />
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
@@ -141,7 +172,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-caption text-text-tertiary">
-          V1.0 Beta - Base Sepolia Testnet
+          V3.2 Beta - Base Sepolia Testnet
         </p>
       </div>
     </div>

@@ -157,3 +157,166 @@ export function getAuthToken(): string | null {
 export function isAuthenticated(): boolean {
   return !!getAuthToken();
 }
+
+// ============================================================================
+// SIWE (Sign-In with Ethereum) Functions - V3.2
+// ============================================================================
+
+export interface SiweChallenge {
+  message: string;
+  nonce: string;
+  expiresAt: string;
+}
+
+export interface SiweAuthRequest {
+  message: string;
+  signature: string;
+  role?: "CUSTOMER" | "STYLIST";
+}
+
+export interface SiweAuthResponse extends AuthResponse {
+  isNewUser: boolean;
+}
+
+export interface LinkedAccount {
+  id: string;
+  provider: "EMAIL" | "ETHEREUM";
+  identifier: string;
+  identifierFull: string;
+  isPrimary: boolean;
+  verifiedAt: string | null;
+  createdAt: string;
+}
+
+/**
+ * Request a SIWE challenge for wallet authentication
+ * V3.2: Returns a message for the wallet to sign
+ */
+export async function requestSiweChallenge(
+  address: string,
+  chainId: number = 84532
+): Promise<SiweChallenge> {
+  const response = await fetch(`${API_BASE_URL}/auth/siwe/challenge`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ address, chainId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to get SIWE challenge");
+  }
+
+  return response.json();
+}
+
+/**
+ * Authenticate with SIWE signature
+ * V3.2: Creates account if new user, returns JWT token
+ */
+export async function authenticateWithSiwe(
+  data: SiweAuthRequest
+): Promise<SiweAuthResponse> {
+  const response = await fetch(`${API_BASE_URL}/auth/siwe`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "SIWE authentication failed");
+  }
+
+  const result = await response.json();
+
+  // Store token in localStorage
+  if (result.token) {
+    localStorage.setItem("vlossomToken", result.token);
+  }
+
+  return result;
+}
+
+/**
+ * Get all linked authentication methods
+ * V3.2: Returns list of linked accounts (email, wallets)
+ */
+export async function getLinkedAccounts(): Promise<LinkedAccount[]> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/linked-accounts`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to get linked accounts");
+  }
+
+  const result = await response.json();
+  return result.linkedAccounts;
+}
+
+/**
+ * Link an external wallet to the current account
+ * V3.2: Requires SIWE signature to prove wallet ownership
+ */
+export async function linkWallet(
+  message: string,
+  signature: string
+): Promise<LinkedAccount> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/link-wallet`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ message, signature }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to link wallet");
+  }
+
+  const result = await response.json();
+  return result.linkedAccount;
+}
+
+/**
+ * Unlink an authentication method from the current account
+ * V3.2: Cannot unlink if it's the only auth method
+ */
+export async function unlinkAccount(accountId: string): Promise<void> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/auth/unlink-account/${accountId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to unlink account");
+  }
+}

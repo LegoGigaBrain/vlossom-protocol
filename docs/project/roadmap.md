@@ -1,21 +1,36 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V3.1.0 Complete ✅ MULTI-NETWORK + WALLET CONNECTION**
+**V3.2.0 Complete ✅ SIWE AUTHENTICATION + ACCOUNT LINKING**
+
+✅ **V3.2.0 Complete (Dec 16, 2025)** - SIWE Authentication & Account Linking:
+- **External Wallet Sign-In (SIWE)** - Sign-In with Ethereum (EIP-4361)
+- **Account Linking** - Connect external wallet to existing email account
+- **Multi-Auth Support** - Email + Ethereum wallet authentication methods
+- **Linked Accounts UI** - Manage connected auth methods in settings
+
+**Key Changes:**
+- New database models: `ExternalAuthProvider`, `LinkedAccount`, `SiweNonce`
+- 5 new backend endpoints for SIWE authentication
+- Created `use-siwe.ts` hook for wallet authentication
+- Created `siwe-button.tsx` for sign-in with Ethereum
+- Created `linked-accounts.tsx` for auth method management
+- Updated login page with SIWE sign-in option
+
+**Authentication Methods:**
+| Method | Status |
+|--------|--------|
+| Email/Password | ✅ Original |
+| SIWE (MetaMask/Coinbase/WalletConnect) | ✅ V3.2.0 |
+| Passkeys | 🔜 V3.4 |
+
+---
 
 ✅ **V3.1.0 Complete (Dec 16, 2025)** - Multi-Network Support & Wallet Connection:
 - **Arbitrum Network Support** - Config-only (ready for deployment)
 - **Wallet Connection UI** - MetaMask, Coinbase Wallet, WalletConnect
 - **Faucet Button Component** - Testnet USDC with rate limiting
 - **Environment Templates** - Base Sepolia + Arbitrum Sepolia configs
-
-**Key Changes:**
-- Added `arbitrum` and `arbitrum_sepolia` to wagmi-config.ts
-- Created `connect-wallet-dialog.tsx` with 3-step connection flow
-- Created `wallet-button.tsx` with WalletButton, WalletIndicator, WalletStatus variants
-- Created `faucet-button.tsx` with countdown timer and external faucet links
-- Added environment templates for all supported networks
-- Updated hardhat.config.ts with Arbitrum network configurations
 
 **Supported Networks:**
 | Network | Chain ID | Status |
@@ -175,7 +190,9 @@
 | **V2.0.0** | UX | Sprints 1-4 | WCAG 2.1 AA, accessibility, payment security, polish | ✅ Complete |
 | **V2.1.0** | UX | Sprint 5 | UX Perfection - 10.0/10 score | ✅ Complete |
 | **V3.1.0** | Multi-Network | - | Arbitrum support, wallet connection UI, faucet component | ✅ Complete |
-| **V3.5** | Multi-Auth | - | SIWE, account linking, passkeys | 🔜 Planned |
+| **V3.2.0** | Multi-Auth | - | SIWE authentication, account linking | ✅ Complete |
+| **V3.3** | Fiat Rails | - | Kotani Pay ZAR on/off-ramp | 🔜 Planned |
+| **V3.4** | Passkeys | - | Biometric session unlock | 🔜 Planned |
 | **V4.0** | Expansion | 5+ | i18n, real-time, PWA, DeFi | 🔜 Planned |
 
 ---

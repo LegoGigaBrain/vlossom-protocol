@@ -1,21 +1,153 @@
 # Vlossom Protocol - Implementation Status
 
 **Last Updated**: December 16, 2025
-**Current Version**: 3.1.0
-**V3.1 Progress**: Multi-Network Support & Wallet Connection ✅ COMPLETE
+**Current Version**: 3.2.0
+**V3.2 Progress**: SIWE Authentication & Account Linking ✅ COMPLETE
 **UX Score**: 10.0/10 ✅ PERFECT
 
 ---
 
 ## Executive Summary
 
-Vlossom Protocol has completed **V3.1.0: Multi-Network Support & Wallet Connection**, adding Arbitrum network support and external wallet connection UI for testnet development and power users. Building on V2.1.0's UX perfection foundation (10.0/10 score), this release delivers:
+Vlossom Protocol has completed **V3.2.0: SIWE Authentication & Account Linking**, adding Sign-In with Ethereum (EIP-4361) support for external wallet authentication. Building on V3.1.0's multi-network foundation, this release delivers:
 
-**V3.1.0 Multi-Network + Wallet Connection:**
+**V3.2.0 SIWE Authentication:**
+- **External Wallet Sign-In** - MetaMask, Coinbase, WalletConnect via SIWE ✅
+- **Account Linking** - Connect external wallet to existing email account ✅
+- **Multi-Auth Support** - Email + Ethereum wallet authentication methods ✅
+- **Linked Accounts UI** - Manage connected auth methods in settings ✅
+
+**Previous Release (V3.1.0):**
 - **Arbitrum Support** - Config-only for Base + Arbitrum (mainnet + sepolia) ✅
 - **Wallet Connection UI** - MetaMask, Coinbase Wallet, WalletConnect ✅
 - **Faucet Button** - Testnet USDC with rate limiting and countdown ✅
 - **Environment Templates** - Base Sepolia + Arbitrum Sepolia configs ✅
+
+---
+
+## ✅ V3.2: SIWE Authentication & Account Linking (Dec 16, 2025) - COMPLETE
+
+### SIWE (Sign-In with Ethereum) Implementation
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| SIWE Challenge Endpoint | POST /api/v1/auth/siwe/challenge | ✅ |
+| SIWE Auth Endpoint | POST /api/v1/auth/siwe | ✅ |
+| Account Linking | POST /api/v1/auth/link-wallet | ✅ |
+| Linked Accounts List | GET /api/v1/auth/linked-accounts | ✅ |
+| Unlink Account | DELETE /api/v1/auth/unlink-account/:id | ✅ |
+| Nonce Management | SiweNonce model with expiry + used tracking | ✅ |
+| Signature Verification | viem recoverMessageAddress | ✅ |
+
+### Database Schema Changes (V3.2)
+
+**New Enum:**
+```prisma
+enum AuthProvider {
+  EMAIL
+  ETHEREUM
+}
+```
+
+**New Models:**
+```prisma
+model ExternalAuthProvider {
+  id        String   @id @default(uuid())
+  userId    String
+  provider  AuthProvider
+  address   String   @unique
+  chainId   Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(...)
+}
+
+model LinkedAccount {
+  id         String    @id @default(uuid())
+  userId     String
+  provider   AuthProvider
+  identifier String
+  isPrimary  Boolean   @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(...)
+}
+
+model SiweNonce {
+  id        String   @id @default(uuid())
+  nonce     String   @unique
+  address   String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+```
+
+### Backend Endpoints (V3.2)
+
+| Endpoint | Method | Auth | Purpose |
+|----------|--------|------|---------|
+| `/auth/siwe/challenge` | POST | No | Generate SIWE message with nonce |
+| `/auth/siwe` | POST | No | Verify signature, create/login user |
+| `/auth/link-wallet` | POST | Bearer | Link wallet to existing account |
+| `/auth/linked-accounts` | GET | Bearer | List all linked auth methods |
+| `/auth/unlink-account/:id` | DELETE | Bearer | Remove auth method (min 1 required) |
+
+### Frontend Components (V3.2)
+
+| File | Purpose |
+|------|---------|
+| `apps/web/hooks/use-siwe.ts` | SIWE authentication hook with wagmi |
+| `apps/web/components/auth/siwe-button.tsx` | Sign-in with Ethereum button |
+| `apps/web/components/settings/linked-accounts.tsx` | Linked accounts management UI |
+
+### Files Modified (V3.2)
+
+| File | Changes |
+|------|---------|
+| `services/api/prisma/schema.prisma` | AuthProvider enum, ExternalAuthProvider, LinkedAccount, SiweNonce models |
+| `services/api/src/routes/auth.ts` | 5 new SIWE endpoints |
+| `services/api/src/middleware/error-handler.ts` | 7 new SIWE error codes |
+| `apps/web/lib/auth-client.ts` | SIWE client functions |
+| `apps/web/app/(auth)/login/page.tsx` | SIWE sign-in option |
+
+### SIWE Message Format
+
+```
+vlossom.app wants you to sign in with your Ethereum account:
+0x1234...5678
+
+Sign in to Vlossom - Your beauty marketplace
+
+URI: https://vlossom.app
+Version: 1
+Chain ID: 84532
+Nonce: abc123xyz
+Issued At: 2025-12-16T12:00:00.000Z
+Expiration Time: 2025-12-16T12:05:00.000Z
+```
+
+### Security Features (V3.2)
+
+| Feature | Implementation |
+|---------|---------------|
+| Nonce Expiry | 5-minute validity window |
+| Replay Prevention | Nonces marked as used after verification |
+| Signature Verification | viem `recoverMessageAddress` |
+| Chain Validation | Chain ID included in message |
+| Minimum Auth Methods | Cannot unlink last authentication method |
+
+### Error Codes Added (V3.2)
+
+| Code | Status | Message |
+|------|--------|---------|
+| `INVALID_SIWE_MESSAGE` | 400 | Invalid SIWE message format |
+| `INVALID_SIWE_SIGNATURE` | 401 | Invalid signature |
+| `SIWE_MESSAGE_EXPIRED` | 401 | SIWE message has expired |
+| `SIWE_NONCE_INVALID` | 401 | Invalid or expired nonce |
+| `SIWE_NONCE_USED` | 401 | Nonce has already been used |
+| `WALLET_ALREADY_LINKED` | 409 | Wallet linked to another account |
+| `CANNOT_UNLINK_LAST_AUTH` | 400 | Cannot unlink only auth method |
 
 ---
 
@@ -1555,13 +1687,15 @@ model PaymasterDailyStats {
 | **UX Hardening** | V2.0.0 (Sprints 1-4) | ✅ 100% | Dec 16, 2025 |
 | **UX Perfection** | V2.1.0 (Sprint 5) | ✅ 100% | Dec 16, 2025 |
 | **Multi-Network + Wallet** | V3.1.0 | ✅ 100% | Dec 16, 2025 |
+| **SIWE Authentication** | V3.2.0 | ✅ 100% | Dec 16, 2025 |
 
-**Total Features Completed**: 54/54 (100%) 🎉
+**Total Features Completed**: 59/59 (100%) 🎉
 **Security Findings Remediated**: 22/22 (100%) 🔒 (8 contract + 14 backend)
 **UX Score**: 10.0/10 ✨
 **Networks Supported**: 4 (Base + Arbitrum, mainnet + sepolia)
+**Auth Methods**: 2 (Email/Password + SIWE)
 
-**V3.1.0 IS COMPLETE - MULTI-NETWORK SUPPORT ACHIEVED**
+**V3.2.0 IS COMPLETE - SIWE AUTHENTICATION ACHIEVED**
 
 ---
 
@@ -1638,9 +1772,15 @@ model PaymasterDailyStats {
 
 ---
 
-## 🚀 V3.1.0 Complete - What's Next?
+## 🚀 V3.2.0 Complete - What's Next?
 
-**V3.1.0 Status**: ✅ COMPLETE (Multi-Network Support & Wallet Connection)
+**V3.2.0 Status**: ✅ COMPLETE (SIWE Authentication & Account Linking)
+
+**V3.2.0 Achievements**:
+- **SIWE Authentication** - Sign-In with Ethereum (EIP-4361)
+- **Account Linking** - Connect external wallet to email account
+- **Multi-Auth Support** - Email + Ethereum wallet methods
+- **Linked Accounts UI** - Manage auth methods in settings
 
 **V3.1.0 Achievements**:
 - **Multi-Network Support** - Base + Arbitrum (mainnet + sepolia)
@@ -1648,9 +1788,12 @@ model PaymasterDailyStats {
 - **Faucet Component** - Testnet USDC with rate limiting and countdown
 - **Environment Templates** - Base Sepolia + Arbitrum Sepolia configs
 
-**Next: V3.5 Multi-Auth & Passkey Support** (Planned):
-- **SIWE (Sign-In with Ethereum)** - External wallet authentication
-- **Account Linking** - Connect email account to external wallet
+**Next: V3.3 Kotani Pay Fiat On/Off-Ramp** (Planned):
+- **Kotani Pay Integration** - ZAR on/off-ramp for South African beta
+- **Bank Transfer Support** - Direct bank deposits and withdrawals
+- **Mobile Money** - USSD support for feature phones
+
+**Future: V3.4 Passkey Support** (Planned):
 - **Passkeys** - Biometric session unlock (Face ID, Windows Hello)
 
 **V2.1.0 Achievements** (UX Perfection):
