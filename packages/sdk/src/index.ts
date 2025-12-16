@@ -60,7 +60,8 @@ export type {
 } from './wallet';
 
 // Stylists module
-export { createStylistsModule } from './stylists';
+import { createStylistsModule } from './stylists';
+export { createStylistsModule };
 export type {
   StylistsModule,
   StylistProfile,
@@ -69,6 +70,27 @@ export type {
   SearchStylistsParams,
   DashboardStats,
 } from './stylists';
+
+// DeFi module
+import { createDefiModule } from './defi';
+export { createDefiModule };
+export type {
+  DefiModule,
+  PoolTier,
+  PoolStatus,
+  PoolInfo,
+  PoolDetails,
+  UserDeposit,
+  YieldSummary,
+  YieldPosition,
+  TierInfo,
+  PoolStats,
+  GlobalStats,
+  CreatePoolParams,
+  DepositResult,
+  WithdrawResult,
+  ClaimResult,
+} from './defi';
 
 // Re-export types for convenience
 export * from '@vlossom/types';
@@ -87,6 +109,8 @@ export interface Vlossom {
   wallet: import('./wallet').WalletModule;
   /** Stylists module */
   stylists: import('./stylists').StylistsModule;
+  /** DeFi liquidity module */
+  defi: import('./defi').DefiModule;
 }
 
 /**
@@ -112,6 +136,7 @@ export function createVlossom(config?: import('./client').VlossomClientConfig): 
     bookings: createBookingsModule(client),
     wallet: createWalletModule(client),
     stylists: createStylistsModule(client),
+    defi: createDefiModule(client),
   };
 }
 

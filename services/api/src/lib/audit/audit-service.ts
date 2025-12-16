@@ -5,6 +5,7 @@
  */
 
 import { prisma } from "../prisma";
+import { Prisma } from "@prisma/client";
 import { logger } from "../logger";
 
 // Common admin actions
@@ -111,7 +112,7 @@ export async function createAuditLog(input: CreateAuditLogInput): Promise<AuditL
         targetType: input.targetType,
         targetId: input.targetId,
         details: input.details || null,
-        metadata: input.metadata || {},
+        metadata: (input.metadata || {}) as Prisma.InputJsonValue,
         ipAddress: input.ipAddress || null,
         userAgent: input.userAgent || null,
       },

@@ -4,6 +4,7 @@
  */
 
 import { prisma } from "../prisma";
+import { Prisma } from "@prisma/client";
 import { logger } from "../logger";
 import {
   XPEventType,
@@ -51,7 +52,6 @@ export async function awardXP(params: {
     });
 
     const previousTier = userXP?.tier || "BRONZE";
-    const previousTotal = userXP?.totalXP || 0;
 
     // Update XP
     userXP = await prisma.userXP.upsert({
@@ -80,7 +80,7 @@ export async function awardXP(params: {
         category,
         bookingId,
         referralId,
-        metadata: metadata || {},
+        metadata: (metadata || {}) as Prisma.InputJsonValue,
       },
     });
 

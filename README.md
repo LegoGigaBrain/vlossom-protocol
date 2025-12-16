@@ -1,39 +1,35 @@
 # Vlossom Protocol
 
-**Status:** V1.0 Week 4 - Milestone 2 Complete (100%) 🎉
+**Status:** V4.0.0 - DeFi Integration Complete 🎉
 
-A decentralized booking and payment protocol for mobile beauty services, built on Base L2 with Account Abstraction (ERC-4337).
+A decentralized booking and payment protocol for mobile beauty services, built on Base L2 with Account Abstraction (ERC-4337) and DeFi liquidity pools.
 
 ## Features
 
-### V0.5 (Complete)
-- ✅ **Smart Contracts** - Escrow contract + AA wallet stack (VlossomAccount, Factory, Paymaster)
-- ✅ **Backend API** - 11 booking endpoints + 10 wallet endpoints
+### V4.0.0 DeFi Integration (Complete - Dec 16, 2025)
+- ✅ **DeFi Smart Contracts** - Genesis Pool, Community Pools, Factory, Treasury, Yield Engine
+- ✅ **Liquidity Pools** - Deposit USDC, earn yield, withdraw anytime
+- ✅ **Tier System** - Top referrers can create community pools (5%/15%/30%)
+- ✅ **Yield Engine** - Aave-style APY calculation with utilization curve
+- ✅ **Admin Console** - APY params, fee split, emergency controls
+- ✅ **Gasless DeFi** - All DeFi transactions sponsored via Paymaster
+
+### V3.4.0 Pre-Styling Completion (Complete)
+- ✅ **5-Tab Wallet** - Overview, DeFi, Rewards, History, Advanced
+- ✅ **Fiat On/Off-Ramp** - Kotani Pay ZAR integration
+- ✅ **Rewards System** - XP, badges, streaks, tier progression
+- ✅ **Admin Panel** - Users, Bookings, Disputes, Finance, Logs, DeFi
+- ✅ **Settings** - Account, Display, Notifications, Privacy, Security
+
+### V1.0-V3.3 Foundation (Complete)
+- ✅ **Smart Contracts** - Escrow + AA wallet stack + Property/Reputation registries
+- ✅ **Backend API** - 130+ endpoints across all modules
 - ✅ **Payment Flow** - Wallet-booking bridge with escrow integration
-- ✅ **Authentication** - JWT + role-based access control
-- ✅ **Database** - PostgreSQL with Prisma ORM
-- ✅ **Testing** - 161 unit tests with 100% business logic coverage
-
-### V1.0 Milestone 1: Wallet Works (Complete)
-- ✅ **AA Wallet Creation** - Deterministic CREATE2 wallets on signup
-- ✅ **Balance Display** - Fiat-first UI (ZAR/USD/USDC toggle)
-- ✅ **P2P Transfers** - Wallet-to-wallet USDC sends
-- ✅ **QR Code Receive** - Generate payment QR codes
-- ✅ **Transaction History** - Paginated list with filters
-- ✅ **Testnet Faucet** - 1000 USDC per 24 hours
-- ✅ **MoonPay Onramp** - Fiat → USDC (plug-and-play ready)
-- ✅ **MoonPay Offramp** - USDC → Fiat (plug-and-play ready)
-
-### V1.0 Milestone 2: Customer Can Book (Complete)
-- ✅ **Stylist Discovery** - Browse/search stylists with category filters
-- ✅ **Stylist Profile** - View services, availability, portfolio, ratings
-- ✅ **Service Selection** - Choose services with dynamic pricing
-- ✅ **Date & Time Picker** - Calendar with available time slots
-- ✅ **Location Selection** - Stylist base vs customer home with travel fees
-- ✅ **Booking Summary** - Full price breakdown (service + travel + platform fee)
-- ✅ **Escrow Payment** - Lock USDC in escrow for booking confirmation
-- ✅ **Booking Tracking** - My Bookings with status badges and filters
-- ✅ **Cancellation** - Time-based refund policy (100%/75%/50%/0%)
+- ✅ **Authentication** - JWT + SIWE (Sign-In with Ethereum)
+- ✅ **Full Booking Flow** - Discovery → Book → Pay → Track → Review
+- ✅ **Stylist Dashboard** - Services, availability, earnings, requests
+- ✅ **Property Owner** - Chair rental marketplace
+- ✅ **Reputation System** - Reviews, ratings, TPS calculation
 
 ## Quick Start
 
@@ -171,14 +167,28 @@ vlossom-protocol/
 
 ## Deployed Contracts
 
-### Base Sepolia Testnet (Dec 13, 2025)
+### Base Sepolia Testnet
 
+**Core Contracts (Dec 13, 2025)**
 ```bash
 VlossomAccountFactory:  0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d
 VlossomPaymaster:       0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D
 Escrow:                 0x925E12051A6badb09D5a8a67aF9dD40ec5725E04
 USDC (Circle):          0x036CbD53842c5426634e7929541eC2318f3dCF7e
 EntryPoint (v0.7):      0x0000000071727De22E5E9d8BAf0edAc6f37da032
+```
+
+**DeFi Contracts (V4.0 - Dec 16, 2025)**
+```bash
+# Deploy with: npx hardhat run scripts/deploy-defi.ts --network base-sepolia
+# See contracts/deployments/defi-base-sepolia.json for addresses after deployment
+
+VlossomGenesisPool:     # Protocol liquidity pool (VLP)
+VlossomPoolFactory:     # Community pool deployer
+VlossomTreasury:        # Fee collection
+VlossomYieldEngine:     # APY calculation
+VlossomSmoothingBuffer: # Instant payout support
+MockUSDC:               # Testnet USDC (mintable)
 ```
 
 **Basescan Links:**

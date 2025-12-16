@@ -1377,3 +1377,149 @@ model ReferralCode {
   @@map("referral_codes")
 }
 
+// ============================================================================
+// DEFI & LIQUIDITY POOL MODELS (V4.0: DeFi Integration)
+// Reference: docs/vlossom/11-defi-and-liquidity-architecture.md
+// Reference: docs/vlossom/12-liquidity-pool-architecture.md
+// ============================================================================
+
+enum PoolTier {
+  GENESIS   // Protocol-managed pool (VLP)
+  TIER_1    // Top 5% referrers - no cap
+  TIER_2    // Top 15% referrers - $100k cap
+  TIER_3    // Top 30% referrers - $20k cap
+}
+
+enum PoolStatus {
+  ACTIVE
+  PAUSED
+  DEPRECATED
+}
+
+/// Liquidity pool entity (Genesis + Community pools)
+/// V4.0: Tracks on-chain pool state in database
+model LiquidityPool {
+  id            String     @id @default(uuid())
+  address       String     @unique  // On-chain contract address
+  name          String
+  tier          PoolTier
+  creatorId     String?              // User ID of creator (null for genesis)
+  status        PoolStatus @default(ACTIVE)
+
+  // On-chain synced state
+  totalDeposits Decimal    @default(0) @db.Decimal(20, 6)  // Total USDC deposited
+  totalShares   Decimal    @default(0) @db.Decimal(30, 18) // Total LP shares
+  supplyIndex   Decimal    @default(1) @db.Decimal(30, 18) // Yield index
+  currentAPY    Decimal    @default(0) @db.Decimal(10, 4)  // Current APY %
+
+  // Pool configuration
+  cap           Decimal?   @db.Decimal(20, 6)              // Deposit cap (null = no cap)
+  creatorFeeBps Int        @default(0)                     // Creator fee basis points
+  isGenesis     Boolean    @default(false)
+
+  // Stats
+  totalYieldDistributed Decimal @default(0) @db.Decimal(20, 6)
+  depositorCount        Int     @default(0)
+
+  // Timestamps
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  lastSyncAt    DateTime   @default(now())  // Last blockchain sync
+
+  // Relations
+  deposits      LiquidityDeposit[]
+  yieldClaims   YieldClaim[]
+
+  @@index([tier])
+  @@index([status])
+  @@index([isGenesis])
+  @@index([creatorId])
+  @@map("liquidity_pools")
+}
+
+/// User deposit in a liquidity pool
+/// V4.0: Tracks individual user positions
+model LiquidityDeposit {
+  id            String   @id @default(uuid())
+  userId        String
+  poolId        String
+
+  // Position
+  shares        Decimal  @db.Decimal(30, 18) // LP shares owned
+  depositAmount Decimal  @db.Decimal(20, 6)  // Original USDC deposited
+  depositIndex  Decimal  @db.Decimal(30, 18) // Index at deposit time
+
+  // Transactions
+  depositTxHash String?
+  lastClaimAt   DateTime?
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  pool LiquidityPool @relation(fields: [poolId], references: [id])
+
+  @@unique([userId, poolId])
+  @@index([userId])
+  @@index([poolId])
+  @@map("liquidity_deposits")
+}
+
+/// Yield claim record
+/// V4.0: Tracks yield claims for accounting
+model YieldClaim {
+  id        String   @id @default(uuid())
+  userId    String
+  poolId    String
+  amount    Decimal  @db.Decimal(20, 6)  // USDC claimed
+  txHash    String?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  // Relations
+  pool LiquidityPool @relation(fields: [poolId], references: [id])
+
+  @@index([userId])
+  @@index([poolId])
+  @@index([createdAt])
+  @@map("yield_claims")
+}
+
+/// DeFi tier status for a user
+/// V4.0: Caches user's referral percentile and DeFi tier
+model DefiTierStatus {
+  id                 String    @id @default(uuid())
+  userId             String    @unique
+  referralPercentile Float     @default(100) // 0 = top, 100 = bottom
+  tier               PoolTier? // null if below Tier 3 (>30%)
+  canCreatePool      Boolean   @default(false)
+
+  // Last calculation
+  lastCalculatedAt   DateTime  @default(now())
+
+  // Timestamps
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([tier])
+  @@index([referralPercentile])
+  @@map("defi_tier_status")
+}
+
+// ============================================================================
+// SYSTEM CONFIGURATION
+// ============================================================================
+
+/// System configuration key-value store
+/// V4.0: Stores DeFi parameters and other system-wide settings
+model SystemConfig {
+  key       String   @id
+  value     String   @db.Text // JSON value
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+}
+

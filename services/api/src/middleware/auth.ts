@@ -210,6 +210,11 @@ export function verifyToken(token: string): JWTPayload | null {
 }
 
 /**
+ * Alias for authenticate middleware (for cleaner route syntax)
+ */
+export const requireAuth = authenticate;
+
+/**
  * Role-based authorization middleware
  * Must be used after authenticate middleware
  */

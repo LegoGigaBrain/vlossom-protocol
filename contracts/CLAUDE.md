@@ -11,7 +11,8 @@
 - `contracts/core/` — BookingRegistry, Escrow
 - `contracts/identity/` — AccountFactory, AA wallet components
 - `contracts/reputation/` — ReputationRegistry, on-chain anchoring
-- `contracts/defi/` — VLP (Vlossom Liquidity Pool)
+- `contracts/defi/` — DeFi liquidity pool system
+- `contracts/paymaster/` — VlossomPaymaster for gasless transactions
 - `contracts/interfaces/` — Shared interfaces
 - `test/` — Hardhat tests
 - `scripts/` — Deployment scripts
@@ -29,9 +30,46 @@ AccountFactory → creates AA wallets
 BookingRegistry → booking state machine
 Escrow → payment protection
 ReputationRegistry → on-chain reputation anchoring
-VLP → liquidity pool for instant payouts
-Paymaster → gas sponsorship
+Paymaster → gas sponsorship (whitelists + rate limiting)
+
+DeFi Contracts:
+├── VlossomGenesisPool (VLP) → Protocol liquidity pool, no cap
+├── VlossomCommunityPool → Template for tier-gated community pools
+├── VlossomPoolFactory → Deploys community pools via minimal proxy
+├── VlossomYieldEngine → APY calculation (Aave-style utilization curve)
+├── VlossomTreasury → Fee collection and distribution
+└── VlossomSmoothingBuffer → Instant payout support
 ```
+
+## DeFi System
+
+### Pool Architecture
+- **Genesis Pool (VLP)**: Protocol-managed, unlimited cap, benchmark APY
+- **Community Pools**: Created by top referrers (Tier 1-3), tiered caps
+- **Tier System**:
+  - Tier 1 (Top 5% referrers): No cap, $1k fee, 5% creator yield
+  - Tier 2 (Top 15%): $100k cap, $2.5k fee, 3% creator yield
+  - Tier 3 (Top 30%): $20k cap, $5k fee, 1% creator yield
+
+### APY Calculation (Aave-style)
+```solidity
+// If utilization <= optimal (80%)
+apy = baseRate + (utilization * slope1) / 10000
+
+// If utilization > optimal
+apy = baseRate + optimalPortion + (excessUtil * slope2) / 10000
+```
+
+Default parameters:
+- baseRate: 400 (4%)
+- slope1: 1000 (10%)
+- slope2: 10000 (100%)
+- optimalUtilization: 8000 (80%)
+
+### Fee Split (10% platform fee from bookings)
+- 50% → Treasury (operations)
+- 40% → VLP Yield (LP rewards)
+- 10% → Smoothing Buffer
 
 ## Dependencies
 - External: OpenZeppelin Contracts v5, Hardhat, ethers v6
@@ -81,6 +119,24 @@ pnpm node       # Start local node
 # Base Sepolia Deployment
 npx hardhat run scripts/deploy-base-sepolia.ts --network base-sepolia
 
+# DeFi Deployment
+npx hardhat run scripts/deploy-defi.ts --network base-sepolia
+
+# Configure Paymaster DeFi Whitelist (after both deployments)
+npx hardhat run scripts/configure-paymaster-defi.ts --network base-sepolia
+
 # Contract Verification
 npx hardhat verify --network base-sepolia <ADDRESS> <CONSTRUCTOR_ARGS>
 ```
+
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `deploy-base-sepolia.ts` | Deploy core contracts (Factory, Paymaster, Escrow) |
+| `deploy-defi.ts` | Deploy DeFi contracts (Pool, Treasury, Factory, etc.) |
+| `deploy-aa.ts` | Deploy AA infrastructure locally |
+| `deploy-escrow.ts` | Deploy Escrow contract |
+| `deploy-property-registry.ts` | Deploy property/rental registry |
+| `deploy-reputation-registry.ts` | Deploy reputation anchoring |
+| `configure-paymaster-defi.ts` | Whitelist DeFi contracts in paymaster |

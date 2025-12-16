@@ -39,6 +39,7 @@ const booking = await vlossom.bookings.create({
 | `src/bookings.ts` | Booking CRUD and workflow actions |
 | `src/wallet.ts` | Wallet balance, transfers, faucet |
 | `src/stylists.ts` | Stylist search, profiles, services |
+| `src/defi.ts` | DeFi liquidity pools, deposits, yield (V4.0) |
 | `src/version.ts` | SDK version constant |
 
 ## Architecture
@@ -141,6 +142,29 @@ PENDING_STYLIST_APPROVAL → AWAITING_PAYMENT → CONFIRMED → IN_PROGRESS
 | `updateProfile(data)` | Update own stylist profile |
 | `addService(data)` | Add a new service |
 | `updateService(serviceId, data)` | Update existing service |
+
+### DeFi Module (V4.0)
+
+| Method | Description |
+|--------|-------------|
+| `listPools(params)` | List all liquidity pools |
+| `getPool(poolId)` | Get pool details |
+| `getGenesisPool()` | Get genesis pool (VLP) |
+| `createPool(params)` | Create community pool (tier-gated) |
+| `deposit(poolId, amount)` | Deposit USDC to pool |
+| `withdraw(poolId, shares)` | Withdraw from pool |
+| `getDeposits()` | Get user's deposits |
+| `getYieldSummary()` | Get yield summary |
+| `claimYield(poolId)` | Claim yield from pool |
+| `claimAllYield()` | Claim all yield |
+| `getTier()` | Get user's referral tier |
+| `getStats()` | Get global DeFi stats |
+
+**Pool Tiers:**
+- `GENESIS` — Protocol-managed, no cap
+- `TIER_1` — Top 5% referrers, no cap, $1k fee
+- `TIER_2` — Top 15% referrers, $100k cap, $2.5k fee
+- `TIER_3` — Top 30% referrers, $20k cap, $5k fee
 
 ## Type Exports
 

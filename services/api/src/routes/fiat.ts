@@ -3,11 +3,11 @@
  * Handles ZAR ↔ USDC conversions via Kotani Pay
  */
 
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, IRouter } from "express";
 import { z } from "zod";
 import { logger } from "../lib/logger";
 import { prisma } from "../lib/prisma";
-import { authenticate } from "../middleware/auth";
+import { authenticate, AuthenticatedRequest } from "../middleware/auth";
 import { rateLimiters } from "../middleware/rate-limiter";
 import {
   initiateOnramp,
@@ -24,7 +24,7 @@ import {
   DEFAULT_LIMITS,
 } from "../lib/kotani";
 
-const router = Router();
+const router: IRouter = Router();
 
 // ============================================
 // Validation Schemas
@@ -61,7 +61,7 @@ const getRateSchema = z.object({
  * GET /api/v1/fiat/config
  * Get fiat ramp configuration (limits, supported currencies, etc.)
  */
-router.get("/config", authenticate, async (req: Request, res: Response) => {
+router.get("/config", authenticate, async (_req: Request, res: Response) => {
   try {
     res.json({
       mode: getKotaniMode(),
@@ -125,10 +125,10 @@ router.get("/rates", authenticate, async (req: Request, res: Response) => {
 router.post(
   "/onramp/initiate",
   authenticate,
-  rateLimiters.transactions,
+  rateLimiters.login,
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req as AuthenticatedRequest).userId!;
       const body = initiateOnrampSchema.parse(req.body);
 
       // Get user's wallet address
@@ -201,10 +201,10 @@ router.post(
 router.post(
   "/offramp/initiate",
   authenticate,
-  rateLimiters.transactions,
+  rateLimiters.login,
   async (req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
+      const userId = (req as AuthenticatedRequest).userId!;
       const body = initiateOfframpSchema.parse(req.body);
 
       // Get user's wallet address
@@ -316,12 +316,10 @@ router.get(
 router.get(
   "/transactions",
   authenticate,
-  async (req: Request, res: Response) => {
+  async (_req: Request, res: Response) => {
     try {
-      const userId = req.user!.id;
-      const { type, status, limit = "20" } = req.query;
-
-      // In production, fetch from database
+      // In production, fetch from database using:
+      // req.userId, req.query.type, req.query.status, req.query.limit
       // const transactions = await prisma.fiatTransaction.findMany(...)
 
       // For now, return empty array (sandbox mode)

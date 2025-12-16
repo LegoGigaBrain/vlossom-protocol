@@ -45,14 +45,24 @@
 - **Stablecoin**: USDC (first 2 years)
 
 ### Contract Modules
-| Module | Purpose |
-|--------|---------|
-| AccountFactory | AA wallet creation |
-| BookingRegistry | Booking state machine |
-| Escrow | Payment protection |
-| ReputationRegistry | On-chain reputation anchoring |
-| VLP | Vlossom Liquidity Pool |
-| Paymaster | Gas sponsorship |
+| Module | Purpose | Status |
+|--------|---------|--------|
+| AccountFactory | AA wallet creation | ✅ Deployed |
+| BookingRegistry | Booking state machine | ✅ Deployed |
+| Escrow | Payment protection | ✅ Deployed |
+| ReputationRegistry | On-chain reputation anchoring | ✅ Deployed |
+| PropertyRegistry | Chair rental marketplace | ✅ Deployed |
+| Paymaster | Gas sponsorship | ✅ Deployed |
+
+### DeFi Contract Modules (V4.0)
+| Module | Purpose | Status |
+|--------|---------|--------|
+| VlossomGenesisPool | Protocol liquidity pool (VLP) | ✅ Complete |
+| VlossomCommunityPool | Tier-gated community pools | ✅ Complete |
+| VlossomPoolFactory | Pool deployment via minimal proxy | ✅ Complete |
+| VlossomYieldEngine | Aave-style APY calculation | ✅ Complete |
+| VlossomTreasury | Fee collection & distribution | ✅ Complete |
+| VlossomSmoothingBuffer | Instant payout support | ✅ Complete |
 
 ## Infra & DevOps
 

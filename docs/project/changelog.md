@@ -7,6 +7,109 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.0] - 2025-12-16
+
+### V4.0.0: DeFi Integration - COMPLETE ✅
+
+**Goal**: Full DeFi liquidity pool system with tiered community pools, yield distribution, and admin controls.
+
+**8 Phases | ~40 New Files | Complete DeFi Infrastructure**
+
+#### ✅ Phase 1: Smart Contracts + MockUSDC
+
+**6 DeFi Contracts + 2 Interfaces**
+- `contracts/contracts/defi/VlossomGenesisPool.sol` - Protocol liquidity pool (VLP)
+- `contracts/contracts/defi/VlossomCommunityPool.sol` - Community pool template
+- `contracts/contracts/defi/VlossomPoolFactory.sol` - Pool deployer with tier gating
+- `contracts/contracts/defi/VlossomYieldEngine.sol` - Aave-style APY calculation
+- `contracts/contracts/defi/VlossomTreasury.sol` - Fee collection and distribution
+- `contracts/contracts/defi/VlossomSmoothingBuffer.sol` - Instant payout support
+- `contracts/contracts/defi/interfaces/IVlossomPool.sol` - Pool interface
+- `contracts/contracts/defi/interfaces/IYieldEngine.sol` - Yield engine interface
+- `contracts/scripts/deploy-defi.ts` - Deployment script with auto-seeding
+
+**APY Parameters:**
+- Base rate: 4% (400 basis points)
+- Slope1: 10% (0-80% utilization)
+- Slope2: 100% (80-100% utilization)
+- Optimal utilization: 80%
+
+#### ✅ Phase 2: Backend Liquidity API
+
+**15 API Endpoints**
+- `services/api/src/routes/liquidity.ts` - All liquidity routes
+- `services/api/src/lib/liquidity/pool-service.ts` - Pool CRUD
+- `services/api/src/lib/liquidity/yield-service.ts` - Yield calculations
+- `services/api/src/lib/liquidity/types.ts` - Type definitions
+
+**Database Models:**
+```prisma
+enum PoolTier { GENESIS, TIER_1, TIER_2, TIER_3 }
+enum PoolStatus { PENDING, ACTIVE, PAUSED, CLOSED }
+
+model LiquidityPool { tier, totalDeposits, currentAPY, cap, isGenesis }
+model LiquidityDeposit { shares, depositAmount, pool }
+model YieldClaim { amount, txHash }
+```
+
+#### ✅ Phase 3: Referral Percentile Service
+
+**Tier Calculation Engine**
+- `services/api/src/lib/liquidity/referral-engine.ts`
+- Percentile-based tier assignment
+- Tier 1: Top 5%, Tier 2: Top 15%, Tier 3: Top 30%
+- DefiTierStatus model for caching
+
+#### ✅ Phase 4: SDK DeFi Module
+
+**Full DeFi Client**
+- `packages/sdk/src/defi.ts` - Complete DeFi module
+- 12 methods: listPools, deposit, withdraw, claimYield, getTier, etc.
+- Updated `packages/sdk/src/index.ts` with DeFi exports
+
+#### ✅ Phase 5: Frontend DeFi Activation
+
+**Functional DeFi Tab**
+- `apps/web/app/wallet/defi/page.tsx` - Complete rewrite from stub
+- Pool list with filtering
+- Deposit/withdraw dialogs
+- Yield summary and claims
+- Tier progress indicator
+
+#### ✅ Phase 6: Paymaster Whitelist
+
+**Gasless DeFi Transactions**
+- `contracts/scripts/configure-paymaster-defi.ts` - Whitelist configuration
+- Updated `deploy-defi.ts` with auto-whitelist step
+- Allowed functions: deposit, withdraw, claimYield, createPool, approve
+
+#### ✅ Phase 7: Admin DeFi Console
+
+**Admin Dashboard**
+- `apps/web/app/admin/defi/page.tsx` - DeFi admin console
+- `services/api/src/routes/admin/defi.ts` - Admin API routes
+- APY parameter configuration
+- Fee split management (Treasury/LP/Buffer)
+- Pool pause/unpause controls
+- Emergency pause all
+
+**8 Admin Endpoints:**
+- `GET /admin/defi/stats` - DeFi statistics
+- `PUT /admin/defi/apy-params` - Update APY curve
+- `PUT /admin/defi/fee-split` - Update fee distribution
+- `POST /admin/defi/pools/:id/pause` - Pause pool
+- `POST /admin/defi/emergency/pause-all` - Emergency pause
+
+#### ✅ Phase 8: Documentation & Testing
+
+**Updated Documentation:**
+- `contracts/CLAUDE.md` - DeFi contracts section
+- `services/api/CLAUDE.md` - V4.0 endpoints
+- `packages/sdk/CLAUDE.md` - DeFi module docs
+- `docs/project/changelog.md` - V4.0 entry
+
+---
+
 ## [3.4.0] - 2025-12-16
 
 ### V3.4.0: Pre-Styling Completion - COMPLETE ✅

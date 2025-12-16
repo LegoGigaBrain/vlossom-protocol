@@ -4,6 +4,7 @@
  */
 
 import { prisma } from "../prisma";
+import { Prisma } from "@prisma/client";
 import { logger } from "../logger";
 import { BadgeType, XPEventType, BADGE_DEFINITIONS } from "./types";
 
@@ -13,7 +14,7 @@ import { BadgeType, XPEventType, BADGE_DEFINITIONS } from "./types";
 export async function checkAndAwardBadges(
   userId: string,
   triggerEvent: XPEventType,
-  context: {
+  _context: {
     bookingId?: string;
     newTotal?: number;
   } = {}
@@ -121,7 +122,7 @@ export async function awardBadge(
       data: {
         userId,
         badgeType,
-        metadata,
+        metadata: (metadata || {}) as Prisma.InputJsonValue,
       },
     });
 

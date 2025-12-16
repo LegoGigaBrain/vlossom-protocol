@@ -10,6 +10,30 @@
 
 ## Current Implementation Status
 
+**V4.0.0 Complete - DeFi Integration** (Dec 16, 2025)
+
+### V4.0.0 Changes
+
+**DeFi Liquidity System:**
+- Liquidity pool routes (`routes/liquidity.ts`) — 15 endpoints
+- Pool service (`lib/liquidity/pool-service.ts`) — Pool CRUD, deposits
+- Yield service (`lib/liquidity/yield-service.ts`) — APY calculations, claims
+- Referral engine (`lib/liquidity/referral-engine.ts`) — Tier calculations
+- Admin DeFi routes (`routes/admin/defi.ts`) — APY params, fee split, emergency
+
+**New Database Models:**
+- `LiquidityPool` — Pool records with tier, TVL, APY
+- `LiquidityDeposit` — User deposits with shares
+- `YieldClaim` — Yield claim history
+- `DefiTierStatus` — User's referral percentile and tier
+- `SystemConfig` — Key-value store for DeFi parameters
+
+**New Enums:**
+- `PoolTier` — GENESIS/TIER_1/TIER_2/TIER_3
+- `PoolStatus` — PENDING/ACTIVE/PAUSED/CLOSED
+
+---
+
 **V3.4.0 Complete - Pre-Styling Completion** (Dec 16, 2025)
 
 ### V3.4.0 Changes
@@ -160,6 +184,35 @@ POST   /api/v1/admin/disputes/:id/escalate — Escalate dispute
 ```
 GET    /api/v1/admin/logs       — List audit logs with filters
 GET    /api/v1/admin/logs/stats — Audit log statistics
+```
+
+### Admin DeFi (8 endpoints) - V4.0
+```
+GET    /api/v1/admin/defi/stats             — DeFi statistics
+GET    /api/v1/admin/defi/config            — Current DeFi configuration
+PUT    /api/v1/admin/defi/apy-params        — Update APY parameters
+PUT    /api/v1/admin/defi/fee-split         — Update fee split
+POST   /api/v1/admin/defi/pools/:id/pause   — Pause pool
+POST   /api/v1/admin/defi/pools/:id/unpause — Unpause pool
+POST   /api/v1/admin/defi/emergency/pause-all   — Emergency pause all
+POST   /api/v1/admin/defi/emergency/unpause-all — Emergency unpause all
+```
+
+### Liquidity (15 endpoints) - V4.0
+```
+GET    /api/v1/liquidity/pools           — List all pools
+GET    /api/v1/liquidity/pools/genesis   — Genesis pool details
+GET    /api/v1/liquidity/pools/:id       — Pool details
+GET    /api/v1/liquidity/pools/:id/stats — Pool statistics
+POST   /api/v1/liquidity/pools           — Create community pool
+GET    /api/v1/liquidity/deposits        — User's deposits
+POST   /api/v1/liquidity/deposit         — Deposit to pool
+POST   /api/v1/liquidity/withdraw        — Withdraw from pool
+GET    /api/v1/liquidity/yield           — User's yield summary
+POST   /api/v1/liquidity/yield/claim     — Claim yield from pool
+POST   /api/v1/liquidity/yield/claim-all — Claim all yield
+GET    /api/v1/liquidity/tier            — User's referral tier
+GET    /api/v1/liquidity/stats           — Global DeFi stats
 ```
 
 ### Admin Users (3 endpoints) - V3.4

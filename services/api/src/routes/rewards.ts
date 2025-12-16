@@ -3,9 +3,9 @@
  * Reference: docs/vlossom/09-rewards-and-incentives-engine.md
  */
 
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, IRouter } from "express";
 import { logger } from "../lib/logger";
-import { authenticate } from "../middleware/auth";
+import { authenticate, AuthenticatedRequest } from "../middleware/auth";
 import {
   getUserRewards,
   getUserXPSummary,
@@ -21,7 +21,7 @@ import {
 } from "../lib/rewards";
 import { prisma } from "../lib/prisma";
 
-const router = Router();
+const router: IRouter = Router();
 
 /**
  * GET /api/v1/rewards/me
@@ -29,7 +29,7 @@ const router = Router();
  */
 router.get("/me", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as AuthenticatedRequest).userId!;
 
     const rewards = await getUserRewards(userId);
 
@@ -46,7 +46,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
  */
 router.get("/xp", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as AuthenticatedRequest).userId!;
 
     const xpSummary = await getUserXPSummary(userId);
 
@@ -63,7 +63,7 @@ router.get("/xp", authenticate, async (req: Request, res: Response) => {
  */
 router.get("/xp/history", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as AuthenticatedRequest).userId!;
     const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
 
     const history = await getXPHistory(userId, limit);
@@ -81,7 +81,7 @@ router.get("/xp/history", authenticate, async (req: Request, res: Response) => {
  */
 router.get("/badges", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as AuthenticatedRequest).userId!;
 
     const badges = await getAllBadgesWithStatus(userId);
 
@@ -110,7 +110,7 @@ router.get("/badges/all", async (_req: Request, res: Response) => {
  */
 router.get("/streak", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as AuthenticatedRequest).userId!;
 
     const streak = await getUserStreak(userId);
 
@@ -161,21 +161,28 @@ router.get("/leaderboard", authenticate, async (req: Request, res: Response) => 
 
     const userMap = new Map(users.map((u) => [u.id, u]));
 
-    const enrichedLeaderboard = leaderboard.map((entry, index) => ({
-      rank: index + 1,
-      userId: entry.userId,
-      displayName: userMap.get(entry.userId)?.displayName || "Anonymous",
-      avatarUrl: userMap.get(entry.userId)?.avatarUrl || null,
-      ...(type === "streak"
-        ? {
-            currentStreak: entry.currentStreak,
-            longestStreak: entry.longestStreak,
-          }
-        : {
-            totalXP: entry.totalXP,
-            tier: entry.tier,
-          }),
-    }));
+    const enrichedLeaderboard = leaderboard.map((entry, index) => {
+      const base = {
+        rank: index + 1,
+        userId: entry.userId,
+        displayName: userMap.get(entry.userId)?.displayName || "Anonymous",
+        avatarUrl: userMap.get(entry.userId)?.avatarUrl || null,
+      };
+
+      if (type === "streak") {
+        return {
+          ...base,
+          currentStreak: (entry as { userId: string; currentStreak: number; longestStreak: number }).currentStreak,
+          longestStreak: (entry as { userId: string; currentStreak: number; longestStreak: number }).longestStreak,
+        };
+      } else {
+        return {
+          ...base,
+          totalXP: (entry as { userId: string; totalXP: number; tier: string }).totalXP,
+          tier: (entry as { userId: string; totalXP: number; tier: string }).tier,
+        };
+      }
+    });
 
     res.json({
       type,
@@ -223,7 +230,7 @@ router.get("/:userId", authenticate, async (req: Request, res: Response) => {
  */
 router.get("/referral/code", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as AuthenticatedRequest).userId!;
 
     // Get or create referral code
     let referralCode = await prisma.referralCode.findUnique({
@@ -270,7 +277,7 @@ router.get("/referral/code", authenticate, async (req: Request, res: Response) =
  */
 router.get("/referral/stats", authenticate, async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = (req as AuthenticatedRequest).userId!;
 
     const referrals = await prisma.referral.findMany({
       where: { referrerId: userId },

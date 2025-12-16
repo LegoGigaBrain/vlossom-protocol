@@ -582,10 +582,6 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
         return next(createError("INVALID_ROLE"));
       }
 
-      // Generate a temporary unique wallet address using user's external address
-      // This ensures uniqueness even if AA wallet creation fails
-      const tempWalletAddress = address;
-
       // Use a transaction to ensure atomicity
       try {
         // Create AA wallet first (before user, so we get the address)

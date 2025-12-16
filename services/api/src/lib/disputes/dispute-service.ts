@@ -15,7 +15,6 @@ import {
   DisputeFilters,
   DisputeStats,
   DisputeWithDetails,
-  DisputeStatus,
 } from "./types";
 
 /**
@@ -150,12 +149,9 @@ export async function resolveDispute(input: ResolveDisputeInput): Promise<Disput
   const { disputeId, resolvedById, resolution, resolutionNotes, refundPercent } = input;
 
   try {
-    // Get dispute and booking info
+    // Get dispute info
     const dispute = await prisma.dispute.findUnique({
       where: { id: disputeId },
-      include: {
-        booking: true,
-      },
     });
 
     if (!dispute) {

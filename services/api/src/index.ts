@@ -48,11 +48,13 @@ import propertiesRouter from "./routes/properties";
 import reviewsRouter from "./routes/reviews";
 import fiatRouter from "./routes/fiat";
 import rewardsRouter from "./routes/rewards";
+import liquidityRouter from "./routes/liquidity";
 import adminPaymasterRouter from "./routes/admin/paymaster";
 import adminUsersRouter from "./routes/admin/users";
 import adminBookingsRouter from "./routes/admin/bookings";
 import adminDisputesRouter from "./routes/admin/disputes";
 import adminLogsRouter from "./routes/admin/logs";
+import adminDefiRouter from "./routes/admin/defi";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler";
 import { logger, logRequest, logResponse } from "./lib/logger";
 import { apiSecurityHeaders, corsHeaders } from "./middleware/security-headers";
@@ -113,11 +115,13 @@ app.use("/api/v1/properties", propertiesRouter);
 app.use("/api/v1/reviews", reviewsRouter);
 app.use("/api/v1/fiat", fiatRouter);
 app.use("/api/v1/rewards", rewardsRouter);
+app.use("/api/v1/liquidity", liquidityRouter);
 app.use("/api/v1/admin/paymaster", adminPaymasterRouter);
 app.use("/api/v1/admin/users", adminUsersRouter);
 app.use("/api/v1/admin/bookings", adminBookingsRouter);
 app.use("/api/v1/admin/disputes", adminDisputesRouter);
 app.use("/api/v1/admin/logs", adminLogsRouter);
+app.use("/api/v1/admin/defi", adminDefiRouter);
 
 // 404 handler - must come after all routes
 app.use(notFoundHandler);
