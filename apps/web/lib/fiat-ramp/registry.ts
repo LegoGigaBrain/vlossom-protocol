@@ -12,15 +12,18 @@ import type {
   ProviderAvailability,
 } from "./types";
 import { transakAdapter } from "./transak-adapter";
+import { kotaniAdapter } from "./kotani-adapter";
 
 /**
  * Provider priority order
  * Providers earlier in the list are preferred
+ * - Kotani is prioritized for ZAR (South African) users
+ * - Transak is the global fallback
  */
 const PROVIDER_PRIORITY: FiatRampProvider[] = [
-  "transak",
-  "kotani",
-  "moonpay",
+  "kotani",   // Best for ZAR and African currencies
+  "transak",  // Global coverage
+  "moonpay",  // Future: additional coverage
 ];
 
 /**
@@ -28,11 +31,11 @@ const PROVIDER_PRIORITY: FiatRampProvider[] = [
  */
 const adapters: Map<FiatRampProvider, FiatRampAdapter> = new Map();
 
-// Register Transak adapter
-adapters.set("transak", transakAdapter);
+// Register Kotani adapter (Africa-focused - ZAR, KES, GHS, NGN, UGX)
+adapters.set("kotani", kotaniAdapter);
 
-// TODO: Register Kotani adapter when implemented
-// adapters.set("kotani", kotaniAdapter);
+// Register Transak adapter (Global coverage)
+adapters.set("transak", transakAdapter);
 
 // TODO: Register MoonPay adapter when implemented
 // adapters.set("moonpay", moonpayAdapter);

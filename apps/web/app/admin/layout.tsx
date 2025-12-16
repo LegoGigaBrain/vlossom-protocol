@@ -98,6 +98,30 @@ export default function AdminLayout({
                 >
                   Bookings
                 </Link>
+                <Link
+                  href="/admin/disputes"
+                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Disputes
+                </Link>
+                <Link
+                  href="/admin/finance"
+                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Finance
+                </Link>
+                <Link
+                  href="/admin/properties"
+                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Properties
+                </Link>
+                <Link
+                  href="/admin/logs"
+                  className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                >
+                  Logs
+                </Link>
               </div>
             </div>
             <div className="flex items-center">

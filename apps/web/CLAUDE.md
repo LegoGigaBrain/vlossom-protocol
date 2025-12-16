@@ -11,9 +11,77 @@
 
 ## Current Implementation Status
 
+**V3.4.0 Complete - Pre-Styling Completion** (Dec 16, 2025)
+
+All features completed before UI/UX styling phase. Full admin panel, wallet tabs, settings, and profile enhancements.
+
+### V3.4.0 Changes (10 Sprints)
+
+**Sprint 1: Wallet Tab Structure**
+- 5-tab wallet layout (Overview, DeFi, Rewards, History, Advanced)
+- `wallet-tabs.tsx` navigation component
+- DeFi stub page with "Coming in V4.0" placeholders
+- Rewards page with XP, badges, streaks, tier progression
+- History page with full transaction filtering
+- Advanced page with wallet address, QR code, network info
+
+**Sprint 2: Kotani Pay Integration**
+- On-ramp flow (ZAR → USDC) via Kotani sandbox
+- Off-ramp flow (USDC → ZAR/Mobile Money)
+- Updated add-money-dialog and withdraw-dialog
+- New `/api/v1/fiat/*` routes for Kotani integration
+
+**Sprint 3: Rewards & XP System**
+- XP points tracking (customer, stylist, owner)
+- Streak counter display
+- Badge gallery with earned/available badges
+- Tier progress (Bronze → Diamond) with benefits
+
+**Sprint 4: Settings Page**
+- 6 settings sections: Account, Display, Notifications, Privacy, Security, Advanced
+- Currency selector (ZAR, USD, USDC, KES, NGN, GHS)
+- Notification preferences by category
+- Privacy visibility controls
+- Web3 mode toggle (future)
+
+**Sprint 5: Admin Dispute Resolution**
+- Disputes list with filtering and search
+- Dispute detail page with evidence viewer
+- Resolution workflow (assign, review, resolve, escalate, close)
+- Message thread for dispute communication
+
+**Sprint 6: Admin Financial Dashboard**
+- Finance dashboard with metrics (escrowed, payouts, revenue, refund rate)
+- Pending settlements list
+- Refund queue management
+- Payout history table
+
+**Sprint 7: Admin Property & User Management**
+- User actions (freeze/unfreeze/warn)
+- Property verification workflow (verify/reject)
+- Enhanced user and property detail views
+
+**Sprint 8: Admin System & Logs**
+- Audit log viewer with filtering
+- Action breakdown statistics
+- Admin activity tracking
+
+**Sprint 9: Customer Profile Enhancement**
+- Booking statistics (total, this month, as customer/stylist)
+- Rewards summary widget (XP, tier, streak, badges)
+- Favorite stylists list
+- Hair type preferences (optional)
+- Social links (Instagram, TikTok)
+
+**Sprint 10: Documentation & Testing**
+- Updated CLAUDE.md files
+- Changelog updates
+
+---
+
 **V3.3.0 Complete - Feature Completion (Pre-DeFi)** (Dec 16, 2025)
 
-All user-facing flows and UX pathways are now complete. The app is ready for UI/UX styling phase.
+All user-facing flows and UX pathways are now complete.
 
 ### V3.3.0 Changes (8 Sprints)
 
@@ -99,6 +167,21 @@ All user-facing flows and UX pathways are now complete. The app is ready for UI/
 | `/help/stylists` | Finding stylists FAQ | ✅ V3.3 |
 | `/help/security` | Account & security FAQ | ✅ V3.3 |
 | `/contact` | Contact support form | ✅ V3.3 |
+| `/wallet/defi` | DeFi pools stub page | ✅ V3.4 |
+| `/wallet/rewards` | Rewards, XP, badges | ✅ V3.4 |
+| `/wallet/history` | Transaction history | ✅ V3.4 |
+| `/wallet/advanced` | Wallet address, Web3 | ✅ V3.4 |
+| `/settings` | Account settings | ✅ V3.4 |
+| `/settings/display` | Display preferences | ✅ V3.4 |
+| `/settings/notifications` | Notification preferences | ✅ V3.4 |
+| `/settings/privacy` | Privacy settings | ✅ V3.4 |
+| `/settings/security` | Security settings | ✅ V3.4 |
+| `/settings/advanced` | Advanced settings | ✅ V3.4 |
+| `/admin/disputes` | Dispute management | ✅ V3.4 |
+| `/admin/disputes/[id]` | Dispute detail | ✅ V3.4 |
+| `/admin/finance` | Financial dashboard | ✅ V3.4 |
+| `/admin/properties` | Property management | ✅ V3.4 |
+| `/admin/logs` | Audit logs | ✅ V3.4 |
 
 ## Key Directories
 

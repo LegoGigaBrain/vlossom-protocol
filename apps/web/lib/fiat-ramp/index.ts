@@ -30,6 +30,7 @@ export type {
 
 // Adapters
 export { transakAdapter } from "./transak-adapter";
+export { kotaniAdapter } from "./kotani-adapter";
 
 // Registry
 export { fiatRampRegistry } from "./registry";

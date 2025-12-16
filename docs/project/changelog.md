@@ -7,6 +7,197 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.4.0] - 2025-12-16
+
+### V3.4.0: Pre-Styling Completion - COMPLETE ✅
+
+**Goal**: Complete all features before UI/UX styling phase. Full admin panel, wallet tabs, settings, and profile enhancements.
+
+**10 Sprints Completed | ~60 New Files | Full Feature Set Ready for Styling**
+
+#### ✅ Sprint 1: Wallet Tab Structure
+
+**5-Tab Wallet Layout**
+- `apps/web/app/wallet/page.tsx` - Overview with tab navigation
+- `apps/web/app/wallet/defi/page.tsx` - DeFi stub with "Coming in V4.0"
+- `apps/web/app/wallet/rewards/page.tsx` - XP, badges, streaks, tier progression
+- `apps/web/app/wallet/history/page.tsx` - Full transaction history with filters
+- `apps/web/app/wallet/advanced/page.tsx` - Wallet address, QR code, network info
+- `apps/web/components/wallet/wallet-tabs.tsx` - Tab navigation component
+
+#### ✅ Sprint 2: Kotani Pay Integration
+
+**Fiat On/Off-Ramp**
+- `services/api/src/lib/kotani/kotani-client.ts` - Kotani Pay API client
+- `services/api/src/lib/kotani/types.ts` - TypeScript interfaces
+- `services/api/src/routes/fiat.ts` - On/off-ramp endpoints
+- Updated `add-money-dialog.tsx` and `withdraw-dialog.tsx` for Kotani flow
+
+**New Endpoints:**
+- `POST /api/v1/fiat/onramp/initiate` - Initiate ZAR → USDC
+- `POST /api/v1/fiat/onramp/confirm` - Confirm payment
+- `GET /api/v1/fiat/onramp/status/:id` - Check status
+- `POST /api/v1/fiat/offramp/initiate` - Initiate USDC → ZAR
+- `GET /api/v1/fiat/offramp/status/:id` - Check status
+- `GET /api/v1/fiat/rates` - Exchange rates
+
+#### ✅ Sprint 3: Rewards & XP System
+
+**Rewards Engine**
+- `services/api/src/lib/rewards/xp-service.ts` - XP calculation
+- `services/api/src/lib/rewards/badge-service.ts` - Badge unlocking
+- `services/api/src/lib/rewards/streak-service.ts` - Streak tracking
+- `services/api/src/lib/rewards/tier-service.ts` - Tier progression
+- `services/api/src/routes/rewards.ts` - Rewards endpoints
+
+**Database Models:**
+```prisma
+model UserXP {
+  totalXP, stylistPoints, customerPoints, ownerPoints,
+  currentStreak, longestStreak, tier (Bronze→Diamond)
+}
+
+model UserBadge {
+  userId, badgeType, earnedAt, metadata
+}
+
+enum BadgeType {
+  FIRST_BOOKING, TEN_BOOKINGS, FIFTY_BOOKINGS, HUNDRED_BOOKINGS,
+  PERFECT_TPS_MONTH, FIVE_STAR_STREAK, TOP_REFERRER, EARLY_ADOPTER,
+  VERIFIED_STYLIST, PREMIUM_HOST
+}
+```
+
+#### ✅ Sprint 4: Settings Page
+
+**6 Settings Sections**
+- `apps/web/app/settings/layout.tsx` - Settings navigation
+- `apps/web/app/settings/page.tsx` - Account settings
+- `apps/web/app/settings/display/page.tsx` - Currency, theme, language
+- `apps/web/app/settings/notifications/page.tsx` - Push/email toggles
+- `apps/web/app/settings/privacy/page.tsx` - Profile visibility
+- `apps/web/app/settings/security/page.tsx` - Password, 2FA, sessions
+- `apps/web/app/settings/advanced/page.tsx` - Web3 mode, developer options
+
+**Currency Options:** ZAR, USD, USDC, KES, NGN, GHS
+
+#### ✅ Sprint 5: Admin Dispute Resolution
+
+**Dispute System**
+- `services/api/src/lib/disputes/dispute-service.ts` - Dispute workflow
+- `services/api/src/lib/disputes/types.ts` - Interfaces and enums
+- `services/api/src/routes/admin/disputes.ts` - Admin dispute routes
+- `apps/web/app/admin/disputes/page.tsx` - Disputes list
+- `apps/web/app/admin/disputes/[id]/page.tsx` - Dispute detail
+
+**Dispute Workflow:**
+```
+OPEN → ASSIGNED → UNDER_REVIEW → RESOLVED/ESCALATED → CLOSED
+```
+
+**Resolution Types:**
+- FULL_REFUND_CUSTOMER, PARTIAL_REFUND, NO_REFUND
+- SPLIT_FUNDS, STYLIST_PENALTY, CUSTOMER_WARNING
+- MUTUAL_CANCELLATION, ESCALATED_TO_LEGAL
+
+#### ✅ Sprint 6: Admin Financial Dashboard
+
+**Finance Dashboard**
+- `apps/web/app/admin/finance/page.tsx` - Financial overview
+- Metrics: Total Escrowed, Today's Payouts, Platform Revenue, Refund Rate
+- Pending settlements list
+- Refund queue management
+- Payout history table
+
+#### ✅ Sprint 7: Admin Property & User Management
+
+**User Management**
+- `apps/web/app/admin/users/page.tsx` - Enhanced with freeze/unfreeze/warn
+- Action menu for each user with contextual actions
+
+**Property Management**
+- `apps/web/app/admin/properties/page.tsx` - Property list
+- Verify/reject property workflow
+- Status filters (Pending, Verified, Rejected)
+
+**New Admin Endpoints:**
+- `POST /api/v1/admin/users/:id/freeze`
+- `POST /api/v1/admin/users/:id/unfreeze`
+- `POST /api/v1/admin/users/:id/warn`
+- `POST /api/v1/admin/properties/:id/verify`
+- `POST /api/v1/admin/properties/:id/reject`
+
+#### ✅ Sprint 8: Admin System & Logs
+
+**Audit Logging**
+- `services/api/src/lib/audit/audit-service.ts` - Audit log service
+- `services/api/src/routes/admin/logs.ts` - Audit log routes
+- `apps/web/app/admin/logs/page.tsx` - Audit log viewer
+
+**Database Model:**
+```prisma
+model AuditLog {
+  id, adminId, action, targetType, targetId,
+  details, metadata, ipAddress, userAgent, createdAt
+}
+```
+
+**Actions Tracked:**
+- FREEZE_USER, UNFREEZE_USER, WARN_USER
+- RESOLVE_DISPUTE, ESCALATE_DISPUTE
+- VERIFY_PROPERTY, REJECT_PROPERTY
+- OVERRIDE_BOOKING_STATUS, PROCESS_REFUND
+
+#### ✅ Sprint 9: Customer Profile Enhancement
+
+**Profile Enhancements**
+- `apps/web/app/profile/page.tsx` - Enhanced with new sections
+
+**New Sections:**
+- Booking Statistics (total, this month, as customer/stylist)
+- Rewards Summary Widget (XP, tier, streak, badges)
+- Favorite Stylists List
+- Hair Type Preferences (optional)
+- Social Links (Instagram, TikTok)
+
+#### ✅ Sprint 10: Documentation & Testing
+
+**Documentation Updates:**
+- Updated `apps/web/CLAUDE.md` with V3.4.0 changes
+- Updated `services/api/CLAUDE.md` with V3.4.0 changes
+- Updated `docs/project/changelog.md` (this file)
+
+#### New Routes Added (16 total)
+
+| Route | Purpose |
+|-------|---------|
+| `/wallet/defi` | DeFi pools stub |
+| `/wallet/rewards` | Rewards, XP, badges |
+| `/wallet/history` | Transaction history |
+| `/wallet/advanced` | Wallet address, Web3 |
+| `/settings` | Account settings |
+| `/settings/display` | Display preferences |
+| `/settings/notifications` | Notification preferences |
+| `/settings/privacy` | Privacy settings |
+| `/settings/security` | Security settings |
+| `/settings/advanced` | Advanced settings |
+| `/admin/disputes` | Dispute management |
+| `/admin/disputes/[id]` | Dispute detail |
+| `/admin/finance` | Financial dashboard |
+| `/admin/properties` | Property management |
+| `/admin/logs` | Audit logs |
+
+#### New Backend Endpoints (24 total)
+
+**Fiat (6):** On/off-ramp with Kotani Pay
+**Rewards (5):** XP, badges, leaderboard
+**Admin Disputes (6):** List, stats, detail, assign, resolve, escalate
+**Admin Logs (2):** List, stats
+**Admin Users (3):** Freeze, unfreeze, warn
+**Admin Properties (2):** Verify, reject
+
+---
+
 ## [3.3.0] - 2025-12-16
 
 ### V3.3.0: Feature Completion (Pre-DeFi) - COMPLETE ✅
@@ -1631,6 +1822,7 @@ For changelog entries from the initial development phase (V0.0.1 - V0.2.0), see 
 
 | Version | Date | Summary |
 |---------|------|---------|
+| **3.4.0** | 2025-12-16 | **PRE-STYLING COMPLETE** - Wallet tabs, Kotani Pay, Rewards, Settings, Full Admin Panel, Profile Enhancement |
 | **3.3.0** | 2025-12-16 | **FEATURE COMPLETION** - All user flows complete, ~50 new files, 8 sprints, ready for UI/UX styling |
 | **3.2.0** | 2025-12-16 | **SIWE AUTHENTICATION** - Sign-In with Ethereum, account linking, multi-auth support |
 | **3.1.0** | 2025-12-16 | **MULTI-NETWORK** - Arbitrum support, wallet connection UI, faucet component |

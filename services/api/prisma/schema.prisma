@@ -83,6 +83,38 @@ enum PaymentRequestStatus {
   CANCELLED
 }
 
+enum DisputeStatus {
+  OPEN
+  ASSIGNED
+  UNDER_REVIEW
+  RESOLVED
+  ESCALATED
+  CLOSED
+}
+
+enum DisputeType {
+  SERVICE_NOT_DELIVERED
+  POOR_QUALITY
+  LATE_ARRIVAL
+  NO_SHOW
+  PROPERTY_DAMAGE
+  PAYMENT_ISSUE
+  COMMUNICATION_ISSUE
+  SAFETY_CONCERN
+  OTHER
+}
+
+enum DisputeResolution {
+  FULL_REFUND_CUSTOMER
+  PARTIAL_REFUND
+  NO_REFUND
+  SPLIT_FUNDS
+  STYLIST_PENALTY
+  CUSTOMER_WARNING
+  MUTUAL_CANCELLATION
+  ESCALATED_TO_LEGAL
+}
+
 // ============================================================================
 // MODELS
 // ============================================================================
@@ -926,6 +958,103 @@ model ReputationScore {
   @@map("reputation_scores")
 }
 
+/// Dispute raised for a booking
+model Dispute {
+  id              String            @id @default(uuid())
+  bookingId       String
+  filedById       String            // User who filed the dispute
+  filedAgainstId  String            // User the dispute is against
+
+  // Dispute details
+  type            DisputeType
+  status          DisputeStatus     @default(OPEN)
+  priority        Int               @default(1) // 1-5, higher = more urgent
+
+  // Description
+  title           String            @db.VarChar(200)
+  description     String            @db.Text
+
+  // Evidence
+  evidenceUrls    Json              @default("[]") // Array of image/document URLs
+
+  // Assignment
+  assignedToId    String?           // Admin assigned to handle
+  assignedAt      DateTime?
+
+  // Resolution
+  resolution      DisputeResolution?
+  resolutionNotes String?           @db.Text
+  refundPercent   Int?              // For partial refunds (0-100)
+  resolvedAt      DateTime?
+  resolvedById    String?           // Admin who resolved
+
+  // Escalation
+  escalatedAt     DateTime?
+  escalatedById   String?
+  escalationReason String?         @db.VarChar(500)
+
+  // Timestamps
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([bookingId])
+  @@index([filedById])
+  @@index([filedAgainstId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("disputes")
+}
+
+/// Messages/comments on a dispute for communication thread
+model DisputeMessage {
+  id          String    @id @default(uuid())
+  disputeId   String
+  authorId    String    // User or admin who wrote
+
+  // Content
+  content     String    @db.Text
+  isInternal  Boolean   @default(false) // Internal admin notes
+
+  // Attachments
+  attachmentUrls Json   @default("[]")
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+
+  @@index([disputeId])
+  @@index([authorId])
+  @@map("dispute_messages")
+}
+
+/// Admin audit log for compliance and tracking
+model AuditLog {
+  id          String    @id @default(uuid())
+  adminId     String    // Admin who performed the action
+  action      String    // FREEZE_USER, RESOLVE_DISPUTE, VERIFY_PROPERTY, etc.
+  targetType  String    // USER, BOOKING, PROPERTY, DISPUTE, etc.
+  targetId    String    // ID of the affected entity
+
+  // Details
+  details     String?   @db.Text
+  metadata    Json      @default("{}") // Additional action-specific data
+
+  // IP tracking for security
+  ipAddress   String?
+  userAgent   String?
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
 // ============================================================================
 // ESCROW FAILURE TRACKING (M-1: V1.7.0 Security & Quality)
 // Reference: docs/vlossom/05-booking-flow.md
@@ -1067,5 +1196,184 @@ model SiweNonce {
   @@index([nonce])
   @@index([expiresAt])
   @@map("siwe_nonces")
+}
+
+// ============================================================================
+// REWARDS & XP SYSTEM (V3.4: Rewards Engine)
+// Reference: docs/vlossom/09-rewards-and-incentives-engine.md
+// ============================================================================
+
+enum UserTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+enum BadgeType {
+  // Booking milestones
+  FIRST_BOOKING
+  TEN_BOOKINGS
+  FIFTY_BOOKINGS
+  HUNDRED_BOOKINGS
+
+  // Performance badges
+  PERFECT_TPS_MONTH
+  FIVE_STAR_STREAK
+  PUNCTUALITY_PRO
+
+  // Community badges
+  TOP_REFERRER
+  COMMUNITY_BUILDER
+
+  // Special badges
+  EARLY_ADOPTER
+  VERIFIED_STYLIST
+  PREMIUM_HOST
+  MASTER_BRAIDER
+
+  // Seasonal badges
+  HOLIDAY_HERO
+  SUMMER_STAR
+}
+
+/// User XP and points tracking
+/// V3.4: Tracks experience points, role points, streaks, and tier progression
+model UserXP {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+
+  // Experience points (global)
+  totalXP        Int      @default(0)
+
+  // Role-specific points
+  stylistPoints  Int      @default(0)
+  customerPoints Int      @default(0)
+  ownerPoints    Int      @default(0)
+
+  // Referral metrics
+  referralScore  Int      @default(0)
+  referralCount  Int      @default(0)
+
+  // Streak tracking
+  currentStreak  Int      @default(0)   // Current consecutive days/bookings
+  longestStreak  Int      @default(0)   // Best streak ever
+  streakType     String   @default("bookings") // "bookings" | "days"
+  lastActivityAt DateTime?
+
+  // Tier (computed from XP)
+  tier           UserTier @default(BRONZE)
+
+  // Timestamps
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([totalXP])
+  @@index([tier])
+  @@index([referralScore])
+  @@map("user_xp")
+}
+
+/// Earned badges for a user
+/// V3.4: Soulbound badges representing achievements
+model UserBadge {
+  id        String    @id @default(uuid())
+  userId    String
+  badgeType BadgeType
+
+  // When earned
+  earnedAt  DateTime  @default(now())
+
+  // Additional metadata (e.g., specific achievement details)
+  metadata  Json      @default("{}")
+
+  // Notification sent
+  notifiedAt DateTime?
+
+  @@unique([userId, badgeType])
+  @@index([userId])
+  @@index([badgeType])
+  @@index([earnedAt])
+  @@map("user_badges")
+}
+
+/// XP event log for tracking all XP-earning actions
+/// V3.4: Audit trail for XP changes
+model XPEvent {
+  id          String   @id @default(uuid())
+  userId      String
+
+  // Event details
+  eventType   String   // BOOKING_COMPLETED, REVIEW_LEFT, REFERRAL, etc.
+  xpAwarded   Int      // Amount of XP awarded
+
+  // Categorization
+  category    String   // "booking", "review", "referral", "streak", "special"
+
+  // Related entities
+  bookingId   String?
+  referralId  String?  // User ID of referred user (if referral event)
+
+  // Additional context
+  metadata    Json     @default("{}")
+
+  // Timestamp
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([eventType])
+  @@index([category])
+  @@index([createdAt])
+  @@map("xp_events")
+}
+
+/// Referral tracking
+/// V3.4: Tracks referral relationships and performance
+model Referral {
+  id           String   @id @default(uuid())
+  referrerId   String   // User who made the referral
+  refereeId    String   @unique // User who was referred
+
+  // Referral code used
+  referralCode String
+
+  // Referee activity metrics (updated periodically)
+  refereeTotalBookings Int @default(0)
+  refereeSpentAmount   BigInt @default(0) // In cents
+  refereeIsActive      Boolean @default(false)
+
+  // Rewards tracking
+  referrerXPAwarded    Int @default(0)
+  refereeXPAwarded     Int @default(0)
+
+  // Timestamps
+  createdAt    DateTime @default(now())
+  activatedAt  DateTime? // When referee completed first booking
+
+  @@index([referrerId])
+  @@index([referralCode])
+  @@map("referrals")
+}
+
+/// User referral codes
+/// V3.4: Each user gets unique referral codes
+model ReferralCode {
+  id       String  @id @default(uuid())
+  userId   String  @unique
+  code     String  @unique // Unique referral code
+
+  // Usage stats
+  usageCount Int   @default(0)
+
+  // Customization (future)
+  customCode String? @unique // User can set custom code
+
+  // Timestamps
+  createdAt  DateTime @default(now())
+
+  @@index([code])
+  @@index([customCode])
+  @@map("referral_codes")
 }
 

@@ -1,40 +1,52 @@
+/**
+ * Wallet Overview Page - Balance, quick actions, faucet
+ * Part of the 5-tab wallet structure
+ */
+
 "use client";
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { useAuth } from "../../hooks/use-auth";
 import { useWallet } from "../../hooks/use-wallet";
-import { useTransactions } from "../../hooks/use-transactions";
 import { Button } from "../../components/ui/button";
 import { CopyButton } from "../../components/ui/copy-button";
 import { BalanceCard } from "../../components/wallet/balance-card";
-import { TransactionList } from "../../components/wallet/transaction-list";
-import { AppHeader } from "../../components/layout/app-header";
-import { BottomNav } from "../../components/layout/bottom-nav";
 import { claimFaucet } from "../../lib/wallet-client";
 
 // Lazy load dialogs - only loaded when opened
 const SendDialog = dynamic(
-  () => import("../../components/wallet/send-dialog").then(mod => ({ default: mod.SendDialog })),
+  () =>
+    import("../../components/wallet/send-dialog").then((mod) => ({
+      default: mod.SendDialog,
+    })),
   { ssr: false }
 );
 const ReceiveDialog = dynamic(
-  () => import("../../components/wallet/receive-dialog").then(mod => ({ default: mod.ReceiveDialog })),
+  () =>
+    import("../../components/wallet/receive-dialog").then((mod) => ({
+      default: mod.ReceiveDialog,
+    })),
   { ssr: false }
 );
 const AddMoneyDialog = dynamic(
-  () => import("../../components/wallet/add-money-dialog").then(mod => ({ default: mod.AddMoneyDialog })),
+  () =>
+    import("../../components/wallet/add-money-dialog").then((mod) => ({
+      default: mod.AddMoneyDialog,
+    })),
   { ssr: false }
 );
 const WithdrawDialog = dynamic(
-  () => import("../../components/wallet/withdraw-dialog").then(mod => ({ default: mod.WithdrawDialog })),
+  () =>
+    import("../../components/wallet/withdraw-dialog").then((mod) => ({
+      default: mod.WithdrawDialog,
+    })),
   { ssr: false }
 );
 
-export default function WalletPage() {
-  const { user, logout } = useAuth();
+export default function WalletOverviewPage() {
+  const { user } = useAuth();
   const { data: wallet, isLoading, refetch } = useWallet();
-  const { data: transactionsData, isLoading: txLoading } = useTransactions();
   const [claiming, setClaiming] = useState(false);
   const [faucetMessage, setFaucetMessage] = useState<string | null>(null);
   const [faucetError, setFaucetError] = useState<string | null>(null);
@@ -61,133 +73,107 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background-secondary pb-20 md:pb-8">
-      {/* Header */}
-      <AppHeader
-        title="Wallet"
-        subtitle={`Welcome, ${user?.displayName || user?.email || "User"}`}
-        showNotifications
-        showProfile
+    <div className="space-y-6">
+      {/* Balance Card */}
+      {wallet && <BalanceCard balance={wallet.balance} isLoading={isLoading} />}
+
+      {/* Quick Action Buttons */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Button
+          onClick={() => setAddMoneyDialogOpen(true)}
+          className="bg-brand-rose text-background-primary hover:bg-brand-rose/90"
+        >
+          Add Money
+        </Button>
+        <Button onClick={() => setSendDialogOpen(true)}>Send</Button>
+        <Button variant="outline" onClick={() => setReceiveDialogOpen(true)}>
+          Receive
+        </Button>
+        <Button onClick={() => setWithdrawDialogOpen(true)}>Withdraw</Button>
+      </div>
+
+      {/* Dialogs */}
+      <AddMoneyDialog
+        open={addMoneyDialogOpen}
+        onOpenChange={setAddMoneyDialogOpen}
+      />
+      <SendDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} />
+      {user?.walletAddress && (
+        <ReceiveDialog
+          open={receiveDialogOpen}
+          onOpenChange={setReceiveDialogOpen}
+          walletAddress={user.walletAddress}
+        />
+      )}
+      <WithdrawDialog
+        open={withdrawDialogOpen}
+        onOpenChange={setWithdrawDialogOpen}
       />
 
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-
-        {/* Balance Card */}
-        {wallet && (
-          <BalanceCard balance={wallet.balance} isLoading={isLoading} />
-        )}
-
-        {/* Wallet Action Buttons */}
-        <div className="flex gap-3">
-          <Button
-            onClick={() => setAddMoneyDialogOpen(true)}
-            className="flex-1 bg-brand-rose text-background-primary hover:bg-brand-rose/90"
-          >
-            Fund
-          </Button>
-          <Button
-            onClick={() => setSendDialogOpen(true)}
-            className="flex-1"
-          >
-            Send
-          </Button>
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setReceiveDialogOpen(true)}
-          >
-            Receive
-          </Button>
-          <Button
-            onClick={() => setWithdrawDialogOpen(true)}
-            className="flex-1"
-          >
-            Withdraw
-          </Button>
-        </div>
-
-        <AddMoneyDialog
-          open={addMoneyDialogOpen}
-          onOpenChange={setAddMoneyDialogOpen}
-        />
-        <SendDialog open={sendDialogOpen} onOpenChange={setSendDialogOpen} />
-        {user?.walletAddress && (
-          <ReceiveDialog
-            open={receiveDialogOpen}
-            onOpenChange={setReceiveDialogOpen}
-            walletAddress={user.walletAddress}
-          />
-        )}
-        <WithdrawDialog
-          open={withdrawDialogOpen}
-          onOpenChange={setWithdrawDialogOpen}
-        />
-
-        {/* Faucet Button (Testnet Only) */}
-        <div className="bg-background-primary rounded-card shadow-vlossom p-6">
-          <p className="text-caption text-text-secondary mb-2">
+      {/* Faucet Section (Testnet Only) */}
+      <div className="bg-background-primary rounded-card shadow-vlossom p-6">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg">🚰</span>
+          <h3 className="text-body font-semibold text-text-primary">
             Testnet Faucet
-          </p>
-          <p className="text-body text-text-tertiary mb-4">
-            Get free test USDC to try out the platform (1000 USDC per 24 hours)
-          </p>
-          <Button
-            onClick={handleClaimFaucet}
-            disabled={claiming}
-            className="w-full bg-brand-rose text-background-primary hover:bg-brand-rose/90"
-          >
-            {claiming ? "Claiming..." : "Get Test USDC"}
-          </Button>
-
-          {/* Success Message */}
-          {faucetMessage && (
-            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
-              <p className="text-caption text-green-800 dark:text-green-200">{faucetMessage}</p>
-            </div>
-          )}
-
-          {/* Error Message */}
-          {faucetError && (
-            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-caption text-red-800 dark:text-red-200">{faucetError}</p>
-            </div>
-          )}
+          </h3>
         </div>
+        <p className="text-caption text-text-tertiary mb-4">
+          Get free test USDC to try out the platform (1000 USDC per 24 hours)
+        </p>
+        <Button
+          onClick={handleClaimFaucet}
+          disabled={claiming}
+          loading={claiming}
+          className="w-full bg-brand-rose text-background-primary hover:bg-brand-rose/90"
+        >
+          {claiming ? "Claiming..." : "Get Test USDC"}
+        </Button>
 
-        {/* Wallet Address */}
-        <div className="bg-background-primary rounded-card shadow-vlossom p-6">
-          <p className="text-caption text-text-secondary mb-2">Wallet Address</p>
-          <div className="flex items-center gap-2">
-            <p className="text-body text-text-primary font-mono break-all flex-1">
-              {user?.walletAddress}
+        {/* Success Message */}
+        {faucetMessage && (
+          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
+            <p className="text-caption text-green-800 dark:text-green-200">
+              {faucetMessage}
             </p>
-            {user?.walletAddress && (
-              <CopyButton
-                textToCopy={user.walletAddress}
-                successMessage="Wallet address copied!"
-                variant="ghost"
-                size="icon"
-                className="shrink-0"
-              />
-            )}
           </div>
-          <p className="text-caption text-text-tertiary mt-2">
-            {wallet?.isDeployed ? "Deployed" : "Not yet deployed (counterfactual)"}
-          </p>
-        </div>
+        )}
 
-        {/* Transaction History */}
-        {transactionsData && (
-          <TransactionList
-            transactions={transactionsData.transactions}
-            hasMore={transactionsData.hasMore}
-            isLoading={txLoading}
-          />
+        {/* Error Message */}
+        {faucetError && (
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-caption text-red-800 dark:text-red-200">
+              {faucetError}
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Bottom Navigation - Mobile */}
-      <BottomNav />
+      {/* Wallet Address Card */}
+      <div className="bg-background-primary rounded-card shadow-vlossom p-6">
+        <h3 className="text-body font-semibold text-text-primary mb-2">
+          Wallet Address
+        </h3>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-text-secondary font-mono break-all flex-1">
+            {user?.walletAddress}
+          </p>
+          {user?.walletAddress && (
+            <CopyButton
+              textToCopy={user.walletAddress}
+              successMessage="Wallet address copied!"
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+            />
+          )}
+        </div>
+        <p className="text-caption text-text-tertiary mt-2">
+          {wallet?.isDeployed
+            ? "✓ Deployed on Base Sepolia"
+            : "Not yet deployed (counterfactual)"}
+        </p>
+      </div>
     </div>
   );
 }

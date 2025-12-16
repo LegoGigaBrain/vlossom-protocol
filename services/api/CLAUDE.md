@@ -10,6 +10,33 @@
 
 ## Current Implementation Status
 
+**V3.4.0 Complete - Pre-Styling Completion** (Dec 16, 2025)
+
+### V3.4.0 Changes
+
+**Backend Infrastructure:**
+- Kotani Pay integration (`lib/kotani/`) for on/off-ramp flows
+- Rewards & XP system (`lib/rewards/`) with badges, streaks, tiers
+- Dispute resolution system (`lib/disputes/`) with full workflow
+- Audit logging system (`lib/audit/`) for compliance
+- Admin routes for disputes, logs, user management, property verification
+
+**New Database Models:**
+- `UserXP` — XP tracking by role (customer/stylist/owner)
+- `UserBadge` — Badge achievements with metadata
+- `Dispute` — Dispute records with resolution workflow
+- `DisputeMessage` — Internal/external dispute communication
+- `AuditLog` — Admin action audit trail
+
+**New Enums:**
+- `UserTier` — Bronze/Silver/Gold/Platinum/Diamond
+- `BadgeType` — 10 badge types (FIRST_BOOKING, TEN_BOOKINGS, etc.)
+- `DisputeStatus` — OPEN/ASSIGNED/UNDER_REVIEW/RESOLVED/ESCALATED/CLOSED
+- `DisputeType` — 9 types (SERVICE_NOT_DELIVERED, POOR_QUALITY, etc.)
+- `DisputeResolution` — 8 resolution types
+
+---
+
 **V3.3.0 Complete - Feature Completion (Pre-DeFi)** (Dec 16, 2025)
 
 ### V3.3.0 Changes
@@ -17,6 +44,8 @@
 - `PasswordResetToken` model added to Prisma schema
 - Token-based email verification flow with 1-hour expiry
 - SIWE authentication endpoints (V3.2.0)
+
+---
 
 **V1.5 Complete - Property Owner + Reputation** (Dec 15, 2025)
 
@@ -27,7 +56,7 @@
 - `src/middleware/` — Auth, security, and rate limiting
 - `prisma/schema.prisma` — Database schema
 
-## API Endpoints (84+ total)
+## API Endpoints (108+ total)
 
 ### Authentication (11 endpoints)
 ```
@@ -115,6 +144,54 @@ GET  /api/admin/paymaster/stats — Paymaster statistics
 GET  /api/admin/paymaster/transactions — Transaction history
 GET  /api/admin/paymaster/gas-usage — Gas usage chart data
 POST /api/admin/paymaster/alerts/config — Alert configuration
+```
+
+### Admin Disputes (6 endpoints) - V3.4
+```
+GET    /api/v1/admin/disputes              — List disputes with filters
+GET    /api/v1/admin/disputes/stats        — Dispute statistics
+GET    /api/v1/admin/disputes/:id          — Get dispute details
+POST   /api/v1/admin/disputes/:id/assign   — Assign to admin
+POST   /api/v1/admin/disputes/:id/resolve  — Resolve dispute
+POST   /api/v1/admin/disputes/:id/escalate — Escalate dispute
+```
+
+### Admin Logs (2 endpoints) - V3.4
+```
+GET    /api/v1/admin/logs       — List audit logs with filters
+GET    /api/v1/admin/logs/stats — Audit log statistics
+```
+
+### Admin Users (3 endpoints) - V3.4
+```
+POST   /api/v1/admin/users/:id/freeze   — Freeze user account
+POST   /api/v1/admin/users/:id/unfreeze — Unfreeze user account
+POST   /api/v1/admin/users/:id/warn     — Send warning to user
+```
+
+### Admin Properties (2 endpoints) - V3.4
+```
+POST   /api/v1/admin/properties/:id/verify — Verify property
+POST   /api/v1/admin/properties/:id/reject — Reject property
+```
+
+### Fiat (6 endpoints) - V3.4
+```
+POST   /api/v1/fiat/onramp/initiate   — Initiate ZAR → USDC
+POST   /api/v1/fiat/onramp/confirm    — Confirm onramp payment
+GET    /api/v1/fiat/onramp/status/:id — Get onramp status
+POST   /api/v1/fiat/offramp/initiate  — Initiate USDC → ZAR
+GET    /api/v1/fiat/offramp/status/:id — Get offramp status
+GET    /api/v1/fiat/rates             — Current exchange rates
+```
+
+### Rewards (5 endpoints) - V3.4
+```
+GET    /api/v1/rewards/me             — Current user rewards
+GET    /api/v1/rewards/:userId        — User public rewards
+GET    /api/v1/rewards/badges         — All available badges
+GET    /api/v1/rewards/leaderboard    — Top users by XP
+POST   /api/v1/rewards/claim/:type    — Claim unlocked reward
 ```
 
 ### Health (1 endpoint) - M5
@@ -227,6 +304,28 @@ GET    /api/reviews/booking/:id     — Get review for booking
 - `tps-calculator.ts` — Time Performance Score calculation
 - `index.ts` — Barrel export
 
+**`kotani/`** — Fiat On/Off-Ramp (V3.4)
+- `kotani-client.ts` — Kotani Pay API client
+- `types.ts` — TypeScript interfaces
+- `index.ts` — Barrel export
+
+**`rewards/`** — Rewards & XP System (V3.4)
+- `xp-service.ts` — XP calculation and awarding
+- `badge-service.ts` — Badge unlocking logic
+- `streak-service.ts` — Streak tracking
+- `tier-service.ts` — Tier progression (Bronze→Diamond)
+- `types.ts` — Interfaces and enums
+- `index.ts` — Barrel export
+
+**`disputes/`** — Dispute Resolution (V3.4)
+- `dispute-service.ts` — Dispute workflow logic
+- `types.ts` — Dispute interfaces and enums
+- `index.ts` — Barrel export
+
+**`audit/`** — Audit Logging (V3.4)
+- `audit-service.ts` — Audit log creation and queries
+- `index.ts` — Barrel export
+
 ### `src/middleware/` — Middleware
 
 - `auth.ts` — JWT authentication
@@ -244,6 +343,10 @@ GET    /api/reviews/booking/:id     — Get review for booking
 - `notifications.ts` — Notification endpoints (M4)
 - `upload.ts` — Cloudinary upload endpoints (M4)
 - `admin/paymaster.ts` — Admin paymaster endpoints (M5)
+- `admin/disputes.ts` — Admin dispute management (V3.4)
+- `admin/logs.ts` — Admin audit logs (V3.4)
+- `fiat.ts` — Kotani Pay on/off-ramp (V3.4)
+- `rewards.ts` — Rewards and XP system (V3.4)
 - `properties.ts` — Property CRUD endpoints (V1.5)
 - `chairs.ts` — Chair management endpoints (V1.5)
 - `rentals.ts` — Chair rental workflow endpoints (V1.5)
@@ -274,6 +377,11 @@ GET    /api/reviews/booking/:id     — Get review for booking
 - `SiweNonce` — SIWE nonce storage (V3.2)
 - `LinkedAccount` — External auth providers linked to users (V3.2)
 - `ExternalAuthProvider` — Enum for auth provider types (V3.2)
+- `UserXP` — XP tracking by role (V3.4)
+- `UserBadge` — Badge achievements (V3.4)
+- `Dispute` — Dispute records with workflow state (V3.4)
+- `DisputeMessage` — Dispute communication (V3.4)
+- `AuditLog` — Admin action audit trail (V3.4)
 
 ## Security (M4)
 

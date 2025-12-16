@@ -1,7 +1,20 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, User, RefreshCw } from "lucide-react";
+import Link from "next/link";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  User,
+  RefreshCw,
+  MoreVertical,
+  UserX,
+  UserCheck,
+  AlertTriangle,
+  Eye,
+  Shield,
+} from "lucide-react";
 
 interface UserData {
   id: string;
@@ -12,6 +25,9 @@ interface UserData {
   verificationStatus: string;
   walletAddress: string | null;
   createdAt: string;
+  isFrozen?: boolean;
+  frozenAt?: string;
+  frozenReason?: string;
   _count: {
     bookingsAsCustomer: number;
     bookingsAsStylist: number;
@@ -48,6 +64,8 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [actionUserId, setActionUserId] = useState<string | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -109,6 +127,84 @@ export default function AdminUsersPage() {
     e.preventDefault();
     setCurrentPage(1);
     fetchUsers();
+  };
+
+  const handleFreezeUser = async (userId: string) => {
+    const reason = prompt("Please provide a reason for freezing this account:");
+    if (!reason) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/v1/admin/users/${userId}/freeze`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (response.ok) {
+        alert("User account has been frozen.");
+        fetchUsers();
+      } else {
+        alert("Failed to freeze user account.");
+      }
+    } catch (error) {
+      console.error("Failed to freeze user:", error);
+      alert("An error occurred.");
+    }
+    setShowActionMenu(null);
+  };
+
+  const handleUnfreezeUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to unfreeze this account?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/v1/admin/users/${userId}/unfreeze`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        alert("User account has been unfrozen.");
+        fetchUsers();
+      } else {
+        alert("Failed to unfreeze user account.");
+      }
+    } catch (error) {
+      console.error("Failed to unfreeze user:", error);
+      alert("An error occurred.");
+    }
+    setShowActionMenu(null);
+  };
+
+  const handleWarnUser = async (userId: string) => {
+    const message = prompt("Enter warning message to send to user:");
+    if (!message) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/v1/admin/users/${userId}/warn`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      if (response.ok) {
+        alert("Warning has been sent to the user.");
+      } else {
+        alert("Failed to send warning.");
+      }
+    } catch (error) {
+      console.error("Failed to warn user:", error);
+      alert("An error occurred.");
+    }
+    setShowActionMenu(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -246,6 +342,9 @@ export default function AdminUsersPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Joined
                 </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -298,6 +397,55 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(user.createdAt)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="relative inline-block text-left">
+                      <button
+                        onClick={() =>
+                          setShowActionMenu(showActionMenu === user.id ? null : user.id)
+                        }
+                        className="p-2 hover:bg-gray-100 rounded-full"
+                      >
+                        <MoreVertical className="h-4 w-4 text-gray-500" />
+                      </button>
+                      {showActionMenu === user.id && (
+                        <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                          <div className="py-1">
+                            <Link
+                              href={`/admin/users/${user.id}`}
+                              className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </Link>
+                            {user.isFrozen ? (
+                              <button
+                                onClick={() => handleUnfreezeUser(user.id)}
+                                className="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-gray-100"
+                              >
+                                <UserCheck className="h-4 w-4 mr-2" />
+                                Unfreeze Account
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleFreezeUser(user.id)}
+                                className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
+                              >
+                                <UserX className="h-4 w-4 mr-2" />
+                                Freeze Account
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleWarnUser(user.id)}
+                              className="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-gray-100"
+                            >
+                              <AlertTriangle className="h-4 w-4 mr-2" />
+                              Send Warning
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
