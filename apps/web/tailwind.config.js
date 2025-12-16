@@ -28,10 +28,12 @@ module.exports = {
         tertiary: {
           DEFAULT: "#A9D326",
         },
-        // Background colors
+        // Background colors (from design tokens)
         background: {
           DEFAULT: "var(--color-background)",
           primary: "#FFFFFF",
+          secondary: "#EFE3D0",  // Cream - brand surface color
+          tertiary: "#F5F5F5",   // Light gray for subtle areas
           dark: "#161616",
         },
         // Surface colors (cards, containers)
@@ -51,24 +53,29 @@ module.exports = {
           error: "#D0021B",
           info: "#ADA5C4",
         },
-        // Text colors
+        // Text colors (from design tokens)
         text: {
           primary: "var(--color-text-primary)",
           secondary: "var(--color-text-secondary)",
+          tertiary: "#6F6F6F",  // From design tokens textSecondary
           muted: "var(--color-text-muted)",
           inverse: "var(--color-text-inverse)",
         },
-        // Border colors
+        // Border colors (from design tokens)
         border: {
+          DEFAULT: "#E6E6E6",   // From design tokens borderSubtle
           subtle: "var(--color-border-subtle)",
           divider: "var(--color-divider)",
         },
-        // Legacy aliases (for backwards compatibility during migration)
+        // Brand aliases (mapped to actual brand colors from design tokens)
         brand: {
-          purple: "#311E6B",
-          orange: "#FF510D",
-          cream: "#EFE3D0",
-          green: "#A9D326",
+          purple: "#311E6B",    // primary
+          orange: "#FF510D",    // accent
+          cream: "#EFE3D0",     // secondary/surface
+          green: "#A9D326",     // tertiary/success
+          // Rose and clay map to primary colors for button styling
+          rose: "#311E6B",      // Same as primary (deep purple)
+          clay: "#241552",      // Darker shade of primary for hover
         },
       },
       fontFamily: {

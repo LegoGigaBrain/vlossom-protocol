@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useBookings } from "@/hooks/use-bookings";
 import { BookingList } from "@/components/bookings/booking-list";
 import { Button } from "@/components/ui/button";
+import { AppHeader } from "@/components/layout/app-header";
+import { BottomNav } from "@/components/layout/bottom-nav";
+import { Plus } from "lucide-react";
 
 type FilterTab = "upcoming" | "completed" | "all";
 
@@ -46,37 +49,21 @@ export default function BookingsPage() {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
       {/* Header */}
-      <header className="border-b border-border bg-surface/50 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-display font-bold text-primary">
-              My Bookings
-            </h1>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/stylists")}
-              aria-label="Create new booking"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              <span className="ml-2 hidden sm:inline">New Booking</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="My Bookings"
+        showNotifications
+        rightAction={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/stylists")}
+            aria-label="Create new booking"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="ml-2 hidden sm:inline">New Booking</span>
+          </Button>
+        }
+      />
 
       {/* Main Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
@@ -144,73 +131,7 @@ export default function BookingsPage() {
       </main>
 
       {/* Bottom Navigation - Mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border md:hidden pb-safe" aria-label="Main navigation">
-        <div className="flex justify-around py-2">
-          <button
-            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-text-secondary"
-            onClick={() => router.push("/stylists")}
-            aria-label="Browse stylists"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <span className="text-xs mt-1">Discover</span>
-          </button>
-          <button
-            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-primary"
-            aria-label="View bookings"
-            aria-current="page"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <span className="text-xs mt-1">Bookings</span>
-          </button>
-          <button
-            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-text-secondary"
-            onClick={() => router.push("/wallet")}
-            aria-label="Open wallet"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-              />
-            </svg>
-            <span className="text-xs mt-1">Wallet</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

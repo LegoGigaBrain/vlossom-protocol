@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "../components/providers";
+import { Toaster } from "../components/ui/toaster";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -43,6 +44,7 @@ export default function RootLayout({
         </a>
         <Providers>
           <main id="main-content">{children}</main>
+          <Toaster />
         </Providers>
       </body>
     </html>

@@ -7,7 +7,7 @@
 
 import { createConfig, http, type Config } from "wagmi";
 import { baseSepolia, base, arbitrum, arbitrumSepolia } from "wagmi/chains";
-import { injected, walletConnect, coinbaseWallet } from "wagmi/connectors";
+import { injected, coinbaseWallet } from "wagmi/connectors";
 import type { Address } from "viem";
 
 // Network mode from environment
@@ -34,7 +34,8 @@ const ARB_MAINNET_RPC_URL =
 const TESTNET_RPC_URL = BASE_TESTNET_RPC_URL;
 const MAINNET_RPC_URL = BASE_MAINNET_RPC_URL;
 
-// WalletConnect Project ID
+// WalletConnect Project ID (reserved for future use when SSR issues are resolved)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const WALLETCONNECT_PROJECT_ID =
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "9ac430b26fb8a47a8bc6a8065b81132c";
 
@@ -67,15 +68,8 @@ export const config: Config = createConfig({
       appName: "Vlossom",
       appLogoUrl: "https://vlossom.com/logo.png",
     }),
-    walletConnect({
-      projectId: WALLETCONNECT_PROJECT_ID,
-      metadata: {
-        name: "Vlossom",
-        description: "Beauty services booking platform",
-        url: "https://vlossom.com",
-        icons: ["https://vlossom.com/logo.png"],
-      },
-    }),
+    // WalletConnect temporarily disabled due to SSR issues with indexedDB
+    // TODO: Re-enable with lazy loading on client-side only
   ],
   transports: {
     // Base networks

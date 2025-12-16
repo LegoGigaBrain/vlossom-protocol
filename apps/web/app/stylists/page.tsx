@@ -6,6 +6,8 @@ import { useStylists, useCategories } from "@/hooks/use-stylists";
 import { StylistGrid } from "@/components/stylists/stylist-grid";
 import { StylistFilters } from "@/components/stylists/stylist-filters";
 import { Button } from "@/components/ui/button";
+import { AppHeader } from "@/components/layout/app-header";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import type { StylistFilters as FiltersType } from "@/lib/stylist-client";
 
 export default function StylistsPage() {
@@ -30,42 +32,12 @@ export default function StylistsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-surface/50 sticky top-0 z-10 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-display font-bold text-primary">
-                Find Your Stylist
-              </h1>
-              <p className="text-sm text-text-secondary mt-1">
-                Discover talented beauty professionals near you
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/wallet")}
-              aria-label="Open wallet"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                />
-              </svg>
-              <span className="ml-2 hidden sm:inline">Wallet</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        title="Find Your Stylist"
+        subtitle="Discover talented beauty professionals near you"
+        showNotifications
+        showProfile
+      />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-6">
@@ -141,73 +113,7 @@ export default function StylistsPage() {
       </main>
 
       {/* Bottom Navigation - Mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border md:hidden pb-safe" aria-label="Main navigation">
-        <div className="flex justify-around py-2">
-          <button
-            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-primary"
-            aria-label="Browse stylists"
-            aria-current="page"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <span className="text-xs mt-1">Discover</span>
-          </button>
-          <button
-            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-text-secondary"
-            onClick={() => router.push("/bookings")}
-            aria-label="View bookings"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            <span className="text-xs mt-1">Bookings</span>
-          </button>
-          <button
-            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-text-secondary"
-            onClick={() => router.push("/wallet")}
-            aria-label="Open wallet"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-              />
-            </svg>
-            <span className="text-xs mt-1">Wallet</span>
-          </button>
-        </div>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

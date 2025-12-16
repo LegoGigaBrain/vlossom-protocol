@@ -113,10 +113,30 @@ model User {
   externalProviders   ExternalAuthProvider[]
   linkedAccounts      LinkedAccount[]
 
+  // Password reset tokens
+  passwordResetTokens PasswordResetToken[]
+
   @@index([walletAddress])
   @@index([email])
   @@index([phone])
   @@map("users")
+}
+
+/// Password reset token for email-based recovery
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 /// Stylist profile data

@@ -9,6 +9,8 @@ import { Button } from "../../components/ui/button";
 import { CopyButton } from "../../components/ui/copy-button";
 import { BalanceCard } from "../../components/wallet/balance-card";
 import { TransactionList } from "../../components/wallet/transaction-list";
+import { AppHeader } from "../../components/layout/app-header";
+import { BottomNav } from "../../components/layout/bottom-nav";
 import { claimFaucet } from "../../lib/wallet-client";
 
 // Lazy load dialogs - only loaded when opened
@@ -59,20 +61,16 @@ export default function WalletPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background-secondary p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-h1 text-brand-rose">Wallet</h1>
-            <p className="text-body text-text-secondary">
-              Welcome, {user?.displayName || user?.email}
-            </p>
-          </div>
-          <Button variant="ghost" onClick={logout}>
-            Log Out
-          </Button>
-        </div>
+    <div className="min-h-screen bg-background-secondary pb-20 md:pb-8">
+      {/* Header */}
+      <AppHeader
+        title="Wallet"
+        subtitle={`Welcome, ${user?.displayName || user?.email || "User"}`}
+        showNotifications
+        showProfile
+      />
+
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
 
         {/* Balance Card */}
         {wallet && (
@@ -187,6 +185,9 @@ export default function WalletPage() {
           />
         )}
       </div>
+
+      {/* Bottom Navigation - Mobile */}
+      <BottomNav />
     </div>
   );
 }

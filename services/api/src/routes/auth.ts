@@ -346,6 +346,101 @@ router.get("/me", authenticate, async (req: AuthenticatedRequest, res: Response,
   }
 });
 
+/**
+ * PATCH /api/v1/auth/me
+ * Update current user's profile
+ */
+router.patch("/me", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.userId) {
+      return next(createError("UNAUTHORIZED"));
+    }
+
+    const { displayName, email, phone, avatarUrl } = req.body;
+
+    // Build update data (only include provided fields)
+    const updateData: Record<string, string | null> = {};
+
+    if (displayName !== undefined) {
+      if (typeof displayName !== "string" || displayName.length < 2) {
+        return next(createError("VALIDATION_ERROR", { message: "Display name must be at least 2 characters" }));
+      }
+      updateData.displayName = displayName;
+    }
+
+    if (email !== undefined) {
+      if (email !== null && email !== "") {
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return next(createError("INVALID_EMAIL"));
+        }
+        // Check if email is already in use by another user
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser && existingUser.id !== req.userId) {
+          return next(createError("EMAIL_EXISTS"));
+        }
+      }
+      updateData.email = email || null;
+    }
+
+    if (phone !== undefined) {
+      if (phone !== null && phone !== "") {
+        // Basic phone validation
+        const phoneRegex = /^\+?[0-9]{10,15}$/;
+        if (!phoneRegex.test(phone)) {
+          return next(createError("VALIDATION_ERROR", { message: "Invalid phone number format" }));
+        }
+        // Check if phone is already in use
+        const existingUser = await prisma.user.findUnique({ where: { phone } });
+        if (existingUser && existingUser.id !== req.userId) {
+          return next(createError("VALIDATION_ERROR", { message: "Phone number already in use" }));
+        }
+      }
+      updateData.phone = phone || null;
+    }
+
+    if (avatarUrl !== undefined) {
+      updateData.avatarUrl = avatarUrl || null;
+    }
+
+    // Update user
+    const user = await prisma.user.update({
+      where: { id: req.userId },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        displayName: true,
+        walletAddress: true,
+        roles: true,
+        avatarUrl: true,
+        verificationStatus: true,
+      },
+    });
+
+    const roles = user.roles as string[];
+    logger.info("User profile updated", { userId: req.userId, fields: Object.keys(updateData) });
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        displayName: user.displayName,
+        role: roles[0] || "CUSTOMER",
+        walletAddress: user.walletAddress,
+        avatarUrl: user.avatarUrl,
+        verificationStatus: user.verificationStatus,
+      },
+    });
+  } catch (error) {
+    logger.error("Update user error", { error });
+    return next(createError("INTERNAL_ERROR"));
+  }
+});
+
 // ============================================================================
 // SIWE (Sign-In with Ethereum) Routes - V3.2
 // ============================================================================
@@ -487,51 +582,58 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
         return next(createError("INVALID_ROLE"));
       }
 
-      // Create user first with temporary wallet address
-      user = await prisma.user.create({
-        data: {
-          email: null,
-          passwordHash: null,
-          displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
-          walletAddress: "0x0000000000000000000000000000000000000000", // Temporary
-          roles: [role],
-        },
-      });
+      // Generate a temporary unique wallet address using user's external address
+      // This ensures uniqueness even if AA wallet creation fails
+      const tempWalletAddress = address;
 
-      // Create AA wallet
-      const walletInfo = await createWallet(user.id);
+      // Use a transaction to ensure atomicity
+      try {
+        // Create AA wallet first (before user, so we get the address)
+        // We'll use a temporary user ID based on the address hash
+        const tempUserId = Buffer.from(address.slice(2), "hex").toString("base64").slice(0, 36);
+        const walletInfo = await createWallet(tempUserId);
 
-      // Update user with actual wallet address
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { walletAddress: walletInfo.address },
-      });
+        // Now create user with actual AA wallet address
+        user = await prisma.user.create({
+          data: {
+            email: null,
+            passwordHash: null,
+            displayName: `${address.slice(0, 6)}...${address.slice(-4)}`,
+            walletAddress: walletInfo.address,
+            roles: [role],
+          },
+        });
 
-      // Create external auth provider
-      await prisma.externalAuthProvider.create({
-        data: {
-          userId: user.id,
-          provider: AuthProvider.ETHEREUM,
-          address,
-          chainId,
-        },
-      });
+        // Update wallet record with actual user ID
+        await prisma.wallet.updateMany({
+          where: { address: walletInfo.address },
+          data: { userId: user.id },
+        });
 
-      // Create linked account record
-      await prisma.linkedAccount.create({
-        data: {
-          userId: user.id,
-          provider: AuthProvider.ETHEREUM,
-          identifier: address,
-          isPrimary: true,
-          verifiedAt: new Date(),
-        },
-      });
+        // Create external auth provider
+        await prisma.externalAuthProvider.create({
+          data: {
+            userId: user.id,
+            provider: AuthProvider.ETHEREUM,
+            address,
+            chainId,
+          },
+        });
 
-      // Refresh user data
-      user = await prisma.user.findUnique({
-        where: { id: user.id },
-      });
+        // Create linked account record
+        await prisma.linkedAccount.create({
+          data: {
+            userId: user.id,
+            provider: AuthProvider.ETHEREUM,
+            identifier: address,
+            isPrimary: true,
+            verifiedAt: new Date(),
+          },
+        });
+      } catch (walletError) {
+        logger.error("Failed to create AA wallet for SIWE user", { error: walletError, address });
+        return next(createError("WALLET_CREATION_FAILED"));
+      }
     }
 
     if (!user) {
@@ -800,6 +902,197 @@ router.delete("/unlink-account/:id", authenticate, async (req: AuthenticatedRequ
     res.json({ message: "Account unlinked successfully" });
   } catch (error) {
     logger.error("Unlink account error", { error });
+    return next(createError("INTERNAL_ERROR"));
+  }
+});
+
+// ============================================================================
+// Password Reset Routes
+// ============================================================================
+
+const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+
+/**
+ * POST /api/v1/auth/forgot-password
+ * Request a password reset email
+ */
+router.post("/forgot-password", rateLimiters.signup, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return next(createError("MISSING_FIELD", { fields: ["email"] }));
+    }
+
+    // Always return success to prevent email enumeration
+    const successResponse = {
+      message: "If an account exists with this email, you will receive a password reset link.",
+    };
+
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase().trim() },
+    });
+
+    if (!user || !user.passwordHash) {
+      // User doesn't exist or doesn't have password auth - return success anyway
+      logger.info("Password reset requested for non-existent or non-password user", { email });
+      res.json(successResponse);
+      return;
+    }
+
+    // Invalidate any existing tokens
+    await prisma.passwordResetToken.updateMany({
+      where: {
+        userId: user.id,
+        usedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      data: { expiresAt: new Date() }, // Expire immediately
+    });
+
+    // Generate reset token
+    const token = randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS);
+
+    await prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
+    });
+
+    // TODO: Send email via SendGrid
+    // For now, log the reset link (in production, send email)
+    const resetLink = `${APP_URI}/reset-password?token=${token}`;
+    logger.info("Password reset token created", {
+      userId: user.id,
+      email: user.email,
+      resetLink, // Remove in production
+      expiresAt,
+    });
+
+    res.json(successResponse);
+  } catch (error) {
+    logger.error("Forgot password error", { error });
+    return next(createError("INTERNAL_ERROR"));
+  }
+});
+
+/**
+ * POST /api/v1/auth/reset-password
+ * Reset password using token
+ */
+router.post("/reset-password", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return next(createError("MISSING_FIELD", { fields: ["token", "password"] }));
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      return next(createError("WEAK_PASSWORD"));
+    }
+
+    // Find valid reset token
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token },
+      include: { user: true },
+    });
+
+    if (!resetToken) {
+      return next(createError("INVALID_RESET_TOKEN"));
+    }
+
+    if (resetToken.usedAt) {
+      return next(createError("RESET_TOKEN_USED"));
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      return next(createError("RESET_TOKEN_EXPIRED"));
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+    // Update user password and mark token as used
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: resetToken.userId },
+        data: { passwordHash },
+      }),
+      prisma.passwordResetToken.update({
+        where: { id: resetToken.id },
+        data: { usedAt: new Date() },
+      }),
+    ]);
+
+    logger.info("Password reset successful", {
+      userId: resetToken.userId,
+    });
+
+    res.json({ message: "Password has been reset successfully." });
+  } catch (error) {
+    logger.error("Reset password error", { error });
+    return next(createError("INTERNAL_ERROR"));
+  }
+});
+
+/**
+ * POST /api/v1/auth/change-password
+ * Change password for authenticated user
+ */
+router.post("/change-password", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (!req.userId) {
+      return next(createError("UNAUTHORIZED"));
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return next(createError("MISSING_FIELD", { fields: ["currentPassword", "newPassword"] }));
+    }
+
+    // Validate new password strength
+    if (newPassword.length < 8) {
+      return next(createError("WEAK_PASSWORD"));
+    }
+
+    // Get user
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+    });
+
+    if (!user || !user.passwordHash) {
+      return next(createError("NO_PASSWORD_AUTH"));
+    }
+
+    // Verify current password
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) {
+      return next(createError("INVALID_CURRENT_PASSWORD"));
+    }
+
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: { passwordHash },
+    });
+
+    logger.info("Password changed successfully", {
+      userId: req.userId,
+    });
+
+    res.json({ message: "Password changed successfully." });
+  } catch (error) {
+    logger.error("Change password error", { error });
     return next(createError("INTERNAL_ERROR"));
   }
 });

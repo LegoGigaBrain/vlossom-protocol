@@ -49,6 +49,13 @@ export const ERROR_CODES: Record<string, { status: number; message: string }> = 
   WEAK_PASSWORD: { status: 400, message: 'Password must be at least 8 characters' },
   INVALID_ROLE: { status: 400, message: 'Role must be either CUSTOMER or STYLIST' },
 
+  // Password reset errors
+  INVALID_RESET_TOKEN: { status: 400, message: 'Invalid or expired reset token' },
+  RESET_TOKEN_USED: { status: 400, message: 'This reset link has already been used' },
+  RESET_TOKEN_EXPIRED: { status: 400, message: 'This reset link has expired' },
+  NO_PASSWORD_AUTH: { status: 400, message: 'This account does not use password authentication' },
+  INVALID_CURRENT_PASSWORD: { status: 401, message: 'Current password is incorrect' },
+
   // Resource errors
   NOT_FOUND: { status: 404, message: 'Resource not found' },
   USER_NOT_FOUND: { status: 404, message: 'User not found' },

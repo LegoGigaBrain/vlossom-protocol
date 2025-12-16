@@ -115,13 +115,12 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                {/* Password reset link - deferred to later */}
-                {/* <Link
-                  href="/reset-password"
+                <Link
+                  href="/forgot-password"
                   className="text-sm text-brand-rose hover:text-brand-clay transition-gentle"
                 >
                   Forgot password?
-                </Link> */}
+                </Link>
               </div>
               <Input
                 id="password"
