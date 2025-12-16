@@ -14,7 +14,9 @@ import {IVlossomPaymaster} from "../interfaces/IVlossomPaymaster.sol";
  *
  * Security features:
  * - Whitelisting: Only sponsors calls to approved Vlossom contracts
+ * - H-1 fix: Function selector whitelist for fine-grained control
  * - Rate limiting: Prevents abuse via per-wallet operation caps per time window
+ * - M-4 fix: Lifetime caps and cooldown periods for additional protection
  * - Pausable: Emergency stop mechanism
  * - Owner-controlled configuration
  *
@@ -27,11 +29,20 @@ import {IVlossomPaymaster} from "../interfaces/IVlossomPaymaster.sol";
 contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
     /// @dev Custom errors for gas optimization
     error TargetNotWhitelisted();
+    error FunctionNotWhitelisted();
     error RateLimitExceeded();
     error InvalidRateLimit();
+    error LifetimeLimitExceeded();
+    error InCooldownPeriod();
 
     /// @notice Whitelisted target contracts that can be sponsored
     mapping(address => bool) private _whitelist;
+
+    /// @notice H-1 fix: Whitelisted function selectors per target
+    mapping(address => mapping(bytes4 => bool)) private _allowedFunctions;
+
+    /// @notice H-1 fix: Whether to enforce function selector whitelist
+    bool public enforceFunctionWhitelist;
 
     /// @notice Rate limiting: operations per wallet per window
     mapping(address => uint256) private _operationCounts;
@@ -45,9 +56,22 @@ contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
     /// @notice Rate limit window duration in seconds
     uint256 public windowSeconds;
 
+    /// @notice M-4 fix: Lifetime operation counts per wallet
+    mapping(address => uint256) private _lifetimeOperations;
+
+    /// @notice M-4 fix: Maximum lifetime operations (0 = unlimited)
+    uint256 public maxLifetimeOps;
+
+    /// @notice M-4 fix: Cooldown period after hitting rate limit
+    uint256 public cooldownPeriod;
+
+    /// @notice M-4 fix: Cooldown end timestamps per wallet
+    mapping(address => uint256) private _cooldownEnds;
+
     /// @notice Default rate limit: 50 operations per day
     uint256 private constant DEFAULT_MAX_OPS = 50;
     uint256 private constant DEFAULT_WINDOW = 1 days;
+    uint256 private constant DEFAULT_COOLDOWN = 1 hours;
 
     /**
      * @notice Initialize the paymaster
@@ -61,6 +85,7 @@ contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
         _transferOwnership(initialOwner);
         maxOpsPerWindow = DEFAULT_MAX_OPS;
         windowSeconds = DEFAULT_WINDOW;
+        cooldownPeriod = DEFAULT_COOLDOWN;
     }
 
     /// @inheritdoc IVlossomPaymaster
@@ -95,6 +120,112 @@ contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
         return (maxOpsPerWindow, windowSeconds);
     }
 
+    // ============================================================================
+    // H-1 Fix: Function Selector Whitelist
+    // ============================================================================
+
+    /**
+     * @notice Set allowed function selector for a target (H-1 fix)
+     * @param target Target contract address
+     * @param selector 4-byte function selector
+     * @param allowed Whether to allow this function
+     */
+    function setAllowedFunction(
+        address target,
+        bytes4 selector,
+        bool allowed
+    ) external onlyOwner {
+        _allowedFunctions[target][selector] = allowed;
+        emit FunctionWhitelistUpdated(target, selector, allowed);
+    }
+
+    /**
+     * @notice Batch set allowed functions for a target (H-1 fix)
+     * @param target Target contract address
+     * @param selectors Array of function selectors
+     * @param allowed Whether to allow these functions
+     */
+    function setAllowedFunctionsBatch(
+        address target,
+        bytes4[] calldata selectors,
+        bool allowed
+    ) external onlyOwner {
+        for (uint256 i = 0; i < selectors.length; i++) {
+            _allowedFunctions[target][selectors[i]] = allowed;
+            emit FunctionWhitelistUpdated(target, selectors[i], allowed);
+        }
+    }
+
+    /**
+     * @notice Check if a function is allowed for a target (H-1 fix)
+     * @param target Target contract address
+     * @param selector Function selector
+     * @return True if function is allowed
+     */
+    function isFunctionAllowed(address target, bytes4 selector) external view returns (bool) {
+        return _allowedFunctions[target][selector];
+    }
+
+    /**
+     * @notice Enable or disable function whitelist enforcement (H-1 fix)
+     * @param enforce Whether to enforce function whitelist
+     */
+    function setFunctionWhitelistEnforced(bool enforce) external onlyOwner {
+        enforceFunctionWhitelist = enforce;
+        emit FunctionWhitelistEnforcementChanged(enforce);
+    }
+
+    // ============================================================================
+    // M-4 Fix: Lifetime Limits and Cooldown
+    // ============================================================================
+
+    /**
+     * @notice Set lifetime operation limit (M-4 fix)
+     * @param newLimit New limit (0 = unlimited)
+     */
+    function setLifetimeLimit(uint256 newLimit) external onlyOwner {
+        maxLifetimeOps = newLimit;
+        emit LifetimeLimitUpdated(newLimit);
+    }
+
+    /**
+     * @notice Set cooldown period after rate limit (M-4 fix)
+     * @param newPeriod New period in seconds
+     */
+    function setCooldownPeriod(uint256 newPeriod) external onlyOwner {
+        cooldownPeriod = newPeriod;
+        emit CooldownPeriodUpdated(newPeriod);
+    }
+
+    /**
+     * @notice Get lifetime operation count for a wallet (M-4 fix)
+     * @param wallet Wallet address
+     */
+    function getLifetimeOperationCount(address wallet) external view returns (uint256) {
+        return _lifetimeOperations[wallet];
+    }
+
+    /**
+     * @notice Check if wallet is in cooldown (M-4 fix)
+     * @param wallet Wallet address
+     */
+    function isInCooldown(address wallet) external view returns (bool) {
+        return block.timestamp < _cooldownEnds[wallet];
+    }
+
+    /**
+     * @notice Get cooldown end time for a wallet (M-4 fix)
+     * @param wallet Wallet address
+     * @return Cooldown end timestamp (0 if not in cooldown)
+     */
+    function getCooldownEndTime(address wallet) external view returns (uint256) {
+        return _cooldownEnds[wallet];
+    }
+
+    // ============================================================================
+    // Validation
+    // ============================================================================
+
     /**
      * @notice Validate a UserOperation for gas sponsorship
      * @dev Called by EntryPoint during validation phase
@@ -123,7 +254,11 @@ contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
         // For execute(address dest, uint256 value, bytes calldata func)
         // Selector is 4 bytes, then address is next 32 bytes (padded)
         address target;
+        bytes4 outerSelector;
         if (userOp.callData.length >= 36) {
+            // Extract the outer function selector (first 4 bytes)
+            outerSelector = bytes4(userOp.callData[:4]);
+
             // Skip 4-byte selector, read address from bytes 4-36 (address is in last 20 bytes)
             bytes memory callData = userOp.callData;
             assembly {
@@ -132,8 +267,35 @@ contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
             }
         }
 
-        // Check whitelist
+        // Check target whitelist
         if (!_whitelist[target]) revert TargetNotWhitelisted();
+
+        // H-1 fix: Check function selector whitelist if enforcement is enabled
+        if (enforceFunctionWhitelist) {
+            // Extract inner function selector from the 'func' parameter of execute()
+            // execute(address dest, uint256 value, bytes calldata func)
+            // The inner selector is the first 4 bytes of the 'func' parameter
+            if (userOp.callData.length >= 100) {
+                // Position: 4 (selector) + 32 (dest) + 32 (value) + 32 (offset to func) = 100
+                // Then: length at offset, selector is next 4 bytes
+                bytes memory callData = userOp.callData;
+                bytes4 innerSelector;
+                assembly {
+                    // Read the offset to func parameter (at byte 68-100)
+                    let funcOffset := mload(add(add(callData, 32), 68))
+                    // The inner func data starts at: 4 + funcOffset
+                    // Skip the length (32 bytes) to get the actual func calldata
+                    // Selector is first 4 bytes of func calldata
+                    let funcDataStart := add(add(callData, 36), funcOffset)
+                    innerSelector := and(mload(funcDataStart), 0xffffffff00000000000000000000000000000000000000000000000000000000)
+                }
+
+                // Check if this function is allowed for the target
+                if (!_allowedFunctions[target][innerSelector]) {
+                    revert FunctionNotWhitelisted();
+                }
+            }
+        }
 
         // Check and update rate limit
         _checkAndUpdateRateLimit(sender);
@@ -165,25 +327,42 @@ contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
     /**
      * @notice Check and update rate limit for a wallet
      * @param wallet The wallet address
-     * @dev Reverts if rate limit exceeded
+     * @dev Reverts if rate limit exceeded. Includes M-4 fix for lifetime limits and cooldown.
      */
     function _checkAndUpdateRateLimit(address wallet) private {
-        uint256 windowStart = _windowStarts[wallet];
         uint256 currentTime = block.timestamp;
+
+        // M-4 fix: Check cooldown
+        if (currentTime < _cooldownEnds[wallet]) {
+            revert InCooldownPeriod();
+        }
+
+        // M-4 fix: Check lifetime limit
+        if (maxLifetimeOps > 0 && _lifetimeOperations[wallet] >= maxLifetimeOps) {
+            revert LifetimeLimitExceeded();
+        }
+
+        uint256 windowStart = _windowStarts[wallet];
 
         // Reset window if expired
         if (currentTime >= windowStart + windowSeconds) {
             _windowStarts[wallet] = currentTime;
             _operationCounts[wallet] = 1;
+            _lifetimeOperations[wallet]++; // M-4 fix: Track lifetime ops
             return;
         }
 
         // Check limit
         uint256 count = _operationCounts[wallet];
-        if (count >= maxOpsPerWindow) revert RateLimitExceeded();
+        if (count >= maxOpsPerWindow) {
+            // M-4 fix: Set cooldown instead of just reverting
+            _cooldownEnds[wallet] = currentTime + cooldownPeriod;
+            revert RateLimitExceeded();
+        }
 
         // Increment
         _operationCounts[wallet] = count + 1;
+        _lifetimeOperations[wallet]++; // M-4 fix: Track lifetime ops
     }
 
     // Note: deposit(), getDeposit(), and withdrawTo() are inherited from BasePaymaster

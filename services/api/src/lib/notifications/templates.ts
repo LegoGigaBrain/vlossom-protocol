@@ -3,7 +3,7 @@
  * Message templates for all notification types
  */
 
-import type { NotificationType, NotificationMetadata, EmailContent, SMSContent, InAppContent } from "./types";
+import type { NotificationType, NotificationMetadata, EmailContent, SMSContent } from "./types";
 
 // Format price from cents to ZAR
 function formatPrice(cents: number): string {

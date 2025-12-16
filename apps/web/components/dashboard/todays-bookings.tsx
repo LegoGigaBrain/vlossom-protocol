@@ -44,7 +44,7 @@ export function TodaysBookings() {
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
       const response = await fetch(
-        `${API_BASE}/api/stylists/bookings?status=CONFIRMED,IN_PROGRESS&date=${today}`,
+        `${API_BASE}/api/v1/stylists/bookings?status=CONFIRMED,IN_PROGRESS&date=${today}`,
         { headers: getAuthHeaders() }
       );
       if (!response.ok) throw new Error("Failed to fetch bookings");
@@ -56,7 +56,7 @@ export function TodaysBookings() {
   // Start service mutation
   const startMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const response = await fetch(`${API_BASE}/api/bookings/${bookingId}/start`, {
+      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/start`, {
         method: "POST",
         headers: getAuthHeaders(),
       });
@@ -74,7 +74,7 @@ export function TodaysBookings() {
   // Complete service mutation
   const completeMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const response = await fetch(`${API_BASE}/api/bookings/${bookingId}/complete`, {
+      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/complete`, {
         method: "POST",
         headers: getAuthHeaders(),
       });

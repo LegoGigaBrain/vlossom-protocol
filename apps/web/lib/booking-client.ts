@@ -95,7 +95,7 @@ export async function getBookings(params?: {
   if (params?.page) searchParams.set("page", params.page.toString());
   if (params?.limit) searchParams.set("limit", params.limit.toString());
 
-  const url = `${API_URL}/api/bookings${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+  const url = `${API_URL}/api/v1/bookings${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
   const response = await fetch(url, {
     headers: {
@@ -121,7 +121,7 @@ export async function getBooking(id: string): Promise<Booking> {
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/api/bookings/${id}`, {
+  const response = await fetch(`${API_URL}/api/v1/bookings/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -148,7 +148,7 @@ export async function createBooking(data: CreateBookingRequest): Promise<Booking
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/api/bookings`, {
+  const response = await fetch(`${API_URL}/api/v1/bookings`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -178,7 +178,7 @@ export async function updateBookingStatus(
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/api/bookings/${id}/status`, {
+  const response = await fetch(`${API_URL}/api/v1/bookings/${id}/status`, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -196,6 +196,48 @@ export async function updateBookingStatus(
 }
 
 /**
+ * Confirm payment with on-chain escrow verification
+ * This endpoint verifies the escrow transaction on-chain before confirming the booking
+ */
+export async function confirmPayment(
+  bookingId: string,
+  escrowTxHash: string,
+  options?: { skipOnChainVerification?: boolean }
+): Promise<{
+  booking: Booking;
+  message: string;
+  escrow?: {
+    customer: string;
+    amount: string;
+    status: number;
+  };
+}> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/bookings/${bookingId}/confirm-payment`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      escrowTxHash,
+      skipOnChainVerification: options?.skipOnChainVerification ?? false,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || error.error || "Failed to confirm payment");
+  }
+
+  return response.json();
+}
+
+/**
  * Cancel a booking
  */
 export async function cancelBooking(
@@ -207,7 +249,7 @@ export async function cancelBooking(
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/api/bookings/${id}/cancel`, {
+  const response = await fetch(`${API_URL}/api/v1/bookings/${id}/cancel`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

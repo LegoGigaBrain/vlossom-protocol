@@ -2,11 +2,49 @@
 // Reference: docs/specs/booking-flow-v1/feature-spec.md
 // Reference: docs/specs/stylist-dashboard/MILESTONE-3-PLAN.md
 
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
+import type { Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
-import { searchStylistsSchema } from "../lib/validation";
+import { searchStylistsSchema, ServiceCategory, OperatingMode } from "../lib/validation";
 import { authenticate, AuthenticatedRequest } from "../middleware/auth";
+import { createError } from "../middleware/error-handler";
+import { logger } from "../lib/logger";
 import { z } from "zod";
+
+// ============================================================================
+// TYPE DEFINITIONS FOR QUERY FILTERS (H-3: Replace 'any' types)
+// ============================================================================
+
+/**
+ * Typed filter interface for stylist search
+ * H-3: Replaces 'any' type with explicit Prisma-compatible types
+ */
+interface StylistSearchFilters {
+  isAcceptingBookings: boolean;
+  operatingMode?: OperatingMode;
+  services?: {
+    some: ServiceFilterConditions;
+  };
+}
+
+interface ServiceFilterConditions {
+  isActive: boolean;
+  category?: ServiceCategory;
+  priceAmountCents?: {
+    gte?: bigint;
+    lte?: bigint;
+  };
+}
+
+/**
+ * Availability exception interface
+ * L-2: Replaces 'any' type for availability exceptions
+ */
+interface AvailabilityException {
+  date: string;
+  blocked: boolean;
+  note?: string;
+}
 
 // ============================================================================
 // VALIDATION SCHEMAS FOR M3 ENDPOINTS
@@ -83,24 +121,24 @@ function calculateDistance(
  * GET /api/stylists
  * Search stylists with location, service, and advanced filters (F4.4)
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const input = searchStylistsSchema.parse(req.query);
 
-    // Build where clause
-    const where: any = {
+    // H-3: Build where clause with typed interface (no 'any')
+    const where: StylistSearchFilters = {
       isAcceptingBookings: true,
     };
 
-    // Filter by operating mode if provided
+    // Filter by operating mode if provided (validated by Zod enum)
     if (input.operatingMode) {
       where.operatingMode = input.operatingMode;
     }
 
-    // Build service filter conditions
-    const serviceWhere: any = { isActive: true };
+    // H-3: Build service filter conditions with typed interface
+    const serviceWhere: ServiceFilterConditions = { isActive: true };
 
-    // Filter by service category if provided
+    // Filter by service category if provided (validated by Zod enum)
     if (input.serviceCategory) {
       serviceWhere.category = input.serviceCategory;
     }
@@ -116,8 +154,8 @@ router.get("/", async (req: Request, res: Response) => {
       }
     }
 
-    // Apply service filters if any
-    if (Object.keys(serviceWhere).length > 1) {
+    // Apply service filters if any (check if more than just isActive)
+    if (serviceWhere.category || serviceWhere.priceAmountCents) {
       where.services = { some: serviceWhere };
     }
 
@@ -179,9 +217,9 @@ router.get("/", async (req: Request, res: Response) => {
         if (!stylist.availability) return true; // No availability set = always available
 
         // Check if date is blocked in exceptions
-        const exceptions = (stylist.availability.exceptions as any[]) || [];
+        const exceptions = (stylist.availability.exceptions as unknown as AvailabilityException[]) || [];
         const isBlocked = exceptions.some(
-          (ex: any) => ex.date === input.availability && ex.blocked
+          (ex: AvailabilityException) => ex.date === input.availability && ex.blocked
         );
         if (isBlocked) return false;
 
@@ -339,24 +377,12 @@ router.get("/", async (req: Request, res: Response) => {
         sortBy: input.sortBy || null,
       },
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid search parameters",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error searching stylists:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to search stylists",
-      },
-    });
+    logger.error("Error searching stylists", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -364,7 +390,7 @@ router.get("/", async (req: Request, res: Response) => {
  * GET /api/stylists/:id
  * Get detailed stylist profile with all services
  */
-router.get("/:id", async (req: Request, res: Response) => {
+router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -388,12 +414,7 @@ router.get("/:id", async (req: Request, res: Response) => {
     });
 
     if (!stylist) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     // Transform response
@@ -430,13 +451,8 @@ router.get("/:id", async (req: Request, res: Response) => {
 
     return res.json(response);
   } catch (error) {
-    console.error("Error fetching stylist:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch stylist profile",
-      },
-    });
+    logger.error("Error fetching stylist", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -448,7 +464,7 @@ router.get("/:id", async (req: Request, res: Response) => {
  * GET /api/stylists/dashboard
  * Get dashboard summary for authenticated stylist
  */
-router.get("/dashboard", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/dashboard", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
 
@@ -458,12 +474,7 @@ router.get("/dashboard", authenticate, async (req: AuthenticatedRequest, res: Re
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     // Get pending requests count
@@ -556,13 +567,8 @@ router.get("/dashboard", authenticate, async (req: AuthenticatedRequest, res: Re
       })),
     });
   } catch (error) {
-    console.error("Error fetching dashboard:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch dashboard data",
-      },
-    });
+    logger.error("Error fetching dashboard", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -574,7 +580,7 @@ router.get("/dashboard", authenticate, async (req: AuthenticatedRequest, res: Re
  * GET /api/stylists/services
  * Get all services for authenticated stylist
  */
-router.get("/services", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/services", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
 
@@ -588,12 +594,7 @@ router.get("/services", authenticate, async (req: AuthenticatedRequest, res: Res
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     return res.json({
@@ -610,13 +611,8 @@ router.get("/services", authenticate, async (req: AuthenticatedRequest, res: Res
       total: profile.services.length,
     });
   } catch (error) {
-    console.error("Error fetching services:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch services",
-      },
-    });
+    logger.error("Error fetching services", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -624,7 +620,7 @@ router.get("/services", authenticate, async (req: AuthenticatedRequest, res: Res
  * POST /api/stylists/services
  * Create a new service
  */
-router.post("/services", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/services", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const input = createServiceSchema.parse(req.body);
@@ -634,12 +630,7 @@ router.post("/services", authenticate, async (req: AuthenticatedRequest, res: Re
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     const service = await prisma.stylistService.create({
@@ -664,23 +655,12 @@ router.post("/services", authenticate, async (req: AuthenticatedRequest, res: Re
       isActive: service.isActive,
       createdAt: service.createdAt.toISOString(),
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid service data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-    console.error("Error creating service:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to create service",
-      },
-    });
+    logger.error("Error creating service", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -688,7 +668,7 @@ router.post("/services", authenticate, async (req: AuthenticatedRequest, res: Re
  * PUT /api/stylists/services/:id
  * Update a service
  */
-router.put("/services/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.put("/services/:id", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const { id } = req.params;
@@ -701,12 +681,7 @@ router.put("/services/:id", authenticate, async (req: AuthenticatedRequest, res:
     });
 
     if (!profile || profile.services.length === 0) {
-      return res.status(404).json({
-        error: {
-          code: "SERVICE_NOT_FOUND",
-          message: "Service not found or not owned by stylist",
-        },
-      });
+      return next(createError("SERVICE_NOT_FOUND"));
     }
 
     const service = await prisma.stylistService.update({
@@ -731,23 +706,12 @@ router.put("/services/:id", authenticate, async (req: AuthenticatedRequest, res:
       isActive: service.isActive,
       updatedAt: service.updatedAt.toISOString(),
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid service data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-    console.error("Error updating service:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to update service",
-      },
-    });
+    logger.error("Error updating service", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -755,7 +719,7 @@ router.put("/services/:id", authenticate, async (req: AuthenticatedRequest, res:
  * DELETE /api/stylists/services/:id
  * Delete a service (only if no active bookings)
  */
-router.delete("/services/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/services/:id", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const { id } = req.params;
@@ -767,12 +731,7 @@ router.delete("/services/:id", authenticate, async (req: AuthenticatedRequest, r
     });
 
     if (!profile || profile.services.length === 0) {
-      return res.status(404).json({
-        error: {
-          code: "SERVICE_NOT_FOUND",
-          message: "Service not found or not owned by stylist",
-        },
-      });
+      return next(createError("SERVICE_NOT_FOUND"));
     }
 
     // Check for active bookings using this service
@@ -784,25 +743,15 @@ router.delete("/services/:id", authenticate, async (req: AuthenticatedRequest, r
     });
 
     if (activeBookings > 0) {
-      return res.status(409).json({
-        error: {
-          code: "SERVICE_HAS_BOOKINGS",
-          message: `Cannot delete service with ${activeBookings} active booking(s)`,
-        },
-      });
+      return next(createError("SERVICE_HAS_BOOKINGS", { count: activeBookings }));
     }
 
     await prisma.stylistService.delete({ where: { id } });
 
     return res.status(204).send();
   } catch (error) {
-    console.error("Error deleting service:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to delete service",
-      },
-    });
+    logger.error("Error deleting service", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -814,7 +763,7 @@ router.delete("/services/:id", authenticate, async (req: AuthenticatedRequest, r
  * GET /api/stylists/availability
  * Get availability schedule for authenticated stylist
  */
-router.get("/availability", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/availability", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
 
@@ -824,12 +773,7 @@ router.get("/availability", authenticate, async (req: AuthenticatedRequest, res:
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     // Return default schedule if none exists
@@ -848,13 +792,8 @@ router.get("/availability", authenticate, async (req: AuthenticatedRequest, res:
       exceptions: profile.availability?.exceptions || [],
     });
   } catch (error) {
-    console.error("Error fetching availability:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch availability",
-      },
-    });
+    logger.error("Error fetching availability", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -862,7 +801,7 @@ router.get("/availability", authenticate, async (req: AuthenticatedRequest, res:
  * PUT /api/stylists/availability
  * Update weekly availability schedule
  */
-router.put("/availability", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.put("/availability", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const input = updateAvailabilitySchema.parse(req.body);
@@ -873,12 +812,7 @@ router.put("/availability", authenticate, async (req: AuthenticatedRequest, res:
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     // Upsert availability
@@ -898,23 +832,12 @@ router.put("/availability", authenticate, async (req: AuthenticatedRequest, res:
       schedule: availability.schedule,
       exceptions: availability.exceptions,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid availability data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-    console.error("Error updating availability:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to update availability",
-      },
-    });
+    logger.error("Error updating availability", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -922,7 +845,7 @@ router.put("/availability", authenticate, async (req: AuthenticatedRequest, res:
  * POST /api/stylists/availability/exceptions
  * Add a date exception (blocked date)
  */
-router.post("/availability/exceptions", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/availability/exceptions", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const input = addExceptionSchema.parse(req.body);
@@ -933,19 +856,14 @@ router.post("/availability/exceptions", authenticate, async (req: AuthenticatedR
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     // Get current exceptions
-    const currentExceptions = (profile.availability?.exceptions as any[]) || [];
+    const currentExceptions = (profile.availability?.exceptions as unknown as AvailabilityException[]) || [];
 
     // Check if date already exists
-    const existingIndex = currentExceptions.findIndex((e: any) => e.date === input.date);
+    const existingIndex = currentExceptions.findIndex((e: AvailabilityException) => e.date === input.date);
     if (existingIndex >= 0) {
       currentExceptions[existingIndex] = input;
     } else {
@@ -958,33 +876,22 @@ router.post("/availability/exceptions", authenticate, async (req: AuthenticatedR
       create: {
         stylistId: profile.id,
         schedule: {},
-        exceptions: currentExceptions,
+        exceptions: currentExceptions as unknown as Prisma.InputJsonValue,
       },
       update: {
-        exceptions: currentExceptions,
+        exceptions: currentExceptions as unknown as Prisma.InputJsonValue,
       },
     });
 
     return res.status(201).json({
       exceptions: availability.exceptions,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid exception data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-    console.error("Error adding exception:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to add exception",
-      },
-    });
+    logger.error("Error adding exception", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -992,7 +899,7 @@ router.post("/availability/exceptions", authenticate, async (req: AuthenticatedR
  * DELETE /api/stylists/availability/exceptions/:date
  * Remove a date exception
  */
-router.delete("/availability/exceptions/:date", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/availability/exceptions/:date", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const { date } = req.params;
@@ -1003,31 +910,21 @@ router.delete("/availability/exceptions/:date", authenticate, async (req: Authen
     });
 
     if (!profile || !profile.availability) {
-      return res.status(404).json({
-        error: {
-          code: "NOT_FOUND",
-          message: "Availability not found",
-        },
-      });
+      return next(createError("AVAILABILITY_NOT_FOUND"));
     }
 
-    const currentExceptions = (profile.availability.exceptions as any[]) || [];
-    const filteredExceptions = currentExceptions.filter((e: any) => e.date !== date);
+    const currentExceptions = (profile.availability.exceptions as unknown as AvailabilityException[]) || [];
+    const filteredExceptions = currentExceptions.filter((e: AvailabilityException) => e.date !== date);
 
     await prisma.stylistAvailability.update({
       where: { stylistId: profile.id },
-      data: { exceptions: filteredExceptions },
+      data: { exceptions: filteredExceptions as unknown as Prisma.InputJsonValue },
     });
 
     return res.status(204).send();
   } catch (error) {
-    console.error("Error removing exception:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to remove exception",
-      },
-    });
+    logger.error("Error removing exception", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -1039,7 +936,7 @@ router.delete("/availability/exceptions/:date", authenticate, async (req: Authen
  * GET /api/stylists/profile
  * Get own stylist profile
  */
-router.get("/profile", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/profile", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
 
@@ -1056,12 +953,7 @@ router.get("/profile", authenticate, async (req: AuthenticatedRequest, res: Resp
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     return res.json({
@@ -1079,13 +971,8 @@ router.get("/profile", authenticate, async (req: AuthenticatedRequest, res: Resp
       isAcceptingBookings: profile.isAcceptingBookings,
     });
   } catch (error) {
-    console.error("Error fetching profile:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch profile",
-      },
-    });
+    logger.error("Error fetching profile", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -1093,7 +980,7 @@ router.get("/profile", authenticate, async (req: AuthenticatedRequest, res: Resp
  * PUT /api/stylists/profile
  * Update own stylist profile
  */
-router.put("/profile", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.put("/profile", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const input = updateProfileSchema.parse(req.body);
@@ -1103,12 +990,7 @@ router.put("/profile", authenticate, async (req: AuthenticatedRequest, res: Resp
     });
 
     if (!profile) {
-      return res.status(404).json({
-        error: {
-          code: "STYLIST_NOT_FOUND",
-          message: "Stylist profile not found",
-        },
-      });
+      return next(createError("STYLIST_NOT_FOUND"));
     }
 
     const updated = await prisma.stylistProfile.update({
@@ -1147,23 +1029,12 @@ router.put("/profile", authenticate, async (req: AuthenticatedRequest, res: Resp
       portfolioImages: updated.portfolioImages,
       isAcceptingBookings: updated.isAcceptingBookings,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid profile data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-    console.error("Error updating profile:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to update profile",
-      },
-    });
+    logger.error("Error updating profile", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -1175,7 +1046,7 @@ router.put("/profile", authenticate, async (req: AuthenticatedRequest, res: Resp
  * GET /api/stylists/earnings
  * Get earnings summary for authenticated stylist
  */
-router.get("/earnings", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/earnings", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const now = new Date();
@@ -1232,13 +1103,8 @@ router.get("/earnings", authenticate, async (req: AuthenticatedRequest, res: Res
       completedBookingsCount: totalEarnings._count,
     });
   } catch (error) {
-    console.error("Error fetching earnings:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch earnings",
-      },
-    });
+    logger.error("Error fetching earnings", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -1246,7 +1112,7 @@ router.get("/earnings", authenticate, async (req: AuthenticatedRequest, res: Res
  * GET /api/stylists/earnings/trend
  * Get earnings trend data (week/month/year)
  */
-router.get("/earnings/trend", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/earnings/trend", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const period = (req.query.period as string) || "week";
@@ -1299,13 +1165,8 @@ router.get("/earnings/trend", authenticate, async (req: AuthenticatedRequest, re
       data,
     });
   } catch (error) {
-    console.error("Error fetching earnings trend:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch earnings trend",
-      },
-    });
+    logger.error("Error fetching earnings trend", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -1313,7 +1174,7 @@ router.get("/earnings/trend", authenticate, async (req: AuthenticatedRequest, re
  * GET /api/stylists/earnings/history
  * Get payout history (completed bookings)
  */
-router.get("/earnings/history", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/earnings/history", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const page = parseInt(req.query.page as string) || 1;
@@ -1359,13 +1220,8 @@ router.get("/earnings/history", authenticate, async (req: AuthenticatedRequest, 
       },
     });
   } catch (error) {
-    console.error("Error fetching payout history:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch payout history",
-      },
-    });
+    logger.error("Error fetching payout history", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

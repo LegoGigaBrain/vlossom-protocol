@@ -1,11 +1,18 @@
 // Property Owner API Routes
 // Reference: docs/vlossom/17-property-owner-and-chair-rental-module.md
 
-import { Router, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 import { authenticate, AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import { ChairType } from "@prisma/client";
+import { createError } from "../middleware/error-handler";
+import {
+  searchPropertiesSchema,
+  rentalFilterSchema,
+  PropertyCategory,
+  RentalStatus,
+} from "../lib/validation";
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -76,24 +83,34 @@ const rentalDecisionSchema = z.object({
 // PROPERTY CRUD ENDPOINTS
 // ============================================================================
 
+// H-3: Typed filter interface for property search
+interface PropertySearchFilters {
+  isActive: boolean;
+  city?: { contains: string; mode: "insensitive" };
+  category?: PropertyCategory;
+}
+
 /**
  * GET /api/properties
  * List all properties (public, with optional filters)
+ * H-3: Uses validated schema for query sanitization
  */
-router.get("/", async (req, res: Response) => {
+router.get("/", async (req, res: Response, next: NextFunction) => {
   try {
-    const { city, category, lat, lng, radius } = req.query;
+    // H-3: Validate and sanitize query parameters
+    const input = searchPropertiesSchema.parse(req.query);
 
-    const where: Record<string, unknown> = {
+    const where: PropertySearchFilters = {
       isActive: true,
     };
 
-    if (city) {
-      where.city = { contains: city as string, mode: "insensitive" };
+    if (input.city) {
+      where.city = { contains: input.city, mode: "insensitive" };
     }
 
-    if (category) {
-      where.category = category;
+    // H-3: category is now validated by Zod enum
+    if (input.category) {
+      where.category = input.category;
     }
 
     const properties = await prisma.property.findMany({
@@ -116,16 +133,12 @@ router.get("/", async (req, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
 
-    // Filter by distance if lat/lng/radius provided
+    // Filter by distance if lat/lng/radius provided (H-3: validated by schema)
     let results = properties;
-    if (lat && lng && radius) {
-      const userLat = parseFloat(lat as string);
-      const userLng = parseFloat(lng as string);
-      const maxRadius = parseFloat(radius as string);
-
+    if (input.lat !== undefined && input.lng !== undefined && input.radius !== undefined) {
       results = properties.filter((p) => {
-        const distance = calculateDistance(userLat, userLng, p.lat, p.lng);
-        return distance <= maxRadius;
+        const distance = calculateDistance(input.lat!, input.lng!, p.lat, p.lng);
+        return distance <= input.radius!;
       });
     }
 
@@ -141,8 +154,12 @@ router.get("/", async (req, res: Response) => {
 
     res.json({ properties: serialized });
   } catch (error) {
+    // H-3: Handle validation errors from search schema
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
+    }
     console.error("Failed to fetch properties:", error);
-    res.status(500).json({ error: "Failed to fetch properties" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -150,7 +167,7 @@ router.get("/", async (req, res: Response) => {
  * GET /api/properties/:id
  * Get property details with all chairs
  */
-router.get("/:id", async (req, res: Response) => {
+router.get("/:id", async (req, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -165,7 +182,7 @@ router.get("/:id", async (req, res: Response) => {
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     // Fetch owner info separately
@@ -196,7 +213,7 @@ router.get("/:id", async (req, res: Response) => {
     res.json({ property: serialized });
   } catch (error) {
     console.error("Failed to fetch property:", error);
-    res.status(500).json({ error: "Failed to fetch property" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -204,7 +221,7 @@ router.get("/:id", async (req, res: Response) => {
  * POST /api/properties
  * Create a new property (property owner only)
  */
-router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const input = createPropertySchema.parse(req.body);
@@ -216,12 +233,12 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     });
 
     if (!user) {
-      return res.status(403).json({ error: "User not found" });
+      return next(createError("USER_NOT_FOUND"));
     }
 
     const roles = user.roles as string[] | null;
     if (!roles || (!roles.includes("PROPERTY_OWNER") && !roles.includes("ADMIN"))) {
-      return res.status(403).json({ error: "Only property owners can create properties" });
+      return next(createError("FORBIDDEN"));
     }
 
     const property = await prisma.property.create({
@@ -247,10 +264,10 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     res.status(201).json({ property });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation error", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Failed to create property:", error);
-    res.status(500).json({ error: "Failed to create property" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -258,7 +275,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
  * PUT /api/properties/:id
  * Update property (owner only)
  */
-router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { id } = req.params;
@@ -271,11 +288,11 @@ router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to update this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     const updated = await prisma.property.update({
@@ -286,10 +303,10 @@ router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
     res.json({ property: updated });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation error", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Failed to update property:", error);
-    res.status(500).json({ error: "Failed to update property" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -297,7 +314,7 @@ router.put("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
  * DELETE /api/properties/:id
  * Soft delete property (owner only)
  */
-router.delete("/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:id", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { id } = req.params;
@@ -309,11 +326,11 @@ router.delete("/:id", authenticate, async (req: AuthenticatedRequest, res: Respo
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to delete this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     // Soft delete
@@ -325,7 +342,7 @@ router.delete("/:id", authenticate, async (req: AuthenticatedRequest, res: Respo
     res.json({ success: true });
   } catch (error) {
     console.error("Failed to delete property:", error);
-    res.status(500).json({ error: "Failed to delete property" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -337,7 +354,7 @@ router.delete("/:id", authenticate, async (req: AuthenticatedRequest, res: Respo
  * GET /api/properties/my/all
  * Get all properties owned by current user
  */
-router.get("/my/all", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/my/all", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
 
@@ -384,7 +401,7 @@ router.get("/my/all", authenticate, async (req: AuthenticatedRequest, res: Respo
     res.json({ properties: serialized });
   } catch (error) {
     console.error("Failed to fetch owned properties:", error);
-    res.status(500).json({ error: "Failed to fetch properties" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -396,7 +413,7 @@ router.get("/my/all", authenticate, async (req: AuthenticatedRequest, res: Respo
  * POST /api/properties/:propertyId/chairs
  * Add a chair to property (owner only)
  */
-router.post("/:propertyId/chairs", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:propertyId/chairs", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { propertyId } = req.params;
@@ -409,11 +426,11 @@ router.post("/:propertyId/chairs", authenticate, async (req: AuthenticatedReques
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to add chairs to this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     const chair = await prisma.chair.create({
@@ -444,10 +461,10 @@ router.post("/:propertyId/chairs", authenticate, async (req: AuthenticatedReques
     res.status(201).json({ chair: serialized });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation error", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Failed to create chair:", error);
-    res.status(500).json({ error: "Failed to create chair" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -455,7 +472,7 @@ router.post("/:propertyId/chairs", authenticate, async (req: AuthenticatedReques
  * PUT /api/properties/:propertyId/chairs/:chairId
  * Update chair (owner only)
  */
-router.put("/:propertyId/chairs/:chairId", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.put("/:propertyId/chairs/:chairId", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { propertyId, chairId } = req.params;
@@ -468,11 +485,11 @@ router.put("/:propertyId/chairs/:chairId", authenticate, async (req: Authenticat
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to update chairs in this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     // Check chair exists and belongs to property
@@ -481,7 +498,7 @@ router.put("/:propertyId/chairs/:chairId", authenticate, async (req: Authenticat
     });
 
     if (!chair) {
-      return res.status(404).json({ error: "Chair not found" });
+      return next(createError("CHAIR_NOT_FOUND"));
     }
 
     const updateData: Record<string, unknown> = {};
@@ -527,10 +544,10 @@ router.put("/:propertyId/chairs/:chairId", authenticate, async (req: Authenticat
     res.json({ chair: serialized });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation error", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Failed to update chair:", error);
-    res.status(500).json({ error: "Failed to update chair" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -538,7 +555,7 @@ router.put("/:propertyId/chairs/:chairId", authenticate, async (req: Authenticat
  * DELETE /api/properties/:propertyId/chairs/:chairId
  * Delete chair (owner only)
  */
-router.delete("/:propertyId/chairs/:chairId", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:propertyId/chairs/:chairId", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { propertyId, chairId } = req.params;
@@ -550,11 +567,11 @@ router.delete("/:propertyId/chairs/:chairId", authenticate, async (req: Authenti
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to delete chairs from this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     // Check for active rentals
@@ -566,7 +583,7 @@ router.delete("/:propertyId/chairs/:chairId", authenticate, async (req: Authenti
     });
 
     if (activeRentals > 0) {
-      return res.status(400).json({ error: "Cannot delete chair with active rentals" });
+      return next(createError("CHAIR_HAS_ACTIVE_RENTALS"));
     }
 
     // Soft delete by setting isActive to false
@@ -578,7 +595,7 @@ router.delete("/:propertyId/chairs/:chairId", authenticate, async (req: Authenti
     res.json({ success: true });
   } catch (error) {
     console.error("Failed to delete chair:", error);
-    res.status(500).json({ error: "Failed to delete chair" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -590,7 +607,7 @@ router.delete("/:propertyId/chairs/:chairId", authenticate, async (req: Authenti
  * POST /api/properties/rentals/request
  * Create a chair rental request (stylist)
  */
-router.post("/rentals/request", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/rentals/request", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const input = rentalRequestSchema.parse(req.body);
@@ -608,18 +625,18 @@ router.post("/rentals/request", authenticate, async (req: AuthenticatedRequest, 
     });
 
     if (!chair) {
-      return res.status(404).json({ error: "Chair not found" });
+      return next(createError("CHAIR_NOT_FOUND"));
     }
 
     // Check if stylist is blocked
     const isBlocked = chair.property.blocklist.some((b) => b.stylistId === userId);
     if (isBlocked) {
-      return res.status(403).json({ error: "You are not allowed to rent chairs at this property" });
+      return next(createError("STYLIST_BLOCKED"));
     }
 
     // Check chair availability
     if (chair.status !== "AVAILABLE") {
-      return res.status(400).json({ error: "Chair is not available for rental" });
+      return next(createError("CHAIR_UNAVAILABLE"));
     }
 
     // Determine initial status based on property approval mode
@@ -685,22 +702,31 @@ router.post("/rentals/request", authenticate, async (req: AuthenticatedRequest, 
     res.status(201).json({ rentalRequest: serialized });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation error", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Failed to create rental request:", error);
-    res.status(500).json({ error: "Failed to create rental request" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
+
+// H-3: Typed filter interface for rental requests
+interface RentalRequestFilters {
+  propertyId: string;
+  status?: RentalStatus;
+}
 
 /**
  * GET /api/properties/:propertyId/rentals
  * Get rental requests for property (owner only)
+ * H-3: Uses validated schema for status filter
  */
-router.get("/:propertyId/rentals", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:propertyId/rentals", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { propertyId } = req.params;
-    const { status } = req.query;
+
+    // H-3: Validate status query parameter
+    const filterInput = rentalFilterSchema.parse(req.query);
 
     // Check ownership
     const property = await prisma.property.findUnique({
@@ -709,19 +735,20 @@ router.get("/:propertyId/rentals", authenticate, async (req: AuthenticatedReques
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to view rentals for this property" });
+      return next(createError("FORBIDDEN"));
     }
 
-    const where: Record<string, unknown> = {
+    // H-3: Build where clause with typed interface
+    const where: RentalRequestFilters = {
       propertyId,
     };
 
-    if (status) {
-      where.status = status;
+    if (filterInput.status) {
+      where.status = filterInput.status;
     }
 
     const rentals = await prisma.chairRentalRequest.findMany({
@@ -753,8 +780,12 @@ router.get("/:propertyId/rentals", authenticate, async (req: AuthenticatedReques
 
     res.json({ rentals: serialized });
   } catch (error) {
+    // H-3: Handle validation errors from filter schema
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
+    }
     console.error("Failed to fetch rentals:", error);
-    res.status(500).json({ error: "Failed to fetch rentals" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -762,7 +793,7 @@ router.get("/:propertyId/rentals", authenticate, async (req: AuthenticatedReques
  * POST /api/properties/rentals/:rentalId/decision
  * Approve or reject rental request (owner only)
  */
-router.post("/rentals/:rentalId/decision", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/rentals/:rentalId/decision", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { rentalId } = req.params;
@@ -777,15 +808,15 @@ router.post("/rentals/:rentalId/decision", authenticate, async (req: Authenticat
     });
 
     if (!rental) {
-      return res.status(404).json({ error: "Rental request not found" });
+      return next(createError("RENTAL_NOT_FOUND"));
     }
 
     if (rental.property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to manage this rental request" });
+      return next(createError("FORBIDDEN"));
     }
 
     if (rental.status !== "PENDING_APPROVAL") {
-      return res.status(400).json({ error: "Rental request has already been processed" });
+      return next(createError("RENTAL_ALREADY_PROCESSED"));
     }
 
     const updateData: Record<string, unknown> = {};
@@ -816,10 +847,10 @@ router.post("/rentals/:rentalId/decision", authenticate, async (req: Authenticat
     res.json({ rentalRequest: serialized });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation error", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Failed to process rental decision:", error);
-    res.status(500).json({ error: "Failed to process rental decision" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -827,7 +858,7 @@ router.post("/rentals/:rentalId/decision", authenticate, async (req: Authenticat
  * GET /api/properties/rentals/my
  * Get stylist's own rental requests
  */
-router.get("/rentals/my", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/rentals/my", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
 
@@ -866,7 +897,7 @@ router.get("/rentals/my", authenticate, async (req: AuthenticatedRequest, res: R
     res.json({ rentals: serialized });
   } catch (error) {
     console.error("Failed to fetch stylist rentals:", error);
-    res.status(500).json({ error: "Failed to fetch rentals" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -878,14 +909,14 @@ router.get("/rentals/my", authenticate, async (req: AuthenticatedRequest, res: R
  * POST /api/properties/:propertyId/blocklist
  * Block a stylist from property (owner only)
  */
-router.post("/:propertyId/blocklist", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:propertyId/blocklist", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { propertyId } = req.params;
     const { stylistId, reason } = req.body;
 
     if (!stylistId) {
-      return res.status(400).json({ error: "stylistId is required" });
+      return next(createError("MISSING_FIELD", { fields: ["stylistId"] }));
     }
 
     // Check ownership
@@ -895,11 +926,11 @@ router.post("/:propertyId/blocklist", authenticate, async (req: AuthenticatedReq
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to manage blocklist for this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     // Check if already blocked
@@ -910,7 +941,7 @@ router.post("/:propertyId/blocklist", authenticate, async (req: AuthenticatedReq
     });
 
     if (existing) {
-      return res.status(400).json({ error: "Stylist is already blocked" });
+      return next(createError("STYLIST_ALREADY_BLOCKED"));
     }
 
     const block = await prisma.propertyBlocklist.create({
@@ -925,7 +956,7 @@ router.post("/:propertyId/blocklist", authenticate, async (req: AuthenticatedReq
     res.status(201).json({ block });
   } catch (error) {
     console.error("Failed to add to blocklist:", error);
-    res.status(500).json({ error: "Failed to add to blocklist" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -933,7 +964,7 @@ router.post("/:propertyId/blocklist", authenticate, async (req: AuthenticatedReq
  * DELETE /api/properties/:propertyId/blocklist/:stylistId
  * Remove stylist from blocklist (owner only)
  */
-router.delete("/:propertyId/blocklist/:stylistId", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/:propertyId/blocklist/:stylistId", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { propertyId, stylistId } = req.params;
@@ -945,11 +976,11 @@ router.delete("/:propertyId/blocklist/:stylistId", authenticate, async (req: Aut
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to manage blocklist for this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     await prisma.propertyBlocklist.delete({
@@ -961,7 +992,7 @@ router.delete("/:propertyId/blocklist/:stylistId", authenticate, async (req: Aut
     res.json({ success: true });
   } catch (error) {
     console.error("Failed to remove from blocklist:", error);
-    res.status(500).json({ error: "Failed to remove from blocklist" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -969,7 +1000,7 @@ router.delete("/:propertyId/blocklist/:stylistId", authenticate, async (req: Aut
  * GET /api/properties/:propertyId/blocklist
  * Get blocklist for property (owner only)
  */
-router.get("/:propertyId/blocklist", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:propertyId/blocklist", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { propertyId } = req.params;
@@ -981,11 +1012,11 @@ router.get("/:propertyId/blocklist", authenticate, async (req: AuthenticatedRequ
     });
 
     if (!property) {
-      return res.status(404).json({ error: "Property not found" });
+      return next(createError("PROPERTY_NOT_FOUND"));
     }
 
     if (property.ownerId !== userId) {
-      return res.status(403).json({ error: "Not authorized to view blocklist for this property" });
+      return next(createError("FORBIDDEN"));
     }
 
     const blocklist = await prisma.propertyBlocklist.findMany({
@@ -1009,7 +1040,7 @@ router.get("/:propertyId/blocklist", authenticate, async (req: AuthenticatedRequ
     res.json({ blocklist: enriched });
   } catch (error) {
     console.error("Failed to fetch blocklist:", error);
-    res.status(500).json({ error: "Failed to fetch blocklist" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

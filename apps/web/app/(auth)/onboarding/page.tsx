@@ -8,6 +8,7 @@ import { useAuth } from "../../../hooks/use-auth";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
+import { PasswordStrength } from "../../../components/ui/password-strength";
 import Link from "next/link";
 
 const signupSchema = z.object({
@@ -41,6 +42,7 @@ export default function OnboardingPage() {
   });
 
   const selectedRole = watch("role");
+  const passwordValue = watch("password");
 
   const onSubmit = async (data: SignupForm) => {
     setIsLoading(true);
@@ -112,11 +114,15 @@ export default function OnboardingPage() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
+                autoComplete="email"
+                aria-describedby={errors.email ? "email-error" : undefined}
                 {...register("email")}
                 disabled={isLoading}
               />
               {errors.email && (
-                <p className="text-sm text-status-error">{errors.email.message}</p>
+                <p id="email-error" className="text-sm text-status-error" role="alert">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -129,6 +135,7 @@ export default function OnboardingPage() {
                 id="displayName"
                 type="text"
                 placeholder="How you'd like to be called"
+                autoComplete="name"
                 {...register("displayName")}
                 disabled={isLoading}
               />
@@ -141,11 +148,16 @@ export default function OnboardingPage() {
                 id="password"
                 type="password"
                 placeholder="At least 8 characters"
+                autoComplete="new-password"
+                aria-describedby={errors.password ? "password-error" : "password-strength"}
                 {...register("password")}
                 disabled={isLoading}
               />
+              <PasswordStrength password={passwordValue || ""} />
               {errors.password && (
-                <p className="text-sm text-status-error">{errors.password.message}</p>
+                <p id="password-error" className="text-sm text-status-error" role="alert">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 
@@ -156,11 +168,15 @@ export default function OnboardingPage() {
                 id="confirmPassword"
                 type="password"
                 placeholder="Re-enter your password"
+                autoComplete="new-password"
+                aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
                 {...register("confirmPassword")}
                 disabled={isLoading}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-status-error">{errors.confirmPassword.message}</p>
+                <p id="confirm-password-error" className="text-sm text-status-error" role="alert">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 

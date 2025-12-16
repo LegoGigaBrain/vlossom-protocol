@@ -88,6 +88,18 @@
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
   }
+
+  /* Respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 @layer utilities {
@@ -146,5 +158,80 @@
 
   .bg-themed-elevated {
     background-color: var(--color-surface-elevated);
+  }
+
+  /* Hide scrollbar while maintaining scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Card hover lift effect */
+  .card-hover {
+    transition: transform 220ms ease-out, box-shadow 220ms ease-out;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* Button press effect */
+  .btn-press:active {
+    transform: scale(0.98);
+  }
+
+  /* Skeleton shimmer effect */
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--color-border-subtle) 25%,
+      var(--color-surface) 50%,
+      var(--color-border-subtle) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Success icon animation */
+  .animate-success {
+    animation: checkmark 400ms ease-out;
+  }
+
+  /* Staggered list animation */
+  .stagger-item {
+    animation: slideInUp 300ms ease-out backwards;
+  }
+  .stagger-item:nth-child(1) { animation-delay: 0ms; }
+  .stagger-item:nth-child(2) { animation-delay: 50ms; }
+  .stagger-item:nth-child(3) { animation-delay: 100ms; }
+  .stagger-item:nth-child(4) { animation-delay: 150ms; }
+  .stagger-item:nth-child(5) { animation-delay: 200ms; }
+
+  /* Focus ring animation */
+  .focus-ring-animate:focus-visible {
+    animation: subtlePulse 2s ease-in-out infinite;
+  }
+
+  /* Safe area utilities for notched devices (iPhone X+, etc.) */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mt-safe {
+    margin-top: env(safe-area-inset-top, 0px);
   }
 }

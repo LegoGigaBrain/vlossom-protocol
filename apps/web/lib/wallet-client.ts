@@ -51,7 +51,7 @@ export async function getWallet(): Promise<WalletInfo> {
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/api/wallet`, {
+  const response = await fetch(`${API_URL}/api/v1/wallet`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -78,7 +78,7 @@ export async function getTransactions(
   }
 
   const response = await fetch(
-    `${API_URL}/api/wallet/transactions?page=${page}&limit=${limit}`,
+    `${API_URL}/api/v1/wallet/transactions?page=${page}&limit=${limit}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -138,7 +138,7 @@ export async function claimFaucet(): Promise<{
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/api/wallet/faucet`, {
+  const response = await fetch(`${API_URL}/api/v1/wallet/faucet`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -184,7 +184,7 @@ export async function sendP2P(
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${API_URL}/api/wallet/transfer`, {
+  const response = await fetch(`${API_URL}/api/v1/wallet/transfer`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

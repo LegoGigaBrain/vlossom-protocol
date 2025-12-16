@@ -7,9 +7,13 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { RequestCard, RequestCardSkeleton, type BookingRequest } from "../../../../components/dashboard/request-card";
 import { RequestDetailsDialog } from "../../../../components/dashboard/request-details-dialog";
 import { DeclineDialog } from "../../../../components/dashboard/decline-dialog";
+import { getErrorMessage } from "@/lib/error-utils";
+import { Button } from "@/components/ui/button";
+import { InboxIcon } from "@/components/ui/icons";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -33,7 +37,7 @@ export default function RequestsPage() {
     queryKey: ["stylist-pending-requests"],
     queryFn: async () => {
       const response = await fetch(
-        `${API_BASE}/api/stylists/bookings?status=PENDING_STYLIST_APPROVAL`,
+        `${API_BASE}/api/v1/stylists/bookings?status=PENDING_STYLIST_APPROVAL`,
         { headers: getAuthHeaders() }
       );
       if (!response.ok) throw new Error("Failed to fetch requests");
@@ -44,7 +48,7 @@ export default function RequestsPage() {
   // Approve mutation
   const approveMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const response = await fetch(`${API_BASE}/api/bookings/${bookingId}/approve`, {
+      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/approve`, {
         method: "POST",
         headers: getAuthHeaders(),
       });
@@ -55,13 +59,21 @@ export default function RequestsPage() {
       queryClient.invalidateQueries({ queryKey: ["stylist-pending-requests"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       setDetailsOpen(false);
+      toast.success("Booking approved", {
+        description: "The customer has been notified.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to approve booking", {
+        description: getErrorMessage(error),
+      });
     },
   });
 
   // Decline mutation
   const declineMutation = useMutation({
     mutationFn: async ({ bookingId, reason }: { bookingId: string; reason: string }) => {
-      const response = await fetch(`${API_BASE}/api/bookings/${bookingId}/decline`, {
+      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/decline`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({ reason }),
@@ -75,6 +87,14 @@ export default function RequestsPage() {
       setDeclineDialogOpen(false);
       setDetailsOpen(false);
       setRequestToDecline(null);
+      toast.success("Booking declined", {
+        description: "The customer has been notified.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Failed to decline booking", {
+        description: getErrorMessage(error),
+      });
     },
   });
 
@@ -98,13 +118,27 @@ export default function RequestsPage() {
     setDetailsOpen(true);
   };
 
+  // Handle retry
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: ["stylist-pending-requests"] });
+  };
+
   if (error) {
     return (
       <div className="space-y-6">
         <h1 className="text-h2 text-text-primary">Booking Requests</h1>
-        <div className="bg-status-error/10 border border-status-error rounded-card p-6 text-center">
+        <div
+          className="bg-status-error/10 border border-status-error rounded-card p-6 text-center"
+          role="alert"
+          aria-live="assertive"
+        >
           <p className="text-body text-status-error">Failed to load requests</p>
-          <p className="text-caption text-text-secondary mt-1">Please try refreshing the page</p>
+          <p className="text-caption text-text-secondary mt-1 mb-4">
+            {getErrorMessage(error)}
+          </p>
+          <Button variant="secondary" onClick={handleRetry}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -136,7 +170,7 @@ export default function RequestsPage() {
         </div>
       ) : data?.bookings.length === 0 ? (
         <div className="bg-background-primary rounded-card shadow-vlossom p-12 text-center">
-          <div className="text-4xl mb-4">📭</div>
+          <InboxIcon className="h-12 w-12 mx-auto text-text-tertiary mb-4" />
           <h3 className="text-h4 text-text-primary mb-2">No pending requests</h3>
           <p className="text-body text-text-secondary">
             When customers request bookings, they'll appear here for you to review.

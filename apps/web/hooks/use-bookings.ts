@@ -11,6 +11,7 @@ import {
   getBooking,
   createBooking,
   updateBookingStatus,
+  confirmPayment,
   cancelBooking,
   type BookingStatus,
   type CreateBookingRequest,
@@ -73,6 +74,33 @@ export function useUpdateBookingStatus() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: ["booking", variables.id] });
+    },
+  });
+}
+
+/**
+ * Hook to confirm payment with on-chain escrow verification
+ * This is the preferred method for confirming payments as it verifies
+ * the escrow transaction on-chain before updating booking status
+ */
+export function useConfirmPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      bookingId,
+      escrowTxHash,
+      skipOnChainVerification,
+    }: {
+      bookingId: string;
+      escrowTxHash: string;
+      skipOnChainVerification?: boolean;
+    }) => confirmPayment(bookingId, escrowTxHash, { skipOnChainVerification }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["booking", variables.bookingId] });
+      // Also refresh wallet as balance has changed
+      queryClient.invalidateQueries({ queryKey: ["wallet"] });
     },
   });
 }

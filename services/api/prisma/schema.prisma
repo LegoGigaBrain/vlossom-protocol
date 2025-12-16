@@ -228,16 +228,19 @@ model Booking {
   cancellationReason String?
 
   // Relations
-  customer      User                   @relation("CustomerBookings", fields: [customerId], references: [id])
-  stylist       User                   @relation("StylistBookings", fields: [stylistId], references: [id])
-  service       StylistService?        @relation(fields: [serviceId], references: [id])
-  statusHistory BookingStatusHistory[]
+  customer       User                   @relation("CustomerBookings", fields: [customerId], references: [id])
+  stylist        User                   @relation("StylistBookings", fields: [stylistId], references: [id])
+  service        StylistService?        @relation(fields: [serviceId], references: [id])
+  statusHistory  BookingStatusHistory[]
+  escrowFailures EscrowFailure[]        // M-1: Track escrow failures for this booking
 
   @@index([customerId])
   @@index([stylistId])
+  @@index([serviceId])
   @@index([status])
   @@index([scheduledStartTime])
   @@index([createdAt])
+  @@index([status, scheduledStartTime]) // Composite index for status filtering with time range
   @@map("bookings")
 }
 
@@ -898,3 +901,71 @@ model ReputationScore {
   @@index([isVerified])
   @@map("reputation_scores")
 }
+
+// ============================================================================
+// ESCROW FAILURE TRACKING (M-1: V1.7.0 Security & Quality)
+// Reference: docs/vlossom/05-booking-flow.md
+// ============================================================================
+
+enum EscrowFailureStatus {
+  PENDING_REVIEW      // Needs manual review
+  RESOLVED            // Successfully resolved
+  MANUAL_INTERVENTION // Required manual intervention
+}
+
+enum EscrowOperationType {
+  LOCK      // Customer locking funds
+  RELEASE   // Releasing to stylist after completion
+  REFUND    // Refunding to customer after cancellation
+}
+
+/// Tracks failed escrow operations for manual review and resolution
+/// M-1: Provides visibility into blockchain failures for ops team
+model EscrowFailure {
+  id            String               @id @default(uuid())
+  bookingId     String
+  operation     EscrowOperationType
+  errorMessage  String
+  txHash        String?              // Transaction hash if available
+  status        EscrowFailureStatus  @default(PENDING_REVIEW)
+
+  // Resolution tracking
+  resolvedAt    DateTime?
+  resolvedBy    String?              // User ID of admin who resolved
+  resolution    String?              // Description of resolution
+
+  // Additional context
+  amount        BigInt?              // Amount involved in failed operation
+  metadata      Json                 @default("{}") // Additional error context
+
+  // Timestamps
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  // Relations
+  booking       Booking              @relation(fields: [bookingId], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([bookingId])
+  @@map("escrow_failures")
+}
+
+// ============================================================================
+// IDEMPOTENCY KEYS (M-2: V1.7.0 Security & Quality)
+// Reference: Stripe-style idempotency for payment operations
+// ============================================================================
+
+/// Tracks idempotent requests to prevent duplicate operations
+/// M-2: Ensures payment operations are not duplicated on network retry
+model IdempotentRequest {
+  key        String   @id                  // Client-provided idempotency key
+  response   Json                          // Cached response to return
+  statusCode Int                           // HTTP status code of original response
+  expiresAt  DateTime                      // Auto-cleanup after expiry
+  createdAt  DateTime @default(now())
+
+  @@index([expiresAt])
+  @@map("idempotent_requests")
+}
+

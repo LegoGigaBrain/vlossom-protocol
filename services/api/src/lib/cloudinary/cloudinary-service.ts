@@ -215,11 +215,11 @@ export async function deleteImage(publicId: string): Promise<DeleteResult> {
       success: false,
       error: `Delete failed: ${result.result}`,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Cloudinary delete error:", error);
     return {
       success: false,
-      error: error.message || "Delete failed",
+      error: error instanceof Error ? error.message : "Delete failed",
     };
   }
 }

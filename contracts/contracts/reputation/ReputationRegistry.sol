@@ -30,6 +30,7 @@ contract ReputationRegistry is Ownable, ReentrancyGuard, Pausable {
     error InvalidScore();
     error UnauthorizedSubmitter();
     error ActorNotFound();
+    error ArrayLengthMismatch();
 
     /// @notice Actor type in the marketplace
     enum ActorType {
@@ -94,16 +95,18 @@ contract ReputationRegistry is Ownable, ReentrancyGuard, Pausable {
     uint256 public verificationThreshold = 7000;
 
     /// @notice Events
+    /// @dev M-4: Added indexed to actorType for efficient filtering by actor type
     event ActorRegistered(
         address indexed actor,
-        ActorType actorType,
+        ActorType indexed actorType,
         uint256 timestamp
     );
 
+    /// @dev M-4: Added indexed to eventType for efficient filtering by event category
     event ReputationEventRecorded(
         address indexed actor,
         bytes32 indexed bookingId,
-        EventType eventType,
+        EventType indexed eventType,
         int256 scoreImpact,
         uint256 timestamp
     );
@@ -279,13 +282,20 @@ contract ReputationRegistry is Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Batch record multiple events
+     * @notice Batch record multiple events with full validation (H-3 fix)
      * @param actors Array of actor addresses
      * @param bookingIds Array of booking IDs
      * @param actorTypes Array of actor types
      * @param eventTypes Array of event types
      * @param scoreImpacts Array of score impacts
      * @param metadataHashes Array of metadata hashes
+     * @dev H-3 fix: Added all validations from recordEvent to maintain consistency:
+     *      - Zero address validation (reverts instead of continuing)
+     *      - scoreImpact bounds validation (-1000 to +1000)
+     *      - Auto-registration of new actors
+     *      - Score component updates based on event type
+     *      - Total score recalculation
+     *      - Verification status check
      */
     function recordEventsBatch(
         address[] calldata actors,
@@ -295,37 +305,96 @@ contract ReputationRegistry is Ownable, ReentrancyGuard, Pausable {
         int256[] calldata scoreImpacts,
         bytes32[] calldata metadataHashes
     ) external onlyAuthorized nonReentrant whenNotPaused {
-        require(
-            actors.length == bookingIds.length &&
-            actors.length == actorTypes.length &&
-            actors.length == eventTypes.length &&
-            actors.length == scoreImpacts.length &&
-            actors.length == metadataHashes.length,
-            "Array length mismatch"
-        );
+        // Validate array lengths
+        uint256 length = actors.length;
+        if (
+            length != bookingIds.length ||
+            length != actorTypes.length ||
+            length != eventTypes.length ||
+            length != scoreImpacts.length ||
+            length != metadataHashes.length
+        ) {
+            revert ArrayLengthMismatch();
+        }
 
-        for (uint256 i = 0; i < actors.length; i++) {
-            // Simplified inline recording for gas efficiency
+        for (uint256 i = 0; i < length; i++) {
             address actor = actors[i];
-            if (actor == address(0)) continue;
+            int256 scoreImpact = scoreImpacts[i];
+            ActorType actorType = actorTypes[i];
+            EventType eventType = eventTypes[i];
 
+            // H-3 fix: Validate actor address - revert instead of continue
+            if (actor == address(0)) revert InvalidAddress();
+
+            // H-3 fix: Validate score impact bounds
+            if (scoreImpact < -1000 || scoreImpact > 1000) revert InvalidScore();
+
+            // H-3 fix: Auto-register if needed
+            if (reputationScores[actor].lastUpdated == 0) {
+                reputationScores[actor] = ReputationScore({
+                    totalScore: 5000,
+                    tpsScore: 5000,
+                    reliabilityScore: 5000,
+                    feedbackScore: 5000,
+                    disputeScore: 10000,
+                    completedBookings: 0,
+                    cancelledBookings: 0,
+                    totalReviews: 0,
+                    lastUpdated: block.timestamp,
+                    isVerified: false
+                });
+                totalActors++;
+                emit ActorRegistered(actor, actorType, block.timestamp);
+            }
+
+            // Record event
             ReputationEvent memory newEvent = ReputationEvent({
                 bookingId: bookingIds[i],
-                actorType: actorTypes[i],
-                eventType: eventTypes[i],
-                scoreImpact: scoreImpacts[i],
+                actorType: actorType,
+                eventType: eventType,
+                scoreImpact: scoreImpact,
                 timestamp: block.timestamp,
                 metadataHash: metadataHashes[i]
             });
 
             eventHistory[actor].push(newEvent);
-            reputationScores[actor].lastUpdated = block.timestamp;
+
+            // H-3 fix: Update appropriate score component
+            ReputationScore storage score = reputationScores[actor];
+
+            if (eventType == EventType.BookingCompleted) {
+                score.completedBookings++;
+                _updateReliabilityScore(actor);
+            } else if (eventType == EventType.BookingCancelled) {
+                score.cancelledBookings++;
+                _updateReliabilityScore(actor);
+            } else if (eventType == EventType.OnTimeArrival ||
+                       eventType == EventType.LateArrival ||
+                       eventType == EventType.OnTimeCompletion ||
+                       eventType == EventType.LateCompletion) {
+                _updateTpsScore(actor, scoreImpact);
+            } else if (eventType == EventType.CustomerReview ||
+                       eventType == EventType.PropertyOwnerReview) {
+                score.totalReviews++;
+                _updateFeedbackScore(actor, scoreImpact);
+            } else if (eventType == EventType.DisputeRaised ||
+                       eventType == EventType.DisputeResolved) {
+                _updateDisputeScore(actor, scoreImpact);
+            }
+
+            score.lastUpdated = block.timestamp;
+
+            // H-3 fix: Recalculate total score
+            _recalculateTotalScore(actor);
+
+            // H-3 fix: Check verification status
+            _checkVerificationStatus(actor);
 
             emit ReputationEventRecorded(
                 actor,
                 bookingIds[i],
-                eventTypes[i],
-                scoreImpacts[i],
+                eventType,
+                scoreImpact,
                 block.timestamp
             );
         }

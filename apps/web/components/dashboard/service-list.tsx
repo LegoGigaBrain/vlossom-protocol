@@ -7,6 +7,7 @@
 
 import { formatPrice, formatDuration } from "../../lib/utils";
 import { Button } from "../ui/button";
+import { ScissorsIllustration } from "../ui/illustrations";
 import type { StylistService } from "../../lib/dashboard-client";
 
 interface ServiceListProps {
@@ -120,7 +121,7 @@ export function ServiceList({
   if (services.length === 0) {
     return (
       <div className="bg-background-primary rounded-card shadow-vlossom p-12 text-center">
-        <div className="text-4xl mb-4">✂️</div>
+        <ScissorsIllustration className="w-24 h-24 mx-auto mb-4" />
         <h3 className="text-h4 text-text-primary mb-2">No services yet</h3>
         <p className="text-body text-text-secondary">
           Add your first service to start accepting bookings.

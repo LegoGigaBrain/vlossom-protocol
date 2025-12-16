@@ -6,6 +6,14 @@
  */
 
 import winston from 'winston';
+import { Request, Response } from 'express';
+
+/**
+ * Extended request interface for logging
+ */
+interface RequestWithId extends Request {
+  requestId?: string;
+}
 
 const { combine, timestamp, printf, colorize, errors } = winston.format;
 
@@ -69,8 +77,9 @@ if (process.env.NODE_ENV === 'production') {
 /**
  * Log an HTTP request
  */
-export function logRequest(req: any) {
+export function logRequest(req: RequestWithId) {
   logger.info('HTTP Request', {
+    requestId: req.requestId,
     method: req.method,
     url: req.url,
     ip: req.ip,
@@ -81,8 +90,9 @@ export function logRequest(req: any) {
 /**
  * Log an HTTP response
  */
-export function logResponse(req: any, res: any, duration: number) {
+export function logResponse(req: RequestWithId, res: Response, duration: number) {
   logger.info('HTTP Response', {
+    requestId: req.requestId,
     method: req.method,
     url: req.url,
     statusCode: res.statusCode,
@@ -93,7 +103,7 @@ export function logResponse(req: any, res: any, duration: number) {
 /**
  * Log a blockchain transaction
  */
-export function logTransaction(action: string, txHash: string, metadata?: any) {
+export function logTransaction(action: string, txHash: string, metadata?: Record<string, unknown>) {
   logger.info('Blockchain Transaction', {
     action,
     txHash,
@@ -104,7 +114,7 @@ export function logTransaction(action: string, txHash: string, metadata?: any) {
 /**
  * Log an escrow operation
  */
-export function logEscrowOperation(operation: string, bookingId: string, success: boolean, metadata?: any) {
+export function logEscrowOperation(operation: string, bookingId: string, success: boolean, metadata?: Record<string, unknown>) {
   const level = success ? 'info' : 'error';
   logger[level]('Escrow Operation', {
     operation,
@@ -122,7 +132,7 @@ export function logBookingStatusChange(
   fromStatus: string | null,
   toStatus: string,
   userId: string,
-  metadata?: any
+  metadata?: Record<string, unknown>
 ) {
   logger.info('Booking Status Change', {
     bookingId,
@@ -136,7 +146,7 @@ export function logBookingStatusChange(
 /**
  * Log an authentication event
  */
-export function logAuthEvent(event: string, userId?: string, metadata?: any) {
+export function logAuthEvent(event: string, userId?: string, metadata?: Record<string, unknown>) {
   logger.info('Authentication Event', {
     event,
     userId,
@@ -147,7 +157,7 @@ export function logAuthEvent(event: string, userId?: string, metadata?: any) {
 /**
  * Log a wallet operation
  */
-export function logWalletOperation(operation: string, walletAddress: string, metadata?: any) {
+export function logWalletOperation(operation: string, walletAddress: string, metadata?: Record<string, unknown>) {
   logger.info('Wallet Operation', {
     operation,
     walletAddress,

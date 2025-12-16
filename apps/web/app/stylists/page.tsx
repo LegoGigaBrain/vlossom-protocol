@@ -45,12 +45,14 @@ export default function StylistsPage() {
               variant="ghost"
               size="sm"
               onClick={() => router.push("/wallet")}
+              aria-label="Open wallet"
             >
               <svg
                 className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -139,14 +141,19 @@ export default function StylistsPage() {
       </main>
 
       {/* Bottom Navigation - Mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border md:hidden pb-safe" aria-label="Main navigation">
         <div className="flex justify-around py-2">
-          <button className="flex flex-col items-center py-2 px-4 text-primary">
+          <button
+            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-primary"
+            aria-label="Browse stylists"
+            aria-current="page"
+          >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -158,14 +165,16 @@ export default function StylistsPage() {
             <span className="text-xs mt-1">Discover</span>
           </button>
           <button
-            className="flex flex-col items-center py-2 px-4 text-text-secondary"
+            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-text-secondary"
             onClick={() => router.push("/bookings")}
+            aria-label="View bookings"
           >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -177,14 +186,16 @@ export default function StylistsPage() {
             <span className="text-xs mt-1">Bookings</span>
           </button>
           <button
-            className="flex flex-col items-center py-2 px-4 text-text-secondary"
+            className="flex flex-col items-center py-3 px-4 min-h-[44px] text-text-secondary"
             onClick={() => router.push("/wallet")}
+            aria-label="Open wallet"
           >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"

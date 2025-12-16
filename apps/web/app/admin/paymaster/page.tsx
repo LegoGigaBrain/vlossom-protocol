@@ -1,11 +1,27 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { RefreshCw } from "lucide-react";
 import { StatsCards } from "../../../components/admin/paymaster/stats-cards";
-import { GasUsageChart } from "../../../components/admin/paymaster/gas-usage-chart";
-import { TransactionsTable } from "../../../components/admin/paymaster/transactions-table";
 import { AlertsPanel } from "../../../components/admin/paymaster/alerts-panel";
+
+// Lazy load heavy chart and table components
+const GasUsageChart = dynamic(
+  () => import("../../../components/admin/paymaster/gas-usage-chart").then(mod => ({ default: mod.GasUsageChart })),
+  {
+    loading: () => <div className="h-[300px] skeleton-shimmer rounded-card" />,
+    ssr: false
+  }
+);
+
+const TransactionsTable = dynamic(
+  () => import("../../../components/admin/paymaster/transactions-table").then(mod => ({ default: mod.TransactionsTable })),
+  {
+    loading: () => <div className="h-[400px] skeleton-shimmer rounded-card" />,
+    ssr: false
+  }
+);
 
 /**
  * Paymaster Dashboard Page (F5.1)
@@ -30,12 +46,12 @@ export default function PaymasterDashboardPage() {
       };
 
       const [statsRes, gasRes, txRes, alertsRes] = await Promise.all([
-        fetch("/api/admin/paymaster/stats", { headers }),
-        fetch("/api/admin/paymaster/gas-usage?days=30", { headers }),
-        fetch(`/api/admin/paymaster/transactions?page=${page}&pageSize=10`, {
+        fetch("/api/v1/admin/paymaster/stats", { headers }),
+        fetch("/api/v1/admin/paymaster/gas-usage?days=30", { headers }),
+        fetch(`/api/v1/admin/paymaster/transactions?page=${page}&pageSize=10`, {
           headers,
         }),
-        fetch("/api/admin/paymaster/alerts", { headers }),
+        fetch("/api/v1/admin/paymaster/alerts", { headers }),
       ]);
 
       if (statsRes.ok) {
@@ -89,7 +105,7 @@ export default function PaymasterDashboardPage() {
   }) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("/api/admin/paymaster/alerts/config", {
+      const response = await fetch("/api/v1/admin/paymaster/alerts/config", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -100,7 +116,7 @@ export default function PaymasterDashboardPage() {
 
       if (response.ok) {
         // Refresh alerts
-        const alertsRes = await fetch("/api/admin/paymaster/alerts", {
+        const alertsRes = await fetch("/api/v1/admin/paymaster/alerts", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (alertsRes.ok) {

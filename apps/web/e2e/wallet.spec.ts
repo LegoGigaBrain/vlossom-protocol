@@ -15,7 +15,7 @@ test.describe("Wallet", () => {
     userEmail = `wallet.test.${Date.now()}@vlossom.test`;
     userPassword = "TestPassword123!";
 
-    const response = await request.post("/api/auth/signup", {
+    const response = await request.post("/api/v1/auth/signup", {
       data: {
         email: userEmail,
         password: userPassword,
@@ -98,7 +98,7 @@ test.describe("Wallet", () => {
 
     test("should show rate limit message if already claimed", async ({ page, request }) => {
       // First claim via API
-      await request.post("/api/wallet/faucet", {
+      await request.post("/api/v1/wallet/faucet", {
         headers: { Authorization: `Bearer ${userToken}` },
       });
 

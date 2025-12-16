@@ -177,6 +177,8 @@ Mitigation:
 
     Only AA wallet can trigger user actions
 
+    **[C-1 Fix]**: Multi-relayer support via RELAYER_ROLE (eliminates single point of failure)
+
 ### 4.4 Oracle Dependency
 
 Description:
@@ -233,6 +235,10 @@ Mitigation:
 
     Reject transactions calling unknown contracts
 
+    **[H-1 Fix]**: Function selector whitelist prevents bypass via nested calls
+
+    **[M-4 Fix]**: Lifetime caps + 1-hour cooldown after rate limit hit
+
 ### 5.2 Stolen Device Risk
 
 Description:
@@ -259,6 +265,8 @@ Mitigation:
 
     Fallback guardian & recovery mechanisms
 
+    **[M-1 Fix]**: 48-hour time-locked multi-guardian recovery with 2-guardian approval
+
 ---
 
 ## 6. Escrow & Settlement Risks
@@ -284,6 +292,8 @@ Mitigation:
     All refund scenarios unit-tested
 
     Immutable refund rule snapshot stored per booking
+
+    **[M-3 Fix]**: 7-day time-locked emergency recovery prevents permanent fund lockup
 
 ### 6.3 Instant Payout Timing Risk
 
@@ -733,7 +743,142 @@ Examples:
 
 ---
 
-## 19. Summary
+## 20. Security Audit Status
+
+### Audit Completion - December 15, 2025
+
+All 8 findings from the smart contract security audit have been **remediated and verified**.
+
+### Findings Summary
+
+| ID | Severity | Finding | Contract | Status |
+|----|----------|---------|----------|--------|
+| **C-1** | CRITICAL | Single relayer vulnerability | Escrow.sol | ✅ Fixed |
+| **H-1** | HIGH | Paymaster whitelist bypass | VlossomPaymaster.sol | ✅ Fixed |
+| **H-2** | HIGH | Unbounded array DoS | PropertyRegistry.sol | ✅ Fixed |
+| **H-3** | HIGH | Batch validation gap | ReputationRegistry.sol | ✅ Fixed |
+| **M-1** | MEDIUM | Guardian recovery missing | VlossomAccount.sol | ✅ Fixed |
+| **M-2** | MEDIUM | Arbitrary suspend/revoke | PropertyRegistry.sol | ✅ Fixed |
+| **M-3** | MEDIUM | Emergency recovery missing | Escrow.sol | ✅ Fixed |
+| **M-4** | MEDIUM | Rate limit reset abuse | VlossomPaymaster.sol | ✅ Fixed |
+
+### Remediation Details
+
+**C-1: Escrow Single Relayer (CRITICAL)**
+- **Risk**: Single `address relayer` was central point of failure for all escrow funds
+- **Fix**: Replaced with OpenZeppelin AccessControl, supporting multiple relayers via `RELAYER_ROLE`
+- **New Functions**: `addRelayer()`, `removeRelayer()`, `isRelayer()`
+
+**H-1: Paymaster Whitelist Bypass (HIGH)**
+- **Risk**: Only validated target address, not function selector; nested calls could bypass whitelist
+- **Fix**: Added function selector whitelist with `_allowedFunctions` mapping
+- **New Functions**: `setAllowedFunction()`, `setAllowedFunctionsBatch()`, `enforceFunctionWhitelist`
+
+**H-2: PropertyRegistry Unbounded Array (HIGH)**
+- **Risk**: `ownerProperties` array never removed entries on transfer, causing stale data and potential DoS
+- **Fix**: Replaced with OpenZeppelin EnumerableSet for O(1) add/remove operations
+- **Impact**: Property transfers now properly update ownership tracking
+
+**H-3: ReputationRegistry Batch Validation (HIGH)**
+- **Risk**: `recordEventsBatch()` missing 6 validations present in `recordEvent()`
+- **Fix**: Aligned batch function with single-event validation logic
+- **Changes**: Added bounds checking, auto-registration, score component updates
+
+**M-1: Guardian Recovery (MEDIUM)**
+- **Risk**: Guardian functions existed but no recovery mechanism was implemented
+- **Fix**: Added 48-hour time-locked multi-guardian recovery with 2-guardian approval threshold
+- **New Functions**: `initiateRecovery()`, `approveRecovery()`, `executeRecovery()`, `cancelRecovery()`
+
+**M-2: PropertyRegistry Arbitrary Suspend (MEDIUM)**
+- **Risk**: Admin could instantly suspend/revoke properties with no recourse
+- **Fix**: Added 24-hour suspension timelock with dispute mechanism
+- **New Functions**: `requestSuspension()`, `executeSuspension()`, `raiseDispute()`, `resolveDispute()`
+
+**M-3: Escrow Emergency Recovery (MEDIUM)**
+- **Risk**: If relayer key lost, funds would be locked forever
+- **Fix**: Added 7-day time-locked emergency recovery for admin
+- **New Functions**: `requestEmergencyRecovery()`, `executeEmergencyRecovery()`, `cancelEmergencyRecovery()`
+
+**M-4: Paymaster Rate Limit Reset (MEDIUM)**
+- **Risk**: Rate limit window reset immediately with no lifetime caps
+- **Fix**: Added lifetime caps and 1-hour cooldown period after rate limit hit
+- **New State**: `maxLifetimeOps`, `cooldownPeriod`, `_lifetimeOperations`, `_cooldownEnds`
+
+### Contracts Modified
+
+| Contract | Location | Fixes |
+|----------|----------|-------|
+| Escrow.sol | `contracts/contracts/core/` | C-1, M-3 |
+| IEscrow.sol | `contracts/contracts/interfaces/` | C-1, M-3 |
+| VlossomPaymaster.sol | `contracts/contracts/paymaster/` | H-1, M-4 |
+| IVlossomPaymaster.sol | `contracts/contracts/interfaces/` | H-1, M-4 |
+| PropertyRegistry.sol | `contracts/contracts/property/` | H-2, M-2 |
+| ReputationRegistry.sol | `contracts/contracts/reputation/` | H-3 |
+| VlossomAccount.sol | `contracts/contracts/identity/` | M-1 |
+| IVlossomAccount.sol | `contracts/contracts/interfaces/` | M-1 |
+
+### Verification
+
+All fixes have been:
+- ✅ Implemented in source code
+- ✅ Unit tested
+- ✅ Reviewed against original findings
+- ✅ Documented in changelogs
+
+---
+
+## 20.2. V2.0.0 UX Hardening (Dec 2025)
+
+### UX Security Improvements Implemented
+
+Sprint 3 of the V2.0.0 UX Hardening Release added several security-relevant UX improvements:
+
+**Input Validation (M-5)**
+- **Risk**: Users could enter negative amounts in currency inputs, potentially confusing the system
+- **Fix**: Multi-layer validation approach:
+  - `min="0"` HTML attribute on all amount inputs
+  - `onChange` handler filters out negative values
+  - `onKeyDown` prevents minus key (`-`) and scientific notation (`e`)
+  - `inputMode="decimal"` for proper mobile keyboard
+- **Files**: send-dialog.tsx, add-money-dialog.tsx, withdraw-dialog.tsx
+
+**Success State Accessibility (M-15, M-18)**
+- **Risk**: Users with screen readers couldn't perceive success states
+- **Fix**: Added ARIA attributes to success states:
+  - `role="status"` for screen reader announcement
+  - `aria-live="polite"` for non-intrusive notification
+  - Replaced emoji checkmarks with SVG icons for consistency
+  - 3-second duration before auto-close for users to read
+
+**Progress Indicator Accessibility (H-3)**
+- **Risk**: Booking flow progress not accessible to screen reader users
+- **Fix**: Added comprehensive ARIA support:
+  - `role="progressbar"` on container
+  - `aria-valuenow`, `aria-valuemin`, `aria-valuemax` for progress tracking
+  - Hidden `aria-live` region announces step changes
+  - Each step segment labeled with completion status
+
+**Destructive Action Visibility**
+- **Risk**: Cancel/delete buttons not visually distinct, risk of accidental clicks
+- **Fix**: Added dedicated button variants:
+  - `destructive`: Solid red background (`bg-status-error`)
+  - `destructive-outline`: Red border with hover fill
+  - Applied to Cancel & Refund button in booking cancellation
+
+### UX Security Checklist (Sprint 3)
+
+| Check | Status |
+|-------|--------|
+| Currency inputs prevent negative values | ✅ |
+| Success states have ARIA attributes | ✅ |
+| Progress indicators accessible | ✅ |
+| Destructive actions visually distinct | ✅ |
+| Dialogs scrollable on mobile | ✅ |
+| Auto-close timers have cleanup | ✅ |
+
+---
+
+## 21. Summary
 
 The Vlossom Security & Risk Register provides:
 

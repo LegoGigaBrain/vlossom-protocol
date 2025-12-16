@@ -4,7 +4,7 @@
  */
 
 import * as Sentry from "@sentry/node";
-import { Express, Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 
 interface SentryConfig {
   dsn: string;
@@ -64,7 +64,7 @@ export function sentryRequestHandler() {
  * Express middleware for Sentry error handling
  * Must be added after all other middleware and routes
  */
-export function sentryErrorHandler() {
+export function sentryErrorHandler(): ReturnType<typeof Sentry.expressErrorHandler> {
   return Sentry.expressErrorHandler();
 }
 
@@ -158,7 +158,7 @@ export function startTransaction(
  */
 export function sentryContextMiddleware(
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void {
   // Add request ID if available

@@ -3,67 +3,29 @@
  * Endpoints for image upload (portfolio, avatars)
  */
 
-import { Router, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import { authenticate, type AuthenticatedRequest } from "../middleware/auth";
 import {
   uploadImage,
-  uploadMultipleImages,
   deleteImage,
   validateImageFile,
   generateUploadSignature,
 } from "../lib/cloudinary";
 import prisma from "../lib/prisma";
-import { z } from "zod";
-
+import { createError } from "../middleware/error-handler";
+import { logger } from "../lib/logger";
 const router: ReturnType<typeof Router> = Router();
 
 // Max images per portfolio
 const MAX_PORTFOLIO_IMAGES = 20;
 
-/**
- * Middleware to parse multipart form data
- * Note: In production, use multer or similar middleware
- * This is a simple implementation for the API
- */
-async function parseMultipartBody(
-  req: AuthenticatedRequest
-): Promise<{ buffer: Buffer; mimetype: string } | null> {
-  return new Promise((resolve) => {
-    const chunks: Buffer[] = [];
-    let mimetype = req.headers["content-type"] || "";
-
-    // For multipart, extract the actual content type
-    if (mimetype.includes("multipart/form-data")) {
-      // Simple extraction - in production use multer
-      mimetype = "image/jpeg"; // Default, will be validated
-    }
-
-    req.on("data", (chunk) => {
-      chunks.push(chunk);
-    });
-
-    req.on("end", () => {
-      if (chunks.length === 0) {
-        resolve(null);
-        return;
-      }
-      resolve({
-        buffer: Buffer.concat(chunks),
-        mimetype,
-      });
-    });
-
-    req.on("error", () => {
-      resolve(null);
-    });
-  });
-}
+// Note: In production, use multer or similar middleware for multipart form data parsing
 
 /**
  * POST /api/upload/portfolio
  * Upload a portfolio image for authenticated stylist
  */
-router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
 
@@ -73,23 +35,13 @@ router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: R
     });
 
     if (!profile) {
-      return res.status(403).json({
-        error: {
-          code: "NOT_A_STYLIST",
-          message: "Only stylists can upload portfolio images",
-        },
-      });
+      return next(createError("NOT_A_STYLIST"));
     }
 
     // Check current portfolio count
     const currentImages = (profile.portfolioImages as string[]) || [];
     if (currentImages.length >= MAX_PORTFOLIO_IMAGES) {
-      return res.status(400).json({
-        error: {
-          code: "PORTFOLIO_LIMIT_REACHED",
-          message: `Maximum ${MAX_PORTFOLIO_IMAGES} portfolio images allowed`,
-        },
-      });
+      return next(createError("PORTFOLIO_LIMIT", { max: MAX_PORTFOLIO_IMAGES }));
     }
 
     // Get the raw body data
@@ -99,12 +51,7 @@ router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: R
 
     if (!contentType.includes("application/octet-stream") &&
         !contentType.includes("image/")) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_CONTENT_TYPE",
-          message: "Content-Type must be an image type or application/octet-stream",
-        },
-      });
+      return next(createError("INVALID_CONTENT_TYPE"));
     }
 
     // Parse the body as Buffer
@@ -115,12 +62,7 @@ router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: R
     const buffer = Buffer.concat(chunks);
 
     if (buffer.length === 0) {
-      return res.status(400).json({
-        error: {
-          code: "NO_FILE",
-          message: "No file data received",
-        },
-      });
+      return next(createError("NO_FILE"));
     }
 
     // Determine mimetype from content-type or magic bytes
@@ -141,12 +83,7 @@ router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: R
     // Validate the file
     const validation = validateImageFile(buffer, mimetype);
     if (!validation.valid) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_FILE",
-          message: validation.error,
-        },
-      });
+      return next(createError("INVALID_FILE", { reason: validation.error }));
     }
 
     // Upload to Cloudinary
@@ -156,12 +93,7 @@ router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: R
     });
 
     if (!result.success) {
-      return res.status(500).json({
-        error: {
-          code: "UPLOAD_FAILED",
-          message: result.error || "Failed to upload image",
-        },
-      });
+      return next(createError("UPLOAD_FAILED", { reason: result.error }));
     }
 
     // Update stylist profile with new image
@@ -184,14 +116,9 @@ router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: R
       },
       totalImages: updatedImages.length,
     });
-  } catch (error: any) {
-    console.error("Error uploading portfolio image:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to upload image",
-      },
-    });
+  } catch (error) {
+    logger.error("Error uploading portfolio image", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -199,7 +126,7 @@ router.post("/portfolio", authenticate, async (req: AuthenticatedRequest, res: R
  * DELETE /api/upload/portfolio/:publicId
  * Delete a portfolio image
  */
-router.delete("/portfolio/:publicId(*)", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.delete("/portfolio/:publicId(*)", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const { publicId } = req.params;
@@ -213,19 +140,14 @@ router.delete("/portfolio/:publicId(*)", authenticate, async (req: Authenticated
     });
 
     if (!profile) {
-      return res.status(403).json({
-        error: {
-          code: "NOT_A_STYLIST",
-          message: "Only stylists can delete portfolio images",
-        },
-      });
+      return next(createError("NOT_A_STYLIST"));
     }
 
     // Delete from Cloudinary
     const result = await deleteImage(decodedPublicId);
 
     if (!result.success) {
-      console.warn("Cloudinary delete warning:", result.error);
+      logger.warn("Cloudinary delete warning", { publicId: decodedPublicId, error: result.error });
       // Continue anyway - the image might already be deleted from Cloudinary
     }
 
@@ -243,14 +165,9 @@ router.delete("/portfolio/:publicId(*)", authenticate, async (req: Authenticated
       message: "Image deleted successfully",
       totalImages: updatedImages.length,
     });
-  } catch (error: any) {
-    console.error("Error deleting portfolio image:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to delete image",
-      },
-    });
+  } catch (error) {
+    logger.error("Error deleting portfolio image", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -258,7 +175,7 @@ router.delete("/portfolio/:publicId(*)", authenticate, async (req: Authenticated
  * GET /api/upload/signature
  * Get a signed upload URL for direct client-side upload
  */
-router.get("/signature", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/signature", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
 
@@ -268,12 +185,7 @@ router.get("/signature", authenticate, async (req: AuthenticatedRequest, res: Re
     });
 
     if (!profile) {
-      return res.status(403).json({
-        error: {
-          code: "NOT_A_STYLIST",
-          message: "Only stylists can upload portfolio images",
-        },
-      });
+      return next(createError("NOT_A_STYLIST"));
     }
 
     // Generate signature
@@ -282,12 +194,7 @@ router.get("/signature", authenticate, async (req: AuthenticatedRequest, res: Re
     });
 
     if (!signature) {
-      return res.status(500).json({
-        error: {
-          code: "SIGNATURE_FAILED",
-          message: "Cloudinary is not configured",
-        },
-      });
+      return next(createError("SIGNATURE_FAILED"));
     }
 
     return res.json({
@@ -298,14 +205,9 @@ router.get("/signature", authenticate, async (req: AuthenticatedRequest, res: Re
       folder: signature.folder,
       uploadUrl: `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`,
     });
-  } catch (error: any) {
-    console.error("Error generating upload signature:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to generate upload signature",
-      },
-    });
+  } catch (error) {
+    logger.error("Error generating upload signature", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -313,7 +215,7 @@ router.get("/signature", authenticate, async (req: AuthenticatedRequest, res: Re
  * POST /api/upload/avatar
  * Upload avatar image for authenticated user
  */
-router.post("/avatar", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/avatar", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
 
@@ -322,12 +224,7 @@ router.post("/avatar", authenticate, async (req: AuthenticatedRequest, res: Resp
 
     if (!contentType.includes("application/octet-stream") &&
         !contentType.includes("image/")) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_CONTENT_TYPE",
-          message: "Content-Type must be an image type or application/octet-stream",
-        },
-      });
+      return next(createError("INVALID_CONTENT_TYPE"));
     }
 
     // Parse the body as Buffer
@@ -338,12 +235,7 @@ router.post("/avatar", authenticate, async (req: AuthenticatedRequest, res: Resp
     const buffer = Buffer.concat(chunks);
 
     if (buffer.length === 0) {
-      return res.status(400).json({
-        error: {
-          code: "NO_FILE",
-          message: "No file data received",
-        },
-      });
+      return next(createError("NO_FILE"));
     }
 
     // Determine mimetype
@@ -363,12 +255,7 @@ router.post("/avatar", authenticate, async (req: AuthenticatedRequest, res: Resp
     // Validate the file
     const validation = validateImageFile(buffer, mimetype);
     if (!validation.valid) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_FILE",
-          message: validation.error,
-        },
-      });
+      return next(createError("INVALID_FILE", { reason: validation.error }));
     }
 
     // Upload to Cloudinary
@@ -379,12 +266,7 @@ router.post("/avatar", authenticate, async (req: AuthenticatedRequest, res: Resp
     });
 
     if (!result.success) {
-      return res.status(500).json({
-        error: {
-          code: "UPLOAD_FAILED",
-          message: result.error || "Failed to upload image",
-        },
-      });
+      return next(createError("UPLOAD_FAILED", { reason: result.error }));
     }
 
     // Update user avatar
@@ -400,14 +282,9 @@ router.post("/avatar", authenticate, async (req: AuthenticatedRequest, res: Resp
         thumbnailUrl: result.thumbnailUrl,
       },
     });
-  } catch (error: any) {
-    console.error("Error uploading avatar:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to upload avatar",
-      },
-    });
+  } catch (error) {
+    logger.error("Error uploading avatar", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

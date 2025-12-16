@@ -15,7 +15,7 @@ test.describe("Customer Booking Flow", () => {
     customerEmail = `customer.booking.${Date.now()}@vlossom.test`;
     customerPassword = "TestPassword123!";
 
-    const response = await request.post("/api/auth/signup", {
+    const response = await request.post("/api/v1/auth/signup", {
       data: {
         email: customerEmail,
         password: customerPassword,
@@ -160,7 +160,7 @@ test.describe("Customer Booking Flow", () => {
 
     test("should allow viewing booking details", async ({ page, request }) => {
       // Login via API first
-      const loginResponse = await request.post("/api/auth/login", {
+      const loginResponse = await request.post("/api/v1/auth/login", {
         data: {
           email: customerEmail,
           password: customerPassword,
@@ -171,7 +171,7 @@ test.describe("Customer Booking Flow", () => {
         const { token } = await loginResponse.json();
 
         // Check if there are any bookings
-        const bookingsResponse = await request.get("/api/bookings?role=customer", {
+        const bookingsResponse = await request.get("/api/v1/bookings?role=customer", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

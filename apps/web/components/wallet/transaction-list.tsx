@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { formatUSDC, truncateAddress } from "../../lib/wallet-client";
+import { WalletIllustration } from "../ui/illustrations";
 import type { WalletTransaction } from "../../lib/wallet-client";
 
 interface TransactionListProps {
@@ -20,6 +21,31 @@ export function TransactionList({
   isLoading = false,
 }: TransactionListProps) {
   const [filter, setFilter] = useState<TransactionFilter>("ALL");
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const filterScrollRef = useRef<HTMLDivElement>(null);
+
+  // Check if filter buttons can scroll
+  useEffect(() => {
+    const checkScroll = () => {
+      if (filterScrollRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = filterScrollRef.current;
+        setCanScrollLeft(scrollLeft > 0);
+        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+      }
+    };
+
+    const scrollContainer = filterScrollRef.current;
+    if (scrollContainer) {
+      checkScroll();
+      scrollContainer.addEventListener("scroll", checkScroll);
+      window.addEventListener("resize", checkScroll);
+      return () => {
+        scrollContainer.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+      };
+    }
+  }, []);
 
   // Filter transactions
   const filteredTransactions = transactions.filter((tx) => {
@@ -72,10 +98,10 @@ export function TransactionList({
 
   const getAmountColor = (type: string): string => {
     if (type === "TRANSFER_IN" || type === "FAUCET_CLAIM" || type === "ESCROW_REFUND") {
-      return "text-green-600";
+      return "text-green-600 dark:text-green-400";
     }
     if (type === "TRANSFER_OUT" || type === "ESCROW_LOCK") {
-      return "text-red-600";
+      return "text-red-600 dark:text-red-400";
     }
     return "text-text-primary";
   };
@@ -94,19 +120,19 @@ export function TransactionList({
     switch (status) {
       case "CONFIRMED":
         return (
-          <span className="text-caption px-2 py-0.5 rounded-full bg-green-100 text-green-800">
+          <span className="text-caption px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
             Confirmed
           </span>
         );
       case "PENDING":
         return (
-          <span className="text-caption px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">
+          <span className="text-caption px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200">
             Pending
           </span>
         );
       case "FAILED":
         return (
-          <span className="text-caption px-2 py-0.5 rounded-full bg-red-100 text-red-800">
+          <span className="text-caption px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
             Failed
           </span>
         );
@@ -133,6 +159,7 @@ export function TransactionList({
   if (transactions.length === 0) {
     return (
       <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
+        <WalletIllustration className="w-24 h-24 mx-auto mb-4" />
         <p className="text-body text-text-secondary mb-2">No transactions yet</p>
         <p className="text-caption text-text-tertiary">
           Your transaction history will appear here
@@ -148,21 +175,40 @@ export function TransactionList({
         <p className="text-caption text-text-tertiary">{transactions.length} total</p>
       </div>
 
-      {/* Filter Buttons */}
-      <div className="flex gap-2 mb-4 overflow-x-auto">
-        {(["ALL", "SEND", "RECEIVE", "FAUCET", "BOOKINGS"] as TransactionFilter[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`text-caption px-3 py-1.5 rounded-full whitespace-nowrap ${
-              filter === f
-                ? "bg-brand-rose text-background-primary"
-                : "bg-background-secondary text-text-secondary hover:bg-background-tertiary"
-            }`}
-          >
-            {f.charAt(0) + f.slice(1).toLowerCase()}
-          </button>
-        ))}
+      {/* Filter Buttons with scroll indicators */}
+      <div className="relative mb-4">
+        {/* Left scroll indicator */}
+        {canScrollLeft && (
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background-primary to-transparent z-10 pointer-events-none" />
+        )}
+
+        <div
+          ref={filterScrollRef}
+          className="flex gap-2 overflow-x-auto scrollbar-hide"
+          role="tablist"
+          aria-label="Filter transactions"
+        >
+          {(["ALL", "SEND", "RECEIVE", "FAUCET", "BOOKINGS"] as TransactionFilter[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              role="tab"
+              aria-selected={filter === f}
+              className={`text-caption px-3 py-1.5 rounded-full whitespace-nowrap transition-colors ${
+                filter === f
+                  ? "bg-brand-rose text-background-primary"
+                  : "bg-background-secondary text-text-secondary hover:bg-background-tertiary"
+              }`}
+            >
+              {f.charAt(0) + f.slice(1).toLowerCase()}
+            </button>
+          ))}
+        </div>
+
+        {/* Right scroll indicator */}
+        {canScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background-primary to-transparent z-10 pointer-events-none" />
+        )}
       </div>
 
       {/* Transaction List */}

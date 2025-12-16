@@ -93,8 +93,9 @@ export function WelcomeModal({
           <button
             onClick={handleClose}
             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
+            aria-label="Close welcome modal"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
 
           {/* Content */}

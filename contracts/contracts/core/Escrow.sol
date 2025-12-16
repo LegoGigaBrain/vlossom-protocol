@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {IEscrow} from "../interfaces/IEscrow.sol";
@@ -16,19 +16,20 @@ import {IEscrow} from "../interfaces/IEscrow.sol";
  * Security features:
  * - ReentrancyGuard on all external fund-moving functions
  * - SafeERC20 for token transfers
- * - Explicit access control for settlement functions
+ * - Role-based access control via OpenZeppelin AccessControl (C-1 fix)
+ * - Multi-relayer support to eliminate single point of failure
  * - Single-use escrow records (cannot be reused after release/refund)
  * - Total amount validation on release
  * - Emergency pause mechanism (Pausable)
- * - Relayer initialized at deployment (no deployment race condition)
+ * - Time-locked emergency recovery for stuck funds (M-3 fix)
  *
  * Invariants:
  * - Each bookingId can only have one escrow record
  * - Escrow can only move from Locked -> Released or Locked -> Refunded
  * - Total released must equal total locked (no partial refunds in v1)
- * - Only authorized relayer can trigger settlements/refunds
+ * - Only addresses with RELAYER_ROLE can trigger settlements/refunds
  */
-contract Escrow is IEscrow, Ownable, ReentrancyGuard, Pausable {
+contract Escrow is IEscrow, AccessControl, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     /// @dev Custom errors for gas optimization
@@ -40,38 +41,70 @@ contract Escrow is IEscrow, Ownable, ReentrancyGuard, Pausable {
     error UnauthorizedCaller();
     error AmountMismatch();
     error InsufficientEscrowBalance();
+    error EmergencyRecoveryNotRequested();
+    error EmergencyRecoveryDelayNotMet();
+    error EmergencyRecoveryAlreadyRequested();
+
+    /// @notice Role identifier for authorized relayers (C-1 fix: multi-relayer support)
+    bytes32 public constant RELAYER_ROLE = keccak256("RELAYER_ROLE");
+
+    /// @notice Role identifier for admin operations
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+
+    /// @notice Emergency recovery delay period (M-3 fix)
+    uint256 public constant EMERGENCY_RECOVERY_DELAY = 7 days;
 
     /// @notice USDC token contract
     IERC20 public immutable usdc;
 
-    /// @notice Authorized relayer address (backend service)
-    address private relayer;
-
     /// @notice Mapping of booking IDs to escrow records
     mapping(bytes32 => EscrowRecord) public escrows;
 
-    /// @dev Modifier to restrict access to authorized relayer
+    /// @notice Emergency recovery request structure (M-3 fix)
+    struct EmergencyRecoveryRequest {
+        address recipient;
+        uint256 requestedAt;
+    }
+
+    /// @notice Pending emergency recoveries
+    mapping(bytes32 => EmergencyRecoveryRequest) public emergencyRecoveries;
+
+    /// @dev Modifier to restrict access to authorized relayers
     modifier onlyRelayer() {
-        if (msg.sender != relayer) revert UnauthorizedCaller();
+        if (!hasRole(RELAYER_ROLE, msg.sender)) revert UnauthorizedCaller();
+        _;
+    }
+
+    /// @dev Modifier to restrict access to admins
+    modifier onlyAdmin() {
+        if (!hasRole(ADMIN_ROLE, msg.sender)) revert UnauthorizedCaller();
         _;
     }
 
     /**
      * @notice Initialize the escrow contract
      * @param _usdc Address of the USDC token contract
-     * @param _initialOwner Address of the contract owner
-     * @param _initialRelayer Address of the authorized relayer (must be set at deployment)
+     * @param _initialOwner Address of the contract owner/admin
+     * @param _initialRelayer Address of the initial authorized relayer
+     * @dev C-1 fix: Uses AccessControl for role-based multi-relayer support
      */
     constructor(
         address _usdc,
         address _initialOwner,
         address _initialRelayer
-    ) Ownable(_initialOwner) {
+    ) {
         if (_usdc == address(0)) revert InvalidAddress();
+        if (_initialOwner == address(0)) revert InvalidAddress();
         if (_initialRelayer == address(0)) revert InvalidAddress();
+
         usdc = IERC20(_usdc);
-        relayer = _initialRelayer;
-        emit RelayerUpdated(address(0), _initialRelayer);
+
+        // Setup role hierarchy
+        _grantRole(DEFAULT_ADMIN_ROLE, _initialOwner);
+        _grantRole(ADMIN_ROLE, _initialOwner);
+        _grantRole(RELAYER_ROLE, _initialRelayer);
+
+        emit RelayerAdded(_initialRelayer);
     }
 
     /**
@@ -223,44 +256,159 @@ contract Escrow is IEscrow, Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Set the authorized relayer address
+     * @notice Add a new relayer address (C-1 fix: multi-relayer support)
      * @param newRelayer Address of the new relayer
-     *
-     * @dev Only callable by contract owner
-     * Requirements:
-     * - newRelayer must not be zero address
+     * @dev Only callable by admin. Supports multiple relayers for redundancy.
      */
-    function setRelayer(address newRelayer) external onlyOwner {
+    function addRelayer(address newRelayer) external onlyAdmin {
         if (newRelayer == address(0)) revert InvalidAddress();
-        address oldRelayer = relayer;
-        relayer = newRelayer;
-        emit RelayerUpdated(oldRelayer, newRelayer);
+        _grantRole(RELAYER_ROLE, newRelayer);
+        emit RelayerAdded(newRelayer);
     }
 
     /**
-     * @notice Get the current relayer address
-     * @return The address of the authorized relayer
+     * @notice Remove a relayer address (C-1 fix: multi-relayer support)
+     * @param relayerToRemove Address of the relayer to remove
+     * @dev Only callable by admin
+     */
+    function removeRelayer(address relayerToRemove) external onlyAdmin {
+        if (!hasRole(RELAYER_ROLE, relayerToRemove)) revert UnauthorizedCaller();
+        _revokeRole(RELAYER_ROLE, relayerToRemove);
+        emit RelayerRemoved(relayerToRemove);
+    }
+
+    /**
+     * @notice Check if an address is an authorized relayer
+     * @param account Address to check
+     * @return True if the address has RELAYER_ROLE
+     */
+    function isRelayer(address account) external view returns (bool) {
+        return hasRole(RELAYER_ROLE, account);
+    }
+
+    /**
+     * @notice Get the current relayer address (deprecated - use isRelayer instead)
+     * @return The address of the first relayer (for backward compatibility)
+     * @dev This function is kept for backward compatibility but should not be relied upon
+     *      as there can be multiple relayers now.
      */
     function getRelayer() external view returns (address) {
-        return relayer;
+        // Note: This returns address(0) as we no longer track a single relayer
+        // Use isRelayer(address) to check if an address is a relayer
+        return address(0);
     }
 
     /**
      * @notice Pause the contract - emergency stop mechanism
-     * @dev Only callable by contract owner
+     * @dev Only callable by admin
      * When paused, lockFunds, releaseFunds, and refund will revert
      */
-    function pause() external onlyOwner {
+    function pause() external onlyAdmin {
         _pause();
         emit ContractPaused(msg.sender);
     }
 
     /**
      * @notice Unpause the contract - resume normal operations
-     * @dev Only callable by contract owner
+     * @dev Only callable by admin
      */
-    function unpause() external onlyOwner {
+    function unpause() external onlyAdmin {
         _unpause();
         emit ContractUnpaused(msg.sender);
+    }
+
+    // ============ Emergency Recovery Functions (M-3 fix) ============
+
+    /**
+     * @notice Request emergency recovery of stuck funds
+     * @param bookingId Booking ID to recover
+     * @param recipient Where to send the recovered funds
+     * @dev Only callable by admin. Requires 7-day delay before execution.
+     *      This is a safety mechanism in case relayer keys are lost.
+     */
+    function requestEmergencyRecovery(
+        bytes32 bookingId,
+        address recipient
+    ) external onlyAdmin {
+        if (recipient == address(0)) revert InvalidAddress();
+
+        EscrowRecord storage record = escrows[bookingId];
+        if (record.status != EscrowStatus.Locked) revert InvalidEscrowStatus();
+        if (emergencyRecoveries[bookingId].requestedAt != 0) {
+            revert EmergencyRecoveryAlreadyRequested();
+        }
+
+        emergencyRecoveries[bookingId] = EmergencyRecoveryRequest({
+            recipient: recipient,
+            requestedAt: block.timestamp
+        });
+
+        emit EmergencyRecoveryRequested(
+            bookingId,
+            recipient,
+            block.timestamp + EMERGENCY_RECOVERY_DELAY
+        );
+    }
+
+    /**
+     * @notice Execute emergency recovery after delay period
+     * @param bookingId Booking ID to recover
+     * @dev Only callable by admin after 7-day delay has passed
+     */
+    function executeEmergencyRecovery(
+        bytes32 bookingId
+    ) external onlyAdmin nonReentrant {
+        EmergencyRecoveryRequest storage request = emergencyRecoveries[bookingId];
+        if (request.requestedAt == 0) revert EmergencyRecoveryNotRequested();
+        if (block.timestamp < request.requestedAt + EMERGENCY_RECOVERY_DELAY) {
+            revert EmergencyRecoveryDelayNotMet();
+        }
+
+        EscrowRecord storage record = escrows[bookingId];
+        if (record.status != EscrowStatus.Locked) revert InvalidEscrowStatus();
+
+        uint256 amount = record.amount;
+        address recipient = request.recipient;
+
+        // Effects
+        record.status = EscrowStatus.Refunded;
+        delete emergencyRecoveries[bookingId];
+
+        // Interactions
+        usdc.safeTransfer(recipient, amount);
+
+        emit EmergencyRecoveryExecuted(bookingId, recipient, amount);
+    }
+
+    /**
+     * @notice Cancel a pending emergency recovery request
+     * @param bookingId Booking ID
+     * @dev Only callable by admin
+     */
+    function cancelEmergencyRecovery(bytes32 bookingId) external onlyAdmin {
+        if (emergencyRecoveries[bookingId].requestedAt == 0) {
+            revert EmergencyRecoveryNotRequested();
+        }
+
+        delete emergencyRecoveries[bookingId];
+        emit EmergencyRecoveryCancelled(bookingId);
+    }
+
+    /**
+     * @notice Get emergency recovery request details
+     * @param bookingId Booking ID
+     * @return recipient The recipient address
+     * @return requestedAt When the request was made
+     * @return executeAfter When the request can be executed
+     */
+    function getEmergencyRecoveryRequest(
+        bytes32 bookingId
+    ) external view returns (address recipient, uint256 requestedAt, uint256 executeAfter) {
+        EmergencyRecoveryRequest storage request = emergencyRecoveries[bookingId];
+        return (
+            request.recipient,
+            request.requestedAt,
+            request.requestedAt > 0 ? request.requestedAt + EMERGENCY_RECOVERY_DELAY : 0
+        );
     }
 }

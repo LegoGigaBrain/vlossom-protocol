@@ -7,6 +7,7 @@
 
 import { formatPrice, formatDate } from "../../lib/utils";
 import { Button } from "../ui/button";
+import { WalletIllustration } from "../ui/illustrations";
 import type { PayoutHistoryItem } from "../../lib/dashboard-client";
 
 interface PayoutHistoryProps {
@@ -75,7 +76,7 @@ export function PayoutHistory({
         </div>
       ) : payouts.length === 0 ? (
         <div className="p-8 text-center">
-          <div className="text-4xl mb-2">💸</div>
+          <WalletIllustration className="w-24 h-24 mx-auto mb-4" />
           <p className="text-body text-text-secondary">No payouts yet</p>
           <p className="text-caption text-text-tertiary mt-1">
             Complete your first booking to start earning

@@ -98,27 +98,27 @@ export interface ChairRentalRequest {
 // Property API
 export const propertiesApi = {
   list: (token: string) =>
-    fetchApi<{ properties: Property[] }>("/api/properties/my", { token }),
+    fetchApi<{ properties: Property[] }>("/api/v1/properties/my", { token }),
 
   get: (token: string, propertyId: string) =>
-    fetchApi<{ property: Property }>(`/api/properties/${propertyId}`, { token }),
+    fetchApi<{ property: Property }>(`/api/v1/properties/${propertyId}`, { token }),
 
   create: (token: string, data: Partial<Property>) =>
-    fetchApi<{ property: Property }>("/api/properties", {
+    fetchApi<{ property: Property }>("/api/v1/properties", {
       method: "POST",
       body: JSON.stringify(data),
       token,
     }),
 
   update: (token: string, propertyId: string, data: Partial<Property>) =>
-    fetchApi<{ property: Property }>(`/api/properties/${propertyId}`, {
+    fetchApi<{ property: Property }>(`/api/v1/properties/${propertyId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
       token,
     }),
 
   delete: (token: string, propertyId: string) =>
-    fetchApi<{ success: boolean }>(`/api/properties/${propertyId}`, {
+    fetchApi<{ success: boolean }>(`/api/v1/properties/${propertyId}`, {
       method: "DELETE",
       token,
     }),
@@ -127,29 +127,29 @@ export const propertiesApi = {
 // Chair API
 export const chairsApi = {
   list: (token: string, propertyId: string) =>
-    fetchApi<{ chairs: Chair[] }>(`/api/properties/${propertyId}/chairs`, {
+    fetchApi<{ chairs: Chair[] }>(`/api/v1/properties/${propertyId}/chairs`, {
       token,
     }),
 
   get: (token: string, chairId: string) =>
-    fetchApi<{ chair: Chair }>(`/api/properties/chairs/${chairId}`, { token }),
+    fetchApi<{ chair: Chair }>(`/api/v1/properties/chairs/${chairId}`, { token }),
 
   create: (token: string, propertyId: string, data: Partial<Chair>) =>
-    fetchApi<{ chair: Chair }>(`/api/properties/${propertyId}/chairs`, {
+    fetchApi<{ chair: Chair }>(`/api/v1/properties/${propertyId}/chairs`, {
       method: "POST",
       body: JSON.stringify(data),
       token,
     }),
 
   update: (token: string, chairId: string, data: Partial<Chair>) =>
-    fetchApi<{ chair: Chair }>(`/api/properties/chairs/${chairId}`, {
+    fetchApi<{ chair: Chair }>(`/api/v1/properties/chairs/${chairId}`, {
       method: "PATCH",
       body: JSON.stringify(data),
       token,
     }),
 
   delete: (token: string, chairId: string) =>
-    fetchApi<{ success: boolean }>(`/api/properties/chairs/${chairId}`, {
+    fetchApi<{ success: boolean }>(`/api/v1/properties/chairs/${chairId}`, {
       method: "DELETE",
       token,
     }),
@@ -158,13 +158,13 @@ export const chairsApi = {
 // Chair Rental Request API
 export const rentalRequestsApi = {
   listPending: (token: string) =>
-    fetchApi<{ requests: ChairRentalRequest[] }>("/api/properties/requests/pending", {
+    fetchApi<{ requests: ChairRentalRequest[] }>("/api/v1/properties/requests/pending", {
       token,
     }),
 
   approve: (token: string, requestId: string) =>
     fetchApi<{ request: ChairRentalRequest }>(
-      `/api/properties/requests/${requestId}/approve`,
+      `/api/v1/properties/requests/${requestId}/approve`,
       {
         method: "POST",
         token,
@@ -173,7 +173,7 @@ export const rentalRequestsApi = {
 
   reject: (token: string, requestId: string, reason?: string) =>
     fetchApi<{ request: ChairRentalRequest }>(
-      `/api/properties/requests/${requestId}/reject`,
+      `/api/v1/properties/requests/${requestId}/reject`,
       {
         method: "POST",
         body: JSON.stringify({ reason }),
@@ -224,13 +224,13 @@ export const reviewsApi = {
       total: number;
       averageRating: string | null;
       totalReviews: number;
-    }>(`/api/reviews/user/${userId}`, token ? { token } : {}),
+    }>(`/api/v1/reviews/user/${userId}`, token ? { token } : {}),
 
   getReputation: (userId: string) =>
-    fetchApi<{ reputation: ReputationScore }>(`/api/reviews/reputation/${userId}`),
+    fetchApi<{ reputation: ReputationScore }>(`/api/v1/reviews/reputation/${userId}`),
 
   getPending: (token: string) =>
-    fetchApi<{ pendingReviews: unknown[] }>("/api/reviews/pending", { token }),
+    fetchApi<{ pendingReviews: unknown[] }>("/api/v1/reviews/pending", { token }),
 
   create: (
     token: string,
@@ -241,7 +241,7 @@ export const reviewsApi = {
       comment?: string;
     }
   ) =>
-    fetchApi<{ review: Review }>("/api/reviews", {
+    fetchApi<{ review: Review }>("/api/v1/reviews", {
       method: "POST",
       body: JSON.stringify(data),
       token,

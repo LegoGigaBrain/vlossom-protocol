@@ -223,12 +223,14 @@ export function BookingDialog({
             <button
               onClick={handleBack}
               className="p-1 hover:bg-surface rounded transition-colors"
+              aria-label="Go back to previous step"
             >
               <svg
                 className="w-5 h-5 text-text-secondary"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -246,23 +248,36 @@ export function BookingDialog({
 
         {/* Progress indicator */}
         {step !== "success" && (
-          <div className="flex gap-1">
-            {(["service", "datetime", "location", "summary", "payment"] as const).map(
-              (s, i) => (
-                <div
-                  key={s}
-                  className={`h-1 flex-1 rounded-full transition-colors ${
-                    i <=
-                    ["service", "datetime", "location", "summary", "payment"].indexOf(
-                      step
-                    )
-                      ? "bg-primary"
-                      : "bg-border"
-                  }`}
-                />
-              )
-            )}
-          </div>
+          <>
+            {/* Screen reader announcement for step changes */}
+            <div className="sr-only" aria-live="polite" aria-atomic="true">
+              Step {["service", "datetime", "location", "summary", "payment"].indexOf(step) + 1} of 5: {getStepTitle()}
+            </div>
+            <div
+              className="flex gap-1"
+              role="progressbar"
+              aria-valuenow={["service", "datetime", "location", "summary", "payment"].indexOf(step) + 1}
+              aria-valuemin={1}
+              aria-valuemax={5}
+              aria-label={`Booking progress: Step ${["service", "datetime", "location", "summary", "payment"].indexOf(step) + 1} of 5`}
+            >
+              {(["service", "datetime", "location", "summary", "payment"] as const).map(
+                (s, i) => {
+                  const stepLabels = ["Select service", "Choose date and time", "Select location", "Review booking", "Payment"];
+                  const currentIndex = ["service", "datetime", "location", "summary", "payment"].indexOf(step);
+                  return (
+                    <div
+                      key={s}
+                      className={`h-1 flex-1 rounded-full transition-colors ${
+                        i <= currentIndex ? "bg-primary" : "bg-border"
+                      }`}
+                      aria-label={`Step ${i + 1}: ${stepLabels[i]} - ${i < currentIndex ? "completed" : i === currentIndex ? "current" : "upcoming"}`}
+                    />
+                  );
+                }
+              )}
+            </div>
+          </>
         )}
 
         {/* Step Content */}

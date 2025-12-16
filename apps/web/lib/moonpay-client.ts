@@ -29,7 +29,7 @@ export async function createDepositSession(params: {
   if (!token) return { success: false, error: "Not authenticated" };
 
   try {
-    const response = await fetch(`${API_URL}/api/wallet/moonpay/deposit`, {
+    const response = await fetch(`${API_URL}/api/v1/wallet/moonpay/deposit`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -62,7 +62,7 @@ export async function createWithdrawalSession(params: {
   if (!token) return { success: false, error: "Not authenticated" };
 
   try {
-    const response = await fetch(`${API_URL}/api/wallet/moonpay/withdraw`, {
+    const response = await fetch(`${API_URL}/api/v1/wallet/moonpay/withdraw`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -92,7 +92,7 @@ export async function checkDepositStatus(sessionId: string) {
 
   try {
     const response = await fetch(
-      `${API_URL}/api/wallet/moonpay/status/${sessionId}`,
+      `${API_URL}/api/v1/wallet/moonpay/status/${sessionId}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
@@ -117,7 +117,7 @@ export async function simulateMockCompletion(
   amount: number
 ) {
   try {
-    const response = await fetch(`${API_URL}/api/wallet/moonpay/webhook`, {
+    const response = await fetch(`${API_URL}/api/v1/wallet/moonpay/webhook`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -146,7 +146,7 @@ export async function simulateMockWithdrawal(
   amount: number
 ) {
   try {
-    const response = await fetch(`${API_URL}/api/wallet/moonpay/webhook`, {
+    const response = await fetch(`${API_URL}/api/v1/wallet/moonpay/webhook`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

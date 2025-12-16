@@ -54,17 +54,17 @@ export async function createDepositSessionMock(
       sessionId,
       redirectUrl: `http://localhost:3000/wallet?mock_session=${sessionId}`,
     };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      error: error.message || "Failed to create deposit session",
+      error: error instanceof Error ? error.message : "Failed to create deposit session",
     };
   }
 }
 
 /**
  * Create a mock withdrawal session
- * Validates balance before creating session
+ * Note: Balance validation should be done on-chain before calling this
  */
 export async function createWithdrawalSessionMock(
   params: CreateSessionParams
@@ -72,7 +72,7 @@ export async function createWithdrawalSessionMock(
   const sessionId = `mock_withdrawal_${randomUUID()}`;
 
   try {
-    // Get wallet to check balance
+    // Get wallet (balance is on-chain, not in DB)
     const wallet = await prisma.wallet.findFirst({
       where: { userId: params.userId },
     });
@@ -84,15 +84,8 @@ export async function createWithdrawalSessionMock(
       };
     }
 
-    const balance = BigInt(wallet.balance);
-    const withdrawAmount = BigInt(Math.floor(params.amount * 1_000_000));
-
-    if (balance < withdrawAmount) {
-      return {
-        success: false,
-        error: "Insufficient balance",
-      };
-    }
+    // Note: In mock mode, we skip balance validation - in production this would
+    // check on-chain USDC balance via the wallet address
 
     // Create MoonPayTransaction record
     await prisma.moonPayTransaction.create({
@@ -114,10 +107,10 @@ export async function createWithdrawalSessionMock(
       sessionId,
       redirectUrl: `http://localhost:3000/wallet?mock_session=${sessionId}`,
     };
-  } catch (error: any) {
+  } catch (error) {
     return {
       success: false,
-      error: error.message || "Failed to create withdrawal session",
+      error: error instanceof Error ? error.message : "Failed to create withdrawal session",
     };
   }
 }
@@ -125,6 +118,9 @@ export async function createWithdrawalSessionMock(
 /**
  * Process MoonPay webhook (mock version)
  * Handles both deposits (mint USDC) and withdrawals (burn USDC)
+ *
+ * Note: In mock mode, actual token minting/burning is simulated.
+ * In production, MoonPay handles the actual transfers.
  */
 export async function processWebhookMock(
   payload: WebhookPayload
@@ -139,26 +135,9 @@ export async function processWebhookMock(
   }
 
   if (payload.status === "completed") {
-    if (transaction.type === "deposit") {
-      // Mint USDC to user's wallet (testnet only)
-      const { mintUSDC } = await import("./faucet-service");
-      await mintUSDC(
-        transaction.wallet.address,
-        BigInt(Math.floor(payload.cryptoAmount * 1_000_000))
-      );
-    } else if (transaction.type === "withdrawal") {
-      // Burn USDC from user's wallet (mock - just deduct from balance)
-      // In real mode, this would transfer USDC to MoonPay's wallet
-      const burnAmount = BigInt(Math.floor(payload.cryptoAmount * 1_000_000));
-      await prisma.wallet.update({
-        where: { id: transaction.walletId },
-        data: {
-          balance: {
-            decrement: burnAmount.toString(),
-          },
-        },
-      });
-    }
+    // In mock mode, we just record the transaction without actual on-chain operations
+    // Real deposits/withdrawals would involve MoonPay handling the crypto transfer
+    // For testnet testing, users can use the faucet to get USDC
 
     // Update transaction status
     await prisma.moonPayTransaction.update({
@@ -166,18 +145,17 @@ export async function processWebhookMock(
       data: {
         status: "completed",
         completedAt: new Date(),
-        webhookData: payload as any,
+        webhookData: payload as object,
       },
     });
 
-    // Create wallet transaction record
+    // Create wallet transaction record for audit trail
     await prisma.walletTransaction.create({
       data: {
         walletId: transaction.walletId,
         type: transaction.type === "deposit" ? "DEPOSIT" : "WITHDRAWAL",
-        amount: BigInt(Math.floor(payload.cryptoAmount * 1_000_000)).toString(),
+        amount: BigInt(Math.floor(payload.cryptoAmount * 1_000_000)),
         status: "CONFIRMED",
-        createdAt: new Date(),
       },
     });
   } else if (payload.status === "failed") {
@@ -186,7 +164,7 @@ export async function processWebhookMock(
       where: { id: transaction.id },
       data: {
         status: "failed",
-        webhookData: payload as any,
+        webhookData: payload as object,
       },
     });
   }

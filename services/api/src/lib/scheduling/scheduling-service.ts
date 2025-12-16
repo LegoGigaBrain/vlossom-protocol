@@ -5,7 +5,7 @@
 
 import prisma from "../prisma";
 import logger from "../logger";
-import { getTravelTime, calculateTravelBuffer, Coordinates } from "./travel-time-service";
+import { calculateTravelBuffer, Coordinates } from "./travel-time-service";
 
 // Types
 export interface TimeSlot {
@@ -34,7 +34,7 @@ export interface AvailabilityCheckInput {
   serviceId: string;
   startTime: Date;
   durationMinutes: number;
-  locationType: "STYLIST_LOCATION" | "CUSTOMER_LOCATION";
+  locationType: "STYLIST_BASE" | "CUSTOMER_HOME";
   customerCoords?: Coordinates;
 }
 
@@ -60,17 +60,6 @@ const dayNames: (keyof WeeklySchedule)[] = ["sun", "mon", "tue", "wed", "thu", "
 function parseTimeToMinutes(timeStr: string): number {
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
-}
-
-/**
- * Check if a time falls within any time slot
- */
-function isTimeInSlots(timeMinutes: number, slots: TimeSlot[]): boolean {
-  return slots.some((slot) => {
-    const start = parseTimeToMinutes(slot.start);
-    const end = parseTimeToMinutes(slot.end);
-    return timeMinutes >= start && timeMinutes < end;
-  });
 }
 
 /**
@@ -147,8 +136,8 @@ export async function checkAvailability(
     };
   }
 
-  const schedule = (stylist.availability?.schedule as WeeklySchedule) || null;
-  const exceptions = (stylist.availability?.exceptions as DateException[]) || [];
+  const schedule = (stylist.availability?.schedule as unknown as WeeklySchedule) || null;
+  const exceptions = (stylist.availability?.exceptions as unknown as DateException[]) || [];
 
   // Get day of week and time
   const requestedDate = new Date(input.startTime);
@@ -189,7 +178,7 @@ export async function checkAvailability(
 
   // 3. Calculate travel buffer for mobile stylists
   if (
-    input.locationType === "CUSTOMER_LOCATION" &&
+    input.locationType === "CUSTOMER_HOME" &&
     input.customerCoords &&
     (stylist.operatingMode === "MOBILE" || stylist.operatingMode === "HYBRID") &&
     stylist.baseLocationLat &&
@@ -398,7 +387,7 @@ export async function isTimeSlotAvailable(
     serviceId: "", // Not needed for quick check
     startTime,
     durationMinutes,
-    locationType: "STYLIST_LOCATION",
+    locationType: "STYLIST_BASE",
   });
 
   return result.available;
@@ -426,8 +415,8 @@ export async function getAvailableSlotsForDate(
     return [];
   }
 
-  const schedule = (stylist.availability?.schedule as WeeklySchedule) || null;
-  const exceptions = (stylist.availability?.exceptions as DateException[]) || [];
+  const schedule = (stylist.availability?.schedule as unknown as WeeklySchedule) || null;
+  const exceptions = (stylist.availability?.exceptions as unknown as DateException[]) || [];
 
   const dateStr = date.toISOString().split("T")[0];
   const dayOfWeek = dayNames[date.getDay()];

@@ -68,11 +68,15 @@ export default function LoginPage() {
                 id="email"
                 type="email"
                 placeholder="you@example.com"
+                autoComplete="email"
+                aria-describedby={errors.email ? "login-email-error" : undefined}
                 {...register("email")}
                 disabled={isLoading}
               />
               {errors.email && (
-                <p className="text-sm text-status-error">{errors.email.message}</p>
+                <p id="login-email-error" className="text-sm text-status-error" role="alert">
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
@@ -92,11 +96,15 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="Enter your password"
+                autoComplete="current-password"
+                aria-describedby={errors.password ? "login-password-error" : undefined}
                 {...register("password")}
                 disabled={isLoading}
               />
               {errors.password && (
-                <p className="text-sm text-status-error">{errors.password.message}</p>
+                <p id="login-password-error" className="text-sm text-status-error" role="alert">
+                  {errors.password.message}
+                </p>
               )}
             </div>
 

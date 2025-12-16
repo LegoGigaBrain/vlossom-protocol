@@ -54,16 +54,48 @@ interface IEscrow {
         uint256 amount
     );
 
-    /// @notice Emitted when the relayer address is updated
+    /// @notice Emitted when the relayer address is updated (deprecated)
     /// @param oldRelayer Previous relayer address
     /// @param newRelayer New relayer address
     event RelayerUpdated(address indexed oldRelayer, address indexed newRelayer);
+
+    /// @notice Emitted when a relayer is added (C-1 fix)
+    /// @param relayer Address of the new relayer
+    event RelayerAdded(address indexed relayer);
+
+    /// @notice Emitted when a relayer is removed (C-1 fix)
+    /// @param relayer Address of the removed relayer
+    event RelayerRemoved(address indexed relayer);
 
     /// @notice Emitted when contract is paused
     event ContractPaused(address indexed account);
 
     /// @notice Emitted when contract is unpaused
     event ContractUnpaused(address indexed account);
+
+    /// @notice Emitted when emergency recovery is requested (M-3 fix)
+    /// @param bookingId Booking ID to recover
+    /// @param recipient Where funds will be sent
+    /// @param executeAfter Timestamp when execution becomes possible
+    event EmergencyRecoveryRequested(
+        bytes32 indexed bookingId,
+        address indexed recipient,
+        uint256 executeAfter
+    );
+
+    /// @notice Emitted when emergency recovery is executed (M-3 fix)
+    /// @param bookingId Booking ID recovered
+    /// @param recipient Where funds were sent
+    /// @param amount Amount recovered
+    event EmergencyRecoveryExecuted(
+        bytes32 indexed bookingId,
+        address indexed recipient,
+        uint256 amount
+    );
+
+    /// @notice Emitted when emergency recovery is cancelled (M-3 fix)
+    /// @param bookingId Booking ID
+    event EmergencyRecoveryCancelled(bytes32 indexed bookingId);
 
     /// @notice Lock funds from customer into escrow
     /// @param bookingId Unique identifier for the booking
@@ -102,13 +134,24 @@ interface IEscrow {
     /// @return amount The amount locked in escrow
     function getEscrowBalance(bytes32 bookingId) external view returns (uint256);
 
-    /// @notice Set the authorized relayer address
+    /// @notice Add a new relayer address (C-1 fix)
     /// @param newRelayer Address of the new relayer
-    /// @dev Only callable by owner
-    function setRelayer(address newRelayer) external;
+    /// @dev Only callable by admin
+    function addRelayer(address newRelayer) external;
 
-    /// @notice Get the current relayer address
+    /// @notice Remove a relayer address (C-1 fix)
+    /// @param relayerToRemove Address of the relayer to remove
+    /// @dev Only callable by admin
+    function removeRelayer(address relayerToRemove) external;
+
+    /// @notice Check if an address is an authorized relayer (C-1 fix)
+    /// @param account Address to check
+    /// @return True if the address has RELAYER_ROLE
+    function isRelayer(address account) external view returns (bool);
+
+    /// @notice Get the current relayer address (deprecated)
     /// @return The address of the authorized relayer
+    /// @dev Deprecated - use isRelayer() instead
     function getRelayer() external view returns (address);
 
     /// @notice Get escrow record details
@@ -117,12 +160,28 @@ interface IEscrow {
     function getEscrowRecord(bytes32 bookingId) external view returns (EscrowRecord memory);
 
     /// @notice Pause the contract (emergency stop)
-    /// @dev Only callable by owner
+    /// @dev Only callable by admin
     function pause() external;
 
     /// @notice Unpause the contract
-    /// @dev Only callable by owner
+    /// @dev Only callable by admin
     function unpause() external;
+
+    /// @notice Request emergency recovery of stuck funds (M-3 fix)
+    /// @param bookingId Booking ID to recover
+    /// @param recipient Where to send the recovered funds
+    /// @dev Only callable by admin. Requires 7-day delay before execution.
+    function requestEmergencyRecovery(bytes32 bookingId, address recipient) external;
+
+    /// @notice Execute emergency recovery after delay period (M-3 fix)
+    /// @param bookingId Booking ID to recover
+    /// @dev Only callable by admin after 7-day delay has passed
+    function executeEmergencyRecovery(bytes32 bookingId) external;
+
+    /// @notice Cancel a pending emergency recovery request (M-3 fix)
+    /// @param bookingId Booking ID
+    /// @dev Only callable by admin
+    function cancelEmergencyRecovery(bytes32 bookingId) external;
 
     // Note: paused() view function is inherited from OpenZeppelin Pausable contract
 }

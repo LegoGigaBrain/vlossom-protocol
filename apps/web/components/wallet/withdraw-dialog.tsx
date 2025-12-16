@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "../../hooks/use-wallet";
 import {
   createWithdrawalSession,
@@ -16,6 +16,7 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { CheckCircleIcon } from "../ui/icons";
 
 interface WithdrawDialogProps {
   open: boolean;
@@ -91,6 +92,16 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
     onOpenChange(false);
   };
 
+  // Auto-close after 3 seconds on success
+  useEffect(() => {
+    if (step === "success") {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
@@ -107,12 +118,34 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
                 type="number"
                 placeholder="100"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "" || parseFloat(value) >= 0) {
+                    setAmount(value);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "-" || e.key === "e") {
+                    e.preventDefault();
+                  }
+                }}
+                min="0"
                 step="any"
+                inputMode="decimal"
+                aria-describedby="withdraw-available"
               />
-              <p className="text-caption text-text-tertiary mt-1">
-                Available: {maxUSDC.toFixed(2)} USDC
-              </p>
+              <div className="flex items-center justify-between mt-1">
+                <p id="withdraw-available" className="text-caption text-text-tertiary">
+                  Available: {maxUSDC.toFixed(2)} USDC
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setAmount(currency === "ZAR" ? (maxUSDC * 18.5).toFixed(2) : maxUSDC.toFixed(2))}
+                  className="text-caption text-brand-rose hover:underline focus:outline-none focus:ring-2 focus:ring-brand-rose focus:ring-offset-1 rounded"
+                >
+                  Use max
+                </button>
+              </div>
             </div>
 
             <div className="flex gap-2">
@@ -141,8 +174,8 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
             </p>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-caption text-red-800">{error}</p>
+              <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-caption text-red-800 dark:text-red-200">{error}</p>
               </div>
             )}
           </div>
@@ -161,8 +194,8 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
         )}
 
         {step === "success" && (
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">✓</div>
+          <div className="text-center py-8" role="status" aria-live="polite">
+            <CheckCircleIcon className="h-16 w-16 mx-auto mb-4 text-status-success animate-success" />
             <p className="text-h2 text-text-primary mb-2">Success!</p>
             <p className="text-body text-text-secondary">
               Withdrawal initiated

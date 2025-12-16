@@ -1,14 +1,583 @@
 # Vlossom Protocol - Implementation Status
 
-**Last Updated**: December 15, 2025
-**Current Version**: 1.5.0
-**V1.5 Progress**: Property Owner + Reputation Complete ✅
+**Last Updated**: December 16, 2025
+**Current Version**: 3.1.0
+**V3.1 Progress**: Multi-Network Support & Wallet Connection ✅ COMPLETE
+**UX Score**: 10.0/10 ✅ PERFECT
 
 ---
 
 ## Executive Summary
 
-Vlossom Protocol has completed **V1.5: Property Owner + Reputation Sprint**. Building on the V1.0 Beta Launch foundation (37 features), V1.5 adds the Property Owner module (chair rental marketplace) and full Reputation System (TPS calculation, reviews, verification). **V1.5 is 100% complete with 17 additional features.**
+Vlossom Protocol has completed **V3.1.0: Multi-Network Support & Wallet Connection**, adding Arbitrum network support and external wallet connection UI for testnet development and power users. Building on V2.1.0's UX perfection foundation (10.0/10 score), this release delivers:
+
+**V3.1.0 Multi-Network + Wallet Connection:**
+- **Arbitrum Support** - Config-only for Base + Arbitrum (mainnet + sepolia) ✅
+- **Wallet Connection UI** - MetaMask, Coinbase Wallet, WalletConnect ✅
+- **Faucet Button** - Testnet USDC with rate limiting and countdown ✅
+- **Environment Templates** - Base Sepolia + Arbitrum Sepolia configs ✅
+
+---
+
+**Previous Release Summary (V2.1.0 - UX Perfection):**
+
+Vlossom Protocol achieved a perfect 10/10 UX score by addressing remaining accessibility gaps, adding reliability features, and polishing the mobile experience. This release delivers:
+
+**Accessibility Completion (15 Icon Buttons):**
+- **All Icon Buttons**: Added aria-labels to 15 icon-only buttons ✅
+- **Calendar Accessibility**: Grid roles, aria-disabled, aria-selected on dates ✅
+- **Navigation ARIA**: aria-label, aria-current on bottom navigation ✅
+
+**Mobile Excellence:**
+- **Safe Area Insets**: CSS utilities for notched devices (iPhone X+) ✅
+- **Viewport Metadata**: viewportFit: cover for full-screen rendering ✅
+- **Touch Targets**: 44px minimum height on bottom navigation ✅
+- **Scroll Indicators**: Gradient fades on transaction filter buttons ✅
+
+**Reliability Features:**
+- **Error Boundary**: React class component for catching crashes ✅
+- **Route Error Boundary**: Next.js app/error.tsx for page-level errors ✅
+- **Offline Detection**: Hook with persistent toast when disconnected ✅
+- **Global Error Handler**: QueryClient mutation error toasts ✅
+
+**Form Enhancements:**
+- **Use Max Button**: Quick action for maximum balance in wallet dialogs ✅
+
+---
+
+## ✅ V3.1: Multi-Network Support & Wallet Connection (Dec 16, 2025) - COMPLETE
+
+### Multi-Network Support
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Arbitrum Sepolia | Chain ID 421614 in wagmi-config.ts | ✅ |
+| Arbitrum Mainnet | Chain ID 42161 in wagmi-config.ts | ✅ |
+| Network Selection | NEXT_PUBLIC_CHAIN env variable | ✅ |
+| Hardhat Config | arbitrum-sepolia + arbitrum networks | ✅ |
+| Chain Client | Arbitrum support in backend | ✅ |
+
+### Wallet Connection UI
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Connect Wallet Dialog | 3-step flow (Select → Connect → Connected) | ✅ |
+| MetaMask Support | injected() connector | ✅ |
+| Coinbase Wallet | coinbaseWallet() connector | ✅ |
+| WalletConnect | walletConnect() with project ID | ✅ |
+| Network Switcher | Switch between configured chains | ✅ |
+| Wallet Button | WalletButton, WalletIndicator, WalletStatus variants | ✅ |
+
+### Faucet Component
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| FaucetButton | Claim testnet USDC with rate limiting | ✅ |
+| Countdown Timer | Shows time until next claim | ✅ |
+| FaucetCard | Card with external faucet links | ✅ |
+| Network Indicator | Shows connected chain | ✅ |
+| Testnet Only | Hidden on mainnet | ✅ |
+
+### Environment Templates
+
+| File | Purpose |
+|------|---------|
+| `apps/web/.env.example` | Main template with all options |
+| `apps/web/.env.base-sepolia.example` | Base Sepolia testnet config |
+| `apps/web/.env.arbitrum-sepolia.example` | Arbitrum Sepolia testnet config |
+
+### New Files Created (V3.1)
+
+| File | Purpose |
+|------|---------|
+| `apps/web/components/wallet/connect-wallet-dialog.tsx` | Full wallet connection dialog |
+| `apps/web/components/wallet/wallet-button.tsx` | Wallet status button components |
+| `apps/web/components/wallet/faucet-button.tsx` | Testnet faucet button |
+| `apps/web/.env.example` | Main environment template |
+| `apps/web/.env.base-sepolia.example` | Base Sepolia config |
+| `apps/web/.env.arbitrum-sepolia.example` | Arbitrum Sepolia config |
+
+### Files Modified (V3.1)
+
+| File | Changes |
+|------|---------|
+| `apps/web/lib/wagmi-config.ts` | Added Arbitrum chains, connectors, network selection |
+| `contracts/hardhat.config.ts` | Added Arbitrum network configurations |
+| `services/api/src/lib/wallet/chain-client.ts` | Added Arbitrum chain support |
+| `services/api/.env.example` | Added Arbitrum configuration comments |
+
+### Supported Networks
+
+| Network | Chain ID | USDC Address | Status |
+|---------|----------|--------------|--------|
+| Base Sepolia | 84532 | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` | ✅ Contracts deployed |
+| Base Mainnet | 8453 | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` | 📝 Config ready |
+| Arbitrum Sepolia | 421614 | `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d` | 📝 Config ready |
+| Arbitrum Mainnet | 42161 | `0xaf88d065e77c8cC2239327C5EDb3A432268e5831` | 📝 Config ready |
+
+---
+
+## ✅ V2.1: UX Perfection Release (Dec 16, 2025) - COMPLETE
+
+### Sprint 5: UX Perfection - COMPLETE
+
+All remaining UX gaps have been addressed to achieve 10/10 UX score.
+
+| ID | Category | Issue | Fix | Status |
+|----|----------|-------|-----|--------|
+| **A-1** | Accessibility | 15 icon buttons missing aria-label | Added aria-labels | ✅ |
+| **A-2** | Accessibility | Calendar lacks grid roles | role="grid", aria-disabled | ✅ |
+| **M-1** | Mobile | No safe area insets | CSS utilities (.pb-safe, etc.) | ✅ |
+| **M-2** | Mobile | Touch targets < 44px | min-h-[44px] on nav buttons | ✅ |
+| **M-3** | Mobile | No scroll indicators | Gradient fades on filters | ✅ |
+| **R-1** | Reliability | No error boundaries | ErrorBoundary + app/error.tsx | ✅ |
+| **R-2** | Reliability | No offline detection | useOnlineStatus hook | ✅ |
+| **R-3** | Reliability | No global error handler | QueryClient mutation handler | ✅ |
+| **F-1** | Forms | No "Use Max" button | Added to send/withdraw dialogs | ✅ |
+
+### New Files Created (V2.1)
+
+| File | Purpose |
+|------|---------|
+| `apps/web/components/error-boundary.tsx` | React error boundary component |
+| `apps/web/app/error.tsx` | Next.js route error boundary |
+| `apps/web/hooks/use-online-status.ts` | Offline detection hook |
+
+### Files Modified (V2.1)
+
+| File | Changes |
+|------|---------|
+| `apps/web/app/globals.css` | Safe area CSS utilities (pb-safe, pt-safe, etc.) |
+| `apps/web/app/layout.tsx` | Viewport metadata with viewportFit: cover |
+| `apps/web/app/bookings/page.tsx` | aria-labels, safe-area, touch targets, nav ARIA |
+| `apps/web/app/stylists/page.tsx` | aria-labels, safe-area, touch targets, nav ARIA |
+| `apps/web/components/providers.tsx` | OnlineStatusProvider, global error handler |
+| `apps/web/components/booking/datetime-picker.tsx` | Calendar accessibility (grid roles, aria-disabled) |
+| `apps/web/components/booking/booking-dialog.tsx` | Back button aria-label |
+| `apps/web/components/wallet/send-dialog.tsx` | "Use max" button |
+| `apps/web/components/wallet/withdraw-dialog.tsx` | "Use max" button |
+| `apps/web/components/wallet/transaction-list.tsx` | Scroll indicators, filter ARIA |
+| `apps/web/components/onboarding/feature-tour.tsx` | Close button aria-label |
+| `apps/web/components/onboarding/welcome-modal.tsx` | Close button aria-label |
+
+### UX Score Breakdown
+
+| Category | V2.0 | V2.1 | Improvement |
+|----------|------|------|-------------|
+| Accessibility | 90% | 100% | +10% |
+| Reliability | 80% | 100% | +20% |
+| Mobile | 85% | 100% | +15% |
+| Form UX | 90% | 100% | +10% |
+| **Overall** | **9.0/10** | **10.0/10** | **+1.0** |
+
+---
+
+## ✅ V2.0: UX Hardening Release (Dec 16, 2025) - Sprints 1-4 COMPLETE
+
+### UX Audit Implementation - Sprints 1-3 COMPLETE
+
+Sprints 1-3 addressed CRITICAL, HIGH, and MEDIUM severity issues from the UX review.
+
+| ID | Severity | Issue | Fix | Status |
+|----|----------|-------|-----|--------|
+| **C-1** | CRITICAL | Dialog lacks role="dialog" | Radix UI migration | ✅ |
+| **C-2** | CRITICAL | No focus trapping | Radix handles automatically | ✅ |
+| **C-3** | CRITICAL | No ESC key to close | Radix handles automatically | ✅ |
+| **C-6** | CRITICAL | Payment closeable during processing | preventClose prop | ✅ |
+| **C-8** | CRITICAL | No double-spend protection | Button disabled + loading | ✅ |
+| **C-9** | CRITICAL | Network/app errors not distinguished | error-utils.ts | ✅ |
+| **C-15** | CRITICAL | No skip links | Added to layout.tsx | ✅ |
+| **H-4** | HIGH | Page reload instead of retry | Retry button | ✅ |
+| **H-12** | HIGH | No toast notifications | Sonner integration | ✅ |
+| **H-3** | HIGH | Progress indicator not accessible | ARIA progressbar | ✅ |
+| **H-22** | HIGH | Dialogs not scrollable on mobile | Responsive max-height | ✅ |
+| **M-5** | MEDIUM | Negative amounts allowed | Multi-layer input validation | ✅ |
+| **M-15** | MEDIUM | Inconsistent emoji icons | SVG CheckCircleIcon | ✅ |
+| **M-18** | MEDIUM | Success state too brief | 3-second auto-close | ✅ |
+
+### New Files Created (V2.0)
+
+| File | Purpose |
+|------|---------|
+| `apps/web/lib/error-utils.ts` | Error classification utility |
+| `apps/web/components/ui/card.tsx` | Card container component |
+| `apps/web/components/ui/badge.tsx` | Status badge component |
+
+### Files Modified (V2.0)
+
+| File | Changes |
+|------|---------|
+| `apps/web/components/ui/dialog.tsx` | Radix UI migration, preventClose prop |
+| `apps/web/components/ui/button.tsx` | Loading prop with spinner and aria-busy |
+| `apps/web/app/layout.tsx` | Skip link for keyboard accessibility |
+| `apps/web/components/providers.tsx` | Toaster integration |
+| `apps/web/components/booking/payment-step.tsx` | Double-click protection, ARIA live |
+| `apps/web/app/stylist/dashboard/requests/page.tsx` | Toast notifications, retry button |
+| `apps/web/package.json` | Added sonner dependency |
+| `apps/web/components/wallet/send-dialog.tsx` | Negative amount prevention, auto-close, SVG icon |
+| `apps/web/components/wallet/add-money-dialog.tsx` | Negative amount prevention, auto-close, SVG icon |
+| `apps/web/components/wallet/withdraw-dialog.tsx` | Negative amount prevention, auto-close, SVG icon |
+| `apps/web/components/booking/booking-dialog.tsx` | Progress indicator ARIA |
+| `apps/web/components/bookings/cancel-dialog.tsx` | Destructive button variant |
+
+### Dependencies Added (V2.0)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `sonner` | ^2.0.7 | Toast notifications |
+
+### Sprint 2 Completed ✅
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Wallet address copy | CopyButton component | ✅ |
+| Password strength | PasswordStrength indicator | ✅ |
+| Touch targets | 44px minimum button size | ✅ |
+| Scroll indicators | Gradient fades on tabs | ✅ |
+| Autocomplete | Form input attributes | ✅ |
+| Reduced motion | prefers-reduced-motion CSS | ✅ |
+| SVG icons | Replaced emojis in empty states | ✅ |
+
+### Sprint 3 Completed ✅
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Negative amounts | Multi-layer input validation | ✅ |
+| Success duration | 3-second auto-close timer | ✅ |
+| SVG success icons | CheckCircleIcon in dialogs | ✅ |
+| Progress ARIA | Screen reader support | ✅ |
+| Mobile dialogs | Responsive scrolling | ✅ |
+| Destructive buttons | Button variant added | ✅ |
+
+### Sprint 4 (LOW Priority) - COMPLETE ✅
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Subtle animations | CSS keyframes, card-hover, animate-success | ✅ |
+| Custom illustrations | 8 SVG illustrations for empty states | ✅ |
+| Dark mode audit | Fixed hardcoded colors in wallet/transaction components | ✅ |
+| Performance optimization | Lazy loading: 95% reduction on paymaster, 54% on wallet | ✅ |
+
+---
+
+## ✅ V1.9: Security Hardening Release (Dec 15, 2025) - COMPLETE
+
+*(See below for details)*
+
+---
+
+## Previous Releases
+
+### V1.9 Security Hardening Summary
+
+Vlossom Protocol completed **V1.9.0: Security Hardening Release** implementing all 14 security recommendations from the V1.8.0 security audit. Building on the quality foundation of V1.8.0, this release delivers:
+
+**HIGH Severity Fixes (3):**
+- **H-1 JWT Secret Validation**: Minimum 32-character length check and placeholder detection at startup ✅
+- **H-2 Rate Limiting Documentation**: Production warning, Redis upgrade guide, in-memory limitation documented ✅
+- **H-3 SQL Injection Audit**: Verified safe - all queries use Prisma parameterized queries ✅
+
+**MEDIUM Severity Fixes (7):**
+- **M-1 Treasury Address Validation**: Required in production, development-only fallback ✅
+- **M-3 RPC Failover Transport**: viem `fallback()` with automatic failover to backup RPC ✅
+- **M-4 Security Event Logging**: Authentication failures logged with IP and User-Agent ✅
+- **M-5 Correlation ID Propagation**: Implemented via M-3 transport logging ✅
+- **M-6 Booking API Authorization**: customerId derived from JWT only (BREAKING CHANGE) ✅
+- **M-7 Production Secret Validation**: Startup validation for required secrets ✅
+
+**LOW Severity Fixes (4):**
+- **L-1 Bcrypt Rounds Configuration**: Configurable via BCRYPT_ROUNDS environment variable ✅
+- **L-2 Display Name Sanitization**: Zod schema with safe character validation ✅
+- **L-3 Escrow Collision Detection**: Enhanced logging before fund locking ✅
+- **L-4 Authorization Failure Logging**: Structured security event logging ✅
+
+---
+
+## ✅ V1.9: Security Hardening Release (Dec 15, 2025) - COMPLETE
+
+### Security Audit Implementation - COMPLETE
+
+All 14 security findings from the V1.8.0 security audit have been implemented and verified.
+
+| ID | Severity | Finding | Fix | Status |
+|----|----------|---------|-----|--------|
+| **H-1** | HIGH | JWT secret only checked existence | 32-char min + placeholder detection | ✅ |
+| **H-2** | HIGH | In-memory rate limiting docs | Production warning + Redis guide | ✅ |
+| **H-3** | HIGH | SQL injection audit | Verified safe (Prisma ORM) | ✅ |
+| **M-1** | MEDIUM | Treasury hardcoded fallback | Required in production | ✅ |
+| **M-3** | MEDIUM | Single RPC endpoint | viem fallback() transport | ✅ |
+| **M-4** | MEDIUM | Auth failures not logged | Structured security logging | ✅ |
+| **M-5** | MEDIUM | Correlation ID propagation | Via transport logging | ✅ |
+| **M-6** | MEDIUM | customerId from request body | Derived from JWT only | ✅ |
+| **M-7** | MEDIUM | Missing secret validation | Startup validation | ✅ |
+| **L-1** | LOW | Hardcoded bcrypt rounds | BCRYPT_ROUNDS env var | ✅ |
+| **L-2** | LOW | Display name not sanitized | Zod safe character schema | ✅ |
+| **L-3** | LOW | Escrow collision risk | Enhanced collision detection | ✅ |
+| **L-4** | LOW | Authz failures not logged | Structured security logging | ✅ |
+
+### New Files Created (V1.9)
+
+| File | Purpose |
+|------|---------|
+| `docs/security/rate-limiting.md` | Redis upgrade guide and architecture documentation |
+| `services/api/jest.setup.js` | Test environment configuration with valid secrets |
+
+### Files Modified (V1.9)
+
+| File | Changes |
+|------|---------|
+| `services/api/src/middleware/auth.ts` | H-1, M-4, L-1 |
+| `services/api/src/middleware/rate-limiter.ts` | H-2 |
+| `services/api/src/middleware/authorize.ts` | L-4 |
+| `services/api/src/lib/escrow-client.ts` | M-1, L-3 |
+| `services/api/src/lib/validation.ts` | M-6, L-2 |
+| `services/api/src/lib/wallet/chain-client.ts` | M-3 |
+| `services/api/src/routes/bookings.ts` | M-6, H-3 |
+| `services/api/src/index.ts` | M-7 |
+| `services/api/.env.example` | New variables documented |
+
+### Environment Variable Changes (V1.9)
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `JWT_SECRET` | Must be 32+ characters, no placeholders | Production |
+| `RPC_URL_FALLBACK` | Backup RPC endpoint | Recommended |
+| `BCRYPT_ROUNDS` | Password hash rounds (default: 12) | Optional |
+| `TREASURY_ADDRESS` | Platform treasury address | Production |
+
+### Breaking Changes (V1.9)
+
+- **M-6**: `POST /api/v1/bookings` no longer accepts `customerId` in request body
+  - Migration: Remove `customerId` from booking creation requests
+  - Customer ID is now derived from the JWT token automatically
+
+---
+
+## ✅ V1.8: Quality Excellence Release (Dec 15, 2025) - COMPLETE
+
+*(See CHANGELOG.md for full V1.8 details)*
+
+---
+
+## ✅ V1.7: Security & Quality Release (Dec 15, 2025)
+
+### Critical Security Fixes - COMPLETE
+
+| Issue | Problem | Solution | Status |
+|-------|---------|----------|--------|
+| C-1 | Weak bookingId hashing | keccak256 cryptographic hash | ✅ |
+| C-2 | JWT secret fallback | Fail-fast if not configured | ✅ |
+| C-3 | No coordinate validation | WGS84 validation (-90/90, -180/180) | ✅ |
+| C-4 | Authorization bypass | Use req.userId instead of input.stylistId | ✅ |
+
+### High Priority Improvements - COMPLETE
+
+| Issue | Problem | Solution | Status |
+|-------|---------|----------|--------|
+| H-1 | No escrow rate limiting | Rate limiter (10 ops/min, $100k/hour) | ✅ |
+| H-3 | Dynamic query injection | Zod enum validation for filters | ✅ |
+| H-4 | Missing database indexes | serviceId + composite status index | ✅ |
+
+### Medium Priority - Technical Debt - COMPLETE
+
+| Issue | Problem | Solution | Status |
+|-------|---------|----------|--------|
+| M-1 | Silent escrow failures | EscrowFailure model + tracking | ✅ |
+| M-2 | Race conditions on payment | Idempotency keys (Stripe-style) | ✅ |
+| M-3 | SDK network failures | Exponential backoff retry | ✅ |
+| M-5 | External API cascading | Circuit breaker pattern | ✅ |
+
+### Low Priority - Code Quality - COMPLETE
+
+| Issue | Problem | Solution | Status |
+|-------|---------|----------|--------|
+| L-3 | Magic numbers scattered | Centralized constants.ts | ✅ |
+| L-4 | No blockchain telemetry | Sentry integration for escrow | ✅ |
+
+### New Files Created (V1.7)
+
+**Backend:**
+- `services/api/src/lib/escrow-rate-limiter.ts` - Rate limiting for escrow operations
+- `services/api/src/lib/circuit-breaker.ts` - Circuit breaker pattern implementation
+- `services/api/src/lib/constants.ts` - Centralized application constants
+- `services/api/src/middleware/idempotency.ts` - Stripe-style idempotency middleware
+
+**Database:**
+- New model: `EscrowFailure` - Failed escrow operation tracking
+- New model: `IdempotentRequest` - Idempotent response caching
+
+**SDK:**
+- Updated `packages/sdk/src/client.ts` - Added retry logic with exponential backoff
+
+---
+
+## ✅ V1.8: Quality Excellence Release (Dec 15, 2025) - COMPLETE
+
+### Test Coverage (H-2) - COMPLETE (+4 points)
+
+| Test File | Coverage | Tests |
+|-----------|----------|-------|
+| `circuit-breaker.test.ts` | State transitions, execute, fallbacks | 25+ tests |
+| `escrow-rate-limiter.test.ts` | Sliding window, limits, cleanup | 20+ tests |
+| `idempotency.test.ts` | Middleware, caching, TTL | 20+ tests |
+| `escrow-client.test.ts` | Blockchain mocks, Sentry telemetry | 15+ tests |
+
+### Smart Contract Events (M-4) - COMPLETE (+2 points)
+
+| Contract | Event | Changes |
+|----------|-------|---------|
+| ReputationRegistry.sol | ActorRegistered | Added `indexed actorType` |
+| ReputationRegistry.sol | ReputationEventRecorded | Added `indexed eventType` |
+| PropertyRegistry.sol | PropertyStatusChanged | Added `indexed previousStatus`, `indexed newStatus` |
+| IVlossomPaymaster.sol | Funded | Added `indexed amount` |
+
+### Paymaster Auto-Replenishment (M-6) - COMPLETE (+2 points)
+
+| File | Purpose |
+|------|---------|
+| `lib/paymaster/index.ts` | Module exports |
+| `lib/paymaster/monitor.ts` | Balance monitoring, stats, alerts |
+| `lib/paymaster/alerts.ts` | Slack/email notifications |
+| Prisma models | PaymasterTransaction, PaymasterDailyStat, PaymasterAlertConfig, PaymasterAlert |
+
+### Error Format Consistency (L-1) - COMPLETE (+1 point) ✅
+
+- [x] Refactored `routes/bookings.ts` - all inline errors migrated to `createError()`
+- [x] Refactored `routes/wallet.ts` - all inline errors migrated to `createError()`
+- [x] Refactored `routes/stylists.ts` - all inline errors migrated to `createError()`
+- [x] Replaced `console.error` with `logger.error` across all route files
+
+### TypeScript Strictness (L-2) - COMPLETE (+1 point) ✅
+
+- [x] Replace `catch (error: any)` with typed error handling
+- [x] Add proper types to `lib/logger.ts` functions
+- [x] Update `AuthenticatedRequest` interface with requestId
+- [x] Create `AvailabilitySchema` interface for stylists
+
+### TypeScript Compilation (Phase 6) - COMPLETE ✅
+
+All TypeScript compilation errors have been resolved. The codebase now compiles with 0 errors.
+
+**Files Fixed:**
+- `middleware/auth.ts` - JWT_SECRET type narrowing
+- `routes/bookings.ts` - NotificationType literals, locationType enum values
+- `routes/admin/bookings.ts` - Schema field names (services→service, totalAmountCents→quoteAmountCents)
+- `routes/admin/users.ts` - specializations→specialties, JSON filter syntax
+- `routes/reviews.ts` - services→service, completedAt→actualEndTime
+- `routes/stylists.ts` - JSON type assertions with `as unknown`
+- `routes/internal.ts` - releaseEscrow→releaseFundsFromEscrow import
+- `lib/wallet/transfer-service.ts` - Added chain parameter to writeContract
+- `lib/scheduling/scheduling-service.ts` - locationType interface values
+- `middleware/error-handler.ts` - Fixed spread types issue
+- `middleware/idempotency.ts` - Fixed unused parameters, uninitialized variables
+- `__tests__/fixtures.ts` - Schema mismatches (8 fixes)
+- Various test files - Router type annotations
+
+**Patterns Applied:**
+- `ReturnType<typeof Router>` for router type declarations
+- `as unknown as T` for Prisma JSON field type assertions
+- String literals instead of enums for NotificationType
+- Explicit `chain` and `account` parameters for viem writeContract calls
+- Underscore prefix for unused function parameters
+
+---
+
+## ✅ V1.7: Security & Quality Release (Dec 15, 2025) - COMPLETE
+
+*(See above for full V1.7 details)*
+
+---
+
+## ✅ V1.6: Architecture Review Implementation (Dec 15, 2025)
+
+### API Infrastructure - COMPLETE
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| API Versioning | All routes use `/api/v1/` prefix | ✅ |
+| Correlation IDs | X-Request-ID generation and propagation | ✅ |
+| Error Standardization | 50+ error codes, ALL routes use `createError()` | ✅ |
+| Request Logging | Request IDs in all log entries | ✅ |
+
+### Error Standardization Details - COMPLETE
+
+**All 12 route files standardized:**
+- `auth.ts` - Authentication errors (INVALID_CREDENTIALS, EMAIL_EXISTS, ACCOUNT_LOCKED)
+- `bookings.ts` - Booking flow errors (BOOKING_NOT_FOUND, INVALID_STATUS_TRANSITION)
+- `stylists.ts` - Stylist errors (SERVICE_NOT_FOUND, VALIDATION_ERROR)
+- `wallet.ts` - Wallet errors (INSUFFICIENT_BALANCE, WALLET_NOT_FOUND)
+- `upload.ts` - Upload errors (UPLOAD_FAILED, INVALID_FILE_TYPE)
+- `notifications.ts` - Notification errors (NOTIFICATION_NOT_FOUND)
+- `internal.ts` - Internal API errors (ESCROW_RELEASE_FAILED)
+- `reviews.ts` - Review errors (DUPLICATE_REVIEW, REVIEW_NOT_FOUND)
+- `properties.ts` - Property errors (PROPERTY_NOT_FOUND, CHAIR_NOT_FOUND, STYLIST_BLOCKED, CHAIR_UNAVAILABLE, RENTAL_NOT_FOUND)
+- `admin/paymaster.ts` - Admin paymaster errors (ADMIN_REQUIRED, SERVICE_NOT_INITIALIZED)
+- `admin/bookings.ts` - Admin booking errors (INVALID_STATUS, VALIDATION_ERROR)
+- `admin/users.ts` - Admin user errors (USER_NOT_FOUND, INVALID_ROLE)
+
+**Error code categories (50+ total):**
+| Category | Error Codes |
+|----------|-------------|
+| Authentication | UNAUTHORIZED, INVALID_TOKEN, INVALID_CREDENTIALS, FORBIDDEN, ACCOUNT_LOCKED |
+| Validation | VALIDATION_ERROR, MISSING_FIELD, INVALID_EMAIL, WEAK_PASSWORD, INVALID_ROLE |
+| Resources | NOT_FOUND, USER_NOT_FOUND, BOOKING_NOT_FOUND, WALLET_NOT_FOUND, SERVICE_NOT_FOUND, PROPERTY_NOT_FOUND, CHAIR_NOT_FOUND, REVIEW_NOT_FOUND, NOTIFICATION_NOT_FOUND |
+| Conflicts | EMAIL_EXISTS, DUPLICATE_ENTRY, DUPLICATE_REVIEW |
+| Business Logic | INVALID_STATUS, INVALID_STATUS_TRANSITION, CANNOT_CANCEL, INSUFFICIENT_BALANCE, SLOT_UNAVAILABLE, BOOKING_ALREADY_PAID, FAUCET_RATE_LIMITED |
+| Property | STYLIST_BLOCKED, CHAIR_UNAVAILABLE, CHAIR_HAS_ACTIVE_RENTALS, RENTAL_NOT_FOUND, RENTAL_ALREADY_PROCESSED, STYLIST_ALREADY_BLOCKED |
+| Payment | PAYMENT_FAILED, PAYMENT_VERIFICATION_FAILED, ESCROW_ERROR, ESCROW_RELEASE_FAILED |
+| Admin | ADMIN_REQUIRED, SERVICE_NOT_INITIALIZED |
+| Server | INTERNAL_ERROR, DATABASE_ERROR, SERVICE_UNAVAILABLE, TRANSACTION_FAILED, CONTRACT_ERROR |
+
+### Integration Testing - COMPLETE
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Test Infrastructure | Setup, fixtures, mocks | ✅ |
+| Booking Flow Tests | Complete lifecycle tests | ✅ |
+| Authorization Tests | Role-based access control | ✅ |
+| Supertest Integration | HTTP testing support | ✅ |
+
+### Admin Dashboard - COMPLETE
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Admin Users API | List, filter, update users | ✅ |
+| Admin Bookings API | List, filter, status override | ✅ |
+| Admin Users Page | Search, pagination, stats | ✅ |
+| Admin Bookings Page | Filters, statistics, list | ✅ |
+| Role Authorization | requireRole() middleware | ✅ |
+
+### SDK Completion - COMPLETE
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| VlossomClient | Core HTTP client with error handling | ✅ |
+| Auth Module | Login, signup, logout, getCurrentUser | ✅ |
+| Bookings Module | CRUD, state transitions | ✅ |
+| Wallet Module | Balance, transfer, faucet | ✅ |
+| Stylists Module | Search, profile, services | ✅ |
+| createVlossom() | Factory function | ✅ |
+
+### New Files Created (V1.6)
+
+**Backend:**
+- `services/api/src/middleware/correlation-id.ts` - Request ID middleware
+- `services/api/src/routes/admin/users.ts` - Admin users API
+- `services/api/src/routes/admin/bookings.ts` - Admin bookings API
+- `services/api/src/__tests__/setup.ts` - Test infrastructure
+- `services/api/src/__tests__/fixtures.ts` - Test data factories
+- `services/api/src/routes/__tests__/bookings.integration.test.ts` - Integration tests
+
+**Frontend:**
+- `apps/web/app/admin/users/page.tsx` - Admin users page
+- `apps/web/app/admin/bookings/page.tsx` - Admin bookings page
+
+**SDK:**
+- `packages/sdk/src/client.ts` - Core API client
+- `packages/sdk/src/auth.ts` - Auth module
+- `packages/sdk/src/bookings.ts` - Bookings module
+- `packages/sdk/src/wallet.ts` - Wallet module
+- `packages/sdk/src/stylists.ts` - Stylists module
 
 ---
 
@@ -196,6 +765,56 @@ model Review {
 - `ApprovalMode`: APPROVAL_REQUIRED, AUTO_APPROVE, CONDITIONAL
 - `ChairRentalStatus`: PENDING, APPROVED, REJECTED, ACTIVE, COMPLETED, CANCELLED
 - `ReviewType`: CUSTOMER_TO_STYLIST, STYLIST_TO_CUSTOMER, STYLIST_TO_PROPERTY, PROPERTY_TO_STYLIST
+
+---
+
+## ✅ V1.5.1: Smart Contract Security Audit (Dec 15, 2025)
+
+### Security Audit - COMPLETE
+
+All 8 security findings from the smart contract audit have been remediated and verified.
+
+| ID | Severity | Finding | Fix |
+|----|----------|---------|-----|
+| **C-1** | CRITICAL | Escrow single relayer vulnerability | Multi-relayer via AccessControl |
+| **H-1** | HIGH | Paymaster whitelist bypass | Function selector whitelist |
+| **H-2** | HIGH | PropertyRegistry unbounded array DoS | OpenZeppelin EnumerableSet |
+| **H-3** | HIGH | ReputationRegistry batch validation gap | Aligned batch validation |
+| **M-1** | MEDIUM | Guardian recovery not implemented | 48-hour time-locked recovery |
+| **M-2** | MEDIUM | PropertyRegistry arbitrary suspend | 24-hour suspension timelock |
+| **M-3** | MEDIUM | Escrow emergency recovery missing | 7-day time-locked recovery |
+| **M-4** | MEDIUM | Paymaster rate limit reset abuse | Lifetime caps + cooldown |
+
+### Contracts Modified
+
+| Contract | Fixes Applied | Status |
+|----------|---------------|--------|
+| `Escrow.sol` | C-1, M-3 | ✅ Complete |
+| `IEscrow.sol` | C-1, M-3 | ✅ Complete |
+| `VlossomPaymaster.sol` | H-1, M-4 | ✅ Complete |
+| `IVlossomPaymaster.sol` | H-1, M-4 | ✅ Complete |
+| `PropertyRegistry.sol` | H-2, M-2 | ✅ Complete |
+| `ReputationRegistry.sol` | H-3 | ✅ Complete |
+| `VlossomAccount.sol` | M-1 | ✅ Complete |
+| `IVlossomAccount.sol` | M-1 | ✅ Complete |
+
+### Key Security Improvements
+
+1. **Multi-Relayer Support (C-1)**: Escrow now uses OpenZeppelin AccessControl with `RELAYER_ROLE` for multiple authorized relayers, eliminating single point of failure.
+
+2. **Function Selector Whitelist (H-1)**: Paymaster validates both target contract AND function selector, preventing whitelist bypass via nested calls.
+
+3. **O(1) Property Tracking (H-2)**: PropertyRegistry uses EnumerableSet instead of arrays, preventing DoS via unbounded iteration.
+
+4. **Batch Validation Parity (H-3)**: ReputationRegistry `recordEventsBatch()` now has identical validation to `recordEvent()`.
+
+5. **Guardian Recovery (M-1)**: VlossomAccount implements 48-hour time-locked multi-guardian recovery with 2-guardian approval threshold.
+
+6. **Suspension Timelock (M-2)**: PropertyRegistry suspensions now require 24-hour delay with dispute mechanism for property owners.
+
+7. **Emergency Recovery (M-3)**: Escrow has 7-day time-locked emergency recovery to prevent permanent fund lockup.
+
+8. **Rate Limit Hardening (M-4)**: Paymaster tracks lifetime operations with configurable caps and 1-hour cooldown after rate limit hit.
 
 ---
 
@@ -929,11 +1548,20 @@ model PaymasterDailyStats {
 | M3: Stylist Can Service | F3.1-F3.7 (7) | ✅ 100% | Dec 14, 2025 |
 | M4: Production Ready | F4.1-F4.7 (7) | ✅ 100% | Dec 14, 2025 |
 | M5: Beta Launch | F5.1-F5.5 (5) | ✅ 100% | Dec 14, 2025 |
-| **M6: Property Owner + Reputation** | F6.1-F7.7 (17) | ✅ 100% | Dec 15, 2025 |
+| M6: Property Owner + Reputation | F6.1-F7.7 (17) | ✅ 100% | Dec 15, 2025 |
+| Security Audit | 8 findings (1C/3H/4M) | ✅ 100% | Dec 15, 2025 |
+| Architecture Review | V1.6.0 (API, SDK, Admin) | ✅ 100% | Dec 15, 2025 |
+| Security & Quality | V1.7.0-V1.9.0 | ✅ 100% | Dec 15, 2025 |
+| **UX Hardening** | V2.0.0 (Sprints 1-4) | ✅ 100% | Dec 16, 2025 |
+| **UX Perfection** | V2.1.0 (Sprint 5) | ✅ 100% | Dec 16, 2025 |
+| **Multi-Network + Wallet** | V3.1.0 | ✅ 100% | Dec 16, 2025 |
 
 **Total Features Completed**: 54/54 (100%) 🎉
+**Security Findings Remediated**: 22/22 (100%) 🔒 (8 contract + 14 backend)
+**UX Score**: 10.0/10 ✨
+**Networks Supported**: 4 (Base + Arbitrum, mainnet + sepolia)
 
-**V1.5 IS COMPLETE - PROPERTY OWNER + REPUTATION LAUNCHED**
+**V3.1.0 IS COMPLETE - MULTI-NETWORK SUPPORT ACHIEVED**
 
 ---
 
@@ -1010,28 +1638,93 @@ model PaymasterDailyStats {
 
 ---
 
-## 🚀 V1.5 Complete - What's Next?
+## 🚀 V3.1.0 Complete - What's Next?
 
-**V1.5 Status**: ✅ COMPLETE (54 features across 6 milestones)
+**V3.1.0 Status**: ✅ COMPLETE (Multi-Network Support & Wallet Connection)
 
-**V1.5 Achievements**:
-- Property Owner module with full chair rental marketplace
-- Reputation system with TPS calculation pipeline
-- Review system (multi-directional: customer↔stylist↔property)
-- Verification logic (70% score + 5 bookings)
-- 17 new API endpoints
-- 2 new smart contracts (PropertyRegistry, ReputationRegistry)
-- Property Owner dashboard (4 pages)
-- Reputation UI components
+**V3.1.0 Achievements**:
+- **Multi-Network Support** - Base + Arbitrum (mainnet + sepolia)
+- **Wallet Connection UI** - MetaMask, Coinbase Wallet, WalletConnect
+- **Faucet Component** - Testnet USDC with rate limiting and countdown
+- **Environment Templates** - Base Sepolia + Arbitrum Sepolia configs
 
-**Next Steps (V1.6 - Wallet AA Integration)**:
-- Wallet AA full integration
-- Paymaster gasless transactions for all flows
-- On/off ramp production (MoonPay SDK)
-- DeFi tab foundation
-- Rewards engine
-- Referrals program
+**Next: V3.5 Multi-Auth & Passkey Support** (Planned):
+- **SIWE (Sign-In with Ethereum)** - External wallet authentication
+- **Account Linking** - Connect email account to external wallet
+- **Passkeys** - Biometric session unlock (Face ID, Windows Hello)
+
+**V2.1.0 Achievements** (UX Perfection):
+- **Accessibility Complete** - All 15 icon buttons have aria-labels
+- **Calendar Accessibility** - Grid roles, aria-disabled, aria-selected
+- **Mobile Excellence** - Safe area insets, 44px touch targets, scroll indicators
+- **Reliability** - Error boundaries, offline detection, global error handler
+- **Form Enhancements** - "Use max" buttons for wallet dialogs
+
+**V2.0.0 Achievements** (UX Hardening):
+- **WCAG 2.1 AA Compliance** - Dialogs, skip links, ARIA live regions
+- **Payment Security** - Double-click protection, close prevention
+- **User Feedback** - Toast notifications, retry buttons, password strength
+- **Visual Polish** - SVG icons, destructive buttons, mobile scrolling
+- **Performance** - 95% reduction on paymaster page, 54% on wallet page
+
+**V1.9.0 Achievements** (Security Hardening):
+- **14 Security Findings** - 3 HIGH, 7 MEDIUM, 4 LOW all addressed
+- JWT secret validation, rate limiting documentation
+- RPC failover, security event logging
+- Production secret validation
 
 ---
 
-*Last Updated: December 15, 2025*
+## 🔮 V3.0 Roadmap Suggestions
+
+Based on V2.1.0 completion, the following features are recommended for V3.0:
+
+### Priority 1: Internationalization & Expansion
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| **i18n Framework** | Full internationalization with next-intl or next-i18next | 2-3 weeks |
+| **Multi-language Support** | English, Afrikaans, Zulu, Xhosa initially | 1-2 weeks |
+| **RTL Support** | Right-to-left language support for future markets | 1 week |
+| **Currency Localization** | Dynamic currency display based on user locale | 3-5 days |
+
+### Priority 2: Real-time & Connectivity
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| **WebSocket Updates** | Real-time booking status, notifications | 2 weeks |
+| **Optimistic UI Updates** | Instant feedback for all mutations | 1-2 weeks |
+| **Push Notifications** | Browser push for booking updates | 1 week |
+| **Service Worker / PWA** | Offline support, installable app | 2 weeks |
+
+### Priority 3: Mobile Experience
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| **React Native App** | Native iOS/Android with shared business logic | 6-8 weeks |
+| **Haptic Feedback** | Native vibration for key interactions | 1 week |
+| **Biometric Auth** | FaceID/TouchID for mobile app | 1 week |
+| **Deep Linking** | Universal links for booking sharing | 3-5 days |
+
+### Priority 4: DeFi Integration
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| **VLP Liquidity Pool** | Vlossom Liquidity Pool contract | 4-6 weeks |
+| **Yield Dashboard** | LP deposit/withdraw with yield tracking | 2-3 weeks |
+| **Rewards Engine** | Loyalty points → yield multipliers | 2-3 weeks |
+| **Referral Program** | Referral bonuses with LP unlock | 2 weeks |
+
+### Priority 5: Business Features
+| Feature | Description | Effort |
+|---------|-------------|--------|
+| **Multi-currency Wallet** | Support ETH, other stablecoins | 2-3 weeks |
+| **Subscription Plans** | Premium stylist features | 2-3 weeks |
+| **Salon Business Accounts** | Multi-stylist management | 4-6 weeks |
+| **Advanced Analytics** | Booking patterns, revenue forecasting | 2-3 weeks |
+
+### Out of Scope (V4.0+)
+- Tokenized salon financing
+- Cross-chain DeFi routing
+- Educational content marketplace
+- White-label platform
+
+---
+
+*Last Updated: December 16, 2025*

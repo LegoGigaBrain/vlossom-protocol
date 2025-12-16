@@ -3,12 +3,13 @@
  * Endpoints for paymaster monitoring dashboard
  */
 
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { PaymasterMonitor, BalanceAlertService, AlertConfig } from "../../lib/paymaster";
+import { createError } from "../../middleware/error-handler";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // Initialize services (these should be injected in production)
 let paymasterMonitor: PaymasterMonitor | null = null;
@@ -23,7 +24,7 @@ export function initPaymasterRoutes(
   options?: {
     slackWebhookUrl?: string;
   }
-) {
+): ReturnType<typeof Router> {
   paymasterMonitor = new PaymasterMonitor(prisma, paymasterAddress);
   alertService = new BalanceAlertService(prisma, {
     slackWebhookUrl: options?.slackWebhookUrl,
@@ -38,12 +39,12 @@ export function initPaymasterRoutes(
 /**
  * Middleware to check admin authorization
  */
-function requireAdmin(req: Request, res: Response, next: () => void) {
+function requireAdmin(req: Request, _res: Response, next: NextFunction) {
   // In production, verify JWT and check admin role
   const user = (req as Request & { user?: { roles: string[] } }).user;
 
   if (!user || !user.roles.includes("ADMIN")) {
-    return res.status(403).json({ error: "Admin access required" });
+    return next(createError("ADMIN_REQUIRED"));
   }
 
   next();
@@ -53,10 +54,10 @@ function requireAdmin(req: Request, res: Response, next: () => void) {
  * GET /api/admin/paymaster/stats
  * Get comprehensive paymaster statistics
  */
-router.get("/stats", requireAdmin, async (req: Request, res: Response) => {
+router.get("/stats", requireAdmin, async (_req: Request, res: Response, next: NextFunction) => {
   try {
     if (!paymasterMonitor) {
-      return res.status(503).json({ error: "Paymaster monitor not initialized" });
+      return next(createError("SERVICE_NOT_INITIALIZED"));
     }
 
     const stats = await paymasterMonitor.getStats();
@@ -91,7 +92,7 @@ router.get("/stats", requireAdmin, async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching paymaster stats:", error);
-    res.status(500).json({ error: "Failed to fetch stats" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -99,10 +100,10 @@ router.get("/stats", requireAdmin, async (req: Request, res: Response) => {
  * GET /api/admin/paymaster/transactions
  * Get paginated transaction history
  */
-router.get("/transactions", requireAdmin, async (req: Request, res: Response) => {
+router.get("/transactions", requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!paymasterMonitor) {
-      return res.status(503).json({ error: "Paymaster monitor not initialized" });
+      return next(createError("SERVICE_NOT_INITIALIZED"));
     }
 
     const querySchema = z.object({
@@ -140,10 +141,10 @@ router.get("/transactions", requireAdmin, async (req: Request, res: Response) =>
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid query parameters", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Error fetching transactions:", error);
-    res.status(500).json({ error: "Failed to fetch transactions" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -151,10 +152,10 @@ router.get("/transactions", requireAdmin, async (req: Request, res: Response) =>
  * GET /api/admin/paymaster/gas-usage
  * Get gas usage history for charts
  */
-router.get("/gas-usage", requireAdmin, async (req: Request, res: Response) => {
+router.get("/gas-usage", requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!paymasterMonitor) {
-      return res.status(503).json({ error: "Paymaster monitor not initialized" });
+      return next(createError("SERVICE_NOT_INITIALIZED"));
     }
 
     const querySchema = z.object({
@@ -178,10 +179,10 @@ router.get("/gas-usage", requireAdmin, async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid query parameters", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Error fetching gas usage:", error);
-    res.status(500).json({ error: "Failed to fetch gas usage" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -189,17 +190,17 @@ router.get("/gas-usage", requireAdmin, async (req: Request, res: Response) => {
  * GET /api/admin/paymaster/alerts
  * Get alert configurations
  */
-router.get("/alerts", requireAdmin, async (req: Request, res: Response) => {
+router.get("/alerts", requireAdmin, async (_req: Request, res: Response, next: NextFunction) => {
   try {
     if (!alertService) {
-      return res.status(503).json({ error: "Alert service not initialized" });
+      return next(createError("SERVICE_NOT_INITIALIZED"));
     }
 
     const configs = await alertService.getAlertConfigs();
     res.json({ alerts: configs });
   } catch (error) {
     console.error("Error fetching alerts:", error);
-    res.status(500).json({ error: "Failed to fetch alerts" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -207,10 +208,10 @@ router.get("/alerts", requireAdmin, async (req: Request, res: Response) => {
  * POST /api/admin/paymaster/alerts/config
  * Update alert configuration
  */
-router.post("/alerts/config", requireAdmin, async (req: Request, res: Response) => {
+router.post("/alerts/config", requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!alertService) {
-      return res.status(503).json({ error: "Alert service not initialized" });
+      return next(createError("SERVICE_NOT_INITIALIZED"));
     }
 
     const bodySchema = z.object({
@@ -228,10 +229,10 @@ router.post("/alerts/config", requireAdmin, async (req: Request, res: Response) 
     res.json({ success: true, config });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Invalid request body", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Error updating alert config:", error);
-    res.status(500).json({ error: "Failed to update alert config" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -239,10 +240,10 @@ router.post("/alerts/config", requireAdmin, async (req: Request, res: Response) 
  * POST /api/admin/paymaster/alerts/check
  * Manually trigger alert check
  */
-router.post("/alerts/check", requireAdmin, async (req: Request, res: Response) => {
+router.post("/alerts/check", requireAdmin, async (_req: Request, res: Response, next: NextFunction) => {
   try {
     if (!paymasterMonitor || !alertService) {
-      return res.status(503).json({ error: "Services not initialized" });
+      return next(createError("SERVICE_NOT_INITIALIZED"));
     }
 
     const triggers = await paymasterMonitor.checkAlerts();
@@ -258,7 +259,7 @@ router.post("/alerts/check", requireAdmin, async (req: Request, res: Response) =
     });
   } catch (error) {
     console.error("Error checking alerts:", error);
-    res.status(500).json({ error: "Failed to check alerts" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -266,17 +267,17 @@ router.post("/alerts/check", requireAdmin, async (req: Request, res: Response) =
  * POST /api/admin/paymaster/stats/refresh
  * Refresh daily stats (normally called by cron)
  */
-router.post("/stats/refresh", requireAdmin, async (req: Request, res: Response) => {
+router.post("/stats/refresh", requireAdmin, async (_req: Request, res: Response, next: NextFunction) => {
   try {
     if (!paymasterMonitor) {
-      return res.status(503).json({ error: "Paymaster monitor not initialized" });
+      return next(createError("SERVICE_NOT_INITIALIZED"));
     }
 
     await paymasterMonitor.updateDailyStats();
     res.json({ success: true, message: "Daily stats refreshed" });
   } catch (error) {
     console.error("Error refreshing stats:", error);
-    res.status(500).json({ error: "Failed to refresh stats" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

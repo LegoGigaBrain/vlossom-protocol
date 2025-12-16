@@ -1,8 +1,15 @@
 /**
- * Paymaster Monitoring Module (F5.1)
- * Exports all paymaster monitoring utilities
+ * Paymaster Monitoring Module (M-6)
+ *
+ * Provides balance monitoring, auto-replenishment alerts, and usage tracking
+ * for the Vlossom Paymaster contract.
+ *
+ * Features:
+ * - Real-time balance monitoring
+ * - Configurable alert thresholds
+ * - Usage statistics and history
+ * - Auto-replenishment notifications
  */
 
-export * from "./types";
-export * from "./paymaster-monitor";
-export * from "./balance-alerts";
+export { PaymasterMonitor } from './monitor';
+export { BalanceAlertService, type AlertConfig, type AlertTrigger } from './alerts';

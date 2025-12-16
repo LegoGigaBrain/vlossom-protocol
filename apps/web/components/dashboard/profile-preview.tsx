@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { LocationIcon, StarFilledIcon, AlertIcon } from "../ui/icons";
 import type { StylistProfile } from "../../lib/dashboard-client";
 
 interface ProfilePreviewProps {
@@ -25,13 +26,13 @@ export function ProfilePreview({ profile, open, onOpenChange }: ProfilePreviewPr
   const locationText = (() => {
     switch (profile.operatingMode) {
       case "FIXED":
-        return profile.baseLocationAddress ? `📍 ${profile.baseLocationAddress.split(",")[0]}` : "";
+        return profile.baseLocationAddress ? profile.baseLocationAddress.split(",")[0] : "";
       case "MOBILE":
-        return profile.serviceRadius ? `📍 Mobile · ${profile.serviceRadius}km radius` : "📍 Mobile";
+        return profile.serviceRadius ? `Mobile · ${profile.serviceRadius}km radius` : "Mobile";
       case "HYBRID":
         return profile.baseLocationAddress
-          ? `📍 ${profile.baseLocationAddress.split(",")[0]} · Also mobile`
-          : "📍 Hybrid";
+          ? `${profile.baseLocationAddress.split(",")[0]} · Also mobile`
+          : "Hybrid";
       default:
         return "";
     }
@@ -64,12 +65,14 @@ export function ProfilePreview({ profile, open, onOpenChange }: ProfilePreviewPr
             <h3 className="text-h3 text-text-primary mt-4">{profile.displayName}</h3>
 
             {/* Rating placeholder */}
-            <p className="text-body-small text-text-secondary mt-1">
-              ⭐ 4.9 (47 reviews)
+            <p className="text-body-small text-text-secondary mt-1 flex items-center justify-center gap-1">
+              <StarFilledIcon className="h-4 w-4 text-status-warning" />
+              4.9 (47 reviews)
             </p>
 
             {locationText && (
-              <p className="text-body-small text-text-secondary mt-1">
+              <p className="text-body-small text-text-secondary mt-1 flex items-center justify-center gap-1">
+                <LocationIcon className="h-4 w-4" />
                 {locationText}
               </p>
             )}
@@ -131,8 +134,9 @@ export function ProfilePreview({ profile, open, onOpenChange }: ProfilePreviewPr
           {/* Status */}
           {!profile.isAcceptingBookings && (
             <div className="p-3 bg-status-warning/10 rounded-lg">
-              <p className="text-body-small text-status-warning text-center">
-                ⚠️ Your profile is hidden because you're not accepting bookings
+              <p className="text-body-small text-status-warning text-center flex items-center justify-center gap-1.5">
+                <AlertIcon className="h-4 w-4 shrink-0" />
+                Your profile is hidden because you're not accepting bookings
               </p>
             </div>
           )}

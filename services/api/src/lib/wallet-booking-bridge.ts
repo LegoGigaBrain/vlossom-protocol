@@ -10,34 +10,21 @@
  * and booking state management.
  */
 
-import { type Address, type Hash, createPublicClient, createWalletClient, http, parseUnits } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
+import { type Address, type Hash, createPublicClient, http, keccak256, toBytes } from 'viem';
 import { CHAIN, RPC_URL } from './wallet/chain-client';
-import { getWalletByUserId } from './wallet/wallet-service';
+import { getWallet } from './wallet/wallet-service';
 import prisma from './prisma';
 import { BookingStatus } from '@prisma/client';
 
 // Contract addresses from environment
 const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS as Address;
 const USDC_ADDRESS = process.env.USDC_ADDRESS as Address;
-const RELAYER_PRIVATE_KEY = process.env.RELAYER_PRIVATE_KEY as `0x${string}`;
 
 if (!ESCROW_ADDRESS) throw new Error('ESCROW_ADDRESS not configured');
 if (!USDC_ADDRESS) throw new Error('USDC_ADDRESS not configured');
-if (!RELAYER_PRIVATE_KEY) throw new Error('RELAYER_PRIVATE_KEY not configured');
 
-// USDC token ABI - minimal interface for approvals and transfers
+// USDC token ABI - minimal interface for balance and allowance checks
 const USDC_ABI = [
-  {
-    type: 'function',
-    name: 'approve',
-    inputs: [
-      { name: 'spender', type: 'address' },
-      { name: 'amount', type: 'uint256' }
-    ],
-    outputs: [{ type: 'bool' }],
-    stateMutability: 'nonpayable'
-  },
   {
     type: 'function',
     name: 'allowance',
@@ -54,40 +41,43 @@ const USDC_ABI = [
     inputs: [{ name: 'account', type: 'address' }],
     outputs: [{ type: 'uint256' }],
     stateMutability: 'view'
-  },
+  }
+] as const;
+
+// Escrow contract ABI - minimal interface for escrow verification
+const ESCROW_ABI = [
   {
     type: 'function',
-    name: 'decimals',
-    inputs: [],
-    outputs: [{ type: 'uint8' }],
+    name: 'getEscrowRecord',
+    inputs: [{ name: 'bookingId', type: 'bytes32' }],
+    outputs: [
+      { name: 'customer', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+      { name: 'status', type: 'uint8' },
+      { name: 'createdAt', type: 'uint256' }
+    ],
     stateMutability: 'view'
   }
 ] as const;
 
-// Escrow contract ABI - lockFunds function
-const ESCROW_ABI = [
-  {
-    type: 'function',
-    name: 'lockFunds',
-    inputs: [
-      { name: 'bookingId', type: 'bytes32' },
-      { name: 'amount', type: 'uint256' }
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable'
-  }
-] as const;
+// Escrow status enum matching the contract
+export enum EscrowStatus {
+  None = 0,
+  Locked = 1,
+  Released = 2,
+  Refunded = 3
+}
+
+/**
+ * Convert booking ID string to bytes32 for contract calls
+ * Uses keccak256 hash of the booking ID
+ */
+function bookingIdToBytes32(bookingId: string): `0x${string}` {
+  return keccak256(toBytes(bookingId));
+}
 
 // Public client for reading blockchain state
 const publicClient = createPublicClient({
-  chain: CHAIN,
-  transport: http(RPC_URL)
-});
-
-// Relayer wallet client
-const relayerAccount = privateKeyToAccount(RELAYER_PRIVATE_KEY);
-const walletClient = createWalletClient({
-  account: relayerAccount,
   chain: CHAIN,
   transport: http(RPC_URL)
 });
@@ -103,21 +93,64 @@ export interface PaymentResult {
 }
 
 /**
- * Convert booking ID to bytes32 hash
+ * Escrow record from on-chain contract
  */
-function bookingIdToBytes32(bookingId: string): `0x${string}` {
-  // Simple approach: hash the booking ID
-  const encoder = new TextEncoder();
-  const data = encoder.encode(bookingId);
-
-  let hash = '0x';
-  for (let i = 0; i < 32; i++) {
-    const byte = data[i % data.length] || 0;
-    hash += byte.toString(16).padStart(2, '0');
-  }
-
-  return hash as `0x${string}`;
+export interface EscrowRecord {
+  customer: Address;
+  amount: bigint;
+  status: EscrowStatus;
+  createdAt: bigint;
 }
+
+/**
+ * Verify escrow state on-chain for a booking
+ *
+ * @param bookingId - Booking ID to verify
+ * @returns Escrow record if found, or error
+ */
+export async function verifyEscrowOnChain(bookingId: string): Promise<{
+  success: boolean;
+  record?: EscrowRecord;
+  error?: string;
+}> {
+  try {
+    const bookingIdBytes32 = bookingIdToBytes32(bookingId);
+
+    const result = await publicClient.readContract({
+      address: ESCROW_ADDRESS,
+      abi: ESCROW_ABI,
+      functionName: 'getEscrowRecord',
+      args: [bookingIdBytes32]
+    }) as [Address, bigint, number, bigint];
+
+    const [customer, amount, status, createdAt] = result;
+
+    // Check if escrow exists (status != None)
+    if (status === EscrowStatus.None) {
+      return {
+        success: false,
+        error: 'No escrow found for this booking'
+      };
+    }
+
+    return {
+      success: true,
+      record: {
+        customer,
+        amount,
+        status: status as EscrowStatus,
+        createdAt
+      }
+    };
+  } catch (error) {
+    console.error('Failed to verify escrow on-chain:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
 
 /**
  * Check if customer has sufficient USDC balance for payment
@@ -200,7 +233,7 @@ export async function initiateBookingPayment(params: {
 }): Promise<PaymentResult> {
   try {
     // Get customer's wallet
-    const wallet = await getWalletByUserId(params.userId);
+    const wallet = await getWallet(params.userId);
     if (!wallet) {
       return {
         success: false,
@@ -228,9 +261,6 @@ export async function initiateBookingPayment(params: {
       };
     }
 
-    // Convert booking ID to bytes32
-    const bookingIdBytes = bookingIdToBytes32(params.bookingId);
-
     // For MVP, we return instructions for customer to call lockFunds
     // In production, this would be handled by customer's wallet signing the transaction
     return {
@@ -253,11 +283,18 @@ export async function initiateBookingPayment(params: {
  * It verifies the escrow state and updates the booking to CONFIRMED.
  *
  * @param bookingId - Booking ID
+ * @param txHash - Optional transaction hash to store
+ * @param skipOnChainVerification - Skip on-chain verification (for testing/fallback)
  * @returns true if payment verified and booking updated
  */
-export async function verifyAndConfirmPayment(bookingId: string): Promise<{
+export async function verifyAndConfirmPayment(
+  bookingId: string,
+  txHash?: Hash,
+  skipOnChainVerification = false
+): Promise<{
   success: boolean;
   error?: string;
+  escrowRecord?: EscrowRecord;
 }> {
   try {
     // Get booking
@@ -280,17 +317,51 @@ export async function verifyAndConfirmPayment(bookingId: string): Promise<{
       };
     }
 
-    // Verify funds are locked in escrow
-    const bookingIdBytes = bookingIdToBytes32(bookingId);
+    let escrowRecord: EscrowRecord | undefined;
 
-    // TODO: Query escrow contract to verify funds are locked
-    // For now, we trust that the funds are locked and update booking status
+    // Verify escrow state on-chain
+    if (!skipOnChainVerification) {
+      const escrowVerification = await verifyEscrowOnChain(bookingId);
+
+      if (!escrowVerification.success || !escrowVerification.record) {
+        return {
+          success: false,
+          error: escrowVerification.error || 'Escrow verification failed'
+        };
+      }
+
+      escrowRecord = escrowVerification.record;
+
+      // Verify escrow is in Locked status
+      if (escrowRecord.status !== EscrowStatus.Locked) {
+        return {
+          success: false,
+          error: `Escrow is not locked. Status: ${EscrowStatus[escrowRecord.status]}`
+        };
+      }
+
+      // Verify amount matches
+      const expectedAmount = BigInt(booking.quoteAmountCents) * BigInt(10_000); // Convert cents to USDC units
+      if (escrowRecord.amount < expectedAmount) {
+        return {
+          success: false,
+          error: `Escrow amount insufficient. Expected: ${expectedAmount}, Got: ${escrowRecord.amount}`
+        };
+      }
+
+      console.log(`✓ On-chain escrow verified for booking ${bookingId}:`, {
+        customer: escrowRecord.customer,
+        amount: escrowRecord.amount.toString(),
+        status: EscrowStatus[escrowRecord.status]
+      });
+    }
 
     // Update booking to CONFIRMED
     await prisma.booking.update({
       where: { id: bookingId },
       data: {
-        status: BookingStatus.CONFIRMED
+        status: BookingStatus.CONFIRMED,
+        ...(txHash && { escrowTxHash: txHash })
       }
     });
 
@@ -300,14 +371,16 @@ export async function verifyAndConfirmPayment(bookingId: string): Promise<{
         bookingId,
         fromStatus: BookingStatus.PENDING_CUSTOMER_PAYMENT,
         toStatus: BookingStatus.CONFIRMED,
-        changedByUserId: booking.customerId,
-        notes: 'Payment locked in escrow'
+        changedBy: booking.customerId,
+        reason: txHash
+          ? `Payment locked in escrow (tx: ${txHash})`
+          : 'Payment locked in escrow'
       }
     });
 
     console.log(`✓ Payment verified and booking ${bookingId} confirmed`);
 
-    return { success: true };
+    return { success: true, escrowRecord };
   } catch (error) {
     console.error('Failed to verify and confirm payment:', error);
     return {
@@ -346,7 +419,7 @@ export async function getPaymentInstructions(userId: string, bookingId: string):
 }> {
   try {
     // Get wallet
-    const wallet = await getWalletByUserId(userId);
+    const wallet = await getWallet(userId);
     if (!wallet) {
       return { success: false, error: 'Wallet not found' };
     }

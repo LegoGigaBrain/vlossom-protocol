@@ -5,7 +5,7 @@
 
 import { type Address, parseUnits } from "viem";
 import { prisma } from "../prisma";
-import { publicClient, getRelayerWalletClient } from "./chain-client";
+import { publicClient, getRelayerWalletClient, getChain } from "./chain-client";
 import { USDC_ADDRESS } from "./contracts";
 
 const FAUCET_AMOUNT = parseUnits("1000", 6); // 1000 USDC (6 decimals)
@@ -101,7 +101,10 @@ export async function claimFaucet(userId: string): Promise<{
     // Mint MockUSDC using relayer
     const relayerClient = getRelayerWalletClient();
 
+    // Note: The relayer client already has account configured, but viem types require explicit account
     const txHash = await relayerClient.writeContract({
+      chain: getChain(),
+      account: relayerClient.account!,
       address: USDC_ADDRESS,
       abi: MOCK_USDC_ABI,
       functionName: "mint",

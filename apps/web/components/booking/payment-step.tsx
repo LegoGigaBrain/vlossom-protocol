@@ -1,15 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/use-wallet";
-import { useUpdateBookingStatus } from "@/hooks/use-bookings";
+import { useConfirmPayment } from "@/hooks/use-bookings";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/lib/error-utils";
+import {
+  useAccount,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { CONTRACTS, getExplorerTxUrl, isTestnet } from "@/lib/wagmi-config";
+import {
+  ESCROW_ABI,
+  USDC_ABI,
+  centsToUsdcUnits,
+  bookingIdToBytes32,
+} from "@/lib/contracts";
+import type { Address, Hash } from "viem";
 
 type PaymentState =
   | "idle"
   | "checking"
   | "insufficient"
+  | "checking-allowance"
+  | "approving"
+  | "waiting-approval"
+  | "locking"
+  | "waiting-lock"
   | "confirming"
   | "processing"
   | "success"
@@ -20,6 +41,11 @@ interface PaymentStepProps {
   amount: number; // Total amount in cents
   stylistAddress: string;
   onSuccess: () => void;
+  /**
+   * Callback to notify parent when dialog should prevent closing.
+   * Called with true when payment is processing, false otherwise.
+   */
+  onPreventCloseChange?: (preventClose: boolean) => void;
 }
 
 export function PaymentStep({
@@ -27,44 +53,149 @@ export function PaymentStep({
   amount,
   stylistAddress: _stylistAddress, // Reserved for escrow contract integration
   onSuccess,
+  onPreventCloseChange,
 }: PaymentStepProps) {
   const { data: wallet, isLoading: walletLoading } = useWallet();
-  const updateStatus = useUpdateBookingStatus();
+  const confirmPayment = useConfirmPayment();
+  const { address: userAddress, isConnected } = useAccount();
 
   const [state, setState] = useState<PaymentState>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<Hash | undefined>();
+  const [approvalTxHash, setApprovalTxHash] = useState<Hash | undefined>();
+
+  // Convert booking ID to bytes32 for contract calls
+  const bookingIdBytes32 = bookingIdToBytes32(bookingId);
+  // Convert cents to USDC units (6 decimals)
+  const amountInUsdcUnits = centsToUsdcUnits(amount);
+
+  // Read current USDC allowance for escrow contract
+  const { data: currentAllowance, refetch: refetchAllowance } = useReadContract({
+    address: CONTRACTS.USDC as Address,
+    abi: USDC_ABI,
+    functionName: "allowance",
+    args: userAddress ? [userAddress, CONTRACTS.Escrow as Address] : undefined,
+    query: {
+      enabled: !!userAddress && isConnected,
+    },
+  });
+
+  // Write contract hooks
+  const {
+    writeContract: writeApprove,
+    isPending: isApprovePending,
+    data: approveData,
+  } = useWriteContract();
+
+  const {
+    writeContract: writeLockFunds,
+    isPending: isLockPending,
+    data: lockFundsData,
+  } = useWriteContract();
+
+  // Wait for approval transaction
+  const { isLoading: isApprovalConfirming, isSuccess: isApprovalConfirmed } =
+    useWaitForTransactionReceipt({
+      hash: approvalTxHash,
+    });
+
+  // Wait for lock funds transaction
+  const { isLoading: isLockConfirming, isSuccess: isLockConfirmed } =
+    useWaitForTransactionReceipt({
+      hash: txHash,
+    });
+
+  // Update approval tx hash when available
+  useEffect(() => {
+    if (approveData) {
+      setApprovalTxHash(approveData);
+      setState("waiting-approval");
+    }
+  }, [approveData]);
+
+  // Update lock tx hash when available
+  useEffect(() => {
+    if (lockFundsData) {
+      setTxHash(lockFundsData);
+      setState("waiting-lock");
+    }
+  }, [lockFundsData]);
+
+  // Handle approval confirmation - proceed to lock funds
+  useEffect(() => {
+    if (isApprovalConfirmed && state === "waiting-approval") {
+      // Refetch allowance and proceed to lock funds
+      refetchAllowance().then(() => {
+        lockFunds();
+      });
+    }
+  }, [isApprovalConfirmed, state]);
+
+  // Handle lock confirmation - submit to backend
+  useEffect(() => {
+    if (isLockConfirmed && txHash && state === "waiting-lock") {
+      submitToBackend(txHash);
+    }
+  }, [isLockConfirmed, txHash, state]);
+
+  // Determine if dialog should prevent closing (during critical states)
+  const isProcessing = [
+    "checking-allowance",
+    "approving",
+    "waiting-approval",
+    "locking",
+    "waiting-lock",
+    "confirming",
+    "processing",
+  ].includes(state);
+
+  // Notify parent when processing state changes
+  useEffect(() => {
+    onPreventCloseChange?.(isProcessing);
+  }, [isProcessing, onPreventCloseChange]);
 
   // Convert cents to USDC amount (USDC has 6 decimals, but we display as dollars)
   const amountUSD = amount / 100;
   const walletBalance = wallet?.balance?.usdcFormatted || 0;
   const hasBalance = walletBalance >= amountUSD;
 
-  const handleConfirmPayment = async () => {
-    if (!hasBalance) {
-      setState("insufficient");
-      return;
-    }
-
+  // Lock funds in escrow contract
+  const lockFunds = useCallback(() => {
+    setState("locking");
     try {
-      setState("confirming");
+      writeLockFunds({
+        address: CONTRACTS.Escrow as Address,
+        abi: ESCROW_ABI,
+        functionName: "lockFunds",
+        args: [bookingIdBytes32, amountInUsdcUnits],
+      });
+    } catch (err) {
+      setState("error");
+      setError(getErrorMessage(err));
+    }
+  }, [writeLockFunds, bookingIdBytes32, amountInUsdcUnits]);
 
-      // Simulate a brief delay for the confirmation step
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+  // Submit confirmed transaction to backend with on-chain verification
+  const submitToBackend = async (confirmedTxHash: Hash) => {
+    try {
       setState("processing");
 
-      // For MVP: Mock the escrow transaction
-      // In production, this would interact with the smart contract
-      // const txHash = await lockFundsInEscrow(bookingId, amount);
-
-      // Update booking status to CONFIRMED
-      await updateStatus.mutateAsync({
-        id: bookingId,
-        status: "CONFIRMED",
-        escrowTxHash: "0x" + "0".repeat(64), // Mock tx hash for MVP
+      // Confirm payment with on-chain escrow verification
+      await confirmPayment.mutateAsync({
+        bookingId,
+        escrowTxHash: confirmedTxHash,
       });
 
       setState("success");
+      toast.success("Payment confirmed!", {
+        description: isTestnet()
+          ? "Funds locked in escrow on Base Sepolia testnet"
+          : "Funds locked in escrow",
+        action: {
+          label: "View Transaction",
+          onClick: () => window.open(getExplorerTxUrl(confirmedTxHash), "_blank"),
+        },
+      });
 
       // Brief delay before calling onSuccess to show success state
       setTimeout(() => {
@@ -72,7 +203,53 @@ export function PaymentStep({
       }, 1500);
     } catch (err) {
       setState("error");
-      setError(err instanceof Error ? err.message : "Payment failed");
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error("Failed to confirm payment", { description: message });
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    if (!hasBalance) {
+      setState("insufficient");
+      return;
+    }
+
+    if (!userAddress || !isConnected) {
+      setState("error");
+      setError("Wallet not connected. Please connect your wallet first.");
+      return;
+    }
+
+    try {
+      setState("checking-allowance");
+
+      // Check if we have sufficient allowance
+      const allowance = currentAllowance as bigint | undefined;
+      const needsApproval = !allowance || allowance < amountInUsdcUnits;
+
+      if (needsApproval) {
+        // Request approval first
+        setState("approving");
+        toast.info("Approval required", {
+          description: "Please approve USDC spending in your wallet",
+        });
+
+        writeApprove({
+          address: CONTRACTS.USDC as Address,
+          abi: USDC_ABI,
+          functionName: "approve",
+          args: [CONTRACTS.Escrow as Address, amountInUsdcUnits],
+        });
+      } else {
+        // Already approved, proceed directly to lock funds
+        lockFunds();
+      }
+    } catch (err) {
+      setState("error");
+      const message = getErrorMessage(err);
+      setError(message);
+      toast.error("Payment failed", { description: message });
     }
   };
 
@@ -185,16 +362,59 @@ export function PaymentStep({
     );
   }
 
+  // Get state display info
+  const getStateDisplay = (): { title: string; description: string } => {
+    switch (state) {
+      case "checking-allowance":
+        return {
+          title: "Checking Allowance",
+          description: "Verifying USDC spending permission...",
+        };
+      case "approving":
+        return {
+          title: "Approval Required",
+          description: "Please confirm the approval in your wallet...",
+        };
+      case "waiting-approval":
+        return {
+          title: "Confirming Approval",
+          description: "Waiting for approval transaction to confirm...",
+        };
+      case "locking":
+        return {
+          title: "Locking Funds",
+          description: "Please confirm the escrow transaction in your wallet...",
+        };
+      case "waiting-lock":
+        return {
+          title: "Confirming Transaction",
+          description: "Waiting for escrow transaction to confirm...",
+        };
+      case "processing":
+        return {
+          title: "Finalizing",
+          description: "Updating your booking status...",
+        };
+      default:
+        return {
+          title: "Processing Payment",
+          description: "Please wait...",
+        };
+    }
+  };
+
   // Processing states
-  if (state === "confirming" || state === "processing") {
+  if (isProcessing) {
+    const { title, description } = getStateDisplay();
     return (
-      <div className="space-y-4 py-8">
+      <div className="space-y-4 py-8" aria-busy="true" aria-live="polite">
         <div className="flex justify-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
             <svg
               className="w-8 h-8 text-primary animate-spin"
               fill="none"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <circle
                 className="opacity-25"
@@ -214,12 +434,16 @@ export function PaymentStep({
         </div>
         <div className="text-center">
           <h3 className="text-lg font-semibold text-text-primary mb-2">
-            {state === "confirming" ? "Confirming Payment" : "Processing Payment"}
+            {title}
           </h3>
-          <p className="text-text-secondary">
-            {state === "confirming"
-              ? "Please wait while we confirm your payment..."
-              : "Securing funds in escrow..."}
+          <p className="text-text-secondary">{description}</p>
+          {isTestnet() && (
+            <p className="text-xs text-text-tertiary mt-2">
+              Base Sepolia Testnet
+            </p>
+          )}
+          <p className="sr-only">
+            Please do not close this dialog. Your payment is being processed.
           </p>
         </div>
       </div>
@@ -254,6 +478,27 @@ export function PaymentStep({
           <p className="text-text-secondary">
             Your funds are secured in escrow.
           </p>
+          {txHash && (
+            <button
+              onClick={() => window.open(getExplorerTxUrl(txHash), "_blank")}
+              className="text-sm text-primary hover:underline mt-2 inline-flex items-center gap-1"
+            >
+              View transaction
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     );
@@ -308,8 +553,26 @@ export function PaymentStep({
         Funds will be held in escrow until service completion
       </p>
 
-      <Button onClick={handleConfirmPayment} className="w-full" size="lg">
-        Confirm Payment
+      {isTestnet() && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
+          <p className="text-xs text-amber-700">
+            <span className="font-medium">Testnet Mode</span> - Using Base Sepolia with test USDC
+          </p>
+        </div>
+      )}
+
+      <Button
+        onClick={handleConfirmPayment}
+        className="w-full"
+        size="lg"
+        disabled={isProcessing || !isConnected}
+        aria-busy={isProcessing}
+      >
+        {!isConnected
+          ? "Connect Wallet"
+          : isProcessing
+          ? "Processing..."
+          : "Confirm Payment"}
       </Button>
     </div>
   );

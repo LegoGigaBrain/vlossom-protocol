@@ -1,11 +1,57 @@
 /**
  * JWT Bearer token authentication middleware
+ *
+ * SECURITY AUDIT (V1.9.0):
+ * - H-1: JWT secret strength validation at startup
+ * - M-4: Security event logging for authentication failures
+ * - L-1: Configurable bcrypt rounds
  */
 
 import { type Request, type Response, type NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { logger } from "../lib/logger";
 
-const JWT_SECRET = process.env.JWT_SECRET || "development-secret-change-in-production";
+/**
+ * H-1: Validate JWT secret strength at startup
+ * Prevents weak secrets from being used in production
+ */
+function validateJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error(
+      "FATAL: JWT_SECRET environment variable is required. " +
+      "Set a strong, random secret (min 32 characters) in your .env file."
+    );
+  }
+
+  // H-1: Minimum length check (32 characters for 256-bit security)
+  if (secret.length < 32) {
+    throw new Error(
+      `FATAL: JWT_SECRET must be at least 32 characters (got ${secret.length}). ` +
+      "Use a cryptographically random string."
+    );
+  }
+
+  // H-1: Detect placeholder/weak secrets
+  const placeholders = ['your-secret', 'changeme', 'secret123', 'jwt-secret', 'your_secret_key'];
+  if (placeholders.some(p => secret.toLowerCase().includes(p))) {
+    throw new Error(
+      "FATAL: JWT_SECRET appears to be a placeholder value. " +
+      "Generate a secure random secret for production use."
+    );
+  }
+
+  return secret;
+}
+
+// SECURITY: Validate JWT_SECRET at startup
+const JWT_SECRET: string = validateJwtSecret();
+
+/**
+ * L-1: Bcrypt rounds configuration (default 12 for 2025 security standards)
+ */
+export const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
 
 /**
  * JWT payload structure
@@ -64,16 +110,30 @@ export function authenticate(
     req.userId = decoded.sub;
     next();
   } catch (error) {
+    // M-4: Security event logging for authentication failures
+    const logSecurityEvent = (reason: string) => {
+      logger.warn('Authentication failed', {
+        event: 'auth_failure',
+        reason,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        path: req.path,
+      });
+    };
+
     if (error instanceof jwt.TokenExpiredError) {
+      logSecurityEvent('token_expired');
       res.status(401).json({ error: "Token expired" });
       return;
     }
 
     if (error instanceof jwt.JsonWebTokenError) {
+      logSecurityEvent('invalid_token');
       res.status(401).json({ error: "Invalid token" });
       return;
     }
 
+    logSecurityEvent('unknown_error');
     res.status(500).json({ error: "Authentication error" });
   }
 }
@@ -147,4 +207,31 @@ export function verifyToken(token: string): JWTPayload | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * Role-based authorization middleware
+ * Must be used after authenticate middleware
+ */
+export function requireRole(...roles: string[]) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    const userRoles = req.user.roles || [];
+    const hasRequiredRole = roles.some((role) => userRoles.includes(role));
+
+    if (!hasRequiredRole) {
+      res.status(403).json({
+        error: "Insufficient permissions",
+        required: roles,
+        current: userRoles,
+      });
+      return;
+    }
+
+    next();
+  };
 }

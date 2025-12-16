@@ -284,9 +284,9 @@ export function CancelBookingDialog({
             Keep Booking
           </Button>
           <Button
-            variant="outline"
+            variant="destructive-outline"
             onClick={handleCancel}
-            className="flex-1 text-accent border-accent hover:bg-accent hover:text-white"
+            className="flex-1"
           >
             Cancel & Refund
           </Button>

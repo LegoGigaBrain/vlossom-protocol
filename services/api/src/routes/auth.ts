@@ -3,7 +3,7 @@
  * Reference: docs/specs/auth/feature-spec.md
  */
 
-import { Router, type Request, type Response } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import bcrypt from "bcrypt";
 import { PrismaClient } from "@prisma/client";
 import { generateToken, authenticate, type AuthenticatedRequest } from "../middleware/auth";
@@ -15,34 +15,32 @@ import {
   clearLoginAttempts,
   isAccountLocked,
 } from "../middleware/rate-limiter";
+import { createError } from "../middleware/error-handler";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 const prisma = new PrismaClient();
 const BCRYPT_ROUNDS = 10;
 
 /**
- * POST /api/auth/signup
+ * POST /api/v1/auth/signup
  * Create new user account with email/password
  * F4.7: Rate limited to 3 attempts per hour
  */
-router.post("/signup", rateLimiters.signup, async (req: Request, res: Response): Promise<void> => {
+router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, password, role, displayName } = req.body;
 
     // Validation
     if (!email || !password) {
-      res.status(400).json({ error: "Email and password are required" });
-      return;
+      return next(createError("MISSING_FIELD", { fields: ["email", "password"] }));
     }
 
     if (password.length < 8) {
-      res.status(400).json({ error: "Password must be at least 8 characters" });
-      return;
+      return next(createError("WEAK_PASSWORD"));
     }
 
     if (!role || !["CUSTOMER", "STYLIST"].includes(role)) {
-      res.status(400).json({ error: "Role must be either CUSTOMER or STYLIST" });
-      return;
+      return next(createError("INVALID_ROLE"));
     }
 
     // Check if user already exists
@@ -51,8 +49,7 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response):
     });
 
     if (existingUser) {
-      res.status(409).json({ error: "This email is already registered" });
-      return;
+      return next(createError("EMAIL_EXISTS"));
     }
 
     // Hash password
@@ -107,23 +104,22 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response):
     });
   } catch (error) {
     logger.error("Signup error", { error });
-    res.status(500).json({ error: "Internal server error" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
 /**
- * POST /api/auth/login
+ * POST /api/v1/auth/login
  * Authenticate existing user with email/password
  * F4.7: Rate limited to 5 attempts per 15 minutes, with account lockout
  */
-router.post("/login", rateLimiters.login, async (req: Request, res: Response): Promise<void> => {
+router.post("/login", rateLimiters.login, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     // Validation
     if (!email || !password) {
-      res.status(400).json({ error: "Email and password are required" });
-      return;
+      return next(createError("MISSING_FIELD", { fields: ["email", "password"] }));
     }
 
     // F4.7: Check if account is locked
@@ -131,11 +127,7 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response): P
     if (lockStatus.locked) {
       const retryAfter = Math.ceil((lockStatus.lockedUntil! - Date.now()) / 1000);
       logger.warn("Login attempt on locked account", { email });
-      res.status(423).json({
-        error: "Account temporarily locked due to too many failed attempts",
-        retryAfter,
-      });
-      return;
+      return next(createError("ACCOUNT_LOCKED", { retryAfter }));
     }
 
     // Find user
@@ -147,11 +139,7 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response): P
       // F4.7: Record failed attempt
       const attempt = recordFailedLogin(email);
       logger.warn("Failed login attempt - user not found", { email });
-      res.status(401).json({
-        error: "Invalid email or password",
-        remainingAttempts: attempt.remainingAttempts,
-      });
-      return;
+      return next(createError("INVALID_CREDENTIALS", { remainingAttempts: attempt.remainingAttempts }));
     }
 
     // Verify password
@@ -166,18 +154,10 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response): P
       });
 
       if (attempt.locked) {
-        res.status(423).json({
-          error: "Account temporarily locked due to too many failed attempts",
-          retryAfter: Math.ceil((attempt.lockedUntil! - Date.now()) / 1000),
-        });
-        return;
+        return next(createError("ACCOUNT_LOCKED", { retryAfter: Math.ceil((attempt.lockedUntil! - Date.now()) / 1000) }));
       }
 
-      res.status(401).json({
-        error: "Invalid email or password",
-        remainingAttempts: attempt.remainingAttempts,
-      });
-      return;
+      return next(createError("INVALID_CREDENTIALS", { remainingAttempts: attempt.remainingAttempts }));
     }
 
     // F4.7: Clear failed login attempts on successful login
@@ -210,12 +190,12 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response): P
     });
   } catch (error) {
     logger.error("Login error", { error });
-    res.status(500).json({ error: "Internal server error" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
 /**
- * POST /api/auth/logout
+ * POST /api/v1/auth/logout
  * Clear JWT token (frontend will handle token removal)
  */
 router.post("/logout", authenticate, (req: AuthenticatedRequest, res: Response): void => {
@@ -224,14 +204,13 @@ router.post("/logout", authenticate, (req: AuthenticatedRequest, res: Response):
 });
 
 /**
- * GET /api/auth/me
+ * GET /api/v1/auth/me
  * Get current authenticated user
  */
-router.get("/me", authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.get("/me", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (!req.userId) {
-      res.status(401).json({ error: "Not authenticated" });
-      return;
+      return next(createError("UNAUTHORIZED"));
     }
 
     const user = await prisma.user.findUnique({
@@ -249,8 +228,7 @@ router.get("/me", authenticate, async (req: AuthenticatedRequest, res: Response)
     });
 
     if (!user) {
-      res.status(404).json({ error: "User not found" });
-      return;
+      return next(createError("USER_NOT_FOUND"));
     }
 
     const roles = user.roles as string[];
@@ -268,7 +246,7 @@ router.get("/me", authenticate, async (req: AuthenticatedRequest, res: Response)
     });
   } catch (error) {
     logger.error("Get user error", { error });
-    res.status(500).json({ error: "Internal server error" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

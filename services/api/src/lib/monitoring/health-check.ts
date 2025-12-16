@@ -157,7 +157,7 @@ export function createHealthCheckHandler(
   prisma: PrismaClient,
   config?: { paymasterAddress?: string }
 ) {
-  return async (req: unknown, res: { json: (data: unknown) => void; status: (code: number) => { json: (data: unknown) => void } }) => {
+  return async (_req: unknown, res: { json: (data: unknown) => void; status: (code: number) => { json: (data: unknown) => void } }) => {
     try {
       const health = await runHealthChecks(prisma, config);
       const statusCode = health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503;

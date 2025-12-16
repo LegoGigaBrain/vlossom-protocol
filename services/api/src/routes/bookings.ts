@@ -1,11 +1,20 @@
 // Bookings API Routes
 // Reference: docs/specs/booking-flow-v1/feature-spec.md
+//
+// SECURITY AUDIT (V1.9.0) - H-3: SQL Injection Review
+// ====================================================
+// STATUS: VERIFIED SAFE
+// All database queries in this module use Prisma ORM with parameterized queries.
+// No raw SQL is used. User input is validated via Zod schemas before database operations.
+// Audit date: 2025-12-15
 
-import { Router, Request, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import { BookingStatus } from "@prisma/client";
 import prisma from "../lib/prisma";
 import { authenticate, type AuthenticatedRequest } from "../middleware/auth";
-import { authorizeBookingAccess, createForbiddenError } from "../middleware/authorize";
+import { authorizeBookingAccess } from "../middleware/authorize";
+import { createError } from "../middleware/error-handler";
+import { logger } from "../lib/logger";
 import {
   createBookingSchema,
   approveBookingSchema,
@@ -38,19 +47,26 @@ import {
   getTravelTime,
   type Coordinates,
 } from "../lib/scheduling";
-import { notifyBookingEvent, NotificationType } from "../lib/notifications";
-import { recordBookingCompletionEvent, recordCancellationEvent } from "../lib/reputation";
+import { notifyBookingEvent } from "../lib/notifications";
+import { recordBookingCompletionEvent } from "../lib/reputation";
 import { z } from "zod";
-import type { Address } from "viem";
+import type { Address, Hash } from "viem";
+
+// Validation schema for confirm-payment endpoint
+const confirmPaymentSchema = z.object({
+  escrowTxHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/, "Invalid transaction hash format"),
+  skipOnChainVerification: z.boolean().optional().default(false), // For testing only
+});
 
 // Validation schemas for scheduling endpoints
+// Geographic coordinates use WGS84 standard: lat [-90, 90], lng [-180, 180]
 const checkAvailabilitySchema = z.object({
   stylistId: z.string().uuid(),
   serviceId: z.string().uuid(),
   startTime: z.string().datetime(),
-  locationType: z.enum(["STYLIST_LOCATION", "CUSTOMER_LOCATION"]),
-  customerLat: z.number().optional(),
-  customerLng: z.number().optional(),
+  locationType: z.enum(["STYLIST_BASE", "CUSTOMER_HOME"]),
+  customerLat: z.number().min(-90).max(90).optional(),
+  customerLng: z.number().min(-180).max(180).optional(),
 });
 
 const getAvailableSlotsSchema = z.object({
@@ -60,10 +76,10 @@ const getAvailableSlotsSchema = z.object({
 });
 
 const travelTimeSchema = z.object({
-  originLat: z.coerce.number(),
-  originLng: z.coerce.number(),
-  destLat: z.coerce.number(),
-  destLng: z.coerce.number(),
+  originLat: z.coerce.number().min(-90).max(90),
+  originLng: z.coerce.number().min(-180).max(180),
+  destLat: z.coerce.number().min(-90).max(90),
+  destLng: z.coerce.number().min(-180).max(180),
 });
 
 const router: ReturnType<typeof Router> = Router();
@@ -97,7 +113,7 @@ async function logStatusChange(
  * POST /api/bookings/check-availability
  * Check if a specific time slot is available for booking
  */
-router.post("/check-availability", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/check-availability", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const input = checkAvailabilitySchema.parse(req.body);
 
@@ -107,12 +123,7 @@ router.post("/check-availability", authenticate, async (req: AuthenticatedReques
     });
 
     if (!service) {
-      return res.status(404).json({
-        error: {
-          code: "SERVICE_NOT_FOUND",
-          message: "Service not found",
-        },
-      });
+      return next(createError("SERVICE_NOT_FOUND"));
     }
 
     // Build customer coordinates if provided
@@ -137,24 +148,12 @@ router.post("/check-availability", authenticate, async (req: AuthenticatedReques
       suggestedAlternatives: result.suggestedAlternatives.map((d) => d.toISOString()),
       travelBufferMinutes: result.travelBufferMinutes,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error checking availability:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to check availability",
-      },
-    });
+    logger.error("Error checking availability", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -162,7 +161,7 @@ router.post("/check-availability", authenticate, async (req: AuthenticatedReques
  * GET /api/bookings/available-slots
  * Get available time slots for a specific date
  */
-router.get("/available-slots", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/available-slots", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const input = getAvailableSlotsSchema.parse(req.query);
 
@@ -187,24 +186,12 @@ router.get("/available-slots", authenticate, async (req: AuthenticatedRequest, r
       })),
       totalAvailable: slots.length,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid query parameters",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error fetching available slots:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch available slots",
-      },
-    });
+    logger.error("Error fetching available slots", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -212,7 +199,7 @@ router.get("/available-slots", authenticate, async (req: AuthenticatedRequest, r
  * GET /api/bookings/travel-time
  * Calculate travel time between two locations
  */
-router.get("/travel-time", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/travel-time", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const input = travelTimeSchema.parse(req.query);
 
@@ -227,24 +214,12 @@ router.get("/travel-time", authenticate, async (req: AuthenticatedRequest, res: 
       cached: result.cached,
       source: result.source,
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid query parameters",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error calculating travel time:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to calculate travel time",
-      },
-    });
+    logger.error("Error calculating travel time", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -256,20 +231,12 @@ router.get("/travel-time", authenticate, async (req: AuthenticatedRequest, res: 
  * POST /api/bookings
  * Create a new booking request
  */
-router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const input = createBookingSchema.parse(req.body);
-    const userId = req.userId!;
-
-    // Verify the authenticated user is the customer creating the booking
-    if (input.customerId !== userId) {
-      return res.status(403).json({
-        error: {
-          code: "FORBIDDEN",
-          message: "You can only create bookings for yourself",
-        },
-      });
-    }
+    // M-6: SECURITY - customerId derived from JWT, not from request body
+    // This prevents users from creating bookings on behalf of other users
+    const customerId = req.userId!;
 
     // Validate service exists and get pricing
     const service = await prisma.stylistService.findUnique({
@@ -284,30 +251,15 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     });
 
     if (!service) {
-      return res.status(404).json({
-        error: {
-          code: "SERVICE_NOT_FOUND",
-          message: "The requested service does not exist",
-        },
-      });
+      return next(createError("SERVICE_NOT_FOUND"));
     }
 
     if (!service.isActive) {
-      return res.status(400).json({
-        error: {
-          code: "SERVICE_INACTIVE",
-          message: "This service is no longer available",
-        },
-      });
+      return next(createError("SERVICE_INACTIVE"));
     }
 
     if (!service.stylist.isAcceptingBookings) {
-      return res.status(400).json({
-        error: {
-          code: "STYLIST_NOT_ACCEPTING",
-          message: "This stylist is not currently accepting bookings",
-        },
-      });
+      return next(createError("STYLIST_NOT_ACCEPTING"));
     }
 
     // F4.1: Check for scheduling conflicts before creating booking
@@ -326,14 +278,10 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     });
 
     if (!availabilityCheck.available) {
-      return res.status(409).json({
-        error: {
-          code: "SCHEDULING_CONFLICT",
-          message: "The requested time slot is not available",
-          conflicts: availabilityCheck.conflicts,
-          suggestedAlternatives: availabilityCheck.suggestedAlternatives.map((d) => d.toISOString()),
-        },
-      });
+      return next(createError("SCHEDULING_CONFLICT", {
+        conflicts: availabilityCheck.conflicts,
+        suggestedAlternatives: availabilityCheck.suggestedAlternatives.map((d) => d.toISOString()),
+      }));
     }
 
     // Calculate pricing
@@ -347,7 +295,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     // Create booking with PENDING_STYLIST_APPROVAL status
     const booking = await prisma.booking.create({
       data: {
-        customerId: input.customerId,
+        customerId, // M-6: From JWT, not request body
         stylistId: input.stylistId,
         serviceId: input.serviceId,
         serviceType: service.name,
@@ -377,37 +325,25 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
       booking.id,
       null,
       BookingStatus.PENDING_STYLIST_APPROVAL,
-      input.customerId,
+      customerId, // M-6: From JWT
       "Booking created"
     );
 
     // F4.3: Send notification to stylist about new booking request
-    notifyBookingEvent(booking.stylistId, NotificationType.BOOKING_CREATED, {
+    notifyBookingEvent(booking.stylistId, "BOOKING_CREATED", {
       bookingId: booking.id,
       customerName: booking.customer.displayName,
       serviceName: booking.serviceType,
       scheduledTime: booking.scheduledStartTime.toISOString(),
-    }).catch((err) => console.error("Failed to send booking notification:", err));
+    }).catch((err) => logger.error("Failed to send booking notification", { error: err }));
 
     return res.status(201).json(booking);
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error creating booking:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to create booking",
-      },
-    });
+    logger.error("Error creating booking", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -415,7 +351,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
  * GET /api/bookings/:id
  * Get booking details with status history
  */
-router.get("/:id", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:id", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const userId = req.userId!;
@@ -441,34 +377,18 @@ router.get("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify user is either customer or stylist
     if (!authorizeBookingAccess(userId, booking, "any")) {
-      const error = createForbiddenError("view", "any");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     return res.json(booking);
   } catch (error) {
-    console.error("Error fetching booking:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch booking",
-      },
-    });
+    logger.error("Error fetching booking", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -476,32 +396,24 @@ router.get("/:id", authenticate, async (req: AuthenticatedRequest, res: Response
  * POST /api/bookings/:id/approve
  * Stylist approves booking request
  */
-router.post("/:id/approve", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/approve", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const input = approveBookingSchema.parse(req.body);
+    const userId = req.userId!;
 
     const booking = await prisma.booking.findUnique({
       where: { id },
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
-    // Verify stylist ownership
-    if (booking.stylistId !== input.stylistId) {
-      return res.status(403).json({
-        error: {
-          code: "FORBIDDEN",
-          message: "Only the assigned stylist can approve this booking",
-        },
-      });
+    // SECURITY: Verify authenticated user is the assigned stylist
+    // Use req.userId from JWT, not input.stylistId from request body
+    if (booking.stylistId !== userId) {
+      return next(createError("FORBIDDEN"));
     }
 
     // Validate state transition
@@ -510,13 +422,10 @@ router.post("/:id/approve", authenticate, async (req: AuthenticatedRequest, res:
         booking.status,
         BookingStatus.PENDING_CUSTOMER_PAYMENT
       );
-    } catch (error: any) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_STATUS_TRANSITION",
-          message: error.message,
-        },
-      });
+    } catch (transitionError) {
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: transitionError instanceof Error ? transitionError.message : "Invalid transition"
+      }));
     }
 
     // Update booking status
@@ -536,38 +445,26 @@ router.post("/:id/approve", authenticate, async (req: AuthenticatedRequest, res:
       id,
       booking.status,
       BookingStatus.PENDING_CUSTOMER_PAYMENT,
-      input.stylistId,
+      userId,
       input.notes || "Stylist approved booking"
     );
 
     // TODO: Trigger payment flow (lock funds in escrow)
 
     // F4.3: Send notification to customer about booking approval
-    notifyBookingEvent(updatedBooking.customerId, NotificationType.BOOKING_APPROVED, {
+    notifyBookingEvent(updatedBooking.customerId, "BOOKING_APPROVED", {
       bookingId: id,
       stylistName: updatedBooking.stylist.displayName,
       scheduledTime: updatedBooking.scheduledStartTime.toISOString(),
-    }).catch((err) => console.error("Failed to send approval notification:", err));
+    }).catch((err) => logger.error("Failed to send approval notification", { error: err }));
 
     return res.json(updatedBooking);
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error approving booking:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to approve booking",
-      },
-    });
+    logger.error("Error approving booking", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -575,7 +472,7 @@ router.post("/:id/approve", authenticate, async (req: AuthenticatedRequest, res:
  * POST /api/bookings/:id/decline
  * Stylist declines booking request
  */
-router.post("/:id/decline", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/decline", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const input = declineBookingSchema.parse(req.body);
@@ -586,45 +483,26 @@ router.post("/:id/decline", authenticate, async (req: AuthenticatedRequest, res:
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify stylist authorization
     if (!authorizeBookingAccess(userId, booking, "stylist")) {
-      const error = createForbiddenError("decline", "stylist");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Verify stylist ownership (backward compatibility check)
     if (booking.stylistId !== input.stylistId) {
-      return res.status(403).json({
-        error: {
-          code: "FORBIDDEN",
-          message: "Only the assigned stylist can decline this booking",
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Validate state transition
     try {
       validateTransition(booking.status, BookingStatus.DECLINED);
-    } catch (error: any) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_STATUS_TRANSITION",
-          message: error.message,
-        },
-      });
+    } catch (transitionError) {
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: transitionError instanceof Error ? transitionError.message : "Invalid transition"
+      }));
     }
 
     // Update booking status
@@ -652,31 +530,19 @@ router.post("/:id/decline", authenticate, async (req: AuthenticatedRequest, res:
     );
 
     // F4.3: Send notification to customer about booking decline
-    notifyBookingEvent(updatedBooking.customerId, NotificationType.BOOKING_DECLINED, {
+    notifyBookingEvent(updatedBooking.customerId, "BOOKING_DECLINED", {
       bookingId: id,
       stylistName: updatedBooking.stylist.displayName,
       reason: input.reason,
-    }).catch((err) => console.error("Failed to send decline notification:", err));
+    }).catch((err) => logger.error("Failed to send decline notification", { error: err }));
 
     return res.json(updatedBooking);
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error declining booking:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to decline booking",
-      },
-    });
+    logger.error("Error declining booking", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -684,7 +550,7 @@ router.post("/:id/decline", authenticate, async (req: AuthenticatedRequest, res:
  * GET /api/bookings/:id/payment-instructions
  * Get payment instructions for customer
  */
-router.get("/:id/payment-instructions", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/:id/payment-instructions", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const userId = req.userId!;
@@ -695,45 +561,26 @@ router.get("/:id/payment-instructions", authenticate, async (req: AuthenticatedR
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify customer authorization
     if (!authorizeBookingAccess(userId, booking, "customer")) {
-      const error = createForbiddenError("get payment instructions for", "customer");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Check booking status
     if (booking.status !== BookingStatus.PENDING_CUSTOMER_PAYMENT) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_STATUS",
-          message: `Booking must be in PENDING_CUSTOMER_PAYMENT status, current: ${booking.status}`,
-        },
-      });
+      return next(createError("INVALID_STATUS", {
+        message: `Booking must be in PENDING_CUSTOMER_PAYMENT status, current: ${booking.status}`
+      }));
     }
 
     // Get payment instructions
     const result = await getPaymentInstructions(userId, id);
 
     if (!result.success) {
-      return res.status(400).json({
-        error: {
-          code: "PAYMENT_INSTRUCTIONS_ERROR",
-          message: result.error || "Failed to get payment instructions",
-        },
-      });
+      return next(createError("PAYMENT_INSTRUCTIONS_ERROR", { message: result.error }));
     }
 
     return res.json({
@@ -750,24 +597,24 @@ router.get("/:id/payment-instructions", authenticate, async (req: AuthenticatedR
         ? "First approve USDC spend, then call lockFunds on escrow contract"
         : "Call lockFunds on escrow contract to complete payment",
     });
-  } catch (error: any) {
-    console.error("Error getting payment instructions:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to get payment instructions",
-      },
-    });
+  } catch (error) {
+    logger.error("Error getting payment instructions", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
 /**
  * POST /api/bookings/:id/confirm-payment
  * Verify payment locked in escrow and confirm booking
+ *
+ * Request body:
+ * - escrowTxHash: Transaction hash of the lockFunds call on escrow contract
+ * - skipOnChainVerification: (optional, testing only) Skip on-chain verification
  */
-router.post("/:id/confirm-payment", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/confirm-payment", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const input = confirmPaymentSchema.parse(req.body);
     const userId = req.userId!;
 
     // Get booking
@@ -780,35 +627,27 @@ router.post("/:id/confirm-payment", authenticate, async (req: AuthenticatedReque
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify customer authorization
     if (!authorizeBookingAccess(userId, booking, "customer")) {
-      const error = createForbiddenError("confirm payment for", "customer");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
-    // Verify and confirm payment
-    const result = await verifyAndConfirmPayment(id);
+    // Only allow skipping verification in non-production environments
+    const skipVerification = input.skipOnChainVerification &&
+      process.env.NODE_ENV !== "production";
+
+    // Verify and confirm payment with transaction hash
+    const result = await verifyAndConfirmPayment(
+      id,
+      input.escrowTxHash as Hash,
+      skipVerification
+    );
 
     if (!result.success) {
-      return res.status(400).json({
-        error: {
-          code: "PAYMENT_VERIFICATION_FAILED",
-          message: result.error || "Failed to verify payment",
-        },
-      });
+      return next(createError("PAYMENT_VERIFICATION_FAILED", { message: result.error }));
     }
 
     // Fetch updated booking
@@ -820,18 +659,30 @@ router.post("/:id/confirm-payment", authenticate, async (req: AuthenticatedReque
       },
     });
 
+    // F4.3: Notify stylist that booking is confirmed and paid
+    notifyBookingEvent(updatedBooking!.stylistId, "PAYMENT_CONFIRMED", {
+      bookingId: id,
+      customerName: updatedBooking!.customer.displayName,
+      serviceName: updatedBooking!.serviceType,
+      amount: updatedBooking!.quoteAmountCents,
+      txHash: input.escrowTxHash,
+    }).catch((err) => logger.error("Failed to send payment confirmed notification", { error: err }));
+
     return res.json({
       booking: updatedBooking,
       message: "Payment confirmed, booking is now CONFIRMED",
+      escrow: result.escrowRecord ? {
+        customer: result.escrowRecord.customer,
+        amount: result.escrowRecord.amount.toString(),
+        status: result.escrowRecord.status,
+      } : undefined,
     });
-  } catch (error: any) {
-    console.error("Error confirming payment:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to confirm payment",
-      },
-    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
+    }
+    logger.error("Error confirming payment", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -839,7 +690,7 @@ router.post("/:id/confirm-payment", authenticate, async (req: AuthenticatedReque
  * POST /api/bookings/:id/start
  * Mark service as started
  */
-router.post("/:id/start", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/start", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const input = startServiceSchema.parse(req.body);
@@ -850,45 +701,26 @@ router.post("/:id/start", authenticate, async (req: AuthenticatedRequest, res: R
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify stylist authorization
     if (!authorizeBookingAccess(userId, booking, "stylist")) {
-      const error = createForbiddenError("start", "stylist");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Verify stylist ownership (backward compatibility check)
     if (booking.stylistId !== input.stylistId) {
-      return res.status(403).json({
-        error: {
-          code: "FORBIDDEN",
-          message: "Only the assigned stylist can start this service",
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Validate state transition
     try {
       validateTransition(booking.status, BookingStatus.IN_PROGRESS);
-    } catch (error: any) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_STATUS_TRANSITION",
-          message: error.message,
-        },
-      });
+    } catch (transitionError) {
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: transitionError instanceof Error ? transitionError.message : "Invalid transition"
+      }));
     }
 
     const actualStartTime = input.actualStartTime || new Date();
@@ -906,41 +738,29 @@ router.post("/:id/start", authenticate, async (req: AuthenticatedRequest, res: R
       },
     });
 
-    // Log status change
+    // Log status change (use authenticated userId, not input.stylistId)
     await logStatusChange(
       id,
       booking.status,
       BookingStatus.IN_PROGRESS,
-      input.stylistId,
+      userId,
       "Service started"
     );
 
     // F4.3: Send notification to customer that service has started
-    notifyBookingEvent(updatedBooking.customerId, NotificationType.SERVICE_STARTED, {
+    notifyBookingEvent(updatedBooking.customerId, "SERVICE_STARTED", {
       bookingId: id,
       stylistName: updatedBooking.stylist.displayName,
       serviceName: updatedBooking.serviceType,
-    }).catch((err) => console.error("Failed to send service started notification:", err));
+    }).catch((err) => logger.error("Failed to send service started notification", { error: err }));
 
     return res.json(updatedBooking);
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error starting service:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to start service",
-      },
-    });
+    logger.error("Error starting service", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -948,7 +768,7 @@ router.post("/:id/start", authenticate, async (req: AuthenticatedRequest, res: R
  * POST /api/bookings/:id/complete
  * Mark service as completed
  */
-router.post("/:id/complete", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/complete", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const input = completeServiceSchema.parse(req.body);
@@ -959,45 +779,26 @@ router.post("/:id/complete", authenticate, async (req: AuthenticatedRequest, res
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify stylist authorization
     if (!authorizeBookingAccess(userId, booking, "stylist")) {
-      const error = createForbiddenError("complete", "stylist");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Verify stylist ownership (backward compatibility check)
     if (booking.stylistId !== input.stylistId) {
-      return res.status(403).json({
-        error: {
-          code: "FORBIDDEN",
-          message: "Only the assigned stylist can complete this service",
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Validate state transition (IN_PROGRESS -> COMPLETED)
     try {
       validateTransition(booking.status, BookingStatus.COMPLETED);
-    } catch (error: any) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_STATUS_TRANSITION",
-          message: error.message,
-        },
-      });
+    } catch (transitionError) {
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: transitionError instanceof Error ? transitionError.message : "Invalid transition"
+      }));
     }
 
     const actualEndTime = input.actualEndTime || new Date();
@@ -1020,12 +821,12 @@ router.post("/:id/complete", authenticate, async (req: AuthenticatedRequest, res
       },
     });
 
-    // Log status change
+    // Log status change (use authenticated userId, not input.stylistId)
     await logStatusChange(
       id,
       booking.status,
       BookingStatus.COMPLETED,
-      input.stylistId,
+      userId,
       input.notes || "Service completed"
     );
 
@@ -1050,35 +851,23 @@ router.post("/:id/complete", authenticate, async (req: AuthenticatedRequest, res
     );
 
     // F4.3: Send notification to customer that service is completed and needs confirmation
-    notifyBookingEvent(finalBooking.customerId, NotificationType.SERVICE_COMPLETED, {
+    notifyBookingEvent(finalBooking.customerId, "SERVICE_COMPLETED", {
       bookingId: id,
       stylistName: finalBooking.stylist.displayName,
       serviceName: finalBooking.serviceType,
       actualDurationMin: actualDurationMin || undefined,
-    }).catch((err) => console.error("Failed to send service completed notification:", err));
+    }).catch((err) => logger.error("Failed to send service completed notification", { error: err }));
 
     // Auto-confirm is handled by @vlossom/scheduler service polling
     // for AWAITING_CUSTOMER_CONFIRMATION bookings older than 24h
 
     return res.json(finalBooking);
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error completing service:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to complete service",
-      },
-    });
+    logger.error("Error completing service", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -1086,7 +875,7 @@ router.post("/:id/complete", authenticate, async (req: AuthenticatedRequest, res
  * POST /api/bookings/:id/confirm
  * Customer confirms service completion and triggers settlement
  */
-router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const input = confirmServiceSchema.parse(req.body);
@@ -1101,33 +890,17 @@ router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res:
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify customer authorization
     if (!authorizeBookingAccess(userId, booking, "customer")) {
-      const error = createForbiddenError("confirm", "customer");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Verify customer ownership (backward compatibility check)
     if (booking.customerId !== input.customerId) {
-      return res.status(403).json({
-        error: {
-          code: "FORBIDDEN",
-          message: "Only the customer can confirm this booking",
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Validate state transition
@@ -1136,13 +909,10 @@ router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res:
         booking.status,
         BookingStatus.SETTLED
       );
-    } catch (error: any) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_STATUS_TRANSITION",
-          message: error.message,
-        },
-      });
+    } catch (transitionError) {
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: transitionError instanceof Error ? transitionError.message : "Invalid transition"
+      }));
     }
 
     // Update booking to SETTLED
@@ -1167,7 +937,7 @@ router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res:
     try {
       // Get stylist wallet address
       if (!booking.stylist.walletAddress) {
-        console.error("Stylist wallet address not found:", booking.stylistId);
+        logger.error("Stylist wallet address not found", { stylistId: booking.stylistId });
         throw new Error("Stylist wallet not configured");
       }
 
@@ -1180,14 +950,49 @@ router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res:
       });
 
       if (!result.success) {
-        console.error("Failed to release escrow funds:", result.error);
+        logger.error("Failed to release escrow funds", { error: result.error });
+
+        // M-1: Record escrow failure for manual review
+        await prisma.escrowFailure.create({
+          data: {
+            bookingId: id,
+            operation: "RELEASE",
+            errorMessage: result.error || "Unknown error",
+            txHash: result.txHash,
+            amount: BigInt(booking.quoteAmountCents),
+            metadata: {
+              stylistAddress: booking.stylist.walletAddress,
+              treasuryAddress: PLATFORM_TREASURY_ADDRESS,
+              platformFeePercentage: PLATFORM_FEE_PERCENTAGE,
+            },
+          },
+        });
+
         // Log the error but don't fail the booking confirmation
         // Support team can manually release funds if needed
       } else {
-        console.log("✓ Escrow funds released successfully:", result.txHash);
+        logger.info("Escrow funds released successfully", { txHash: result.txHash });
       }
-    } catch (error) {
-      console.error("Error releasing escrow funds:", error);
+    } catch (escrowError) {
+      logger.error("Error releasing escrow funds", { error: escrowError });
+
+      // M-1: Record escrow failure for manual review
+      try {
+        await prisma.escrowFailure.create({
+          data: {
+            bookingId: id,
+            operation: "RELEASE",
+            errorMessage: escrowError instanceof Error ? escrowError.message : String(escrowError),
+            amount: BigInt(booking.quoteAmountCents),
+            metadata: {
+              errorStack: escrowError instanceof Error ? escrowError.stack : undefined,
+            },
+          },
+        });
+      } catch (dbError) {
+        logger.error("Failed to record escrow failure", { error: dbError });
+      }
+
       // Continue - don't block booking confirmation on escrow failure
     }
 
@@ -1201,27 +1006,15 @@ router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res:
       scheduledEnd: booking.scheduledEndTime,
       actualEnd: booking.actualEndTime,
       wasAutoConfirmed: false,
-    }).catch((err) => console.error("Failed to record reputation event:", err));
+    }).catch((err) => logger.error("Failed to record reputation event", { error: err }));
 
     return res.json(updatedBooking);
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error confirming booking:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to confirm booking",
-      },
-    });
+    logger.error("Error confirming booking", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -1229,7 +1022,7 @@ router.post("/:id/confirm", authenticate, async (req: AuthenticatedRequest, res:
  * POST /api/bookings/:id/cancel
  * Cancel booking with appropriate refund logic
  */
-router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const input = cancelBookingSchema.parse(req.body);
@@ -1244,47 +1037,27 @@ router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: 
     });
 
     if (!booking) {
-      return res.status(404).json({
-        error: {
-          code: "BOOKING_NOT_FOUND",
-          message: "Booking not found",
-        },
-      });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify authorization - either customer or stylist can cancel
     if (!authorizeBookingAccess(userId, booking, "any")) {
-      const error = createForbiddenError("cancel", "any");
-      return res.status(error.statusCode).json({
-        error: {
-          code: error.code,
-          message: error.message,
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Check if user is customer or stylist
-    const isCustomer = booking.customerId === userId;
     const isStylist = booking.stylistId === userId;
 
     // Backward compatibility check
     if (booking.customerId !== input.userId && booking.stylistId !== input.userId) {
-      return res.status(403).json({
-        error: {
-          code: "FORBIDDEN",
-          message: "You do not have permission to cancel this booking",
-        },
-      });
+      return next(createError("FORBIDDEN"));
     }
 
     // Check if cancellation is allowed
     if (!canCancelBooking(booking.status)) {
-      return res.status(400).json({
-        error: {
-          code: "CANNOT_CANCEL",
-          message: `Booking cannot be cancelled in ${booking.status} status`,
-        },
-      });
+      return next(createError("CANNOT_CANCEL", {
+        message: `Booking cannot be cancelled in ${booking.status} status`
+      }));
     }
 
     // Calculate refund based on who is cancelling
@@ -1310,13 +1083,10 @@ router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: 
     // Validate state transition
     try {
       validateTransition(booking.status, BookingStatus.CANCELLED);
-    } catch (error: any) {
-      return res.status(400).json({
-        error: {
-          code: "INVALID_STATUS_TRANSITION",
-          message: error.message,
-        },
-      });
+    } catch (transitionError) {
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: transitionError instanceof Error ? transitionError.message : "Invalid transition"
+      }));
     }
 
     // Update booking status
@@ -1347,7 +1117,7 @@ router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: 
     try {
       // Get customer wallet address for refund
       if (!booking.customer.walletAddress) {
-        console.error("Customer wallet address not found:", booking.customerId);
+        logger.error("Customer wallet address not found", { customerId: booking.customerId });
         throw new Error("Customer wallet not configured");
       }
 
@@ -1359,17 +1129,51 @@ router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: 
         });
 
         if (!result.success) {
-          console.error("Failed to refund from escrow:", result.error);
+          logger.error("Failed to refund from escrow", { error: result.error });
+
+          // M-1: Record escrow failure for manual review
+          await prisma.escrowFailure.create({
+            data: {
+              bookingId: id,
+              operation: "REFUND",
+              errorMessage: result.error || "Unknown error",
+              txHash: result.txHash,
+              amount: refundAmountCents,
+              metadata: {
+                customerAddress: booking.customer.walletAddress,
+                originalAmount: booking.quoteAmountCents.toString(),
+              },
+            },
+          });
+
           // Log the error but don't fail the cancellation
           // Support team can manually process refund if needed
         } else {
-          console.log("✓ Refund processed successfully:", result.txHash);
+          logger.info("Refund processed successfully", { txHash: result.txHash });
         }
       } else {
-        console.log("No refund amount - cancellation within no-refund window");
+        logger.info("No refund amount - cancellation within no-refund window");
       }
-    } catch (error) {
-      console.error("Error processing refund:", error);
+    } catch (refundError) {
+      logger.error("Error processing refund", { error: refundError });
+
+      // M-1: Record escrow failure for manual review
+      try {
+        await prisma.escrowFailure.create({
+          data: {
+            bookingId: id,
+            operation: "REFUND",
+            errorMessage: refundError instanceof Error ? refundError.message : String(refundError),
+            amount: refundAmountCents,
+            metadata: {
+              errorStack: refundError instanceof Error ? refundError.stack : undefined,
+            },
+          },
+        });
+      } catch (dbError) {
+        logger.error("Failed to record escrow failure", { error: dbError });
+      }
+
       // Continue - don't block cancellation on escrow failure
     }
 
@@ -1377,20 +1181,20 @@ router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: 
     const cancelledByCustomer = booking.customerId === input.userId;
 
     // Notify the customer
-    notifyBookingEvent(updatedBooking.customerId, NotificationType.BOOKING_CANCELLED, {
+    notifyBookingEvent(updatedBooking.customerId, "BOOKING_CANCELLED", {
       bookingId: id,
       cancelledBy: cancelledByCustomer ? "you" : updatedBooking.stylist.displayName,
       reason: input.reason,
-      refundAmount: refundAmountCents.toString(),
-    }).catch((err) => console.error("Failed to send cancellation notification to customer:", err));
+      refundAmount: Number(refundAmountCents),
+    }).catch((err) => logger.error("Failed to send cancellation notification to customer", { error: err }));
 
     // Notify the stylist
-    notifyBookingEvent(updatedBooking.stylistId, NotificationType.BOOKING_CANCELLED, {
+    notifyBookingEvent(updatedBooking.stylistId, "BOOKING_CANCELLED", {
       bookingId: id,
       cancelledBy: cancelledByCustomer ? updatedBooking.customer.displayName : "you",
       reason: input.reason,
       customerName: updatedBooking.customer.displayName,
-    }).catch((err) => console.error("Failed to send cancellation notification to stylist:", err));
+    }).catch((err) => logger.error("Failed to send cancellation notification to stylist", { error: err }));
 
     return res.json({
       booking: updatedBooking,
@@ -1399,24 +1203,12 @@ router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: 
         details: cancellationDetails,
       },
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error cancelling booking:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to cancel booking",
-      },
-    });
+    logger.error("Error cancelling booking", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

@@ -1,17 +1,33 @@
 "use client";
 
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useAuth } from "../../hooks/use-auth";
 import { useWallet } from "../../hooks/use-wallet";
 import { useTransactions } from "../../hooks/use-transactions";
 import { Button } from "../../components/ui/button";
+import { CopyButton } from "../../components/ui/copy-button";
 import { BalanceCard } from "../../components/wallet/balance-card";
-import { SendDialog } from "../../components/wallet/send-dialog";
-import { ReceiveDialog } from "../../components/wallet/receive-dialog";
 import { TransactionList } from "../../components/wallet/transaction-list";
-import { AddMoneyDialog } from "../../components/wallet/add-money-dialog";
-import { WithdrawDialog } from "../../components/wallet/withdraw-dialog";
 import { claimFaucet } from "../../lib/wallet-client";
-import { useState } from "react";
+
+// Lazy load dialogs - only loaded when opened
+const SendDialog = dynamic(
+  () => import("../../components/wallet/send-dialog").then(mod => ({ default: mod.SendDialog })),
+  { ssr: false }
+);
+const ReceiveDialog = dynamic(
+  () => import("../../components/wallet/receive-dialog").then(mod => ({ default: mod.ReceiveDialog })),
+  { ssr: false }
+);
+const AddMoneyDialog = dynamic(
+  () => import("../../components/wallet/add-money-dialog").then(mod => ({ default: mod.AddMoneyDialog })),
+  { ssr: false }
+);
+const WithdrawDialog = dynamic(
+  () => import("../../components/wallet/withdraw-dialog").then(mod => ({ default: mod.WithdrawDialog })),
+  { ssr: false }
+);
 
 export default function WalletPage() {
   const { user, logout } = useAuth();
@@ -127,15 +143,15 @@ export default function WalletPage() {
 
           {/* Success Message */}
           {faucetMessage && (
-            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-caption text-green-800">{faucetMessage}</p>
+            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
+              <p className="text-caption text-green-800 dark:text-green-200">{faucetMessage}</p>
             </div>
           )}
 
           {/* Error Message */}
           {faucetError && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-caption text-red-800">{faucetError}</p>
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-caption text-red-800 dark:text-red-200">{faucetError}</p>
             </div>
           )}
         </div>
@@ -143,9 +159,20 @@ export default function WalletPage() {
         {/* Wallet Address */}
         <div className="bg-background-primary rounded-card shadow-vlossom p-6">
           <p className="text-caption text-text-secondary mb-2">Wallet Address</p>
-          <p className="text-body text-text-primary font-mono break-all">
-            {user?.walletAddress}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-body text-text-primary font-mono break-all flex-1">
+              {user?.walletAddress}
+            </p>
+            {user?.walletAddress && (
+              <CopyButton
+                textToCopy={user.walletAddress}
+                successMessage="Wallet address copied!"
+                variant="ghost"
+                size="icon"
+                className="shrink-0"
+              />
+            )}
+          </div>
           <p className="text-caption text-text-tertiary mt-2">
             {wallet?.isDeployed ? "Deployed" : "Not yet deployed (counterfactual)"}
           </p>

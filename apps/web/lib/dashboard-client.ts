@@ -146,7 +146,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 // ============================================================================
 
 export async function fetchDashboard(): Promise<DashboardData> {
-  const response = await fetch(`${API_BASE}/api/stylists/dashboard`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/dashboard`, {
     headers: getAuthHeaders(),
   });
   return handleResponse<DashboardData>(response);
@@ -157,14 +157,14 @@ export async function fetchDashboard(): Promise<DashboardData> {
 // ============================================================================
 
 export async function fetchServices(): Promise<{ services: StylistService[]; total: number }> {
-  const response = await fetch(`${API_BASE}/api/stylists/services`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/services`, {
     headers: getAuthHeaders(),
   });
   return handleResponse(response);
 }
 
 export async function createService(input: CreateServiceInput): Promise<StylistService> {
-  const response = await fetch(`${API_BASE}/api/stylists/services`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/services`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(input),
@@ -176,7 +176,7 @@ export async function updateService(
   id: string,
   input: Partial<CreateServiceInput>
 ): Promise<StylistService> {
-  const response = await fetch(`${API_BASE}/api/stylists/services/${id}`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/services/${id}`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(input),
@@ -185,7 +185,7 @@ export async function updateService(
 }
 
 export async function deleteService(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/api/stylists/services/${id}`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/services/${id}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
@@ -200,14 +200,14 @@ export async function deleteService(id: string): Promise<void> {
 // ============================================================================
 
 export async function fetchAvailability(): Promise<AvailabilityData> {
-  const response = await fetch(`${API_BASE}/api/stylists/availability`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/availability`, {
     headers: getAuthHeaders(),
   });
   return handleResponse<AvailabilityData>(response);
 }
 
 export async function updateAvailability(schedule: WeeklySchedule): Promise<AvailabilityData> {
-  const response = await fetch(`${API_BASE}/api/stylists/availability`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/availability`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify({ schedule }),
@@ -216,7 +216,7 @@ export async function updateAvailability(schedule: WeeklySchedule): Promise<Avai
 }
 
 export async function addException(exception: DateException): Promise<{ exceptions: DateException[] }> {
-  const response = await fetch(`${API_BASE}/api/stylists/availability/exceptions`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/availability/exceptions`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(exception),
@@ -225,7 +225,7 @@ export async function addException(exception: DateException): Promise<{ exceptio
 }
 
 export async function removeException(date: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/api/stylists/availability/exceptions/${date}`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/availability/exceptions/${date}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
@@ -240,14 +240,14 @@ export async function removeException(date: string): Promise<void> {
 // ============================================================================
 
 export async function fetchProfile(): Promise<StylistProfile> {
-  const response = await fetch(`${API_BASE}/api/stylists/profile`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/profile`, {
     headers: getAuthHeaders(),
   });
   return handleResponse<StylistProfile>(response);
 }
 
 export async function updateProfile(input: Partial<StylistProfile>): Promise<StylistProfile> {
-  const response = await fetch(`${API_BASE}/api/stylists/profile`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/profile`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(input),
@@ -260,7 +260,7 @@ export async function updateProfile(input: Partial<StylistProfile>): Promise<Sty
 // ============================================================================
 
 export async function fetchEarnings(): Promise<EarningsSummary> {
-  const response = await fetch(`${API_BASE}/api/stylists/earnings`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/earnings`, {
     headers: getAuthHeaders(),
   });
   return handleResponse<EarningsSummary>(response);
@@ -269,7 +269,7 @@ export async function fetchEarnings(): Promise<EarningsSummary> {
 export async function fetchEarningsTrend(
   period: "week" | "month" | "year" = "week"
 ): Promise<{ period: string; data: EarningsTrendData[] }> {
-  const response = await fetch(`${API_BASE}/api/stylists/earnings/trend?period=${period}`, {
+  const response = await fetch(`${API_BASE}/api/v1/stylists/earnings/trend?period=${period}`, {
     headers: getAuthHeaders(),
   });
   return handleResponse(response);
@@ -283,7 +283,7 @@ export async function fetchPayoutHistory(
   pagination: { page: number; limit: number; total: number; hasMore: boolean };
 }> {
   const response = await fetch(
-    `${API_BASE}/api/stylists/earnings/history?page=${page}&limit=${limit}`,
+    `${API_BASE}/api/v1/stylists/earnings/history?page=${page}&limit=${limit}`,
     { headers: getAuthHeaders() }
   );
   return handleResponse(response);

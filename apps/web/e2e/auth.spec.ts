@@ -99,7 +99,7 @@ test.describe("Authentication", () => {
       const password = "TestPassword123!";
 
       // Signup via API
-      const signupResponse = await page.request.post("/api/auth/signup", {
+      const signupResponse = await page.request.post("/api/v1/auth/signup", {
         data: {
           email,
           password,
@@ -146,7 +146,7 @@ test.describe("Authentication", () => {
       // Create a user first
       const email = `lockout.${Date.now()}@vlossom.test`;
 
-      await page.request.post("/api/auth/signup", {
+      await page.request.post("/api/v1/auth/signup", {
         data: {
           email,
           password: "CorrectPassword123!",
@@ -175,7 +175,7 @@ test.describe("Authentication", () => {
       const email = `logout.test.${Date.now()}@vlossom.test`;
       const password = "TestPassword123!";
 
-      await page.request.post("/api/auth/signup", {
+      await page.request.post("/api/v1/auth/signup", {
         data: {
           email,
           password,

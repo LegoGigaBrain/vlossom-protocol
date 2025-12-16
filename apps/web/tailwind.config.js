@@ -137,6 +137,62 @@ module.exports = {
         tooltip: "500",
         toast: "600",
       },
+      keyframes: {
+        // Dialog animations
+        fadeIn: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        fadeOut: {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        dialogIn: {
+          from: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+          to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
+        dialogOut: {
+          from: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+          to: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+        },
+        // Success checkmark animation
+        checkmark: {
+          "0%": { transform: "scale(0)", opacity: "0" },
+          "50%": { transform: "scale(1.2)" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        // Subtle pulse for loading states
+        subtlePulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.7" },
+        },
+        // Slide in from bottom (for toasts, cards)
+        slideInUp: {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        // Skeleton loading shimmer
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
+        // Spinner rotation
+        spin: {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+      },
+      animation: {
+        fadeIn: "fadeIn 220ms ease-out",
+        fadeOut: "fadeOut 150ms ease-in",
+        dialogIn: "dialogIn 220ms ease-out",
+        dialogOut: "dialogOut 150ms ease-in",
+        checkmark: "checkmark 400ms ease-out",
+        subtlePulse: "subtlePulse 2s ease-in-out infinite",
+        slideInUp: "slideInUp 300ms ease-out",
+        shimmer: "shimmer 2s linear infinite",
+        spin: "spin 1s linear infinite",
+      },
     },
   },
   plugins: [],

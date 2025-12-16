@@ -5,19 +5,28 @@
 
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../../../hooks/use-auth";
 import { Button } from "../../../components/ui/button";
+import {
+  TrendingUpIcon,
+  InboxDownloadIcon,
+  ScissorsIcon,
+  CalendarIcon,
+  UserIcon,
+  WalletIcon,
+} from "../../../components/ui/icons";
 import { cn } from "../../../lib/utils";
 
 const navItems = [
-  { href: "/stylist/dashboard", label: "Overview", icon: "📊" },
-  { href: "/stylist/dashboard/requests", label: "Requests", icon: "📥" },
-  { href: "/stylist/dashboard/services", label: "Services", icon: "✂️" },
-  { href: "/stylist/dashboard/availability", label: "Availability", icon: "📅" },
-  { href: "/stylist/dashboard/profile", label: "Profile", icon: "👤" },
-  { href: "/stylist/dashboard/earnings", label: "Earnings", icon: "💰" },
+  { href: "/stylist/dashboard", label: "Overview", icon: TrendingUpIcon },
+  { href: "/stylist/dashboard/requests", label: "Requests", icon: InboxDownloadIcon },
+  { href: "/stylist/dashboard/services", label: "Services", icon: ScissorsIcon },
+  { href: "/stylist/dashboard/availability", label: "Availability", icon: CalendarIcon },
+  { href: "/stylist/dashboard/profile", label: "Profile", icon: UserIcon },
+  { href: "/stylist/dashboard/earnings", label: "Earnings", icon: WalletIcon },
 ];
 
 export default function DashboardLayout({
@@ -27,6 +36,33 @@ export default function DashboardLayout({
 }) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const navRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(false);
+
+  // Check scroll position to show/hide indicators
+  React.useEffect(() => {
+    const checkScroll = () => {
+      const nav = navRef.current;
+      if (!nav) return;
+
+      const { scrollLeft, scrollWidth, clientWidth } = nav;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+    };
+
+    const nav = navRef.current;
+    if (nav) {
+      checkScroll();
+      nav.addEventListener("scroll", checkScroll);
+      window.addEventListener("resize", checkScroll);
+
+      return () => {
+        nav.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+      };
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-background-secondary">
@@ -53,30 +89,52 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      {/* Navigation Tabs (Mobile-first horizontal scroll) */}
-      <nav className="bg-background-primary border-b border-border-default overflow-x-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 -mb-px">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href ||
-                (item.href !== "/stylist/dashboard" && pathname.startsWith(item.href));
+      {/* Navigation Tabs (Mobile-first horizontal scroll with indicators) */}
+      <nav className="bg-background-primary border-b border-border-default relative">
+        {/* Left scroll indicator */}
+        {canScrollLeft && (
+          <div
+            className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background-primary to-transparent z-10 pointer-events-none"
+            aria-hidden="true"
+          />
+        )}
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-3 text-body-small whitespace-nowrap border-b-2 transition-colors",
-                    isActive
-                      ? "border-brand-rose text-brand-rose"
-                      : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-default"
-                  )}
-                >
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="hidden sm:inline">{item.label}</span>
-                </Link>
-              );
-            })}
+        {/* Right scroll indicator */}
+        {canScrollRight && (
+          <div
+            className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background-primary to-transparent z-10 pointer-events-none"
+            aria-hidden="true"
+          />
+        )}
+
+        <div
+          ref={navRef}
+          className="overflow-x-auto scrollbar-hide"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex gap-1 -mb-px">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href ||
+                  (item.href !== "/stylist/dashboard" && pathname.startsWith(item.href));
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-3 text-body-small whitespace-nowrap border-b-2 transition-colors min-h-[44px]",
+                      isActive
+                        ? "border-brand-rose text-brand-rose"
+                        : "border-transparent text-text-secondary hover:text-text-primary hover:border-border-default"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </div>
       </nav>

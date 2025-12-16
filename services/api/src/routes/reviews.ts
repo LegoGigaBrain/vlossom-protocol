@@ -1,11 +1,12 @@
 // Reviews & Reputation API Routes
 // Reference: docs/vlossom/08-reputation-system-flow.md
 
-import { Router, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import prisma from "../lib/prisma";
 import { authenticate, AuthenticatedRequest } from "../middleware/auth";
 import { z } from "zod";
 import { ReviewType } from "@prisma/client";
+import { createError } from "../middleware/error-handler";
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -38,7 +39,7 @@ const createReviewSchema = z.object({
  * POST /api/reviews
  * Create a review after booking completion
  */
-router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const input = createReviewSchema.parse(req.body);
@@ -55,12 +56,15 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     });
 
     if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Verify booking is completed
     if (booking.status !== "COMPLETED") {
-      return res.status(400).json({ error: "Can only review completed bookings" });
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: "Can only review completed bookings",
+        currentStatus: booking.status,
+      }));
     }
 
     // Determine reviewee based on review type
@@ -89,11 +93,11 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
         isAuthorized = userId === booking.stylistId;
         break;
       default:
-        return res.status(400).json({ error: "Invalid review type" });
+        return next(createError("VALIDATION_ERROR", { message: "Invalid review type" }));
     }
 
     if (!isAuthorized) {
-      return res.status(403).json({ error: "Not authorized to submit this review" });
+      return next(createError("FORBIDDEN"));
     }
 
     // Check if review already exists
@@ -107,7 +111,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     });
 
     if (existingReview) {
-      return res.status(400).json({ error: "Review already submitted for this booking" });
+      return next(createError("DUPLICATE_REVIEW"));
     }
 
     // Create review
@@ -134,10 +138,10 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
     res.status(201).json({ review });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: "Validation error", details: error.errors });
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
     console.error("Failed to create review:", error);
-    res.status(500).json({ error: "Failed to create review" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -145,7 +149,7 @@ router.post("/", authenticate, async (req: AuthenticatedRequest, res: Response) 
  * GET /api/reviews/user/:userId
  * Get reviews for a specific user
  */
-router.get("/user/:userId", async (req, res: Response) => {
+router.get("/user/:userId", async (req, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
     const { type, limit = "10", offset = "0" } = req.query;
@@ -162,9 +166,6 @@ router.get("/user/:userId", async (req, res: Response) => {
     const [reviews, total] = await Promise.all([
       prisma.review.findMany({
         where,
-        include: {
-          // Can't include reviewer directly without relation
-        },
         orderBy: { createdAt: "desc" },
         take: parseInt(limit as string),
         skip: parseInt(offset as string),
@@ -202,7 +203,7 @@ router.get("/user/:userId", async (req, res: Response) => {
     });
   } catch (error) {
     console.error("Failed to fetch reviews:", error);
-    res.status(500).json({ error: "Failed to fetch reviews" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -210,7 +211,7 @@ router.get("/user/:userId", async (req, res: Response) => {
  * GET /api/reviews/booking/:bookingId
  * Get reviews for a specific booking
  */
-router.get("/booking/:bookingId", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/booking/:bookingId", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
     const { bookingId } = req.params;
@@ -222,11 +223,11 @@ router.get("/booking/:bookingId", authenticate, async (req: AuthenticatedRequest
     });
 
     if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     if (booking.customerId !== userId && booking.stylistId !== userId) {
-      return res.status(403).json({ error: "Not authorized to view these reviews" });
+      return next(createError("FORBIDDEN"));
     }
 
     const reviews = await prisma.review.findMany({
@@ -236,7 +237,7 @@ router.get("/booking/:bookingId", authenticate, async (req: AuthenticatedRequest
     res.json({ reviews });
   } catch (error) {
     console.error("Failed to fetch booking reviews:", error);
-    res.status(500).json({ error: "Failed to fetch reviews" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -244,7 +245,7 @@ router.get("/booking/:bookingId", authenticate, async (req: AuthenticatedRequest
  * GET /api/reviews/pending
  * Get pending reviews for the current user
  */
-router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user!.sub;
 
@@ -258,11 +259,11 @@ router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Resp
         stylist: {
           select: { id: true, displayName: true, avatarUrl: true },
         },
-        services: {
+        service: {
           select: { name: true },
         },
       },
-      orderBy: { completedAt: "desc" },
+      orderBy: { actualEndTime: "desc" },
       take: 20,
     });
 
@@ -275,11 +276,11 @@ router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Resp
         customer: {
           select: { id: true, displayName: true, avatarUrl: true },
         },
-        services: {
+        service: {
           select: { name: true },
         },
       },
-      orderBy: { completedAt: "desc" },
+      orderBy: { actualEndTime: "desc" },
       take: 20,
     });
 
@@ -322,8 +323,8 @@ router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Resp
         bookingId: b.id,
         reviewType: "CUSTOMER_TO_STYLIST",
         reviewee: b.stylist,
-        serviceName: b.services[0]?.name || "Service",
-        completedAt: b.completedAt,
+        serviceName: b.service?.name || "Service",
+        completedAt: b.actualEndTime,
       }));
 
     const pendingAsStylist = bookingsAsStylist
@@ -332,8 +333,8 @@ router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Resp
         bookingId: b.id,
         reviewType: "STYLIST_TO_CUSTOMER",
         reviewee: b.customer,
-        serviceName: b.services[0]?.name || "Service",
-        completedAt: b.completedAt,
+        serviceName: b.service?.name || "Service",
+        completedAt: b.actualEndTime,
       }));
 
     res.json({
@@ -341,7 +342,7 @@ router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Resp
     });
   } catch (error) {
     console.error("Failed to fetch pending reviews:", error);
-    res.status(500).json({ error: "Failed to fetch pending reviews" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -353,7 +354,7 @@ router.get("/pending", authenticate, async (req: AuthenticatedRequest, res: Resp
  * GET /api/reviews/reputation/:userId
  * Get reputation score for a user
  */
-router.get("/reputation/:userId", async (req, res: Response) => {
+router.get("/reputation/:userId", async (req, res: Response, next: NextFunction) => {
   try {
     const { userId } = req.params;
 
@@ -401,7 +402,7 @@ router.get("/reputation/:userId", async (req, res: Response) => {
     });
   } catch (error) {
     console.error("Failed to fetch reputation:", error);
-    res.status(500).json({ error: "Failed to fetch reputation" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -409,7 +410,7 @@ router.get("/reputation/:userId", async (req, res: Response) => {
  * GET /api/reviews/reputation/:userId/events
  * Get reputation events for a user
  */
-router.get("/reputation/:userId/events", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/reputation/:userId/events", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const requesterId = req.user!.sub;
     const { userId } = req.params;
@@ -424,7 +425,7 @@ router.get("/reputation/:userId/events", authenticate, async (req: Authenticated
       });
       const roles = user?.roles as string[] | null;
       if (!roles?.includes("ADMIN")) {
-        return res.status(403).json({ error: "Not authorized to view reputation events" });
+        return next(createError("FORBIDDEN"));
       }
     }
 
@@ -441,7 +442,7 @@ router.get("/reputation/:userId/events", authenticate, async (req: Authenticated
     res.json({ events, total });
   } catch (error) {
     console.error("Failed to fetch reputation events:", error);
-    res.status(500).json({ error: "Failed to fetch reputation events" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

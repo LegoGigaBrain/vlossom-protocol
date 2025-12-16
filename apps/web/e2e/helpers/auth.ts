@@ -71,7 +71,7 @@ export async function login(page: Page, email: string, password: string): Promis
  * Log in via API and set auth cookie/localStorage
  */
 export async function loginViaAPI(page: Page, email: string, password: string): Promise<string> {
-  const response = await page.request.post("/api/auth/login", {
+  const response = await page.request.post("/api/v1/auth/login", {
     data: { email, password },
   });
 
@@ -117,7 +117,7 @@ export async function getCurrentUser(page: Page): Promise<any | null> {
   const token = await page.evaluate(() => localStorage.getItem("token"));
   if (!token) return null;
 
-  const response = await page.request.get("/api/auth/me", {
+  const response = await page.request.get("/api/v1/auth/me", {
     headers: { Authorization: `Bearer ${token}` },
   });
 

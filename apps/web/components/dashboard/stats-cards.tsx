@@ -5,8 +5,15 @@
 
 "use client";
 
+import * as React from "react";
 import { formatPrice } from "../../lib/utils";
 import type { DashboardStats } from "../../lib/dashboard-client";
+import {
+  InboxDownloadIcon,
+  CalendarIcon,
+  TrendingUpIcon,
+  WalletIcon,
+} from "../ui/icons";
 
 interface StatsCardsProps {
   stats: DashboardStats;
@@ -17,12 +24,12 @@ interface StatCardProps {
   label: string;
   value: string | number;
   subtext?: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 function StatCard({ label, value, subtext, icon }: StatCardProps) {
   return (
-    <div className="bg-background-primary rounded-card shadow-vlossom p-4 sm:p-6">
+    <div className="bg-background-primary rounded-card shadow-vlossom p-4 sm:p-6 card-hover">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-caption text-text-secondary mb-1">{label}</p>
@@ -31,7 +38,7 @@ function StatCard({ label, value, subtext, icon }: StatCardProps) {
             <p className="text-caption text-text-tertiary mt-1">{subtext}</p>
           )}
         </div>
-        <span className="text-2xl">{icon}</span>
+        <span className="text-text-secondary">{icon}</span>
       </div>
     </div>
   );
@@ -40,9 +47,9 @@ function StatCard({ label, value, subtext, icon }: StatCardProps) {
 function StatCardSkeleton() {
   return (
     <div className="bg-background-primary rounded-card shadow-vlossom p-4 sm:p-6">
-      <div className="animate-pulse">
-        <div className="h-4 bg-background-secondary rounded w-24 mb-2"></div>
-        <div className="h-8 bg-background-secondary rounded w-20"></div>
+      <div className="space-y-2">
+        <div className="h-4 skeleton-shimmer rounded w-24"></div>
+        <div className="h-8 skeleton-shimmer rounded w-20"></div>
       </div>
     </div>
   );
@@ -66,23 +73,23 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
         label="Pending Requests"
         value={stats.pendingRequests}
         subtext={stats.pendingRequests === 1 ? "request" : "requests"}
-        icon="📥"
+        icon={<InboxDownloadIcon className="h-6 w-6" />}
       />
       <StatCard
         label="Upcoming Bookings"
         value={stats.upcomingBookings}
         subtext="next 7 days"
-        icon="📅"
+        icon={<CalendarIcon className="h-6 w-6" />}
       />
       <StatCard
         label="This Month"
         value={formatPrice(stats.thisMonthEarnings)}
-        icon="📈"
+        icon={<TrendingUpIcon className="h-6 w-6" />}
       />
       <StatCard
         label="Total Earnings"
         value={formatPrice(stats.totalEarnings)}
-        icon="💰"
+        icon={<WalletIcon className="h-6 w-6" />}
       />
     </div>
   );

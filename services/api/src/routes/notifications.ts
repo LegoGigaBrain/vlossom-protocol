@@ -3,7 +3,7 @@
  * Endpoints for managing user notifications
  */
 
-import { Router, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import { authenticate, type AuthenticatedRequest } from "../middleware/auth";
 import {
   getUnreadCount,
@@ -11,6 +11,8 @@ import {
   markAsRead,
   markAllAsRead,
 } from "../lib/notifications";
+import { createError } from "../middleware/error-handler";
+import { logger } from "../lib/logger";
 import { z } from "zod";
 
 const router: ReturnType<typeof Router> = Router();
@@ -26,7 +28,7 @@ const getNotificationsSchema = z.object({
  * GET /api/notifications
  * Get notifications for authenticated user (paginated)
  */
-router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response) => {
+router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.userId!;
     const input = getNotificationsSchema.parse(req.query);
@@ -46,24 +48,12 @@ router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response) =
         hasMore: result.hasMore,
       },
     });
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid query parameters",
-          details: error.errors,
-        },
-      });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
     }
-
-    console.error("Error fetching notifications:", error);
-    return res.status(500).json({
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "Failed to fetch notifications",
-      },
-    });
+    logger.error("Error fetching notifications", { error });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

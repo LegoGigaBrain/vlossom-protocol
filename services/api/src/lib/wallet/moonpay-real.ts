@@ -6,11 +6,11 @@
  * Install command: pnpm add @moonpay/moonpay-node
  */
 
-import { prisma } from "../../lib/prisma";
+// NOTE: prisma import is commented out - will be used when MoonPay SDK is installed
+// import { prisma } from "../../lib/prisma";
 import {
   CreateSessionParams,
   CreateSessionResult,
-  WebhookPayload,
 } from "./moonpay-types";
 
 // TODO: Uncomment when MoonPay SDK is installed
@@ -27,49 +27,13 @@ import {
  * TODO: Implement when SDK is available
  */
 export async function createDepositSessionReal(
-  params: CreateSessionParams
+  _params: CreateSessionParams
 ): Promise<CreateSessionResult> {
-  try {
-    // TODO: Replace with real MoonPay SDK call
-    // const session = await moonpay.createTransaction({
-    //   walletAddress: params.walletAddress,
-    //   currencyCode: "USDC",
-    //   baseCurrencyCode: params.fiatCurrency,
-    //   baseCurrencyAmount: params.amount * 18.5, // Convert to fiat
-    //   redirectURL: `${process.env.FRONTEND_URL}/wallet`,
-    // });
-
-    // TODO: Store in database
-    // await prisma.moonPayTransaction.create({
-    //   data: {
-    //     sessionId: session.id,
-    //     walletId: params.userId,
-    //     type: "deposit",
-    //     status: "pending",
-    //     fiatAmount: session.baseCurrencyAmount,
-    //     fiatCurrency: params.fiatCurrency,
-    //     cryptoAmount: params.amount,
-    //     cryptoCurrency: "USDC",
-    //     redirectUrl: session.redirectURL,
-    //   },
-    // });
-
-    // return {
-    //   success: true,
-    //   sessionId: session.id,
-    //   redirectUrl: session.redirectURL,
-    // };
-
-    return {
-      success: false,
-      error: "MoonPay SDK not yet installed. Set MOONPAY_MODE=mock to use mock mode.",
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
+  // TODO: When MoonPay SDK is installed, use _params to create real session
+  return {
+    success: false,
+    error: "MoonPay SDK not yet installed. Set MOONPAY_MODE=mock to use mock mode.",
+  };
 }
 
 /**
@@ -77,33 +41,20 @@ export async function createDepositSessionReal(
  * TODO: Implement when SDK is available
  */
 export async function createWithdrawalSessionReal(
-  params: CreateSessionParams
+  _params: CreateSessionParams
 ): Promise<CreateSessionResult> {
-  try {
-    // TODO: Implement real MoonPay offramp when SDK is available
-    return {
-      success: false,
-      error: "MoonPay SDK not yet installed. Set MOONPAY_MODE=mock to use mock mode.",
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
+  // TODO: When MoonPay SDK is installed, use _params to create real session
+  return {
+    success: false,
+    error: "MoonPay SDK not yet installed. Set MOONPAY_MODE=mock to use mock mode.",
+  };
 }
 
 /**
  * Process real MoonPay webhook with signature verification
  * TODO: Implement when SDK is available
  */
-export async function processWebhookReal(payload: any): Promise<void> {
-  // TODO: Verify MoonPay signature
-  // const signature = req.headers["x-moonpay-signature"];
-  // if (!verifySignature(payload, signature)) {
-  //   throw new Error("Invalid webhook signature");
-  // }
-
-  // TODO: Process webhook based on actual MoonPay webhook structure
+export async function processWebhookReal(_payload: unknown): Promise<void> {
+  // TODO: When MoonPay SDK is installed, verify signature and process _payload
   throw new Error("MoonPay webhook processing not yet implemented. Set MOONPAY_MODE=mock.");
 }

@@ -3,7 +3,16 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  // Only run files ending in .test.ts or .spec.ts, exclude mocks and setup
+  testMatch: ['**/?(*.)+(spec|test).ts'],
+  testPathIgnorePatterns: [
+    '/node_modules/',
+    '/__tests__/mocks/',
+    '/__tests__/setup.ts',
+    '/__tests__/fixtures.ts',
+    // Skip integration tests that require full app setup (run separately with test:integration)
+    '/routes/__tests__/',
+  ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -21,4 +30,6 @@ module.exports = {
   },
   coverageDirectory: 'coverage',
   verbose: true,
+  // Set up test environment with valid secrets
+  setupFiles: ['<rootDir>/jest.setup.js'],
 };

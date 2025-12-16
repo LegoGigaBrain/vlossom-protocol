@@ -7,6 +7,7 @@
 
 import { formatPrice, formatDuration, isToday } from "../../lib/utils";
 import { Button } from "../ui/button";
+import { CalendarIcon, LocationIcon, CurrencyIcon } from "../ui/icons";
 
 export interface BookingRequest {
   id: string;
@@ -95,15 +96,15 @@ export function RequestCard({
       {/* Details */}
       <div className="space-y-2 mb-4">
         <div className="flex items-center gap-2 text-body-small text-text-secondary">
-          <span>📅</span>
+          <CalendarIcon className="h-4 w-4 shrink-0" />
           <span>{formatRequestDate(request.scheduledAt)}</span>
         </div>
         <div className="flex items-center gap-2 text-body-small text-text-secondary">
-          <span>📍</span>
+          <LocationIcon className="h-4 w-4 shrink-0" />
           <span>{locationLabel} ({request.locationAddress.split(",")[0]})</span>
         </div>
         <div className="flex items-center gap-2 text-body-small text-text-secondary">
-          <span>💰</span>
+          <CurrencyIcon className="h-4 w-4 shrink-0" />
           <span>{formatPrice(request.quoteAmountCents)}</span>
           <span className="text-text-tertiary">
             (You receive {formatPrice(request.stylistPayoutCents)})

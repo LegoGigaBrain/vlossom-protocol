@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { formatDuration, formatTimeFromDate } from "../../lib/utils";
 import { Button } from "../ui/button";
+import { LocationIcon, ClockIcon, CheckCircleIcon, SparklesIcon } from "../ui/icons";
 
 export interface ActiveBooking {
   id: string;
@@ -105,16 +106,18 @@ export function ActiveBookingCard({
         <p className="text-body-small text-text-secondary">
           {booking.serviceName} · {formatDuration(booking.durationMinutes)}
         </p>
-        <p className="text-caption text-text-tertiary mt-1">
-          📍 {locationLabel} ({booking.locationAddress.split(",")[0]})
+        <p className="text-caption text-text-tertiary mt-1 flex items-center gap-1">
+          <LocationIcon className="h-3.5 w-3.5 shrink-0" />
+          {locationLabel} ({booking.locationAddress.split(",")[0]})
         </p>
       </div>
 
       {/* Elapsed Time (for in-progress) */}
       {isInProgress && booking.actualStartTime && (
         <div className="mb-4 p-3 bg-background-secondary rounded-lg">
-          <p className="text-body-small text-text-secondary">
-            ⏱️ Elapsed: {elapsed.hours > 0 ? `${elapsed.hours}h ` : ""}
+          <p className="text-body-small text-text-secondary flex items-center gap-1.5">
+            <ClockIcon className="h-4 w-4 shrink-0" />
+            Elapsed: {elapsed.hours > 0 ? `${elapsed.hours}h ` : ""}
             {elapsed.minutes}min
           </p>
           <p className="text-caption text-text-tertiary">
@@ -131,7 +134,14 @@ export function ActiveBookingCard({
           onClick={() => onStart(booking)}
           disabled={!canStart}
         >
-          {canStart ? "🚀 Start Service" : `Available at ${formatTimeFromDate(booking.scheduledStartTime)}`}
+          {canStart ? (
+            <span className="flex items-center gap-2">
+              <SparklesIcon className="h-4 w-4" />
+              Start Service
+            </span>
+          ) : (
+            `Available at ${formatTimeFromDate(booking.scheduledStartTime)}`
+          )}
         </Button>
       )}
 
@@ -141,7 +151,8 @@ export function ActiveBookingCard({
           className="w-full"
           onClick={() => onComplete(booking)}
         >
-          ✓ Complete Service
+          <CheckCircleIcon className="h-4 w-4" />
+          Complete Service
         </Button>
       )}
     </div>

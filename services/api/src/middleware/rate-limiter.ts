@@ -1,12 +1,43 @@
 /**
  * Rate Limiter Middleware (F4.7: Security Hardening)
  * Prevents abuse by limiting request rates per IP/user
+ *
+ * SECURITY AUDIT (V1.9.0) - H-2: Rate Limiting Architecture
+ * ============================================================
+ *
+ * IMPORTANT: This implementation uses IN-MEMORY storage and is suitable
+ * for SINGLE-INSTANCE deployments only.
+ *
+ * For horizontal scaling / multi-instance deployments:
+ * 1. Deploy a Redis instance (AWS ElastiCache, Redis Cloud, etc.)
+ * 2. Replace the Map-based rateLimitStore with ioredis client
+ * 3. Use atomic INCR/EXPIRE operations for thread-safe counting
+ * 4. Consider using sliding window algorithm for more accurate limiting
+ *
+ * Upgrade path documented in: docs/security/rate-limiting.md
+ *
+ * Current limitations:
+ * - Each instance maintains its own counter (no sharing)
+ * - Rate limits reset on server restart
+ * - Not suitable for load-balanced deployments
+ *
+ * @see https://redis.io/commands/incr for atomic counter pattern
  */
 
 import { Request, Response, NextFunction } from "express";
+import { logger } from "../lib/logger";
+
+// H-2: Production warning for in-memory rate limiting
+if (process.env.NODE_ENV === 'production') {
+  logger.warn('Rate limiter using in-memory storage', {
+    event: 'rate_limiter_init',
+    warning: 'Not suitable for horizontal scaling - consider Redis for multi-instance deployments',
+    upgradeGuide: 'docs/security/rate-limiting.md',
+  });
+}
 
 // In-memory store for rate limiting
-// In production, use Redis for distributed rate limiting
+// NOTE: For production with multiple instances, replace with Redis
 interface RateLimitEntry {
   count: number;
   resetAt: number;

@@ -190,21 +190,28 @@ Route requests to internal modules.
 
 Provide versioned REST endpoints:
 
+**V1.6.0 Implementation (Dec 15, 2025)**:
+All routes use `/api/v1/` prefix for API versioning. Example base URL: `https://api.vlossom.com/api/v1/`
+
 Examples:
 
-    /v1/auth/*
+    /api/v1/auth/*
 
-    /v1/wallet/*
+    /api/v1/wallet/*
 
-    /v1/bookings/*
+    /api/v1/bookings/*
 
-    /v1/properties/*
+    /api/v1/stylists/*
 
-    /v1/reputation/*
+    /api/v1/properties/*
 
-    /v1/defi/*
+    /api/v1/reviews/*
 
-    /v1/admin/*
+    /api/v1/notifications/*
+
+    /api/v1/admin/*
+
+    /api/v1/internal/* (service-to-service only)
 
 ### 4.2 Authentication & Session
 
@@ -870,11 +877,46 @@ Doc 23 (DevOps) will detail actual stack for chosen chain.
 
 ### 16.1 Error Handling Patterns
 
+**V1.6.0 Implementation (Dec 15, 2025)**:
+
+All API routes use standardized error responses via `createError()` helper:
+
+```typescript
+// Standardized error response format
+{
+  "error": {
+    "code": "BOOKING_NOT_FOUND",
+    "message": "Booking not found",
+    "details": { /* optional context */ }
+  },
+  "requestId": "uuid-request-id"
+}
+```
+
+**Error Categories (50+ codes)**:
+- **Authentication**: UNAUTHORIZED, INVALID_TOKEN, INVALID_CREDENTIALS, FORBIDDEN, ACCOUNT_LOCKED
+- **Validation**: VALIDATION_ERROR, MISSING_FIELD, INVALID_EMAIL, WEAK_PASSWORD, INVALID_ROLE
+- **Resources**: NOT_FOUND, USER_NOT_FOUND, BOOKING_NOT_FOUND, WALLET_NOT_FOUND, SERVICE_NOT_FOUND, PROPERTY_NOT_FOUND, CHAIR_NOT_FOUND
+- **Business Logic**: INVALID_STATUS, INVALID_STATUS_TRANSITION, CANNOT_CANCEL, INSUFFICIENT_BALANCE, SLOT_UNAVAILABLE
+- **Property**: STYLIST_BLOCKED, CHAIR_UNAVAILABLE, CHAIR_HAS_ACTIVE_RENTALS, RENTAL_NOT_FOUND
+- **Payment**: PAYMENT_FAILED, ESCROW_ERROR, ESCROW_RELEASE_FAILED
+- **Server**: INTERNAL_ERROR, DATABASE_ERROR, SERVICE_UNAVAILABLE
+
+**Route Files Standardized (12 total)**:
+- `auth.ts`, `bookings.ts`, `stylists.ts`, `wallet.ts`, `upload.ts`, `notifications.ts`
+- `internal.ts`, `reviews.ts`, `properties.ts`
+- `admin/paymaster.ts`, `admin/bookings.ts`, `admin/users.ts`
+
+**Correlation IDs**:
+- Every request gets an X-Request-ID (from header or auto-generated UUID)
+- Request IDs included in all log entries via Winston logger
+- Request IDs returned in error responses for client-side debugging
+
 User-facing errors always in plain language.
 
 Internal errors logged with:
 
-    trace IDs
+    trace IDs (X-Request-ID correlation)
 
     contract call details (but no secrets).
 

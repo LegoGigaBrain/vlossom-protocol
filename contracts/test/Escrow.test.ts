@@ -55,14 +55,18 @@ describe("Escrow", function () {
       expect(await escrow.usdc()).to.equal(await usdc.getAddress());
     });
 
-    it("Should set the correct owner", async function () {
+    it("Should set the correct owner (admin role)", async function () {
       const { escrow, owner } = await loadFixture(deployEscrowFixture);
-      expect(await escrow.owner()).to.equal(owner.address);
+      const ADMIN_ROLE = await escrow.ADMIN_ROLE();
+      expect(await escrow.hasRole(ADMIN_ROLE, owner.address)).to.equal(true);
     });
 
     it("Should set the correct relayer", async function () {
       const { escrow, relayer } = await loadFixture(deployEscrowFixture);
-      expect(await escrow.getRelayer()).to.equal(relayer.address);
+      const RELAYER_ROLE = await escrow.RELAYER_ROLE();
+      expect(await escrow.hasRole(RELAYER_ROLE, relayer.address)).to.equal(true);
+      // Also verify isRelayer helper function
+      expect(await escrow.isRelayer(relayer.address)).to.equal(true);
     });
 
     it("Should revert if USDC address is zero", async function () {
@@ -81,7 +85,7 @@ describe("Escrow", function () {
       ).to.be.revertedWithCustomError(EscrowFactory, "InvalidAddress");
     });
 
-    it("Should emit RelayerUpdated event on deployment", async function () {
+    it("Should emit RelayerAdded event on deployment", async function () {
       const { usdc, relayer } = await loadFixture(deployEscrowFixture);
       const EscrowFactory = await ethers.getContractFactory("Escrow");
       const newEscrow = await EscrowFactory.deploy(
@@ -89,29 +93,46 @@ describe("Escrow", function () {
         owner.address,
         relayer.address
       );
-      // Check that relayer is set immediately
-      expect(await newEscrow.getRelayer()).to.equal(relayer.address);
+      // Check that relayer is set via isRelayer
+      expect(await newEscrow.isRelayer(relayer.address)).to.equal(true);
     });
   });
 
-  describe("setRelayer", function () {
-    it("Should allow owner to set relayer", async function () {
+  describe("Relayer Management (C-1 fix: multi-relayer)", function () {
+    it("Should allow admin to add relayer", async function () {
       const { escrow, owner, otherUser } = await loadFixture(deployEscrowFixture);
-      await expect(escrow.connect(owner).setRelayer(otherUser.address))
-        .to.emit(escrow, "RelayerUpdated")
-        .withArgs(relayer.address, otherUser.address);
-      expect(await escrow.getRelayer()).to.equal(otherUser.address);
+      await expect(escrow.connect(owner).addRelayer(otherUser.address))
+        .to.emit(escrow, "RelayerAdded")
+        .withArgs(otherUser.address);
+      expect(await escrow.isRelayer(otherUser.address)).to.equal(true);
     });
 
-    it("Should revert if non-owner tries to set relayer", async function () {
+    it("Should allow admin to remove relayer", async function () {
+      const { escrow, owner, relayer } = await loadFixture(deployEscrowFixture);
+      await expect(escrow.connect(owner).removeRelayer(relayer.address))
+        .to.emit(escrow, "RelayerRemoved")
+        .withArgs(relayer.address);
+      expect(await escrow.isRelayer(relayer.address)).to.equal(false);
+    });
+
+    it("Should support multiple relayers", async function () {
+      const { escrow, owner, relayer, otherUser } = await loadFixture(deployEscrowFixture);
+      // Add another relayer
+      await escrow.connect(owner).addRelayer(otherUser.address);
+      // Both should be valid relayers
+      expect(await escrow.isRelayer(relayer.address)).to.equal(true);
+      expect(await escrow.isRelayer(otherUser.address)).to.equal(true);
+    });
+
+    it("Should revert if non-admin tries to add relayer", async function () {
       const { escrow, customer, otherUser } = await loadFixture(deployEscrowFixture);
-      await expect(escrow.connect(customer).setRelayer(otherUser.address))
-        .to.be.revertedWithCustomError(escrow, "OwnableUnauthorizedAccount");
+      await expect(escrow.connect(customer).addRelayer(otherUser.address))
+        .to.be.revertedWithCustomError(escrow, "UnauthorizedCaller");
     });
 
-    it("Should revert if setting relayer to zero address", async function () {
+    it("Should revert if adding zero address as relayer", async function () {
       const { escrow, owner } = await loadFixture(deployEscrowFixture);
-      await expect(escrow.connect(owner).setRelayer(ethers.ZeroAddress))
+      await expect(escrow.connect(owner).addRelayer(ethers.ZeroAddress))
         .to.be.revertedWithCustomError(escrow, "InvalidAddress");
     });
   });
@@ -566,19 +587,19 @@ describe("Escrow", function () {
       expect(await escrow.paused()).to.equal(false);
     });
 
-    it("Should revert if non-owner tries to pause", async function () {
+    it("Should revert if non-admin tries to pause", async function () {
       const { escrow, customer } = await loadFixture(deployEscrowFixture);
 
       await expect(escrow.connect(customer).pause())
-        .to.be.revertedWithCustomError(escrow, "OwnableUnauthorizedAccount");
+        .to.be.revertedWithCustomError(escrow, "UnauthorizedCaller");
     });
 
-    it("Should revert if non-owner tries to unpause", async function () {
+    it("Should revert if non-admin tries to unpause", async function () {
       const { escrow, owner, customer } = await loadFixture(deployEscrowFixture);
 
       await escrow.connect(owner).pause();
       await expect(escrow.connect(customer).unpause())
-        .to.be.revertedWithCustomError(escrow, "OwnableUnauthorizedAccount");
+        .to.be.revertedWithCustomError(escrow, "UnauthorizedCaller");
     });
 
     it("Should block lockFunds when paused", async function () {

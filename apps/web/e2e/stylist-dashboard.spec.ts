@@ -15,7 +15,7 @@ test.describe("Stylist Dashboard", () => {
     stylistEmail = `stylist.dashboard.${Date.now()}@vlossom.test`;
     stylistPassword = "TestPassword123!";
 
-    const response = await request.post("/api/auth/signup", {
+    const response = await request.post("/api/v1/auth/signup", {
       data: {
         email: stylistEmail,
         password: stylistPassword,
@@ -114,7 +114,7 @@ test.describe("Stylist Dashboard", () => {
 
     test("should edit an existing service", async ({ page, request }) => {
       // Create a service via API first
-      await request.post("/api/stylists/services", {
+      await request.post("/api/v1/stylists/services", {
         headers: { Authorization: `Bearer ${stylistToken}` },
         data: {
           name: "Service to Edit",

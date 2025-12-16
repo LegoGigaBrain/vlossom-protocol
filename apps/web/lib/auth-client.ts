@@ -3,7 +3,7 @@
  * Reference: docs/specs/auth/feature-spec.md
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api/v1";
 
 export interface AuthUser {
   id: string;

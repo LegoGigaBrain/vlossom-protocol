@@ -38,9 +38,23 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     error NotOwner();
     error NotEntryPointOrOwner();
     error MaxGuardiansReached();
+    // M-1 fix: Recovery errors
+    error NotGuardian();
+    error RecoveryAlreadyActive();
+    error NoActiveRecovery();
+    error AlreadyApproved();
+    error RecoveryDelayNotMet();
+    error InsufficientApprovals();
+    error InvalidNewOwner();
 
     /// @notice Maximum number of guardians per account
     uint256 public constant MAX_GUARDIANS = 5;
+
+    /// @notice M-1 fix: Recovery delay (48 hours)
+    uint256 public constant RECOVERY_DELAY = 48 hours;
+
+    /// @notice M-1 fix: Minimum guardian approvals required
+    uint256 public constant MIN_RECOVERY_APPROVALS = 2;
 
     /// @notice The account owner (signer)
     address private _owner;
@@ -54,12 +68,36 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     /// @notice Count of active guardians
     uint256 private _guardianCount;
 
+    // ============================================================================
+    // M-1 Fix: Recovery State
+    // ============================================================================
+
+    /// @notice M-1 fix: Recovery request structure
+    struct RecoveryRequest {
+        address newOwner;
+        uint256 initiatedAt;
+        uint256 approvalCount;
+        bool isActive;
+    }
+
+    /// @notice M-1 fix: Current recovery request
+    RecoveryRequest private _recoveryRequest;
+
+    /// @notice M-1 fix: Mapping of guardian approvals for current recovery
+    mapping(address => bool) private _recoveryApprovals;
+
     /// @notice Emitted when the account is initialized
     event VlossomAccountInitialized(IEntryPoint indexed entryPoint, address indexed owner);
 
     /// @dev Modifier to restrict to owner only
     modifier onlyAccountOwner() {
         if (msg.sender != _owner && msg.sender != address(this)) revert NotOwner();
+        _;
+    }
+
+    /// @dev Modifier to restrict to guardians only (M-1 fix)
+    modifier onlyGuardian() {
+        if (!_guardians[msg.sender]) revert NotGuardian();
         _;
     }
 
@@ -248,5 +286,126 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     function _authorizeUpgrade(address newImplementation) internal view override {
         (newImplementation);
         if (msg.sender != _owner && msg.sender != address(this)) revert NotOwner();
+    }
+
+    // ============================================================================
+    // M-1 Fix: Guardian Recovery Implementation
+    // ============================================================================
+
+    /**
+     * @notice Initiate account recovery (M-1 fix)
+     * @param newOwner The proposed new owner address
+     * @dev Only callable by guardians. Starts 48-hour timelock.
+     */
+    function initiateRecovery(address newOwner) external override onlyGuardian {
+        if (newOwner == address(0)) revert InvalidNewOwner();
+        if (newOwner == _owner) revert InvalidNewOwner();
+        if (_recoveryRequest.isActive) revert RecoveryAlreadyActive();
+        if (_guardianCount < MIN_RECOVERY_APPROVALS) revert InsufficientApprovals();
+
+        _recoveryRequest = RecoveryRequest({
+            newOwner: newOwner,
+            initiatedAt: block.timestamp,
+            approvalCount: 1,
+            isActive: true
+        });
+
+        // Initiating guardian auto-approves
+        _recoveryApprovals[msg.sender] = true;
+
+        emit RecoveryInitiated(msg.sender, newOwner, block.timestamp + RECOVERY_DELAY);
+    }
+
+    /**
+     * @notice Approve a pending recovery (M-1 fix)
+     * @dev Only callable by guardians who haven't already approved
+     */
+    function approveRecovery() external override onlyGuardian {
+        if (!_recoveryRequest.isActive) revert NoActiveRecovery();
+        if (_recoveryApprovals[msg.sender]) revert AlreadyApproved();
+
+        _recoveryApprovals[msg.sender] = true;
+        _recoveryRequest.approvalCount++;
+
+        emit RecoveryApproved(msg.sender, _recoveryRequest.approvalCount);
+    }
+
+    /**
+     * @notice Execute recovery after delay and approvals (M-1 fix)
+     * @dev Anyone can call once conditions are met
+     */
+    function executeRecovery() external override {
+        if (!_recoveryRequest.isActive) revert NoActiveRecovery();
+        if (block.timestamp < _recoveryRequest.initiatedAt + RECOVERY_DELAY) {
+            revert RecoveryDelayNotMet();
+        }
+        if (_recoveryRequest.approvalCount < MIN_RECOVERY_APPROVALS) {
+            revert InsufficientApprovals();
+        }
+
+        address oldOwner = _owner;
+        address newOwner = _recoveryRequest.newOwner;
+
+        // Transfer ownership
+        _owner = newOwner;
+
+        // Clear recovery state
+        _clearRecoveryState();
+
+        emit RecoveryExecuted(oldOwner, newOwner);
+    }
+
+    /**
+     * @notice Cancel an active recovery (M-1 fix)
+     * @dev Only callable by current owner
+     */
+    function cancelRecovery() external override onlyAccountOwner {
+        if (!_recoveryRequest.isActive) revert NoActiveRecovery();
+
+        _clearRecoveryState();
+
+        emit RecoveryCancelled(msg.sender);
+    }
+
+    /**
+     * @notice Get current recovery request details (M-1 fix)
+     */
+    function getRecoveryRequest() external view override returns (
+        address newOwner,
+        uint256 initiatedAt,
+        uint256 approvalCount,
+        bool isActive
+    ) {
+        return (
+            _recoveryRequest.newOwner,
+            _recoveryRequest.initiatedAt,
+            _recoveryRequest.approvalCount,
+            _recoveryRequest.isActive
+        );
+    }
+
+    /**
+     * @notice Check if a guardian has approved current recovery (M-1 fix)
+     * @param guardian Guardian address to check
+     */
+    function hasApprovedRecovery(address guardian) external view returns (bool) {
+        return _recoveryApprovals[guardian];
+    }
+
+    /**
+     * @dev Clear recovery state (M-1 fix)
+     * @dev Note: We cannot iterate over all guardians to clear approvals due to gas costs.
+     *      The approval mappings become stale but safe since isActive is false.
+     */
+    function _clearRecoveryState() private {
+        // Reset the recovery request
+        _recoveryRequest = RecoveryRequest({
+            newOwner: address(0),
+            initiatedAt: 0,
+            approvalCount: 0,
+            isActive: false
+        });
+        // Note: _recoveryApprovals mappings are not cleared to save gas
+        // They are only valid when _recoveryRequest.isActive is true
     }
 }

@@ -73,7 +73,7 @@ export async function getStylists(filters?: StylistFilters): Promise<StylistPage
   if (filters?.page) params.set("page", filters.page.toString());
   if (filters?.limit) params.set("limit", filters.limit.toString());
 
-  const url = `${API_URL}/api/stylists${params.toString() ? `?${params.toString()}` : ""}`;
+  const url = `${API_URL}/api/v1/stylists${params.toString() ? `?${params.toString()}` : ""}`;
 
   const response = await fetch(url, {
     headers: {
@@ -93,7 +93,7 @@ export async function getStylists(filters?: StylistFilters): Promise<StylistPage
  * Get single stylist by ID with full details
  */
 export async function getStylist(id: string): Promise<Stylist> {
-  const response = await fetch(`${API_URL}/api/stylists/${id}`, {
+  const response = await fetch(`${API_URL}/api/v1/stylists/${id}`, {
     headers: {
       "Content-Type": "application/json",
     },
@@ -114,7 +114,7 @@ export async function getStylist(id: string): Promise<Stylist> {
  * Get available categories from stylists
  */
 export async function getCategories(): Promise<string[]> {
-  const response = await fetch(`${API_URL}/api/stylists/categories`, {
+  const response = await fetch(`${API_URL}/api/v1/stylists/categories`, {
     headers: {
       "Content-Type": "application/json",
     },

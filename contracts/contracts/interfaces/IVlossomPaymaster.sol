@@ -19,8 +19,8 @@ interface IVlossomPaymaster {
 
     /// @notice Emitted when the paymaster receives ETH funding
     /// @param sender Address that sent the funds
-    /// @param amount Amount of ETH deposited
-    event Funded(address indexed sender, uint256 amount);
+    /// @param amount Amount of ETH deposited (M-4: indexed for threshold queries)
+    event Funded(address indexed sender, uint256 indexed amount);
 
     /// @notice Emitted when the paymaster is paused
     /// @param account Address that triggered the pause
@@ -29,6 +29,24 @@ interface IVlossomPaymaster {
     /// @notice Emitted when the paymaster is unpaused
     /// @param account Address that triggered the unpause
     event PaymasterUnpaused(address indexed account);
+
+    /// @notice Emitted when function whitelist is updated (H-1 fix)
+    /// @param target Target contract address
+    /// @param selector Function selector
+    /// @param allowed Whether the function is allowed
+    event FunctionWhitelistUpdated(address indexed target, bytes4 indexed selector, bool allowed);
+
+    /// @notice Emitted when function whitelist enforcement changes (H-1 fix)
+    /// @param enforced Whether enforcement is enabled
+    event FunctionWhitelistEnforcementChanged(bool enforced);
+
+    /// @notice Emitted when lifetime limit is updated (M-4 fix)
+    /// @param newLimit New lifetime limit
+    event LifetimeLimitUpdated(uint256 newLimit);
+
+    /// @notice Emitted when cooldown period is updated (M-4 fix)
+    /// @param newPeriod New cooldown period in seconds
+    event CooldownPeriodUpdated(uint256 newPeriod);
 
     /// @notice Set whether a target contract is whitelisted for gas sponsorship
     /// @param target The contract address to whitelist/unwhitelist

@@ -1,15 +1,25 @@
 /**
  * Chain client setup for viem and ERC-4337
  * Provides configured clients for Base mainnet/testnet
+ *
+ * SECURITY AUDIT (V1.9.0):
+ * - M-3: RPC failover transport for resilience
+ * - M-5: Correlation ID propagation to external calls
  */
 
-import { createPublicClient, createWalletClient, http, type Chain, type PublicClient, type WalletClient } from "viem";
+import { createPublicClient, createWalletClient, http, fallback, type Chain, type PublicClient, type WalletClient, type Transport } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { base, baseSepolia, localhost } from "viem/chains";
 
 // Environment variables
 const CHAIN_ID = parseInt(process.env.CHAIN_ID || "8453");
 export const RPC_URL = process.env.RPC_URL || "https://mainnet.base.org";
+// M-3: Fallback RPC URL for resilience
+const RPC_URL_FALLBACK = process.env.RPC_URL_FALLBACK || (
+  CHAIN_ID === 84532 ? "https://base-sepolia.public.blastapi.io" :
+  CHAIN_ID === 8453 ? "https://base.llamarpc.com" :
+  undefined
+);
 const BUNDLER_URL = process.env.BUNDLER_URL || "";
 const RELAYER_PRIVATE_KEY = process.env.RELAYER_PRIVATE_KEY || "";
 
@@ -30,11 +40,30 @@ export function getChain(): Chain {
 }
 
 /**
+ * M-3: Create resilient transport with failover
+ * Uses fallback pattern to automatically switch to backup RPC on failure
+ */
+function createResilientTransport(): Transport {
+  if (RPC_URL_FALLBACK && !isLocalhost()) {
+    return fallback([
+      http(RPC_URL),
+      http(RPC_URL_FALLBACK),
+    ], {
+      rank: true, // Automatically rank transports by latency
+      retryCount: 2, // Retry failed requests
+    });
+  }
+  // Single transport for localhost or when no fallback is configured
+  return http(RPC_URL);
+}
+
+/**
  * Configured public client for reading chain state
+ * M-3: Uses failover transport for resilience
  */
 export const publicClient: PublicClient = createPublicClient({
   chain: getChain(),
-  transport: http(RPC_URL),
+  transport: createResilientTransport(),
 });
 
 /**
@@ -50,13 +79,14 @@ export function getRelayerAccount() {
 
 /**
  * Configured wallet client for the relayer
+ * M-3: Uses resilient transport for failover
  */
 export function getRelayerWalletClient(): WalletClient {
   const account = getRelayerAccount();
   return createWalletClient({
     account,
     chain: getChain(),
-    transport: http(RPC_URL),
+    transport: createResilientTransport(),
   });
 }
 
@@ -86,10 +116,12 @@ export function isLocalhost(): boolean {
 
 /**
  * Chain configuration export
+ * M-3: Includes fallback RPC URL for documentation
  */
 export const chainConfig = {
   chainId: CHAIN_ID,
   rpcUrl: RPC_URL,
+  rpcUrlFallback: RPC_URL_FALLBACK,
   bundlerUrl: BUNDLER_URL,
   chain: getChain(),
 } as const;

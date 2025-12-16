@@ -1,20 +1,48 @@
 // Input Validation Schemas using Zod
 // Reference: standards/backend/api-design.md
+//
+// SECURITY AUDIT (V1.9.0):
+// - M-6: Booking API authorization (customerId from JWT)
+// - L-2: Display name sanitization
 
 import { z } from "zod";
 
+// Geographic coordinate validation (WGS84)
+const latitudeSchema = z.number().min(-90).max(90);
+const longitudeSchema = z.number().min(-180).max(180);
+
+/**
+ * L-2: Display name sanitization schema
+ * Prevents XSS and injection attacks in display names
+ * Allows: letters, numbers, spaces, hyphens, apostrophes, periods
+ */
+export const displayNameSchema = z.string()
+  .min(1, 'Display name is required')
+  .max(100, 'Display name must be 100 characters or less')
+  .regex(
+    /^[a-zA-Z0-9\s\-'\.]+$/,
+    'Display name can only contain letters, numbers, spaces, hyphens, apostrophes, and periods'
+  )
+  .transform(s => s.trim());
+
+export type DisplayName = z.infer<typeof displayNameSchema>;
+
 /**
  * Validation for creating a new booking
+ *
+ * SECURITY AUDIT (V1.9.0) - M-6: Booking API Authorization
+ * customerId is derived from JWT token, not from request body.
+ * This prevents users from creating bookings on behalf of other users.
  */
 export const createBookingSchema = z.object({
-  customerId: z.string().uuid(),
+  // M-6: customerId removed - derived from JWT token
   stylistId: z.string().uuid(),
   serviceId: z.string().uuid(),
   scheduledStartTime: z.coerce.date(),
   locationType: z.enum(["STYLIST_BASE", "CUSTOMER_HOME"]),
   locationAddress: z.string().min(1),
-  locationLat: z.number().optional(),
-  locationLng: z.number().optional(),
+  locationLat: latitudeSchema.optional(),
+  locationLng: longitudeSchema.optional(),
   notes: z.string().optional(),
 });
 
@@ -82,25 +110,106 @@ export const cancelBookingSchema = z.object({
 
 export type CancelBookingInput = z.infer<typeof cancelBookingSchema>;
 
+// ============================================================================
+// VALID ENUM VALUES FOR QUERY SANITIZATION
+// ============================================================================
+
+/**
+ * Valid service categories (matches Prisma enum)
+ * H-3: Input sanitization for dynamic queries
+ */
+export const VALID_SERVICE_CATEGORIES = [
+  "Hair",
+  "Nails",
+  "Makeup",
+  "Lashes",
+  "Facials",
+] as const;
+export type ServiceCategory = (typeof VALID_SERVICE_CATEGORIES)[number];
+
+/**
+ * Valid stylist operating modes (matches Prisma enum)
+ */
+export const VALID_OPERATING_MODES = ["FIXED", "MOBILE", "HYBRID"] as const;
+export type OperatingMode = (typeof VALID_OPERATING_MODES)[number];
+
+/**
+ * Valid property categories (matches Prisma enum)
+ */
+export const VALID_PROPERTY_CATEGORIES = [
+  "LUXURY",
+  "BOUTIQUE",
+  "STANDARD",
+  "HOME_BASED",
+] as const;
+export type PropertyCategory = (typeof VALID_PROPERTY_CATEGORIES)[number];
+
+/**
+ * Valid rental modes (matches Prisma enum)
+ */
+export const VALID_RENTAL_MODES = [
+  "PER_BOOKING",
+  "PER_HOUR",
+  "PER_DAY",
+  "PER_WEEK",
+  "PER_MONTH",
+] as const;
+export type RentalMode = (typeof VALID_RENTAL_MODES)[number];
+
+/**
+ * Valid chair rental request statuses
+ */
+export const VALID_RENTAL_STATUSES = [
+  "PENDING_APPROVAL",
+  "APPROVED",
+  "REJECTED",
+  "ACTIVE",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+export type RentalStatus = (typeof VALID_RENTAL_STATUSES)[number];
+
 /**
  * Validation for stylist search (F4.4: Enhanced search & filter)
+ * H-3: serviceCategory uses strict enum validation
  */
 export const searchStylistsSchema = z.object({
-  // Existing parameters
-  lat: z.coerce.number().optional(),
-  lng: z.coerce.number().optional(),
-  serviceCategory: z.string().optional(),
+  // Existing parameters with coordinate validation
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  // H-3: Strict enum validation instead of arbitrary string
+  serviceCategory: z.enum(VALID_SERVICE_CATEGORIES).optional(),
   radius: z.coerce.number().positive().optional(), // km
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
 
   // F4.4: New search parameters
-  query: z.string().optional(), // Full-text search on name/bio
+  query: z.string().max(100).optional(), // Full-text search on name/bio (limited length)
   minPrice: z.coerce.number().int().min(0).optional(), // Min service price (cents)
   maxPrice: z.coerce.number().int().positive().optional(), // Max service price (cents)
-  operatingMode: z.enum(["FIXED", "MOBILE", "HYBRID"]).optional(),
+  operatingMode: z.enum(VALID_OPERATING_MODES).optional(),
   sortBy: z.enum(["price_asc", "price_desc", "distance", "newest"]).optional(),
   availability: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // ISO date - filter by available on date
+});
+
+/**
+ * Validation for property search (H-3: Input sanitization)
+ */
+export const searchPropertiesSchema = z.object({
+  city: z.string().max(100).optional(),
+  category: z.enum(VALID_PROPERTY_CATEGORIES).optional(),
+  lat: z.coerce.number().min(-90).max(90).optional(),
+  lng: z.coerce.number().min(-180).max(180).optional(),
+  radius: z.coerce.number().positive().max(500).optional(), // Max 500km
+});
+
+export type SearchPropertiesInput = z.infer<typeof searchPropertiesSchema>;
+
+/**
+ * Validation for rental request filters (H-3: Input sanitization)
+ */
+export const rentalFilterSchema = z.object({
+  status: z.enum(VALID_RENTAL_STATUSES).optional(),
 });
 
 export type SearchStylistsInput = z.infer<typeof searchStylistsSchema>;

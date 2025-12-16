@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWallet } from "../../hooks/use-wallet";
 import {
   sendP2P,
@@ -20,6 +20,7 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { CheckCircleIcon } from "../ui/icons";
 
 interface SendDialogProps {
   open: boolean;
@@ -104,6 +105,16 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
     }
   };
 
+  // Auto-close after 3 seconds on success
+  useEffect(() => {
+    if (step === "success") {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
   if (!wallet) return null;
 
   return (
@@ -139,8 +150,23 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
                     type="number"
                     placeholder="0.00"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={(e) => {
+                      // Prevent negative values
+                      const value = e.target.value;
+                      if (value === "" || parseFloat(value) >= 0) {
+                        setAmount(value);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      // Block minus key
+                      if (e.key === "-" || e.key === "e") {
+                        e.preventDefault();
+                      }
+                    }}
+                    min="0"
                     step="any"
+                    inputMode="decimal"
+                    aria-describedby="amount-available"
                   />
                   <div className="flex gap-1">
                     {(["ZAR", "USD", "USDC"] as const).map((curr) => (
@@ -157,9 +183,18 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
                     ))}
                   </div>
                 </div>
-                <p className="text-caption text-text-tertiary mt-1">
-                  Available: {formatCurrency(wallet.balance.usdcFormatted, currency)}
-                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p id="amount-available" className="text-caption text-text-tertiary">
+                    Available: {formatCurrency(wallet.balance.usdcFormatted, currency)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setAmount(wallet.balance.usdcFormatted.toString())}
+                    className="text-caption text-brand-rose hover:underline focus:outline-none focus:ring-2 focus:ring-brand-rose focus:ring-offset-1 rounded"
+                  >
+                    Use max
+                  </button>
+                </div>
               </div>
 
               {/* Memo (Optional) */}
@@ -178,8 +213,8 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
 
               {/* Error Message */}
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-caption text-red-800">{error}</p>
+                <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                  <p className="text-caption text-red-800 dark:text-red-200">{error}</p>
                 </div>
               )}
             </div>
@@ -228,7 +263,7 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
 
                 <div>
                   <p className="text-caption text-text-secondary">Fee</p>
-                  <p className="text-body text-green-600">Free (gasless)</p>
+                  <p className="text-body text-status-success">Free (gasless)</p>
                 </div>
               </div>
             </div>
@@ -256,8 +291,8 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
             </DialogHeader>
 
             <div className="space-y-4">
-              <div className="text-center py-6">
-                <div className="text-6xl mb-4">✓</div>
+              <div className="text-center py-6" role="status" aria-live="polite">
+                <CheckCircleIcon className="h-16 w-16 mx-auto mb-4 text-status-success animate-success" />
                 <p className="text-body text-text-primary mb-2">
                   Sent {formatCurrency(parseFloat(amount), currency)}
                 </p>

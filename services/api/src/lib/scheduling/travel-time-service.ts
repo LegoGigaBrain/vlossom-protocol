@@ -2,9 +2,12 @@
  * Travel Time Service (F4.2)
  * Calculates travel time between locations using Google Distance Matrix API
  * with in-memory caching and Haversine fallback
+ *
+ * M-5: Uses circuit breaker pattern to gracefully handle Google API failures
  */
 
 import logger from "../logger";
+import { googleMapsCircuitBreaker } from "../circuit-breaker";
 
 // Types
 export interface TravelTimeResult {
@@ -87,6 +90,7 @@ function estimateTravelTimeFromDistance(distanceKm: number): number {
 
 /**
  * Fetch travel time from Google Distance Matrix API
+ * M-5: Wrapped with circuit breaker for graceful degradation
  */
 async function fetchGoogleTravelTime(
   origin: Coordinates,
@@ -97,58 +101,70 @@ async function fetchGoogleTravelTime(
     return null;
   }
 
-  try {
-    const url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json");
-    url.searchParams.set("origins", `${origin.lat},${origin.lng}`);
-    url.searchParams.set("destinations", `${destination.lat},${destination.lng}`);
-    url.searchParams.set("mode", "driving");
-    url.searchParams.set("key", config.googleApiKey);
-    // Request traffic-aware routing during peak hours
-    const hour = new Date().getHours();
-    if ((hour >= 7 && hour <= 9) || (hour >= 16 && hour <= 18)) {
-      url.searchParams.set("departure_time", "now");
-      url.searchParams.set("traffic_model", "pessimistic");
-    }
-
-    const response = await fetch(url.toString());
-
-    if (!response.ok) {
-      logger.warn(`Google Distance Matrix API error: ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (data.status !== "OK") {
-      logger.warn(`Google Distance Matrix API returned status: ${data.status}`);
-      return null;
-    }
-
-    const element = data.rows?.[0]?.elements?.[0];
-    if (!element || element.status !== "OK") {
-      logger.warn(`Google Distance Matrix element status: ${element?.status}`);
-      return null;
-    }
-
-    // duration_in_traffic is returned when departure_time is set
-    const durationSeconds = element.duration_in_traffic?.value || element.duration?.value;
-    const distanceMeters = element.distance?.value;
-
-    if (!durationSeconds || !distanceMeters) {
-      logger.warn("Google Distance Matrix missing duration or distance");
-      return null;
-    }
-
-    return {
-      travelTimeMinutes: Math.ceil(durationSeconds / 60),
-      distanceKm: Math.round((distanceMeters / 1000) * 10) / 10,
-      cached: false,
-      source: "google",
-    };
-  } catch (error) {
-    logger.error("Google Distance Matrix API error:", error);
+  // M-5: Check circuit breaker state before making request
+  if (!googleMapsCircuitBreaker.isCallAllowed()) {
+    logger.debug("Google Maps circuit breaker is OPEN, skipping API call");
     return null;
   }
+
+  // M-5: Execute API call with circuit breaker protection
+  return googleMapsCircuitBreaker.execute(
+    async () => {
+      const url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json");
+      url.searchParams.set("origins", `${origin.lat},${origin.lng}`);
+      url.searchParams.set("destinations", `${destination.lat},${destination.lng}`);
+      url.searchParams.set("mode", "driving");
+      url.searchParams.set("key", config.googleApiKey);
+      // Request traffic-aware routing during peak hours
+      const hour = new Date().getHours();
+      if ((hour >= 7 && hour <= 9) || (hour >= 16 && hour <= 18)) {
+        url.searchParams.set("departure_time", "now");
+        url.searchParams.set("traffic_model", "pessimistic");
+      }
+
+      const response = await fetch(url.toString());
+
+      if (!response.ok) {
+        // Throw to trigger circuit breaker failure tracking
+        throw new Error(`Google Distance Matrix API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.status !== "OK") {
+        // API-level errors should trigger circuit breaker
+        throw new Error(`Google Distance Matrix API returned status: ${data.status}`);
+      }
+
+      const element = data.rows?.[0]?.elements?.[0];
+      if (!element || element.status !== "OK") {
+        // Route not found is not a circuit breaker failure (just no result)
+        logger.warn(`Google Distance Matrix element status: ${element?.status}`);
+        return null;
+      }
+
+      // duration_in_traffic is returned when departure_time is set
+      const durationSeconds = element.duration_in_traffic?.value || element.duration?.value;
+      const distanceMeters = element.distance?.value;
+
+      if (!durationSeconds || !distanceMeters) {
+        logger.warn("Google Distance Matrix missing duration or distance");
+        return null;
+      }
+
+      return {
+        travelTimeMinutes: Math.ceil(durationSeconds / 60),
+        distanceKm: Math.round((distanceMeters / 1000) * 10) / 10,
+        cached: false,
+        source: "google",
+      } as TravelTimeResult;
+    },
+    // M-5: Fallback returns null, which triggers Haversine calculation
+    () => {
+      logger.debug("Google Maps API call failed, falling back to Haversine");
+      return null;
+    }
+  );
 }
 
 /**
@@ -268,4 +284,11 @@ export function getCacheStats(): { size: number; maxSize: number } {
     size: travelTimeCache.size,
     maxSize: config.maxCacheSize,
   };
+}
+
+/**
+ * Get Google Maps circuit breaker status (M-5: for monitoring)
+ */
+export function getCircuitBreakerStats() {
+  return googleMapsCircuitBreaker.getStats();
 }

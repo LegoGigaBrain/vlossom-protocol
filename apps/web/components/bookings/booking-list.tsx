@@ -2,6 +2,11 @@
 
 import { BookingCard } from "./booking-card";
 import { Button } from "@/components/ui/button";
+import {
+  CalendarIllustration,
+  CompletedIllustration,
+  InboxIllustration,
+} from "@/components/ui/illustrations";
 import type { Booking } from "@/lib/booking-client";
 
 interface BookingListProps {
@@ -66,21 +71,7 @@ function BookingCardSkeleton() {
 function EmptyState({ type }: { type: "upcoming" | "completed" | "all" }) {
   const config = {
     upcoming: {
-      icon: (
-        <svg
-          className="w-8 h-8 text-primary"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          />
-        </svg>
-      ),
+      illustration: <CalendarIllustration className="w-24 h-24" />,
       title: "No upcoming bookings",
       description:
         "Find a stylist and book your first appointment!",
@@ -88,42 +79,14 @@ function EmptyState({ type }: { type: "upcoming" | "completed" | "all" }) {
       href: "/stylists",
     },
     completed: {
-      icon: (
-        <svg
-          className="w-8 h-8 text-primary"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M5 13l4 4L19 7"
-          />
-        </svg>
-      ),
+      illustration: <CompletedIllustration className="w-24 h-24" />,
       title: "No completed bookings yet",
       description: "Your completed appointments will appear here.",
       action: null,
       href: null,
     },
     all: {
-      icon: (
-        <svg
-          className="w-8 h-8 text-primary"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-          />
-        </svg>
-      ),
+      illustration: <InboxIllustration className="w-24 h-24" />,
       title: "No bookings yet",
       description: "Start by finding a stylist and booking your first appointment!",
       action: "Browse Stylists",
@@ -131,12 +94,12 @@ function EmptyState({ type }: { type: "upcoming" | "completed" | "all" }) {
     },
   };
 
-  const { icon, title, description, action, href } = config[type];
+  const { illustration, title, description, action, href } = config[type];
 
   return (
     <div className="text-center py-12">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
-        {icon}
+      <div className="mx-auto mb-4">
+        {illustration}
       </div>
       <h3 className="text-lg font-semibold text-text-primary mb-2">{title}</h3>
       <p className="text-text-secondary max-w-sm mx-auto mb-6">{description}</p>

@@ -17,7 +17,7 @@ import {
   executeUserOp,
 } from "./user-operation";
 import { USDC_ADDRESS, ERC20_ABI, fromUsdcUnits } from "./contracts";
-import { isLocalhost, getRelayerWalletClient, publicClient } from "./chain-client";
+import { isLocalhost, getRelayerWalletClient, publicClient, CHAIN } from "./chain-client";
 import type { PaymentRequest, PaymentRequestStatus } from "@prisma/client";
 
 /**
@@ -49,7 +49,7 @@ export interface PaymentRequestData {
  * Bypasses UserOperations for testing without bundler
  */
 async function sendP2PLocalhost(
-  fromWalletId: string,
+  _fromWalletId: string,
   toAddress: string,
   amount: bigint
 ): Promise<P2PTransferResult> {
@@ -58,6 +58,8 @@ async function sendP2PLocalhost(
   try {
     // Direct USDC transfer from relayer (simulating the AA wallet for localhost testing)
     const txHash = await walletClient.writeContract({
+      chain: CHAIN,
+      account: walletClient.account!,
       address: USDC_ADDRESS,
       abi: ERC20_ABI,
       functionName: "transfer",

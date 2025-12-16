@@ -98,12 +98,14 @@ export function DateTimePicker({
           <button
             onClick={() => navigateMonth(-1)}
             className="p-2 hover:bg-background rounded transition-colors"
+            aria-label="Previous month"
           >
             <svg
               className="w-5 h-5 text-text-secondary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -113,16 +115,18 @@ export function DateTimePicker({
               />
             </svg>
           </button>
-          <h3 className="font-semibold text-text-primary">{monthYear}</h3>
+          <h3 className="font-semibold text-text-primary" aria-live="polite">{monthYear}</h3>
           <button
             onClick={() => navigateMonth(1)}
             className="p-2 hover:bg-background rounded transition-colors"
+            aria-label="Next month"
           >
             <svg
               className="w-5 h-5 text-text-secondary"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -147,10 +151,10 @@ export function DateTimePicker({
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-1" role="grid" aria-label="Calendar">
           {calendarDays.map((date, index) => {
             if (!date) {
-              return <div key={index} className="h-10" />;
+              return <div key={index} className="h-10" role="gridcell" />;
             }
 
             const disabled = isDateDisabled(date);
@@ -162,6 +166,10 @@ export function DateTimePicker({
                 key={index}
                 onClick={() => !disabled && onDateSelect(date)}
                 disabled={disabled}
+                aria-disabled={disabled}
+                aria-selected={selected}
+                aria-label={date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+                role="gridcell"
                 className={`h-10 rounded-lg text-sm font-medium transition-colors ${
                   selected
                     ? "bg-primary text-white"

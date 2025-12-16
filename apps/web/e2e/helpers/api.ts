@@ -23,7 +23,7 @@ export async function createBookingViaAPI(
     locationLng?: number;
   }
 ): Promise<any> {
-  const response = await request.post(`${API_BASE_URL}/api/bookings`, {
+  const response = await request.post(`${API_BASE_URL}/api/v1/bookings`, {
     headers: { Authorization: `Bearer ${token}` },
     data,
   });
@@ -40,7 +40,7 @@ export async function getBookingsViaAPI(
   token: string,
   role: "customer" | "stylist"
 ): Promise<any[]> {
-  const response = await request.get(`${API_BASE_URL}/api/bookings`, {
+  const response = await request.get(`${API_BASE_URL}/api/v1/bookings`, {
     headers: { Authorization: `Bearer ${token}` },
     params: { role },
   });
@@ -59,7 +59,7 @@ export async function approveBookingViaAPI(
   bookingId: string,
   stylistId: string
 ): Promise<any> {
-  const response = await request.post(`${API_BASE_URL}/api/bookings/${bookingId}/approve`, {
+  const response = await request.post(`${API_BASE_URL}/api/v1/bookings/${bookingId}/approve`, {
     headers: { Authorization: `Bearer ${token}` },
     data: { stylistId },
   });
@@ -75,7 +75,7 @@ export async function getWalletBalanceViaAPI(
   request: APIRequestContext,
   token: string
 ): Promise<{ balance: string; address: string }> {
-  const response = await request.get(`${API_BASE_URL}/api/wallet/balance`, {
+  const response = await request.get(`${API_BASE_URL}/api/v1/wallet/balance`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -90,7 +90,7 @@ export async function claimFaucetViaAPI(
   request: APIRequestContext,
   token: string
 ): Promise<any> {
-  const response = await request.post(`${API_BASE_URL}/api/wallet/faucet`, {
+  const response = await request.post(`${API_BASE_URL}/api/v1/wallet/faucet`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -114,7 +114,7 @@ export async function getStylistsViaAPI(
     serviceCategory?: string;
   }
 ): Promise<any[]> {
-  const response = await request.get(`${API_BASE_URL}/api/stylists`, {
+  const response = await request.get(`${API_BASE_URL}/api/v1/stylists`, {
     params,
   });
 
@@ -130,7 +130,7 @@ export async function getStylistServicesViaAPI(
   request: APIRequestContext,
   stylistId: string
 ): Promise<any[]> {
-  const response = await request.get(`${API_BASE_URL}/api/stylists/${stylistId}`);
+  const response = await request.get(`${API_BASE_URL}/api/v1/stylists/${stylistId}`);
 
   expect(response.ok()).toBeTruthy();
   const data = await response.json();
@@ -151,7 +151,7 @@ export async function createServiceViaAPI(
     estimatedDurationMin: number;
   }
 ): Promise<any> {
-  const response = await request.post(`${API_BASE_URL}/api/stylists/services`, {
+  const response = await request.post(`${API_BASE_URL}/api/v1/stylists/services`, {
     headers: { Authorization: `Bearer ${token}` },
     data,
   });
@@ -167,7 +167,7 @@ export async function getNotificationsViaAPI(
   request: APIRequestContext,
   token: string
 ): Promise<any[]> {
-  const response = await request.get(`${API_BASE_URL}/api/notifications`, {
+  const response = await request.get(`${API_BASE_URL}/api/v1/notifications`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 

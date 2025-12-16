@@ -7,11 +7,15 @@
  * - Refunds when bookings are cancelled
  *
  * All operations are triggered by the relayer wallet (backend service account).
+ *
+ * L-4: Includes blockchain error telemetry via Sentry integration
  */
 
-import { createPublicClient, createWalletClient, http, type Address, type Hash } from 'viem';
+import { createPublicClient, createWalletClient, http, keccak256, toBytes, type Address, type Hash } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CHAIN, RPC_URL } from './wallet/chain-client';
+import { escrowRateLimiter } from './escrow-rate-limiter';
+import * as Sentry from '@sentry/node';
 
 // Contract addresses from environment
 const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS as Address;
@@ -155,22 +159,15 @@ export interface EscrowOperationResult {
 
 /**
  * Convert booking ID string to bytes32 hash
+ * Uses keccak256 for cryptographically secure, collision-resistant hashing.
+ *
  * @param bookingId - UUID or unique booking identifier
  * @returns bytes32 hash for contract calls
  */
 function bookingIdToBytes32(bookingId: string): `0x${string}` {
-  // Simple approach: hash the booking ID to get bytes32
-  const encoder = new TextEncoder();
-  const data = encoder.encode(bookingId);
-
-  // Use a simple hash (in production, consider using keccak256)
-  let hash = '0x';
-  for (let i = 0; i < 32; i++) {
-    const byte = data[i % data.length] || 0;
-    hash += byte.toString(16).padStart(2, '0');
-  }
-
-  return hash as `0x${string}`;
+  // Use keccak256 for cryptographically secure hashing
+  // This ensures collision resistance for all booking ID formats (UUIDs, etc.)
+  return keccak256(toBytes(bookingId));
 }
 
 /**
@@ -188,18 +185,21 @@ export async function lockFundsInEscrow(params: {
   amount: bigint;
 }): Promise<EscrowOperationResult> {
   try {
-    const bookingIdBytes = bookingIdToBytes32(params.bookingId);
-
     // NOTE: This would typically be called from the customer's wallet, not the relayer.
     // For the MVP, we simulate the customer's transaction by having them call the
     // lockFunds function directly through their wallet interface.
 
-    // Check if booking already has escrow
+    // L-3: Collision detection - prevent double-locking funds
+    // This is critical for preventing duplicate charges
     const existing = await getEscrowRecord(params.bookingId);
     if (existing.status !== EscrowStatus.None) {
+      console.warn(`⚠️ Escrow collision detected for booking ${params.bookingId}`, {
+        existingStatus: EscrowStatus[existing.status],
+        existingAmount: existing.amount.toString(),
+      });
       return {
         success: false,
-        error: 'Escrow already exists for this booking'
+        error: `Escrow already exists for this booking (status: ${EscrowStatus[existing.status]})`
       };
     }
 
@@ -236,6 +236,15 @@ export async function releaseFundsFromEscrow(params: {
   treasuryAddress: Address;
 }): Promise<EscrowOperationResult> {
   try {
+    // SECURITY: Check rate limit before proceeding
+    const rateLimitCheck = escrowRateLimiter.canProceed(params.totalAmount, params.bookingId);
+    if (!rateLimitCheck.canProceed) {
+      return {
+        success: false,
+        error: rateLimitCheck.reason || 'Rate limit exceeded'
+      };
+    }
+
     const bookingIdBytes = bookingIdToBytes32(params.bookingId);
 
     // Calculate amounts (avoiding floating point)
@@ -275,6 +284,9 @@ export async function releaseFundsFromEscrow(params: {
     // Wait for transaction confirmation
     await publicClient.waitForTransactionReceipt({ hash });
 
+    // Record successful operation for rate limiting
+    escrowRateLimiter.recordOperation(params.bookingId, params.totalAmount, 'release');
+
     console.log(`✓ Released funds for booking ${params.bookingId}:`, {
       stylist: params.stylistAddress,
       stylistAmount: stylistAmount.toString(),
@@ -288,6 +300,25 @@ export async function releaseFundsFromEscrow(params: {
     };
   } catch (error) {
     console.error('Failed to release funds from escrow:', error);
+
+    // L-4: Blockchain error telemetry - capture detailed error context
+    Sentry.captureException(error, {
+      tags: {
+        service: 'escrow',
+        operation: 'release',
+        critical: 'true',
+      },
+      extra: {
+        bookingId: params.bookingId,
+        stylistAddress: params.stylistAddress,
+        totalAmount: params.totalAmount.toString(),
+        platformFeePercentage: params.platformFeePercentage,
+        treasuryAddress: params.treasuryAddress,
+        chainId: CHAIN.id,
+        escrowContract: ESCROW_ADDRESS,
+      },
+    });
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -322,6 +353,15 @@ export async function refundFromEscrow(params: {
 
     const refundAmount = record.amount;
 
+    // SECURITY: Check rate limit before proceeding
+    const rateLimitCheck = escrowRateLimiter.canProceed(refundAmount, params.bookingId);
+    if (!rateLimitCheck.canProceed) {
+      return {
+        success: false,
+        error: rateLimitCheck.reason || 'Rate limit exceeded'
+      };
+    }
+
     // Call refund as relayer
     const hash = await walletClient.writeContract({
       address: ESCROW_ADDRESS,
@@ -332,6 +372,9 @@ export async function refundFromEscrow(params: {
 
     // Wait for transaction confirmation
     await publicClient.waitForTransactionReceipt({ hash });
+
+    // Record successful operation for rate limiting
+    escrowRateLimiter.recordOperation(params.bookingId, refundAmount, 'refund');
 
     console.log(`✓ Refunded ${refundAmount} for booking ${params.bookingId}`, {
       recipient: params.recipientAddress,
@@ -344,6 +387,22 @@ export async function refundFromEscrow(params: {
     };
   } catch (error) {
     console.error('Failed to refund from escrow:', error);
+
+    // L-4: Blockchain error telemetry - capture detailed error context
+    Sentry.captureException(error, {
+      tags: {
+        service: 'escrow',
+        operation: 'refund',
+        critical: 'true',
+      },
+      extra: {
+        bookingId: params.bookingId,
+        recipientAddress: params.recipientAddress,
+        chainId: CHAIN.id,
+        escrowContract: ESCROW_ADDRESS,
+      },
+    });
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -392,8 +451,8 @@ export async function getEscrowRecord(bookingId: string): Promise<EscrowRecord> 
       args: [bookingIdBytes]
     });
 
-    // Type assertion for tuple response
-    const [customer, amount, status] = record as [Address, bigint, number];
+    // Type assertion for tuple response from contract
+    const [customer, amount, status] = record as unknown as [Address, bigint, number];
 
     return {
       customer,
@@ -412,11 +471,33 @@ export async function getEscrowRecord(bookingId: string): Promise<EscrowRecord> 
 }
 
 /**
- * Treasury address for platform fees
- * Configured via TREASURY_ADDRESS environment variable
- * Default: Hardhat account #1 for local development
+ * M-1: Treasury address validation
+ * Requires explicit configuration in production to prevent funds being sent to wrong address
  */
-export const PLATFORM_TREASURY_ADDRESS: Address = (process.env.TREASURY_ADDRESS || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8') as Address;
+function getTreasuryAddress(): Address {
+  const address = process.env.TREASURY_ADDRESS;
+
+  if (!address) {
+    // In production, treasury address is required
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'FATAL: TREASURY_ADDRESS is required in production. ' +
+        'Set the platform treasury wallet address in your environment.'
+      );
+    }
+    // Development fallback: Hardhat account #1
+    console.warn('⚠️ Using development treasury address (Hardhat account #1)');
+    return '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' as Address;
+  }
+
+  return address as Address;
+}
+
+/**
+ * Treasury address for platform fees
+ * SECURITY: Validated at startup - requires explicit config in production
+ */
+export const PLATFORM_TREASURY_ADDRESS: Address = getTreasuryAddress();
 
 /**
  * Platform fee percentage (configurable via environment)

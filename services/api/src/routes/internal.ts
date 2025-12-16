@@ -3,15 +3,16 @@
  * Used by scheduler, indexer, and other internal services
  */
 
-import { Router, type Response } from "express";
+import { Router, type Response, type NextFunction } from "express";
 import { internalAuth, type InternalRequest } from "../middleware/internal-auth";
 import { prisma } from "../lib/prisma";
 import { BookingStatus } from "@prisma/client";
-import { releaseEscrow } from "../lib/escrow-client";
-import { notifyBookingEvent, NotificationType } from "../lib/notifications";
+import { releaseFundsFromEscrow, PLATFORM_TREASURY_ADDRESS, PLATFORM_FEE_PERCENTAGE } from "../lib/escrow-client";
+import { notifyBookingEvent } from "../lib/notifications";
 import { recalculateAllScores } from "../lib/reputation";
+import { createError } from "../middleware/error-handler";
 
-const router = Router();
+const router: ReturnType<typeof Router> = Router();
 
 // All internal routes require internal authentication
 router.use(internalAuth);
@@ -20,7 +21,7 @@ router.use(internalAuth);
  * POST /api/internal/bookings/:id/release-escrow
  * Called by scheduler service to release escrow for auto-confirmed bookings
  */
-router.post("/bookings/:id/release-escrow", async (req: InternalRequest, res: Response) => {
+router.post("/bookings/:id/release-escrow", async (req: InternalRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -33,14 +34,15 @@ router.post("/bookings/:id/release-escrow", async (req: InternalRequest, res: Re
     });
 
     if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Only release escrow for settled bookings
     if (booking.status !== BookingStatus.SETTLED) {
-      return res.status(400).json({
-        error: `Cannot release escrow for booking in status: ${booking.status}`,
-      });
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: `Cannot release escrow for booking in status: ${booking.status}`,
+        currentStatus: booking.status,
+      }));
     }
 
     // Skip if no escrow ID
@@ -49,17 +51,27 @@ router.post("/bookings/:id/release-escrow", async (req: InternalRequest, res: Re
     }
 
     // Release escrow funds
-    const result = await releaseEscrow(booking.escrowId, booking.stylistId);
+    if (!booking.stylist.walletAddress) {
+      return next(createError("ESCROW_RELEASE_FAILED", { details: "Stylist wallet not configured" }));
+    }
+
+    const result = await releaseFundsFromEscrow({
+      bookingId: id,
+      stylistAddress: booking.stylist.walletAddress as `0x${string}`,
+      totalAmount: BigInt(booking.quoteAmountCents),
+      platformFeePercentage: PLATFORM_FEE_PERCENTAGE,
+      treasuryAddress: PLATFORM_TREASURY_ADDRESS,
+    });
 
     if (!result.success) {
       console.error(`[Internal] Failed to release escrow for booking ${id}:`, result.error);
-      return res.status(500).json({ error: result.error });
+      return next(createError("ESCROW_RELEASE_FAILED", { details: result.error }));
     }
 
     console.log(`[Internal] Escrow released for booking ${id}, txHash: ${result.txHash}`);
 
     // Notify stylist that funds have been released
-    notifyBookingEvent(booking.stylistId, NotificationType.BOOKING_COMPLETED, {
+    notifyBookingEvent(booking.stylistId, "SERVICE_COMPLETED", {
       bookingId: id,
       customerName: booking.customer.displayName,
       serviceName: booking.serviceType,
@@ -72,7 +84,7 @@ router.post("/bookings/:id/release-escrow", async (req: InternalRequest, res: Re
     });
   } catch (error) {
     console.error("[Internal] Error releasing escrow:", error);
-    return res.status(500).json({ error: "Failed to release escrow" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -80,7 +92,7 @@ router.post("/bookings/:id/release-escrow", async (req: InternalRequest, res: Re
  * POST /api/internal/bookings/:id/auto-confirm
  * Called by scheduler service to auto-confirm a booking after 24h timeout
  */
-router.post("/bookings/:id/auto-confirm", async (req: InternalRequest, res: Response) => {
+router.post("/bookings/:id/auto-confirm", async (req: InternalRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -93,14 +105,15 @@ router.post("/bookings/:id/auto-confirm", async (req: InternalRequest, res: Resp
     });
 
     if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
+      return next(createError("BOOKING_NOT_FOUND"));
     }
 
     // Only auto-confirm bookings awaiting customer confirmation
     if (booking.status !== BookingStatus.AWAITING_CUSTOMER_CONFIRMATION) {
-      return res.status(400).json({
-        error: `Cannot auto-confirm booking in status: ${booking.status}`,
-      });
+      return next(createError("INVALID_STATUS_TRANSITION", {
+        message: `Cannot auto-confirm booking in status: ${booking.status}`,
+        currentStatus: booking.status,
+      }));
     }
 
     // Update booking status in a transaction
@@ -128,7 +141,7 @@ router.post("/bookings/:id/auto-confirm", async (req: InternalRequest, res: Resp
     console.log(`[Internal] Auto-confirmed booking ${id}`);
 
     // Notify customer about auto-confirmation
-    notifyBookingEvent(booking.customerId, NotificationType.BOOKING_COMPLETED, {
+    notifyBookingEvent(booking.customerId, "SERVICE_COMPLETED", {
       bookingId: id,
       stylistName: booking.stylist.displayName,
       serviceName: booking.serviceType,
@@ -141,7 +154,7 @@ router.post("/bookings/:id/auto-confirm", async (req: InternalRequest, res: Resp
     });
   } catch (error) {
     console.error("[Internal] Error auto-confirming booking:", error);
-    return res.status(500).json({ error: "Failed to auto-confirm booking" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 
@@ -149,7 +162,7 @@ router.post("/bookings/:id/auto-confirm", async (req: InternalRequest, res: Resp
  * POST /api/internal/reputation/recalculate
  * Recalculate all reputation scores (maintenance job)
  */
-router.post("/reputation/recalculate", async (_req: InternalRequest, res: Response) => {
+router.post("/reputation/recalculate", async (_req: InternalRequest, res: Response, next: NextFunction) => {
   try {
     console.log("[Internal] Starting batch reputation recalculation");
 
@@ -164,7 +177,7 @@ router.post("/reputation/recalculate", async (_req: InternalRequest, res: Respon
     });
   } catch (error) {
     console.error("[Internal] Error recalculating reputation scores:", error);
-    return res.status(500).json({ error: "Failed to recalculate reputation scores" });
+    return next(createError("INTERNAL_ERROR"));
   }
 });
 

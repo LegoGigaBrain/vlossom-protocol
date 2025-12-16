@@ -24,7 +24,7 @@ export default function StylistDashboardPage() {
   const approveMutation = useMutation({
     mutationFn: async (bookingId: string) => {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/bookings/${bookingId}/approve`, {
+      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/approve`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -43,7 +43,7 @@ export default function StylistDashboardPage() {
   const declineMutation = useMutation({
     mutationFn: async (bookingId: string) => {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/bookings/${bookingId}/decline`, {
+      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/decline`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
