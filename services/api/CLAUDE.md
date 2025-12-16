@@ -10,6 +10,14 @@
 
 ## Current Implementation Status
 
+**V3.3.0 Complete - Feature Completion (Pre-DeFi)** (Dec 16, 2025)
+
+### V3.3.0 Changes
+- Password reset endpoints (`POST /api/v1/auth/forgot-password`, `POST /api/v1/auth/reset-password`)
+- `PasswordResetToken` model added to Prisma schema
+- Token-based email verification flow with 1-hour expiry
+- SIWE authentication endpoints (V3.2.0)
+
 **V1.5 Complete - Property Owner + Reputation** (Dec 15, 2025)
 
 ## Key Files
@@ -19,14 +27,21 @@
 - `src/middleware/` — Auth, security, and rate limiting
 - `prisma/schema.prisma` — Database schema
 
-## API Endpoints (77+ total)
+## API Endpoints (84+ total)
 
-### Authentication (4 endpoints)
+### Authentication (11 endpoints)
 ```
-POST /api/auth/signup      — Create user + AA wallet
-POST /api/auth/login       — Email/password login → JWT
-POST /api/auth/logout      — Invalidate session
-GET  /api/auth/me          — Current user info
+POST /api/auth/signup          — Create user + AA wallet
+POST /api/auth/login           — Email/password login → JWT
+POST /api/auth/logout          — Invalidate session
+GET  /api/auth/me              — Current user info
+POST /api/auth/forgot-password — Send password reset email (V3.3)
+POST /api/auth/reset-password  — Reset password with token (V3.3)
+GET  /api/auth/siwe/nonce      — Get SIWE nonce (V3.2)
+POST /api/auth/siwe/verify     — Verify SIWE signature (V3.2)
+POST /api/auth/siwe/login      — Login with SIWE (V3.2)
+POST /api/auth/link-wallet     — Link wallet to account (V3.2)
+DELETE /api/auth/link-wallet/:id — Unlink wallet (V3.2)
 ```
 
 ### Wallet (10 endpoints)
@@ -255,6 +270,10 @@ GET    /api/reviews/booking/:id     — Get review for booking
 - `ReputationScore` — Aggregated user reputation (V1.5)
 - `ReputationEvent` — Individual reputation events (V1.5)
 - `Review` — Customer/stylist reviews (V1.5)
+- `PasswordResetToken` — Password reset tokens with expiry (V3.3)
+- `SiweNonce` — SIWE nonce storage (V3.2)
+- `LinkedAccount` — External auth providers linked to users (V3.2)
+- `ExternalAuthProvider` — Enum for auth provider types (V3.2)
 
 ## Security (M4)
 
