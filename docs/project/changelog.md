@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.1] - 2025-12-17
+
+### V4.0.1: DeFi UI/UX Polish - COMPLETE ✅
+
+**Goal**: Elevate DeFi UI/UX to highest quality level per Doc 16 Design System compliance.
+
+**Design System Alignment | Skeleton Loading | Confirmation Dialogs | Smooth Animations**
+
+#### ✅ Admin DeFi Console Polish
+
+**Design Token Migration**
+- Replaced all raw Tailwind colors with design tokens
+  - `text-gray-500` → `text-text-tertiary`
+  - `bg-purple-600` → `bg-brand-purple`
+  - `bg-green-600` → `bg-status-success`
+  - `border-gray-300` → `border-border-default`
+
+**Native Dialog Replacement**
+- Replaced `alert()` with toast notifications
+- Replaced `confirm()` with new `ConfirmationDialog` component
+- Three dialog variants: default, danger, warning
+
+**Loading States**
+- Added `StatCardSkeleton` for stats grid
+- Added `PoolRowSkeleton` for pool table
+- Proper shimmer animations
+
+**Transitions**
+- Added `duration-fast`, `duration-medium` transitions
+- Hover shadow elevation effects
+
+#### ✅ User DeFi Page Polish
+
+**Skeleton Loading**
+- `StatCardSkeleton` for portfolio stats
+- `PoolCardSkeleton` for pool list
+- `GlobalStatSkeleton` for TVL/APY cards
+- Full page skeleton during initial load
+
+**Micro-interactions**
+- Hover transitions on all cards
+- Shadow elevation on hover (`hover:shadow-elevated`)
+- Smooth color transitions
+
+#### ✅ New Components
+
+**ConfirmationDialog** (`components/ui/confirmation-dialog.tsx`)
+- Reusable confirmation dialog replacing native `confirm()`
+- Variants: `default` (info), `danger` (destructive), `warning`
+- Icon with colored background per variant
+- `useConfirmation` hook for async usage pattern
+- Full accessibility support (focus trap, ESC to close)
+
+#### Design System Compliance
+
+| Requirement | Status |
+|-------------|--------|
+| Design tokens (colors, spacing) | ✅ |
+| Skeleton loading states | ✅ |
+| Smooth animations (0.2-0.3s) | ✅ |
+| Toast notifications | ✅ |
+| Confirmation dialogs | ✅ |
+| Shadow elevation on hover | ✅ |
+| Typography scale | ✅ |
+
+---
+
 ## [4.0.0] - 2025-12-16
 
 ### V4.0.0: DeFi Integration - COMPLETE ✅

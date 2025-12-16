@@ -28,7 +28,7 @@ import {
 } from "../../../components/ui/dialog";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
-import { useToast } from "../../../components/ui/toast";
+import { useToast } from "../../../hooks/use-toast";
 
 // ============================================================================
 // Types (matching SDK types)
@@ -92,6 +92,63 @@ async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 // ============================================================================
+// Skeleton Components
+// ============================================================================
+
+function StatCardSkeleton() {
+  return (
+    <div className="text-center p-4 bg-background-secondary rounded-lg animate-pulse">
+      <div className="flex justify-center mb-2">
+        <div className="h-5 w-5 bg-background-tertiary rounded" />
+      </div>
+      <div className="h-8 w-16 bg-background-tertiary rounded mx-auto mb-1" />
+      <div className="h-4 w-20 bg-background-tertiary rounded mx-auto" />
+    </div>
+  );
+}
+
+function PoolCardSkeleton() {
+  return (
+    <div className="bg-background-primary rounded-card shadow-vlossom p-6 animate-pulse">
+      <div className="flex items-start gap-4">
+        <div className="p-3 rounded-lg bg-background-tertiary">
+          <div className="h-6 w-6" />
+        </div>
+        <div className="flex-1 space-y-3">
+          <div className="h-5 w-32 bg-background-tertiary rounded" />
+          <div className="flex gap-6">
+            <div className="space-y-1">
+              <div className="h-6 w-16 bg-background-tertiary rounded" />
+              <div className="h-3 w-8 bg-background-tertiary rounded" />
+            </div>
+            <div className="space-y-1">
+              <div className="h-6 w-20 bg-background-tertiary rounded" />
+              <div className="h-3 w-8 bg-background-tertiary rounded" />
+            </div>
+            <div className="space-y-1">
+              <div className="h-5 w-8 bg-background-tertiary rounded" />
+              <div className="h-3 w-16 bg-background-tertiary rounded" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 shrink-0">
+          <div className="h-8 w-24 bg-background-tertiary rounded-button" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GlobalStatSkeleton() {
+  return (
+    <div className="bg-background-primary rounded-card shadow-vlossom p-4 animate-pulse">
+      <div className="h-3 w-16 bg-background-tertiary rounded mb-2" />
+      <div className="h-6 w-20 bg-background-tertiary rounded" />
+    </div>
+  );
+}
+
+// ============================================================================
 // Components
 // ============================================================================
 
@@ -107,7 +164,7 @@ function StatCard({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="text-center p-4 bg-background-secondary rounded-lg">
+    <div className="text-center p-4 bg-background-secondary rounded-lg transition-all duration-medium hover:bg-background-tertiary">
       {Icon && (
         <div className="flex justify-center mb-2">
           <Icon className="h-5 w-5 text-text-tertiary" />
@@ -135,10 +192,10 @@ function PoolCard({
   const hasDeposit = userDeposit && parseFloat(userDeposit.depositAmount) > 0;
 
   return (
-    <div className="bg-background-primary rounded-card shadow-vlossom p-6">
+    <div className="bg-background-primary rounded-card shadow-vlossom p-6 transition-all duration-medium hover:shadow-elevated">
       <div className="flex items-start gap-4">
         <div
-          className={`p-3 rounded-lg ${
+          className={`p-3 rounded-lg transition-colors duration-fast ${
             pool.isGenesis
               ? "bg-brand-rose/10"
               : "bg-background-tertiary"
@@ -213,7 +270,7 @@ function PoolCard({
 
         <div className="flex flex-col gap-2 shrink-0">
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             onClick={() => onDeposit(pool.id)}
           >
@@ -246,7 +303,7 @@ function TierProgress({ tierInfo }: { tierInfo: TierInfo | null }) {
     : 0;
 
   return (
-    <div className="bg-background-primary rounded-card shadow-vlossom p-6">
+    <div className="bg-background-primary rounded-card shadow-vlossom p-6 transition-all duration-medium hover:shadow-elevated">
       <h3 className="text-body font-semibold text-text-primary mb-2">
         Referral Tier Progress
       </h3>
@@ -361,7 +418,7 @@ function DepositDialog({
       toast({
         title: "Deposit Failed",
         description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setLoading(false);
@@ -445,7 +502,7 @@ function WithdrawDialog({
       toast({
         title: "Withdrawal Failed",
         description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setLoading(false);
@@ -540,7 +597,7 @@ export default function WalletDeFiPage() {
       toast({
         title: "Failed to load DeFi data",
         description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setLoading(false);
@@ -578,7 +635,7 @@ export default function WalletDeFiPage() {
       toast({
         title: "Claim Failed",
         description: error instanceof Error ? error.message : "Unknown error",
-        variant: "destructive",
+        variant: "error",
       });
     }
   };
@@ -599,8 +656,43 @@ export default function WalletDeFiPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-text-tertiary" />
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-6 w-16 bg-background-tertiary rounded animate-pulse" />
+            <div className="h-4 w-48 bg-background-tertiary rounded animate-pulse" />
+          </div>
+          <div className="h-9 w-24 bg-background-tertiary rounded-button animate-pulse" />
+        </div>
+
+        {/* Portfolio skeleton */}
+        <div className="bg-background-primary rounded-card shadow-vlossom p-6">
+          <div className="h-5 w-28 bg-background-tertiary rounded mb-4 animate-pulse" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </div>
+        </div>
+
+        {/* Global stats skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <GlobalStatSkeleton />
+          <GlobalStatSkeleton />
+          <GlobalStatSkeleton />
+          <GlobalStatSkeleton />
+        </div>
+
+        {/* Pools skeleton */}
+        <div>
+          <div className="h-5 w-32 bg-background-tertiary rounded mb-4 animate-pulse" />
+          <div className="space-y-4">
+            <PoolCardSkeleton />
+            <PoolCardSkeleton />
+          </div>
+        </div>
       </div>
     );
   }
@@ -635,7 +727,7 @@ export default function WalletDeFiPage() {
             Your Portfolio
           </h3>
           {totalPendingYield > 0 && (
-            <Button variant="default" size="sm" onClick={handleClaimAll}>
+            <Button variant="primary" size="sm" onClick={handleClaimAll}>
               <Gift className="h-4 w-4 mr-2" /> Claim All Yield
             </Button>
           )}
@@ -673,19 +765,19 @@ export default function WalletDeFiPage() {
       {/* Global Stats */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-background-primary rounded-card shadow-vlossom p-4">
+          <div className="bg-background-primary rounded-card shadow-vlossom p-4 transition-all duration-medium hover:shadow-elevated">
             <p className="text-caption text-text-tertiary">Total TVL</p>
             <p className="text-lg font-bold text-text-primary">${stats.totalTVL}</p>
           </div>
-          <div className="bg-background-primary rounded-card shadow-vlossom p-4">
+          <div className="bg-background-primary rounded-card shadow-vlossom p-4 transition-all duration-medium hover:shadow-elevated">
             <p className="text-caption text-text-tertiary">Avg APY</p>
             <p className="text-lg font-bold text-brand-rose">{stats.avgAPY}%</p>
           </div>
-          <div className="bg-background-primary rounded-card shadow-vlossom p-4">
+          <div className="bg-background-primary rounded-card shadow-vlossom p-4 transition-all duration-medium hover:shadow-elevated">
             <p className="text-caption text-text-tertiary">Active Pools</p>
             <p className="text-lg font-bold text-text-primary">{stats.totalPools}</p>
           </div>
-          <div className="bg-background-primary rounded-card shadow-vlossom p-4">
+          <div className="bg-background-primary rounded-card shadow-vlossom p-4 transition-all duration-medium hover:shadow-elevated">
             <p className="text-caption text-text-tertiary">Depositors</p>
             <p className="text-lg font-bold text-text-primary">{stats.totalDepositors}</p>
           </div>
