@@ -1,0 +1,456 @@
+/**
+ * Vlossom Animation System (V6.0)
+ *
+ * Motion Philosophy: "Earned, not constant"
+ * - Motion only on state change
+ * - No idle/looping animations (except loading states)
+ * - Every animation has meaning
+ *
+ * Motion Verbs:
+ * - unfold: Organic reveal, like a petal opening (growth/expansion)
+ * - breathe: Subtle scale pulse, life indicator (active/alive states)
+ * - settle: Gentle ease into place, coming to rest (completion/arrival)
+ *
+ * Duration Guidelines:
+ * - Navigation transitions: 180-220ms
+ * - Growth/state changes: 300-500ms
+ * - Micro-interactions: 120-150ms
+ */
+
+/* ==========================================================================
+   CSS Custom Properties - Motion Tokens
+   ========================================================================== */
+
+:root {
+  /* Duration tokens */
+  --motion-duration-instant: 100ms;
+  --motion-duration-micro: 150ms;
+  --motion-duration-nav: 200ms;
+  --motion-duration-standard: 300ms;
+  --motion-duration-growth: 400ms;
+  --motion-duration-dramatic: 500ms;
+
+  /* Easing tokens - organic, botanical-inspired curves */
+  --motion-ease-unfold: cubic-bezier(0.34, 1.56, 0.64, 1);    /* Overshoot for opening */
+  --motion-ease-breathe: cubic-bezier(0.4, 0, 0.6, 1);        /* Symmetric for pulse */
+  --motion-ease-settle: cubic-bezier(0.25, 0.1, 0.25, 1);     /* Gentle deceleration */
+  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);       /* Material-like default */
+  --motion-ease-enter: cubic-bezier(0, 0, 0.2, 1);            /* Fast in, slow settle */
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);             /* Accelerate out */
+}
+
+/* ==========================================================================
+   Keyframe Definitions
+   ========================================================================== */
+
+/* UNFOLD - Organic reveal like a petal opening */
+@keyframes unfold {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* UNFOLD-SUBTLE - Gentler version for smaller elements */
+@keyframes unfold-subtle {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* UNFOLD-VERTICAL - Reveal from top, like a flower facing the sun */
+@keyframes unfold-vertical {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+/* BREATHE - Subtle life pulse (for active/living states) */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+/* BREATHE-GLOW - Pulse with subtle shadow/glow */
+@keyframes breathe-glow {
+  0%, 100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.02);
+    filter: brightness(1.05);
+  }
+}
+
+/* SETTLE - Gentle arrival into place */
+@keyframes settle {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* SETTLE-FADE - Simple fade-in settle */
+@keyframes settle-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* SETTLE-SLIDE - Horizontal settle for navigation */
+@keyframes settle-slide {
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* GROWTH STAGES - Progressive reveal for growth meter */
+@keyframes growth-stage-1 {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(75% 0 0 0);
+  }
+}
+
+@keyframes growth-stage-2 {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(50% 0 0 0);
+  }
+}
+
+@keyframes growth-stage-3 {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(25% 0 0 0);
+  }
+}
+
+@keyframes growth-stage-4 {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* PETAL OPEN - For icon state transitions */
+@keyframes petal-open {
+  0% {
+    transform: rotate(0deg) scale(0.9);
+    opacity: 0.7;
+  }
+  50% {
+    transform: rotate(10deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* SHIMMER - Loading state (only exception to no-loop rule) */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* CHECKMARK - Success confirmation */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 24;
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+/* FADE-OUT - Exit animation */
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* SLIDE-UP - List item entrance */
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RIPPLE - Tap feedback (botanical: like a droplet on a petal) */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   Animation Utility Classes
+   ========================================================================== */
+
+/* Unfold variants */
+.animate-unfold {
+  animation: unfold var(--motion-duration-growth) var(--motion-ease-unfold) forwards;
+}
+
+.animate-unfold-subtle {
+  animation: unfold-subtle var(--motion-duration-standard) var(--motion-ease-settle) forwards;
+}
+
+.animate-unfold-vertical {
+  animation: unfold-vertical var(--motion-duration-standard) var(--motion-ease-settle) forwards;
+}
+
+/* Breathe variants - USE SPARINGLY (only for truly "alive" states) */
+.animate-breathe {
+  animation: breathe 3s var(--motion-ease-breathe) infinite;
+}
+
+.animate-breathe-once {
+  animation: breathe 600ms var(--motion-ease-breathe) forwards;
+}
+
+.animate-breathe-glow {
+  animation: breathe-glow 3s var(--motion-ease-breathe) infinite;
+}
+
+/* Settle variants */
+.animate-settle {
+  animation: settle var(--motion-duration-standard) var(--motion-ease-settle) forwards;
+}
+
+.animate-settle-fade {
+  animation: settle-fade var(--motion-duration-nav) var(--motion-ease-settle) forwards;
+}
+
+.animate-settle-slide {
+  animation: settle-slide var(--motion-duration-nav) var(--motion-ease-settle) forwards;
+}
+
+/* Growth stage reveals */
+.animate-growth-1 {
+  animation: growth-stage-1 var(--motion-duration-growth) var(--motion-ease-unfold) forwards;
+}
+
+.animate-growth-2 {
+  animation: growth-stage-2 var(--motion-duration-growth) var(--motion-ease-unfold) forwards;
+}
+
+.animate-growth-3 {
+  animation: growth-stage-3 var(--motion-duration-growth) var(--motion-ease-unfold) forwards;
+}
+
+.animate-growth-4 {
+  animation: growth-stage-4 var(--motion-duration-growth) var(--motion-ease-unfold) forwards;
+}
+
+/* Petal animation for icons */
+.animate-petal-open {
+  animation: petal-open var(--motion-duration-standard) var(--motion-ease-unfold) forwards;
+}
+
+/* Exit animations */
+.animate-fade-out {
+  animation: fade-out var(--motion-duration-nav) var(--motion-ease-exit) forwards;
+}
+
+/* Success state */
+.animate-checkmark {
+  animation: checkmark var(--motion-duration-growth) var(--motion-ease-settle) forwards;
+}
+
+/* List stagger (apply to parent, children get delays) */
+.animate-stagger > * {
+  animation: slide-up var(--motion-duration-standard) var(--motion-ease-settle) backwards;
+}
+
+.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 50ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 100ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 150ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 200ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 250ms; }
+.animate-stagger > *:nth-child(7) { animation-delay: 300ms; }
+.animate-stagger > *:nth-child(8) { animation-delay: 350ms; }
+
+/* ==========================================================================
+   Transition Utility Classes
+   ========================================================================== */
+
+/* Quick transitions for micro-interactions */
+.transition-instant {
+  transition-duration: var(--motion-duration-instant);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.transition-micro {
+  transition-duration: var(--motion-duration-micro);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Navigation transitions */
+.transition-nav {
+  transition-duration: var(--motion-duration-nav);
+  transition-timing-function: var(--motion-ease-settle);
+}
+
+/* Standard transitions */
+.transition-standard {
+  transition-duration: var(--motion-duration-standard);
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+/* Growth/celebration transitions */
+.transition-growth {
+  transition-duration: var(--motion-duration-growth);
+  transition-timing-function: var(--motion-ease-unfold);
+}
+
+/* Easing-only utilities */
+.ease-unfold {
+  transition-timing-function: var(--motion-ease-unfold);
+}
+
+.ease-breathe {
+  transition-timing-function: var(--motion-ease-breathe);
+}
+
+.ease-settle {
+  transition-timing-function: var(--motion-ease-settle);
+}
+
+/* ==========================================================================
+   State-Based Animations
+   ========================================================================== */
+
+/* Active navigation item indicator */
+.nav-indicator-active {
+  animation: unfold-subtle var(--motion-duration-nav) var(--motion-ease-settle) forwards;
+}
+
+/* Tab change animation */
+.tab-enter {
+  animation: settle var(--motion-duration-nav) var(--motion-ease-settle) forwards;
+}
+
+.tab-exit {
+  animation: fade-out var(--motion-duration-instant) var(--motion-ease-exit) forwards;
+}
+
+/* Card hover lift (no animation, just transition) */
+.card-lift {
+  transition: transform var(--motion-duration-nav) var(--motion-ease-settle),
+              box-shadow var(--motion-duration-nav) var(--motion-ease-settle);
+}
+
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Button feedback */
+.btn-botanical {
+  transition: transform var(--motion-duration-instant) var(--motion-ease-settle),
+              background-color var(--motion-duration-micro) var(--motion-ease-standard);
+}
+
+.btn-botanical:active {
+  transform: scale(0.97);
+}
+
+/* Icon state transitions */
+.icon-state-change {
+  transition: transform var(--motion-duration-nav) var(--motion-ease-unfold),
+              color var(--motion-duration-nav) var(--motion-ease-settle);
+}
+
+/* ==========================================================================
+   Respect User Preferences
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-breathe,
+  .animate-breathe-glow {
+    animation: none !important;
+  }
+}

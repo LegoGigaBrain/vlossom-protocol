@@ -166,7 +166,53 @@ The Vlossom flower is not a logo — it's a **carrier of meaning**.
 
 **The flower icon in `/design/brand/logos` is the source. Derive all variations from this linework style.**
 
- 
+
+
+### 3.1.1 V6.0 Botanical Icon Library (IMPLEMENTED)
+
+
+
+**Location:** `design/brand/icons/` and `apps/web/components/ui/vlossom-icons.tsx`
+
+
+
+28 custom botanical SVG icons are now available. **Never use Lucide, Heroicons, Material, Feather, or Font Awesome for navigation or state icons.**
+
+
+
+| Category | Icons | Import |
+
+|----------|-------|--------|
+
+| **Navigation** | VlossomHome, VlossomSearch, VlossomCalendar, VlossomWallet, VlossomProfile, VlossomNotifications | `@/components/ui/vlossom-icons` |
+
+| **State** | VlossomHealthy, VlossomGrowing, VlossomResting, VlossomNeedsCare, VlossomTransition | `@/components/ui/vlossom-icons` |
+
+| **Utility** | VlossomAdd, VlossomClose, VlossomFavorite, VlossomSettings | `@/components/ui/vlossom-icons` |
+
+
+
+**Usage:**
+
+```tsx
+
+import { VlossomHome, VlossomGrowing } from '@/components/ui/vlossom-icons';
+
+
+
+// Standard usage
+
+<VlossomHome size={24} className="text-primary" />
+
+
+
+// Growth/celebration (uses accent orange)
+
+<VlossomGrowing size={24} accent />
+
+```
+
+
 
 ### 3.2 Symbolic Meaning System
 
@@ -556,7 +602,47 @@ The UI should feel:
 
 - Settle (not slam)
 
- 
+
+
+### 10.1 V6.0 Animation System (IMPLEMENTED)
+
+
+
+**Location:** `apps/web/styles/animations.css` and `apps/web/lib/motion.ts`
+
+
+
+Pre-built CSS animation classes:
+
+```css
+
+.animate-unfold       /* Petal opening reveal */
+
+.animate-settle       /* Gentle arrival */
+
+.animate-breathe-once /* Single pulse */
+
+.transition-nav       /* 200ms settle easing */
+
+.transition-growth    /* 400ms unfold easing */
+
+```
+
+
+
+TypeScript utilities:
+
+```typescript
+
+import { motionUnfold, motionSettle, MOTION_CLASSES } from '@/lib/motion';
+
+```
+
+
+
+**All animations respect `prefers-reduced-motion: reduce`.**
+
+
 
 ---
 

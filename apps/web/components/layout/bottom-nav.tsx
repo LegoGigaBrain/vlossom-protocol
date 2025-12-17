@@ -2,10 +2,17 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { cn } from "../../lib/utils";
-import { Home, Search, Wallet, Bell, User } from "lucide-react";
+import {
+  VlossomHome,
+  VlossomSearch,
+  VlossomWallet,
+  VlossomNotifications,
+  VlossomProfile,
+} from "../ui/vlossom-icons";
+import { MOTION_CLASSES } from "../../lib/motion";
 
 /**
- * V5.0 5-Tab Navigation
+ * V6.0 5-Tab Navigation with Botanical Iconography
  *
  * Structure: Home | Search | Wallet (center) | Notifications | Profile
  *
@@ -14,21 +21,24 @@ import { Home, Search, Wallet, Bell, User } from "lucide-react";
  * - Wallet: Financial hub (center position for emphasis)
  * - Notifications: Global inbox for all system events
  * - Profile: Identity, hair health, schedule, role dashboards
+ *
+ * Motion: nav transitions use 180-220ms with settle easing
+ * Icons: Botanical SVGs derived from Vlossom flower system
  */
 
 interface NavItem {
   path: string;
   label: string;
-  icon: typeof Home;
+  icon: typeof VlossomHome;
   isCenter?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { path: "/home", label: "Home", icon: Home },
-  { path: "/search", label: "Search", icon: Search },
-  { path: "/wallet", label: "Wallet", icon: Wallet, isCenter: true },
-  { path: "/notifications", label: "Alerts", icon: Bell },
-  { path: "/profile", label: "Profile", icon: User },
+  { path: "/home", label: "Home", icon: VlossomHome },
+  { path: "/search", label: "Search", icon: VlossomSearch },
+  { path: "/wallet", label: "Wallet", icon: VlossomWallet, isCenter: true },
+  { path: "/notifications", label: "Alerts", icon: VlossomNotifications },
+  { path: "/profile", label: "Profile", icon: VlossomProfile },
 ];
 
 interface BottomNavProps {
@@ -73,21 +83,24 @@ export function BottomNav({ className }: BottomNavProps) {
             <button
               key={item.path}
               className={cn(
-                "flex flex-col items-center min-h-[44px] transition-all duration-200",
+                "flex flex-col items-center min-h-[44px]",
+                MOTION_CLASSES.transitionNav,
                 item.isCenter
-                  ? "py-2 px-5 -mt-3 bg-brand-rose text-white rounded-full shadow-md hover:shadow-lg hover:scale-105"
+                  ? "py-2 px-5 -mt-3 bg-primary text-white rounded-full shadow-md hover:shadow-lg hover:scale-105"
                   : "py-3 px-3",
-                !item.isCenter && (active ? "text-brand-rose" : "text-text-secondary hover:text-text-primary")
+                !item.isCenter && (active ? "text-primary" : "text-text-secondary hover:text-text-primary")
               )}
               onClick={() => router.push(item.path)}
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
               <Icon
+                size={item.isCenter ? 24 : 20}
                 className={cn(
-                  "aria-hidden",
-                  item.isCenter ? "w-6 h-6" : "w-5 h-5"
+                  MOTION_CLASSES.iconStateChange,
+                  active && !item.isCenter && "scale-110"
                 )}
+                accent={active && !item.isCenter}
                 aria-hidden="true"
               />
               <span className={cn(
@@ -96,6 +109,15 @@ export function BottomNav({ className }: BottomNavProps) {
               )}>
                 {item.label}
               </span>
+              {/* Active indicator dot */}
+              {active && !item.isCenter && (
+                <span
+                  className={cn(
+                    "absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary",
+                    MOTION_CLASSES.navIndicatorActive
+                  )}
+                />
+              )}
             </button>
           );
         })}

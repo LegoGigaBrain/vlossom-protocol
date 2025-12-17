@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Navigation Icon: Search/Discovery
+  Meaning: Radiating petals (outward discovery)
+  Familiar metaphor: Magnifier/Map
+  Botanical derivation: Petals radiating outward from center
+  Usage: DiscoveryMap, SearchHeader
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Center dot - origin of discovery -->
+  <circle class="vlossom-fill" cx="11" cy="11" r="1.5"/>
+  <!-- Radiating petals - outward seeking motion -->
+  <path class="vlossom-icon" d="M11 5c0 0-2 2.5-2 4s.9 2 2 2 2-.5 2-2S11 5 11 5z"/>
+  <path class="vlossom-icon" d="M17 11c0 0-2.5 2-4 2s-2-.9-2-2 .5-2 2-2S17 11 17 11z"/>
+  <path class="vlossom-icon" d="M11 17c0 0 2-2.5 2-4s-.9-2-2-2-2 .5-2 2S11 17 11 17z"/>
+  <path class="vlossom-icon" d="M5 11c0 0 2.5-2 4-2s2 .9 2 2-.5 2-2 2S5 11 5 11z"/>
+  <!-- Discovery stem extending outward (search action) -->
+  <line class="vlossom-icon" x1="16" y1="16" x2="20" y2="20"/>
+</svg>

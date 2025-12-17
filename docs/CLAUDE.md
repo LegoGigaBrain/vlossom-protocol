@@ -6,6 +6,14 @@
 - [Doc 00: Mission Statement](./vlossom/00-mission-statement.md)
 - [Doc 24: Brand Voice](./vlossom/24-brand-voice-and-ux-copy.md)
 
+## Current Version
+
+**V6.0.0 Documentation Sync** (December 17, 2025)
+
+Added 3 design audit reports (typography, color, iconography) and updated core design documentation.
+
+---
+
 ## Directory Structure
 
 ### `docs/project/` - Core Product Docs
@@ -15,6 +23,13 @@
 | `roadmap.md` | Version roadmap and milestones |
 | `tech-stack.md` | Technology architecture overview |
 | `changelog.md` | Version history and release notes |
+
+### `docs/audits/` - Design System Audits (NEW V6.0)
+| File | Purpose |
+|------|---------|
+| `TYPOGRAPHY_AUDIT.md` | Typography usage audit (Playfair vs Inter) |
+| `COLOR_AUDIT.md` | Color token audit (brand-rose, accent orange governance) |
+| `ICONOGRAPHY_REPORT.md` | Linked from `design/brand/icons/` - Icon library documentation |
 
 ### `docs/vlossom/` - The Vlossom Codex (00-28)
 The 29 canonical documents forming the "ground truth" for Vlossom:

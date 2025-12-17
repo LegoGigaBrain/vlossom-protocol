@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Care Icon: Ritual
+  Meaning: Hair ritual - stem + petal (intentional care action)
+  Visual: Stem with emerging petal, sense of nurturing
+  Usage: RitualListItem
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Main stem - the ritual structure -->
+  <path class="vlossom-icon" d="M12 20V8"/>
+  <!-- Ritual bud at top - the care moment -->
+  <path class="vlossom-icon" d="M12 4c-1.5 0-2.5 1.5-2.5 3S11 9 12 9s2.5-.5 2.5-2S13.5 4 12 4z"/>
+  <circle class="vlossom-fill" cx="12" cy="7" r="1"/>
+  <!-- Supporting leaves - ritual steps -->
+  <path class="vlossom-icon" d="M12 12c-2 0-4-1.5-4-3" opacity="0.6"/>
+  <path class="vlossom-icon" d="M12 12c2 0 4-1.5 4-3" opacity="0.6"/>
+  <path class="vlossom-icon" d="M12 16c-1.5 0-3-1-3-2" opacity="0.4"/>
+  <path class="vlossom-icon" d="M12 16c1.5 0 3-1 3-2" opacity="0.4"/>
+</svg>

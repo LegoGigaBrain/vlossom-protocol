@@ -76,6 +76,48 @@ The Vlossom flower is not just a logo — it is a **carrier of meaning** that ex
 
 **Continuity rule:** All iconography should derive from the Vlossom flower linework style.
 
+### 2.1.1 V6.0 Botanical Icon Library (IMPLEMENTED)
+
+**Location:** `design/brand/icons/` (SVG files) and `apps/web/components/ui/vlossom-icons.tsx` (React components)
+
+28 custom botanical SVG icons have been created following the Vlossom flower linework style.
+
+**Navigation Icons:**
+| Component | SVG Path | Meaning | Usage |
+|-----------|----------|---------|-------|
+| `VlossomHome` | `nav/home.svg` | Centered flower core | Home tab, belonging |
+| `VlossomSearch` | `nav/search.svg` | Radiating petals | Discovery, search |
+| `VlossomCalendar` | `nav/calendar.svg` | Petal ring | Calendar views, cycles |
+| `VlossomWallet` | `nav/wallet.svg` | Contained bloom | Wallet, value |
+| `VlossomProfile` | `nav/profile.svg` | Single flower mark | Profile, identity |
+| `VlossomNotifications` | `nav/notifications.svg` | Pulsing bud | Alerts, awareness |
+
+**State Icons:**
+| Component | SVG Path | Meaning | Usage |
+|-----------|----------|---------|-------|
+| `VlossomHealthy` | `state/healthy.svg` | Full open flower | Balanced, healthy |
+| `VlossomGrowing` | `state/growing.svg` | Petals opening | Active improvement |
+| `VlossomResting` | `state/resting.svg` | Closed petals | Recovery phase |
+| `VlossomNeedsCare` | `state/needs-care.svg` | Drooping, asymmetric | Attention required |
+| `VlossomTransition` | `state/transition.svg` | Phase change | Session progress |
+
+**Utility Icons:** `VlossomAdd`, `VlossomClose`, `VlossomFavorite`, `VlossomSettings`
+
+**Usage:**
+```tsx
+import { VlossomHome, VlossomGrowing } from '@/components/ui/vlossom-icons';
+
+// Standard usage (inherits currentColor)
+<VlossomHome size={24} />
+
+// Growth/celebration moment (uses accent orange)
+<VlossomGrowing size={24} accent />
+```
+
+**Forbidden:** Lucide, Heroicons, Material, Feather, Font Awesome for navigation and state icons.
+
+See `design/brand/icons/ICONOGRAPHY_REPORT.md` for full documentation.
+
 ### 2.2 Symbolic Meaning Map
 
     Petals → Stages of growth (petal count = progress level)

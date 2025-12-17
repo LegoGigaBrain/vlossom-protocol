@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Navigation Icon: Notifications
+  Meaning: Pulsing bud or center dot (gentle awareness)
+  Familiar metaphor: Bell/Alert
+  Botanical derivation: Budding flower about to bloom (something emerging)
+  Usage: NotificationIndicator
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Bud about to bloom - notification emerging -->
+  <path class="vlossom-icon" d="M12 5c-3 0-5 2.5-5.5 5-.5 2.5 0 5 1.5 7h8c1.5-2 2-4.5 1.5-7-.5-2.5-2.5-5-5.5-5z"/>
+  <!-- Protective sepals wrapping the bud -->
+  <path class="vlossom-icon" d="M8 12c-1 0-2-.5-2.5-1.5" opacity="0.5"/>
+  <path class="vlossom-icon" d="M16 12c1 0 2-.5 2.5-1.5" opacity="0.5"/>
+  <!-- Center pulse point - the notification itself -->
+  <circle class="vlossom-fill" cx="12" cy="10" r="2"/>
+  <!-- Stem/base -->
+  <path class="vlossom-icon" d="M10 17c0 1.5 1 2.5 2 2.5s2-1 2-2.5"/>
+  <!-- Small leaf detail at base -->
+  <path class="vlossom-icon" d="M12 19.5v1" opacity="0.5"/>
+</svg>

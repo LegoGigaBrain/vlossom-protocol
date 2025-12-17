@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Community Icon: Community
+  Meaning: Community presence - clustered centers
+  Visual: Multiple flower centers together
+  Usage: Social features, community sections
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Multiple flower centers - community -->
+  <circle class="vlossom-fill" cx="12" cy="8" r="2"/>
+  <circle class="vlossom-fill" cx="7" cy="15" r="2"/>
+  <circle class="vlossom-fill" cx="17" cy="15" r="2"/>
+  <!-- Connecting stems - relationships -->
+  <path class="vlossom-icon" d="M12 10v2.5" opacity="0.5"/>
+  <path class="vlossom-icon" d="M10 12.5l-2 1.5" opacity="0.5"/>
+  <path class="vlossom-icon" d="M14 12.5l2 1.5" opacity="0.5"/>
+  <!-- Shared petal fragments around -->
+  <path class="vlossom-icon" d="M12 4c.5 0 1 1 1 2s-.5 1-1 1-1-.2-1-1 .5-2 1-2z" opacity="0.4"/>
+  <path class="vlossom-icon" d="M4 14c0 .5 1 1 2 1s1-.5 1-1-.2-1-1-1-2 .5-2 1z" opacity="0.4"/>
+  <path class="vlossom-icon" d="M20 14c0 .5-1 1-2 1s-1-.5-1-1 .2-1 1-1 2 .5 2 1z" opacity="0.4"/>
+</svg>

@@ -1,0 +1,86 @@
+{
+  "expo": {
+    "name": "Vlossom",
+    "slug": "vlossom",
+    "version": "6.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "vlossom",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#311E6B"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vlossom.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Vlossom uses Face ID for secure authentication",
+        "NSLocationWhenInUseUsageDescription": "Vlossom uses your location to find stylists and salons near you",
+        "NSLocationAlwaysUsageDescription": "Vlossom uses your location to provide directions to your appointments",
+        "NSCameraUsageDescription": "Vlossom uses your camera to take hair photos for your health profile",
+        "NSPhotoLibraryUsageDescription": "Vlossom accesses your photos to add images to your hair health profile"
+      },
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#311E6B"
+      },
+      "package": "com.vlossom.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ],
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Vlossom to use Face ID for secure authentication"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Vlossom to use your location to find stylists near you"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#311E6B"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}

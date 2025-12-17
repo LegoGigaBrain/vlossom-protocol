@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Community Icon: Settings
+  Meaning: Configuration - flower with adjustable petals
+  Visual: Circular arrangement with adjustable elements
+  Usage: Settings, preferences
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Center core -->
+  <circle class="vlossom-fill" cx="12" cy="12" r="2"/>
+  <!-- Six adjustable petal-points (like gear teeth but organic) -->
+  <path class="vlossom-icon" d="M12 4c.5 0 1 1 1 2s-.5 1.5-1 1.5-1-.5-1-1.5.5-2 1-2z"/>
+  <path class="vlossom-icon" d="M18 7c.2.5-.3 1.3-1 1.8s-1.5.3-1.3-.2.5-1 1-1.4.8-.7 1.3-.2z"/>
+  <path class="vlossom-icon" d="M19 13c-.2.5-1 .7-1.8.5s-1-.8-.8-1.2.8-.5 1.5-.4 1.3.6 1.1 1.1z"/>
+  <path class="vlossom-icon" d="M14 18.5c-.3.4-1 .5-1.7.2s-1-.8-.7-1.2.8-.4 1.4-.2 1.3.8 1 1.2z"/>
+  <path class="vlossom-icon" d="M10 18.5c.3.4 1 .5 1.7.2s1-.8.7-1.2-.8-.4-1.4-.2-1.3.8-1 1.2z"/>
+  <path class="vlossom-icon" d="M5 13c.2.5 1 .7 1.8.5s1-.8.8-1.2-.8-.5-1.5-.4-1.3.6-1.1 1.1z"/>
+  <path class="vlossom-icon" d="M6 7c-.2.5.3 1.3 1 1.8s1.5.3 1.3-.2-.5-1-1-1.4-.8-.7-1.3-.2z"/>
+  <!-- Inner adjustment ring -->
+  <circle class="vlossom-icon" cx="12" cy="12" r="4.5" opacity="0.3"/>
+</svg>

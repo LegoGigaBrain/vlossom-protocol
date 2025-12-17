@@ -7,6 +7,294 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.0.0] - 2025-12-17
+
+### V6.0.0: Mobile App + Full Frontend Design Handover - COMPLETE ✅
+
+**Goal**: Complete the design system handover with botanical iconography, animation system, typography/color audits, and establish React Native mobile app foundation.
+
+**Major Milestone**: This is the most significant design milestone to date, marking the full transition from generic icon libraries to a custom botanical design system.
+
+---
+
+#### ✅ Phase A: Design System Completion
+
+##### A.1: Botanical Icon Library (28 SVGs)
+
+Custom iconography system derived from Vlossom flower linework. All icons use Primary Purple (#311E6B) and organic botanical forms.
+
+**Icon Categories Created**
+- `design/brand/icons/nav/` - 6 navigation icons
+  - `home.svg` - Centered flower core (belonging)
+  - `search.svg` - Radiating petals with stem (discovery)
+  - `calendar.svg` - Cyclical petal ring (time/rhythm)
+  - `wallet.svg` - Closed bud (value containment)
+  - `profile.svg` - Single flower with stem (identity)
+  - `notifications.svg` - Budding flower (awareness)
+
+- `design/brand/icons/state/` - 5 state icons
+  - `healthy.svg` - Full open bloom (balanced)
+  - `growing.svg` - Partially opening petals (improvement)
+  - `resting.svg` - Closed/folded petals (recovery)
+  - `needs-care.svg` - Asymmetric petals (attention needed)
+  - `transition.svg` - Mid-unfold motion (phase change)
+
+- `design/brand/icons/care/` - 4 care action icons
+  - `ritual.svg` - Intentional care symbol
+  - `wash-day.svg` - Cleansing routine symbol
+  - `protective-style.svg` - Protective care symbol
+  - `treatment.svg` - Focused treatment symbol
+
+- `design/brand/icons/growth/` - 5 growth stage icons
+  - `stage-1.svg` - Single petal emerging
+  - `stage-2.svg` - Two opposite petals
+  - `stage-3.svg` - Four petals (cardinal directions)
+  - `stage-4.svg` - Full five-petal bloom
+  - `meter.svg` - Radial petal segments (progress)
+
+- `design/brand/icons/community/` - 8 community icons
+  - `community.svg` - Community presence
+  - `support.svg` - Platform support
+  - `learning.svg` - Knowledge/education
+  - `verified.svg` - Trust/authenticity
+  - `favorite.svg` - Affection/love
+  - `settings.svg` - Configuration
+  - `add.svg` - Create/new
+  - `close.svg` - Dismiss/close
+
+**React Implementation**
+- `apps/web/components/ui/vlossom-icons.tsx` - 600+ lines of React icon components
+  - All 28 icons as React components
+  - TypeScript props with size, className, accent options
+  - Consistent 1.5pt stroke weight
+  - Organic curves throughout
+  - Documentation comments for each icon
+
+**React Native Implementation**
+- `apps/mobile/src/components/icons/VlossomIcons.tsx` - React Native SVG icons
+  - All 28 icons adapted for React Native
+  - Uses `react-native-svg` library
+  - Matching design tokens
+
+**Documentation**
+- `design/brand/icons/ICONOGRAPHY_REPORT.md` - Complete icon library documentation
+  - Design principles and rules
+  - Usage guidelines (DO/DON'T)
+  - Animation specifications
+  - Icon consistency checklist
+
+##### A.2: Animation System Implementation
+
+Motion philosophy: "Earned, not constant" - animations only on meaningful state changes.
+
+**CSS Animation System**
+- `apps/web/styles/animations.css` - 250+ lines of animation definitions
+  - Motion tokens (duration, easing curves)
+  - Keyframe definitions for all motion verbs
+  - Utility classes for common animations
+  - Reduced motion support
+
+**Motion Verbs Defined**
+- `unfold` - Organic reveal like petal opening (300-500ms, growth/expansion)
+- `breathe` - Subtle scale pulse (120-150ms, active/alive states)
+- `settle` - Gentle ease into place (180-220ms, completion/arrival)
+
+**Duration Tokens**
+- `--motion-duration-instant`: 100ms
+- `--motion-duration-micro`: 150ms
+- `--motion-duration-nav`: 200ms
+- `--motion-duration-standard`: 300ms
+- `--motion-duration-growth`: 400ms
+- `--motion-duration-dramatic`: 500ms
+
+**Easing Tokens**
+- `--motion-ease-unfold`: cubic-bezier(0.34, 1.56, 0.64, 1) - Overshoot for opening
+- `--motion-ease-breathe`: cubic-bezier(0.4, 0, 0.6, 1) - Symmetric pulse
+- `--motion-ease-settle`: cubic-bezier(0.25, 0.1, 0.25, 1) - Gentle deceleration
+
+**TypeScript Motion Utilities**
+- `apps/web/lib/motion.ts` - 150+ lines of motion utilities
+  - `MotionContext` provider
+  - `usePrefersReducedMotion()` hook
+  - `useUnfoldMotion()` hook
+  - `useBreatheMotion()` hook
+  - `useSettleMotion()` hook
+  - Motion helper functions
+
+##### A.3: Typography Audit
+
+Complete audit of typography usage across all user-facing components and pages.
+
+**Files Created**
+- `docs/audits/TYPOGRAPHY_AUDIT.md` - Complete typography audit report
+
+**Audit Results**
+- ✅ All main user-facing pages correctly use `font-display` for headlines
+- ✅ Profile headers, booking dialogs, stylist profiles compliant
+- ✅ Navigation, forms, data tables correctly use Inter (default)
+- 📝 Help/support pages identified for future update (low priority)
+
+**Typography Rules Confirmed**
+- **Playfair Display** (`font-display`) - Headlines (h1, h2), profile names, celebration moments
+- **Inter** (`font-sans`) - UI text, navigation, labels, data, inputs, buttons
+
+##### A.4: Color Token Audit
+
+Comprehensive audit of color token usage and brand color governance.
+
+**Files Created**
+- `docs/audits/COLOR_AUDIT.md` - Color token audit with findings and recommendations
+
+**Key Findings**
+- ✅ `brand-rose` correctly aliased to Primary Purple (#311E6B)
+- ⚠️ Accent orange (#FF510D) misused in error contexts (9 files identified)
+- 📝 Recommended creating `status-warning-soft` color token
+- 📝 Action items documented for V6.1 color fixes
+
+**Color Governance Confirmed**
+- Primary Purple (#311E6B) - Main brand color, CTAs, headers
+- Accent Orange (#FF510D) - SACRED for growth/celebration only, <8% surface area
+- Tertiary Green (#A9D326) - Success states
+- Status Error (#D0021B) - Errors, destructive actions
+
+---
+
+#### ✅ Phase B: Documentation Sync
+
+**Files Updated**
+- `docs/STYLE_BLUEPRINT.md` - Added V6.0 icon library section, animation system
+- `docs/HANDOFF_FOR_GEMINI.md` - Updated with botanical icons, animation references
+- `docs/vlossom/16-ui-components-and-design-system.md` - Documented implemented icon library
+
+**Files Created**
+- `design/brand/icons/ICONOGRAPHY_REPORT.md` - Master icon documentation (200+ lines)
+- `docs/audits/TYPOGRAPHY_AUDIT.md` - Typography audit report (130+ lines)
+- `docs/audits/COLOR_AUDIT.md` - Color audit report (150+ lines)
+- `CLAUDE.md` (root) - Project-level context file (400+ lines)
+
+---
+
+#### ✅ Phase C: V6.0 Mobile App Setup
+
+React Native + Expo foundation for iOS and Android mobile applications.
+
+**App Structure Created**
+- Framework: React Native 0.74.5, Expo SDK 51
+- Navigation: Expo Router with file-based routing
+- State Management: Zustand
+- Package Version: `6.0.0`
+
+**Files Created**
+- `apps/mobile/package.json` - Dependencies and scripts
+- `apps/mobile/app.json` - Expo configuration
+- `apps/mobile/tsconfig.json` - TypeScript configuration
+- `apps/mobile/src/styles/tokens.ts` - Design tokens matching web
+- `apps/mobile/src/styles/theme.tsx` - Theme provider
+- `apps/mobile/app/_layout.tsx` - Root layout
+- `apps/mobile/app/(tabs)/_layout.tsx` - Tab navigation layout (5 tabs)
+- `apps/mobile/app/(tabs)/index.tsx` - Home screen
+- `apps/mobile/app/(tabs)/search.tsx` - Search screen
+- `apps/mobile/app/(tabs)/wallet.tsx` - Wallet screen
+- `apps/mobile/app/(tabs)/notifications.tsx` - Notifications screen
+- `apps/mobile/app/(tabs)/profile.tsx` - Profile screen
+- `apps/mobile/src/components/icons/VlossomIcons.tsx` - React Native botanical icons
+- `apps/mobile/src/components/icons/index.ts` - Icon exports
+- `apps/mobile/src/hooks/useBiometricAuth.ts` - Biometric authentication hook
+- `apps/mobile/src/hooks/index.ts` - Hook exports
+- `apps/mobile/src/styles/index.ts` - Style exports
+
+**Key Features**
+- 5-tab navigation: Home, Search, Wallet, Notifications, Profile
+- Botanical icons using React Native SVG
+- Biometric authentication ready (Face ID, Touch ID, Fingerprint)
+- Design tokens matching web app exactly
+- Theme provider for consistent styling
+
+**Dependencies Added**
+- `expo-router` ~3.5.23 - File-based navigation
+- `expo-local-authentication` ~14.0.1 - Biometric auth
+- `expo-location` ~17.0.1 - Geolocation
+- `expo-notifications` ~0.28.16 - Push notifications
+- `react-native-svg` 15.2.0 - SVG rendering
+- `react-native-maps` 1.14.0 - Map views
+- `zustand` ^4.5.2 - State management
+
+---
+
+#### Files Summary
+
+**Design Assets**
+- 28 SVG icon files in `design/brand/icons/` (organized by category)
+- 1 iconography report (200+ lines)
+
+**Web App**
+- 1 React icon component file (600+ lines)
+- 1 CSS animation file (250+ lines)
+- 1 TypeScript motion utilities file (150+ lines)
+- 1 updated bottom-nav component (using botanical icons)
+
+**Mobile App**
+- 14 new files (package.json, config, screens, hooks, components)
+- 1 complete React Native app structure
+- 1 React Native icon library
+
+**Documentation**
+- 3 audit reports (typography, color, iconography)
+- 3 updated core design docs
+- 1 root CLAUDE.md context file (400+ lines)
+
+**Total Impact**
+- ~30 new files across design, web, mobile, and documentation
+- ~1,500+ lines of code (icons, animations, mobile app)
+- ~4,000+ lines of documentation (audits, reports, context)
+
+---
+
+#### Usage
+
+**Web App - Using Botanical Icons**
+```tsx
+import { VlossomHome, VlossomSearch, VlossomWallet } from '@/components/ui/vlossom-icons'
+
+<VlossomHome size={24} className="text-primary" />
+<VlossomSearch size={20} accent /> {/* Use accent for growth moments only */}
+```
+
+**Web App - Using Animations**
+```tsx
+// CSS classes
+<div className="animate-unfold">...</div>
+<div className="animate-settle">...</div>
+
+// TypeScript hooks
+const unfoldProps = useUnfoldMotion()
+<div {...unfoldProps}>...</div>
+```
+
+**Mobile App - Running Dev Server**
+```bash
+cd apps/mobile
+npm run dev
+```
+
+---
+
+#### Next Steps (V6.1)
+
+**Design System Polish**
+- Fix accent orange usage in error contexts (9 files)
+- Add `status-warning-soft` color token
+- Document orange governance in STYLE_BLUEPRINT.md
+- Add Tailwind lint rule for accent misuse
+
+**Mobile App Development**
+- Connect mobile app to API client
+- Implement wallet unlock with biometric auth
+- Add stylist discovery with map view
+- Build booking flow (mobile-optimized)
+
+---
+
 ## [5.3.0] - 2025-12-17
 
 ### V5.3.0: Mock Data Feature Flag System - COMPLETE ✅

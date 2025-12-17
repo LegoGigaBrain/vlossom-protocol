@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom State Icon: Growing
+  Meaning: Petals partially opening - active improvement
+  Visual: Animated unfold (subtle), partial opening
+  Usage: GrowthMeter, ProgressChip
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Center - emerging core -->
+  <circle class="vlossom-fill" cx="12" cy="12" r="2"/>
+  <!-- Petals in various stages of opening - growth in progress -->
+  <!-- Top petal - fully opening (most progress) -->
+  <path class="vlossom-icon" d="M12 4c1.2 0 2 2 2 3.5S13.2 9.5 12 9.5 10 9 10 7.5 10.8 4 12 4z"/>
+  <!-- Right petal - mid-opening -->
+  <path class="vlossom-icon" d="M18 10c.3 1-1 2.5-2.5 3s-2.8 0-2.5-.7.8-1.5 1.8-2.2S17.7 9 18 10z" opacity="0.85"/>
+  <!-- Bottom-right petal - just starting -->
+  <path class="vlossom-icon" d="M16 17c-.6.9-2.2.7-3.2-.1s-1.5-1.8-.8-2 1.5.1 2.3.5S16.6 16.1 16 17z" opacity="0.7"/>
+  <!-- Bottom-left petal - barely starting -->
+  <path class="vlossom-icon" d="M8 17c.6.9 2.2.7 3.2-.1s1.5-1.8.8-2-1.5.1-2.3.5S7.4 16.1 8 17z" opacity="0.55"/>
+  <!-- Left petal - still emerging -->
+  <path class="vlossom-icon" d="M6 10c-.3 1 1 2.5 2.5 3s2.8 0 2.5-.7-.8-1.5-1.8-2.2S6.3 9 6 10z" opacity="0.4"/>
+  <!-- Growth direction indicator (upward movement) -->
+  <path class="vlossom-icon" d="M12 2v1" opacity="0.5"/>
+</svg>

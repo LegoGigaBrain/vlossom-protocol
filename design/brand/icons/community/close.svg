@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Community Icon: Close
+  Meaning: Close/Dismiss - folding petals
+  Visual: Petals crossing/closing inward
+  Usage: Close buttons, dismiss actions
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Center point -->
+  <circle class="vlossom-fill" cx="12" cy="12" r="1.5"/>
+  <!-- Crossing petals (organic X shape) -->
+  <path class="vlossom-icon" d="M6 6c0 0 2.5 2.5 4 4s2 2 2 2"/>
+  <path class="vlossom-icon" d="M18 6c0 0-2.5 2.5-4 4s-2 2-2 2"/>
+  <path class="vlossom-icon" d="M6 18c0 0 2.5-2.5 4-4s2-2 2-2"/>
+  <path class="vlossom-icon" d="M18 18c0 0-2.5-2.5-4-4s-2-2-2-2"/>
+  <!-- Small leaf tips at ends -->
+  <circle cx="6" cy="6" r="1" class="vlossom-icon" opacity="0.4"/>
+  <circle cx="18" cy="6" r="1" class="vlossom-icon" opacity="0.4"/>
+  <circle cx="6" cy="18" r="1" class="vlossom-icon" opacity="0.4"/>
+  <circle cx="18" cy="18" r="1" class="vlossom-icon" opacity="0.4"/>
+</svg>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Community Icon: Favorite
+  Meaning: Heart/Love - flower center as heart (affection)
+  Visual: Petal arrangement forming heart-like shape
+  Usage: Favorite buttons, likes
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Heart-shaped petal arrangement -->
+  <path class="vlossom-icon" d="M12 6c-2-2.5-5-2.5-6.5-.5s-1 5 .5 7c1.5 2 6 5.5 6 5.5s4.5-3.5 6-5.5 2-5-.5-7S14 3.5 12 6z"/>
+  <!-- Inner petal details suggesting botanical nature -->
+  <path class="vlossom-icon" d="M12 8c-1.5-1.5-3-1.5-4-.5s-.5 3 .5 4 3.5 3 3.5 3" opacity="0.4"/>
+  <path class="vlossom-icon" d="M12 8c1.5-1.5 3-1.5 4-.5s.5 3-.5 4-3.5 3-3.5 3" opacity="0.4"/>
+  <!-- Center dot -->
+  <circle class="vlossom-fill" cx="12" cy="11" r="1"/>
+</svg>

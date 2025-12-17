@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Growth Icon: Stage 1
+  Meaning: Early growth - single petal (beginning)
+  Visual: One petal emerging from center
+  Usage: ProfileGrowthSummary
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Seed/center - the beginning -->
+  <circle class="vlossom-fill" cx="12" cy="14" r="2"/>
+  <!-- Single emerging petal - first growth -->
+  <path class="vlossom-icon" d="M12 5c1 0 2 2 2 4s-1 3-2 3-2-1-2-3 1-4 2-4z"/>
+  <!-- Grounding stem -->
+  <path class="vlossom-icon" d="M12 16v4"/>
+  <!-- Small root beginning -->
+  <path class="vlossom-icon" d="M11 20c0 0-.5.5-1 .5" opacity="0.4"/>
+  <path class="vlossom-icon" d="M13 20c0 0 .5.5 1 .5" opacity="0.4"/>
+</svg>

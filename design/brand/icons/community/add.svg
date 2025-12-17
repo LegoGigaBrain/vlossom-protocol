@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Community Icon: Add
+  Meaning: Create/Add - emerging bud (new growth)
+  Visual: Small bud about to emerge
+  Usage: Add buttons, create actions
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Emerging bud center -->
+  <circle class="vlossom-fill" cx="12" cy="12" r="2"/>
+  <!-- Four emerging petals forming + shape (organic, not rigid) -->
+  <path class="vlossom-icon" d="M12 5c.5 0 1 1.5 1 3s-.5 2-1 2-1-.5-1-2 .5-3 1-3z"/>
+  <path class="vlossom-icon" d="M19 12c0 .5-1.5 1-3 1s-2-.5-2-1 .5-1 2-1 3 .5 3 1z"/>
+  <path class="vlossom-icon" d="M12 19c-.5 0-1-1.5-1-3s.5-2 1-2 1 .5 1 2-.5 3-1 3z"/>
+  <path class="vlossom-icon" d="M5 12c0-.5 1.5-1 3-1s2 .5 2 1-.5 1-2 1-3-.5-3-1z"/>
+</svg>

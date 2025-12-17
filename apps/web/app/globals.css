@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Vlossom Animation System */
+@import "../styles/animations.css";
+
 @layer base {
   /* Light Mode CSS Variables (Default) */
   :root {

@@ -2,9 +2,17 @@
 
 > Purpose: Brand identity, design tokens, and visual assets for the Vlossom ecosystem.
 
+## Current Version
+
+**V6.0.0 Design System** (December 17, 2025)
+
+Complete botanical icon library (28 SVGs), animation system documentation, typography/color audits.
+
 ## Canonical References
 - [Doc 16: UI Components and Design System](../docs/vlossom/16-ui-components-and-design-system.md)
 - [Doc 24: Brand Narrative & Lore](../docs/vlossom/24-brand-narrative-and-lore.md)
+- [STYLE_BLUEPRINT](../docs/STYLE_BLUEPRINT.md) - Complete visual system
+- [ICONOGRAPHY_REPORT](brand/icons/ICONOGRAPHY_REPORT.md) - Icon library documentation
 
 ## Key Directories
 
@@ -19,6 +27,28 @@
 - `Wordmark-cream.svg` — Wordmark logo (cream)
 - `Vertical-lock-purple.svg` — Vertical lockup (purple)
 - `Vertical-lock-cream.svg` — Vertical lockup (cream)
+
+### `brand/icons/` — Botanical Icon Library (NEW V6.0) ✨
+Complete custom iconography system derived from Vlossom flower linework.
+
+**Icon Categories:**
+- `nav/` — 6 navigation icons (home, search, calendar, wallet, profile, notifications)
+- `state/` — 5 state icons (healthy, growing, resting, needs-care, transition)
+- `care/` — 4 care action icons (ritual, wash-day, protective-style, treatment)
+- `growth/` — 5 growth stage icons (stage-1 through stage-4, meter)
+- `community/` — 8 community icons (community, support, learning, verified, favorite, settings, add, close)
+- `ICONOGRAPHY_REPORT.md` — Complete icon library documentation
+
+**Design Principles:**
+- Stroke weight: 1.5pt (matches brand SVGs)
+- Curvature: Organic, rounded, no sharp angles
+- Color: Primary Purple (#311E6B) only
+- Meaning: Every icon represents system state, never decoration
+- Animation ready: Designed for unfold/settle motion
+
+**Usage:**
+- Web: `apps/web/components/ui/vlossom-icons.tsx` - React components
+- Mobile: `apps/mobile/src/components/icons/VlossomIcons.tsx` - React Native SVG
 
 ### `brand/identity/` — Brand Identity
 - `brand identity card.png` — Brand identity reference card

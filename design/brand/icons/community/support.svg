@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Vlossom Community Icon: Support
+  Meaning: Platform support - stem network (interconnected help)
+  Visual: Branching stems supporting growth
+  Usage: Help center, support features
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <style>
+      .vlossom-icon { fill: none; stroke: #311E6B; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+      .vlossom-fill { fill: #311E6B; }
+    </style>
+  </defs>
+  <!-- Central support stem -->
+  <path class="vlossom-icon" d="M12 20V6"/>
+  <!-- Branching support network -->
+  <path class="vlossom-icon" d="M12 10c-3 0-5-2-6-4"/>
+  <path class="vlossom-icon" d="M12 10c3 0 5-2 6-4"/>
+  <path class="vlossom-icon" d="M12 14c-2 0-3.5-1.5-4.5-3"/>
+  <path class="vlossom-icon" d="M12 14c2 0 3.5-1.5 4.5-3"/>
+  <!-- Flower bud at top - what support enables -->
+  <circle class="vlossom-fill" cx="12" cy="5" r="1.5"/>
+  <!-- Small support leaves -->
+  <path class="vlossom-icon" d="M12 17c-1 0-2-.5-2.5-1.5" opacity="0.5"/>
+  <path class="vlossom-icon" d="M12 17c1 0 2-.5 2.5-1.5" opacity="0.5"/>
+</svg>

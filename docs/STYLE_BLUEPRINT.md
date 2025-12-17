@@ -118,11 +118,11 @@ The Vlossom flower is not a logo. It is a **living symbol** that expresses user 
 
 ### 2.3 State-Driven Iconography
 
- 
+
 
 Every icon should express state:
 
- 
+
 
 | State | Icon Treatment |
 
@@ -138,7 +138,73 @@ Every icon should express state:
 
 | **Resting** | Closed/settled form |
 
- 
+
+
+### 2.4 V6.0 Botanical Icon Library
+
+
+
+**Location:** `design/brand/icons/` and `apps/web/components/ui/vlossom-icons.tsx`
+
+
+
+All navigation and state icons are custom botanical SVGs derived from the Vlossom flower linework. Generic icon libraries (Lucide, Heroicons, Material, Feather, Font Awesome) are **forbidden** for navigation and state icons.
+
+
+
+#### Navigation Icons
+
+| Icon | File | Meaning | Usage |
+
+|------|------|---------|-------|
+
+| `VlossomHome` | `nav/home.svg` | Centered core, belonging | Home tab |
+
+| `VlossomSearch` | `nav/search.svg` | Radiating petals, discovery | Search tab |
+
+| `VlossomCalendar` | `nav/calendar.svg` | Petal ring, cycles | Calendar views |
+
+| `VlossomWallet` | `nav/wallet.svg` | Contained bloom, value | Wallet tab |
+
+| `VlossomProfile` | `nav/profile.svg` | Single flower, identity | Profile tab |
+
+| `VlossomNotifications` | `nav/notifications.svg` | Pulsing bud, awareness | Alerts |
+
+
+
+#### State Icons
+
+| Icon | File | Meaning | Usage |
+
+|------|------|---------|-------|
+
+| `VlossomHealthy` | `state/healthy.svg` | Open flower, full petals | Health status |
+
+| `VlossomGrowing` | `state/growing.svg` | Partially opening | Active improvement |
+
+| `VlossomResting` | `state/resting.svg` | Closed petals | Recovery phase |
+
+| `VlossomNeedsCare` | `state/needs-care.svg` | Drooping, asymmetric | Attention required |
+
+| `VlossomTransition` | `state/transition.svg` | Phase change | Session progress |
+
+
+
+#### Usage Rules
+
+- Import from `@/components/ui/vlossom-icons`
+
+- Use `accent` prop for growth/celebration moments only
+
+- Size defaults: 24px for nav, 20px for inline
+
+- All icons use Primary Purple (`#311E6B`) via `currentColor`
+
+
+
+See `design/brand/icons/ICONOGRAPHY_REPORT.md` for full documentation.
+
+
 
 ---
 
@@ -492,7 +558,7 @@ Every icon should express state:
 
 ### 7.4 Motion Language
 
- 
+
 
 Use these verbs when describing motion:
 
@@ -506,7 +572,94 @@ Use these verbs when describing motion:
 
 - **Rest** (not freeze)
 
- 
+
+
+### 7.5 V6.0 Animation Implementation
+
+
+
+**Location:** `apps/web/styles/animations.css` and `apps/web/lib/motion.ts`
+
+
+
+The animation system implements the motion verbs as CSS classes and TypeScript utilities:
+
+
+
+#### CSS Animation Classes
+
+```css
+/* Unfold - organic reveal like a petal opening */
+
+.animate-unfold { animation: unfold 400ms var(--motion-ease-unfold) forwards; }
+
+.animate-unfold-subtle { animation: unfold-subtle 300ms var(--motion-ease-settle) forwards; }
+
+
+
+/* Breathe - subtle life pulse (use SPARINGLY) */
+
+.animate-breathe-once { animation: breathe 600ms var(--motion-ease-breathe) forwards; }
+
+
+
+/* Settle - gentle arrival into place */
+
+.animate-settle { animation: settle 300ms var(--motion-ease-settle) forwards; }
+
+.animate-settle-fade { animation: settle-fade 200ms var(--motion-ease-settle) forwards; }
+
+```
+
+
+
+#### TypeScript Motion Utilities
+
+```typescript
+
+import { motionUnfold, motionSettle, MOTION_CLASSES } from '@/lib/motion';
+
+
+
+// Apply animation classes
+
+<div className={motionSettle('default')} />
+
+
+
+// Transition utilities
+
+<button className={MOTION_CLASSES.transitionNav} />
+
+```
+
+
+
+#### Duration Tokens
+
+| Token | Value | Usage |
+
+|-------|-------|-------|
+
+| `--motion-duration-instant` | 100ms | Micro-interactions |
+
+| `--motion-duration-micro` | 150ms | Small feedback |
+
+| `--motion-duration-nav` | 200ms | Navigation transitions |
+
+| `--motion-duration-standard` | 300ms | State changes |
+
+| `--motion-duration-growth` | 400ms | Growth/celebration |
+
+| `--motion-duration-dramatic` | 500ms | Hero moments |
+
+
+
+#### Reduced Motion Support
+
+All animations respect `prefers-reduced-motion: reduce` automatically.
+
+
 
 ---
 
