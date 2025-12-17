@@ -1,15 +1,16 @@
 /**
- * Role Tabs - Dynamic Profile Tabs (V5.0)
+ * Role Tabs - Dynamic Profile Tabs (V5.3)
  *
  * Tab Structure:
  * - Overview: Always visible, shows hair health, stats, favorites
  * - Stylist: Only if user has STYLIST role - business dashboard
  * - Salon: Only if user has SALON_OWNER/PROPERTY_OWNER role
+ *
+ * Feature flag: NEXT_PUBLIC_USE_MOCK_DATA=true for demo mode
  */
 
 "use client";
 
-import { useState } from "react";
 import { cn } from "../../lib/utils";
 import {
   User,
@@ -19,7 +20,17 @@ import {
   Calendar,
   Star,
   TrendingUp,
+  Database,
+  AlertCircle,
 } from "lucide-react";
+import { Badge } from "../ui/badge";
+import { Skeleton } from "../ui/skeleton";
+import {
+  useStylistDashboardStats,
+  usePropertyDashboardStats,
+  formatCurrency,
+  formatPercentage,
+} from "../../hooks/use-profile-stats";
 
 export type ProfileTabId = "overview" | "stylist" | "salon";
 
@@ -104,24 +115,49 @@ export function OverviewTab({ className, children }: OverviewTabProps) {
 
 /**
  * Stylist Tab Content - Business Dashboard
- * TODO: Wire to stylist dashboard API when available
+ * Wired to real API with mock data fallback
  */
 interface StylistTabProps {
   className?: string;
 }
 
 export function StylistTab({ className }: StylistTabProps) {
-  // Mock data - needs stylist dashboard API endpoint
-  const stats = {
-    totalBookings: 47,
-    thisMonth: 12,
-    rating: 4.9,
-    reviewCount: 38,
-    earnings: "R12,450",
-  };
+  const { stats, isLoading, error, isUsingMockData } = useStylistDashboardStats();
+
+  if (isLoading) {
+    return (
+      <div className={cn("space-y-6", className)}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
+        <Skeleton className="h-48" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={cn("space-y-6", className)}>
+        <div className="flex items-center justify-center gap-2 py-12 text-status-error">
+          <AlertCircle className="w-5 h-5" />
+          <p>Unable to load dashboard stats</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("space-y-6", className)}>
+      {/* Mock Data Indicator */}
+      {isUsingMockData && process.env.NODE_ENV === "development" && (
+        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+          <Database className="w-3 h-3 mr-1" />
+          Demo Data
+        </Badge>
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
@@ -132,32 +168,48 @@ export function StylistTab({ className }: StylistTabProps) {
         />
         <StatCard
           icon={TrendingUp}
-          label="This Month"
-          value={stats.thisMonth.toString()}
+          label="Completed"
+          value={stats.completedBookings.toString()}
           color="text-status-success"
         />
         <StatCard
           icon={Star}
           label="Rating"
-          value={stats.rating.toString()}
-          subtext={`${stats.reviewCount} reviews`}
+          value={stats.averageRating.toFixed(1)}
+          subtext={`${stats.totalReviews} reviews`}
           color="text-accent-gold"
         />
         <StatCard
           icon={Sparkles}
-          label="Earnings"
-          value={stats.earnings}
+          label="This Month"
+          value={formatCurrency(stats.thisMonthEarnings)}
           color="text-brand-purple"
         />
       </div>
 
-      {/* Coming Soon Placeholder */}
-      <div className="text-center py-12 bg-background-secondary rounded-xl">
-        <Scissors className="w-12 h-12 mx-auto text-text-muted mb-3" />
-        <h3 className="font-medium text-text-primary mb-1">Stylist Dashboard</h3>
-        <p className="text-sm text-text-secondary">
-          Full business analytics coming in V5.1
-        </p>
+      {/* Earnings Summary */}
+      <div className="bg-background-primary border border-border-default rounded-xl p-4">
+        <h4 className="font-medium text-text-primary mb-3">Earnings Overview</h4>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <p className="text-lg font-bold text-text-primary">
+              {formatCurrency(stats.totalEarnings)}
+            </p>
+            <p className="text-xs text-text-secondary">Total Earned</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-brand-rose">
+              {formatCurrency(stats.pendingPayouts)}
+            </p>
+            <p className="text-xs text-text-secondary">Pending</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-status-success">
+              {formatPercentage(stats.repeatClientRate)}
+            </p>
+            <p className="text-xs text-text-secondary">Repeat Clients</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -165,58 +217,95 @@ export function StylistTab({ className }: StylistTabProps) {
 
 /**
  * Salon Tab Content - Property Dashboard
- * TODO: Wire to salon/property dashboard API when available
+ * Wired to real API with mock data fallback
  */
 interface SalonTabProps {
   className?: string;
 }
 
 export function SalonTab({ className }: SalonTabProps) {
-  // Mock data - needs salon dashboard API endpoint
-  const stats = {
-    totalChairs: 4,
-    activeRentals: 3,
-    occupancyRate: "75%",
-    monthlyRevenue: "R8,200",
-  };
+  const { stats, isLoading, error, isUsingMockData } = usePropertyDashboardStats();
+
+  if (isLoading) {
+    return (
+      <div className={cn("space-y-6", className)}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
+        </div>
+        <Skeleton className="h-48" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={cn("space-y-6", className)}>
+        <div className="flex items-center justify-center gap-2 py-12 text-status-error">
+          <AlertCircle className="w-5 h-5" />
+          <p>Unable to load dashboard stats</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("space-y-6", className)}>
+      {/* Mock Data Indicator */}
+      {isUsingMockData && process.env.NODE_ENV === "development" && (
+        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+          <Database className="w-3 h-3 mr-1" />
+          Demo Data
+        </Badge>
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={Building2}
-          label="Total Chairs"
-          value={stats.totalChairs.toString()}
+          label="Properties"
+          value={stats.totalProperties.toString()}
           color="text-brand-purple"
         />
         <StatCard
           icon={Calendar}
-          label="Active Rentals"
-          value={stats.activeRentals.toString()}
+          label="Total Chairs"
+          value={stats.totalChairs.toString()}
+          subtext={`${stats.occupiedChairs} occupied`}
           color="text-brand-rose"
         />
         <StatCard
           icon={TrendingUp}
           label="Occupancy"
-          value={stats.occupancyRate}
+          value={formatPercentage(stats.averageOccupancy)}
           color="text-status-success"
         />
         <StatCard
           icon={Sparkles}
-          label="Revenue"
-          value={stats.monthlyRevenue}
+          label="Monthly Revenue"
+          value={formatCurrency(stats.monthlyRevenue)}
           color="text-accent-gold"
         />
       </div>
 
-      {/* Coming Soon Placeholder */}
-      <div className="text-center py-12 bg-background-secondary rounded-xl">
-        <Building2 className="w-12 h-12 mx-auto text-text-muted mb-3" />
-        <h3 className="font-medium text-text-primary mb-1">Salon Dashboard</h3>
-        <p className="text-sm text-text-secondary">
-          Property management features coming in V5.1
-        </p>
+      {/* Property Summary */}
+      <div className="bg-background-primary border border-border-default rounded-xl p-4">
+        <h4 className="font-medium text-text-primary mb-3">Property Overview</h4>
+        <div className="grid grid-cols-2 gap-4 text-center">
+          <div>
+            <p className="text-lg font-bold text-text-primary">
+              {stats.occupiedChairs} / {stats.totalChairs}
+            </p>
+            <p className="text-xs text-text-secondary">Chairs Occupied</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-brand-rose">
+              {stats.pendingRequests}
+            </p>
+            <p className="text-xs text-text-secondary">Pending Requests</p>
+          </div>
+        </div>
       </div>
     </div>
   );

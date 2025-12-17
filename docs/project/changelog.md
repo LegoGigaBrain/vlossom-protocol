@@ -7,6 +7,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.3.0] - 2025-12-17
+
+### V5.3.0: Mock Data Feature Flag System - COMPLETE ✅
+
+**Goal**: Enable toggle between real API data and mock data for demos and UI testing.
+
+**Feature Flag**: `NEXT_PUBLIC_USE_MOCK_DATA=true` in `.env.local`
+
+#### ✅ Mock Data Infrastructure
+
+**Central Mock Data File**
+- `apps/web/lib/mock-data.ts` - All mock constants and helpers
+- `MOCK_STYLISTS` - 5 stylists with full marker data
+- `MOCK_SALONS` - 2 salons with amenities
+- `MOCK_PROFILE_STATS` - Customer profile statistics
+- `MOCK_STYLIST_STATS` - Stylist dashboard metrics
+- `MOCK_PROPERTY_STATS` - Property owner metrics
+- `MOCK_SOCIAL_STATS` - Follower/following counts
+- `shouldUseMockData()` - Helper to determine data source
+- `withMockFallback()` - Generic fallback wrapper
+
+#### ✅ Profile Stats Hooks
+
+**New Hook File**
+- `apps/web/hooks/use-profile-stats.ts` - All profile-related stats hooks
+
+**Hooks Created**
+- `useStylistDashboardStats()` - Business metrics for stylists
+- `usePropertyDashboardStats()` - Property owner metrics
+- `useSocialStats(userId)` - Follower/following counts
+- `useRewardsStats()` - Gamification/XP stats
+- `formatCurrency(cents)` - ZAR currency formatting
+- `formatPercentage(value)` - Percentage formatting
+
+#### ✅ Updated Components
+
+**Home Page**
+- Uses `MOCK_SALONS` from centralized mock-data
+- Shows "Demo Data" badge in development when using mock data
+- `useStylistMarkers` hook returns `isUsingMockData` flag
+
+**Profile Page**
+- `ProfileHeader` wired to `useSocialStats()` for followers/following
+- `RewardsCard` wired to `useRewardsStats()` with loading/error states
+- Social stats replace hardcoded zeros
+
+**Role Tabs**
+- `StylistTab` wired to `useStylistDashboardStats()`
+- `SalonTab` wired to `usePropertyDashboardStats()`
+- Both show loading skeletons and error states
+- "Demo Data" badge in development mode
+
+#### ✅ Updated Hooks
+
+**use-stylist-markers.ts**
+- Added `shouldUseMockData()` fallback logic
+- Returns `isUsingMockData` boolean
+- Falls back to `MOCK_STYLISTS` when API empty
+
+**use-nearby-stylists.ts**
+- Added mock data fallback for `useNearbyStylists`
+- Added mock data fallback for `useNearbySalons`
+- `useMapData` combines both with mock fallback
+
+#### Files Created
+
+- `apps/web/hooks/use-profile-stats.ts` - Profile stats hooks (200 lines)
+
+#### Files Modified
+
+- `apps/web/lib/mock-data.ts` - Added helper functions
+- `apps/web/hooks/use-stylist-markers.ts` - Mock fallback
+- `apps/web/hooks/use-nearby-stylists.ts` - Mock fallback
+- `apps/web/app/(main)/home/page.tsx` - Use centralized mocks
+- `apps/web/app/(main)/profile/page.tsx` - Wire stats hooks
+- `apps/web/components/profile/role-tabs.tsx` - Wire dashboard hooks
+
+#### Usage
+
+**Enable Demo Mode:**
+```bash
+# .env.local
+NEXT_PUBLIC_USE_MOCK_DATA=true
+```
+
+**Automatic Fallback:**
+- When API returns empty data, mock data displays automatically
+- When API succeeds, real data replaces mock data
+- "Demo Data" badge appears in development when using mock data
+
+---
+
 ## [5.2.0] - 2025-12-17
 
 ### V5.2.0: UX Excellence & Favorites Integration - COMPLETE ✅

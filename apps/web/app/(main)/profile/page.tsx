@@ -1,10 +1,13 @@
 /**
- * Profile Page - V5.1 Architecture
+ * Profile Page - V5.3 Architecture
  *
  * Structure:
- * - Instagram-style header (avatar, bio, followers)
+ * - Instagram-style header (avatar, bio, followers from API)
  * - Role-based tabs (Overview, Stylist, Salon)
  * - Hair Health section in Overview tab (wired to API)
+ * - Rewards & social stats with mock fallback
+ *
+ * Feature flag: NEXT_PUBLIC_USE_MOCK_DATA=true for demo mode
  */
 
 "use client";
@@ -14,6 +17,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useHairProfile } from "@/hooks/use-hair-health";
 import { useBookingStats } from "@/hooks/use-bookings";
 import { useFavorites, useFavoritesCount } from "@/hooks/use-favorites";
+import { useSocialStats, useRewardsStats } from "@/hooks/use-profile-stats";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -45,6 +49,9 @@ export default function ProfilePage() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ProfileTabId>("overview");
+
+  // Fetch social stats for profile header
+  const { stats: socialStats } = useSocialStats(user?.id);
 
   if (isLoading) {
     return (
@@ -93,8 +100,8 @@ export default function ProfilePage() {
           role: user.role,
           roles: userRoles,
           isVerified: user.verificationStatus === "VERIFIED",
-          followersCount: 0, // Not yet implemented
-          followingCount: 0, // Not yet implemented
+          followersCount: socialStats.followers,
+          followingCount: socialStats.following,
         }}
         isOwnProfile={true}
         onEditProfile={() => router.push("/settings")}
@@ -306,17 +313,10 @@ function BookingStatsCard() {
 
 /**
  * Rewards Summary Card
- * TODO: Wire to rewards/gamification API when available
+ * Wired to real API with mock data fallback
  */
 function RewardsCard() {
-  // Mock data - needs rewards API endpoint
-  const rewards = {
-    xp: 125,
-    tier: "Bronze",
-    tierColor: "text-amber-700 bg-amber-100",
-    streak: 0,
-    badges: 1,
-  };
+  const { stats: rewards, isLoading, error } = useRewardsStats();
 
   return (
     <Card>
@@ -327,33 +327,50 @@ function RewardsCard() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-2xl font-bold text-text-primary">{rewards.xp}</p>
-            <p className="text-xs text-text-secondary">Total XP</p>
-          </div>
-          <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${rewards.tierColor}`}
-          >
-            {rewards.tier}
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2 p-2 bg-background-secondary rounded-lg">
-            <Flame className="w-4 h-4 text-orange-500" />
-            <div>
-              <p className="text-sm font-medium">{rewards.streak}</p>
-              <p className="text-xs text-text-muted">Streak</p>
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-12" />
+            <div className="grid grid-cols-2 gap-2">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
             </div>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-background-secondary rounded-lg">
-            <Award className="w-4 h-4 text-brand-rose" />
-            <div>
-              <p className="text-sm font-medium">{rewards.badges}</p>
-              <p className="text-xs text-text-muted">Badges</p>
-            </div>
+        ) : error ? (
+          <div className="flex items-center justify-center gap-2 py-3 text-status-error">
+            <AlertCircle className="w-4 h-4" />
+            <p className="text-sm">Unable to load rewards</p>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-2xl font-bold text-text-primary">{rewards.xp}</p>
+                <p className="text-xs text-text-secondary">Total XP</p>
+              </div>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${rewards.tierColor}`}
+              >
+                {rewards.tier}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-center gap-2 p-2 bg-background-secondary rounded-lg">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <div>
+                  <p className="text-sm font-medium">{rewards.streak}</p>
+                  <p className="text-xs text-text-muted">Streak</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-2 bg-background-secondary rounded-lg">
+                <Award className="w-4 h-4 text-brand-rose" />
+                <div>
+                  <p className="text-sm font-medium">{rewards.badges}</p>
+                  <p className="text-xs text-text-muted">Badges</p>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
         <Link
           href="/wallet/rewards"
           className="mt-3 flex items-center justify-center gap-1 text-sm text-brand-rose hover:underline"

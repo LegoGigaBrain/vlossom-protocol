@@ -1,7 +1,30 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V5.2.0 UX Excellence & Full Integration ✅ COMPLETE**
+**V5.3.0 Mock Data Feature Flag System ✅ COMPLETE**
+
+✅ **V5.3.0 Mock Data Feature Flag (Dec 17, 2025)** - Demo/Test Mode:
+- **Feature Flag** - `NEXT_PUBLIC_USE_MOCK_DATA=true` for demo mode
+- **Central Mock Data** - `mock-data.ts` with all mock constants and helpers
+- **Profile Stats Hooks** - Dashboard, social, rewards with mock fallback
+- **Auto-Fallback** - API empty → mock data displays automatically
+
+**What's Included:**
+- Mock data constants (stylists, salons, profile stats, social stats)
+- `shouldUseMockData()` helper for automatic fallback
+- `useStylistDashboardStats()` - Stylist business metrics
+- `usePropertyDashboardStats()` - Property owner metrics
+- `useSocialStats(userId)` - Follower/following counts
+- `useRewardsStats()` - Gamification/XP stats
+- "Demo Data" badge in development mode
+
+**New Files:**
+- `hooks/use-profile-stats.ts` - Profile stats hooks (200 lines)
+- `hooks/use-nearby-stylists.ts` - Map data hooks with fallback
+
+**Next Phase:** Mobile App (V6.0)
+
+---
 
 ✅ **V5.2.0 UX Excellence (Dec 17, 2025)** - UX Score 10/10:
 - **42 Files Changed** - +8,725 / -1,324 lines
@@ -25,8 +48,6 @@
 **New API Routes:**
 - `/api/v1/favorites/*` - Favorite stylists CRUD (6 endpoints)
 - `/api/v1/rituals/*` - Hair rituals CRUD (8 endpoints)
-
-**Next Phase:** Mobile App (V6.0)
 
 ---
 
@@ -299,6 +320,7 @@
 | **V5.0.0** | Hair Health | 5 phases | Intelligence engine, recommendations, stylist context (backend) | ✅ Complete |
 | **V5.1.0** | Hair Health UI | 7 phases | API clients, hooks, Hair Health pages, Schedule, Navigation | ✅ Complete |
 | **V5.2.0** | UX Excellence | - | Favorites, Map V5.2, Session Tracker, Rituals API, 10/10 UX | ✅ Complete |
+| **V5.3.0** | Mock Data | - | Feature flag for demo mode, profile stats hooks, auto-fallback | ✅ Complete |
 | **V6.0** | Mobile | - | React Native app, biometrics, push notifications | 🔜 Planned |
 
 ---

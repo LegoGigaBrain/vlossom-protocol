@@ -1,8 +1,10 @@
 /**
- * Stylist Markers Hook (V5.1)
+ * Stylist Markers Hook (V5.3)
  *
  * Transforms stylist API data into map markers.
- * Falls back to mock data when API data lacks coordinates.
+ * Falls back to mock data when API returns empty or in demo mode.
+ *
+ * Feature Flag: NEXT_PUBLIC_USE_MOCK_DATA=true for demo mode
  */
 
 "use client";
@@ -11,6 +13,7 @@ import { useMemo } from "react";
 import { useStylists } from "./use-stylists";
 import type { StylistMarker } from "@/lib/mapbox";
 import type { StylistSummary, StylistFilters } from "@/lib/stylist-client";
+import { MOCK_STYLISTS, MOCK_SALONS, USE_MOCK_DATA, shouldUseMockData } from "@/lib/mock-data";
 
 // Default location (Johannesburg) for stylists without coordinates
 const DEFAULT_LOCATION = { lat: -26.2041, lng: 28.0473 };
@@ -59,24 +62,36 @@ function transformToMarker(
 
 /**
  * Hook to fetch stylists as map markers
+ * Falls back to MOCK_STYLISTS when API returns empty or USE_MOCK_DATA=true
  */
 export function useStylistMarkers(filters?: StylistFilters) {
   const { data, isLoading, error, refetch } = useStylists(filters);
 
-  const markers = useMemo<StylistMarker[]>(() => {
+  const apiMarkers = useMemo<StylistMarker[]>(() => {
     if (!data?.stylists?.length) return [];
     return data.stylists.map((stylist, index) =>
       transformToMarker(stylist, index)
     );
   }, [data?.stylists]);
 
+  // Determine which markers to display
+  const markers = useMemo(() => {
+    if (shouldUseMockData(apiMarkers)) {
+      return MOCK_STYLISTS;
+    }
+    return apiMarkers;
+  }, [apiMarkers]);
+
+  const isUsingMockData = shouldUseMockData(apiMarkers);
+
   return {
     markers,
-    total: data?.total ?? 0,
+    total: isUsingMockData ? MOCK_STYLISTS.length : (data?.total ?? 0),
     isLoading,
     error,
     refetch,
     hasMore: data?.hasMore ?? false,
+    isUsingMockData,
   };
 }
 

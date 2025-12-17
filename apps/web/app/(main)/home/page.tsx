@@ -1,11 +1,12 @@
 /**
- * Home Page - Map-First Discovery (V5.1)
+ * Home Page - Map-First Discovery (V5.3)
  *
  * Full-screen map experience with stylist pins and quick booking.
- * - Map with color-coded stylist markers (from API)
+ * - Map with color-coded stylist markers (from API with mock fallback)
  * - Bottom sheet for quick booking
  * - Quick filters (availability, service type, distance)
  * - Search overlay
+ * - Feature flag: NEXT_PUBLIC_USE_MOCK_DATA=true for demo mode
  *
  * Reference: docs/vlossom/15-frontend-ux-flows.md Section 13
  */
@@ -32,33 +33,9 @@ import {
   MapPin,
   RefreshCw,
   AlertCircle,
+  Database,
 } from "lucide-react";
-
-// Mock salons - TODO: Wire to API when salon endpoints exist
-const mockSalons: SalonMarker[] = [
-  {
-    id: "salon-1",
-    name: "Blossom Studio",
-    imageUrl: undefined,
-    lat: -26.2000,
-    lng: 28.0450,
-    chairCount: 6,
-    availableChairs: 2,
-    rating: 4.8,
-    amenities: ["WiFi", "Parking", "Refreshments"],
-  },
-  {
-    id: "salon-2",
-    name: "Crown & Glory",
-    imageUrl: undefined,
-    lat: -26.2150,
-    lng: 28.0300,
-    chairCount: 4,
-    availableChairs: 1,
-    rating: 4.9,
-    amenities: ["WiFi", "Kids Area"],
-  },
-];
+import { MOCK_SALONS } from "@/lib/mock-data";
 
 // Filter options
 const filterOptions = [
@@ -71,8 +48,8 @@ export default function HomePage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // Fetch stylists from API
-  const { markers, isLoading, error, refetch } = useStylistMarkers();
+  // Fetch stylists from API (with mock data fallback)
+  const { markers, isLoading, error, refetch, isUsingMockData } = useStylistMarkers();
 
   // Map state
   const [selectedStylist, setSelectedStylist] = useState<StylistMarker | null>(null);
@@ -293,7 +270,7 @@ export default function HomePage() {
       <div className="flex-1 relative">
         <StylistMap
           stylists={filteredStylists}
-          salons={mockSalons}
+          salons={MOCK_SALONS}
           selectedStylistId={selectedStylist?.id}
           onStylistSelect={handleStylistSelect}
           onSalonSelect={handleSalonSelect}
@@ -301,6 +278,16 @@ export default function HomePage() {
           className="w-full h-full"
         />
       </div>
+
+      {/* Mock Data Indicator (dev only) */}
+      {isUsingMockData && process.env.NODE_ENV === "development" && (
+        <div className="absolute top-20 right-4 z-50">
+          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
+            <Database className="w-3 h-3 mr-1" />
+            Demo Data
+          </Badge>
+        </div>
+      )}
 
       {/* Greeting Card (shown when no stylist selected) */}
       {!isBookingOpen && user && (
