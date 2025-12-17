@@ -8,9 +8,32 @@
 
 ## Current Version
 
+**V6.3.0 Phase 2 UX & Infrastructure** (December 17, 2025)
+
+Changelog updated with V6.2.0 and V6.3.0 releases. All CLAUDE.md context files synchronized.
+
+**V6.2.0 Security & Smart Contract Hardening** (December 17, 2025)
+
+Changelog updated with security fixes and smart contract improvements.
+
+**V6.1.0 Orange Governance Enforcement** (December 17, 2025)
+
+All action items from COLOR_AUDIT.md implemented. Orange strictly reserved for growth/celebration only.
+
 **V6.0.0 Documentation Sync** (December 17, 2025)
 
 Added 3 design audit reports (typography, color, iconography) and updated core design documentation.
+
+---
+
+### V6.3.0 Documentation Updates
+- `docs/project/changelog.md` - Added V6.2.0 and V6.3.0 entries
+- `docs/README.md` - Updated version to V6.3.0
+- All folder-level CLAUDE.md files updated to V6.3.0
+
+### V6.2.0 Documentation Updates
+- `docs/project/changelog.md` - Added comprehensive V6.2.0 security changelog
+- OpenAPI documentation added at `/api/docs`
 
 ---
 
@@ -24,12 +47,14 @@ Added 3 design audit reports (typography, color, iconography) and updated core d
 | `tech-stack.md` | Technology architecture overview |
 | `changelog.md` | Version history and release notes |
 
-### `docs/audits/` - Design System Audits (NEW V6.0)
-| File | Purpose |
-|------|---------|
-| `TYPOGRAPHY_AUDIT.md` | Typography usage audit (Playfair vs Inter) |
-| `COLOR_AUDIT.md` | Color token audit (brand-rose, accent orange governance) |
-| `ICONOGRAPHY_REPORT.md` | Linked from `design/brand/icons/` - Icon library documentation |
+### `docs/audits/` - Design System Audits (V6.0 + V6.1)
+| File | Purpose | Status |
+|------|---------|--------|
+| `TYPOGRAPHY_AUDIT.md` | Typography usage audit (Playfair vs Inter) | ✅ Compliant |
+| `COLOR_AUDIT.md` | Color token audit (orange governance) | ✅ V6.1.0 Complete |
+| `ICONOGRAPHY_REPORT.md` | Linked from `design/brand/icons/` - Icon library | ✅ Implemented |
+
+**V6.1.0 Update:** All color audit action items completed. Orange governance enforced across 12 files.
 
 ### `docs/vlossom/` - The Vlossom Codex (00-28)
 The 29 canonical documents forming the "ground truth" for Vlossom:

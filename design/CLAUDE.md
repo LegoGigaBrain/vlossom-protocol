@@ -4,9 +4,32 @@
 
 ## Current Version
 
+**V6.3.0 Phase 2 UX & Infrastructure** (December 17, 2025)
+
+Theme system with light/dark mode support. Theme toggle component and system preference detection added.
+
+**V6.2.0 Security & Smart Contract Hardening** (December 17, 2025)
+
+No design changes in this version (focus on backend security).
+
+**V6.1.0 Orange Governance Enforcement** (December 17, 2025)
+
+Sacred orange rule now enforced in code. Status.warning changed from orange to amber. Code comments added to tailwind.config.js.
+
 **V6.0.0 Design System** (December 17, 2025)
 
 Complete botanical icon library (28 SVGs), animation system documentation, typography/color audits.
+
+---
+
+### V6.3.0 Changes
+
+**Theme System Implementation**
+- `apps/web/components/ui/theme-toggle.tsx` - Theme switcher component
+- `apps/web/lib/theme/` - Theme provider and hooks
+- Supports system/light/dark modes with localStorage persistence
+- Smooth CSS transitions between themes
+- Dark mode token consumption now active
 
 ## Canonical References
 - [Doc 16: UI Components and Design System](../docs/vlossom/16-ui-components-and-design-system.md)
@@ -60,12 +83,23 @@ Complete custom iconography system derived from Vlossom flower linework.
 | Primary | `#311E6B` | Deep purple - main brand color |
 | Primary Soft | `#ADA5C4` | Soft purple - secondary brand |
 | Secondary | `#EFE3D0` | Cream - surfaces, cards |
-| Accent | `#FF510D` | Orange - CTAs, warnings |
+| Accent | `#FF510D` | **SACRED** Orange - growth/celebration ONLY (<8% surface) |
 | Tertiary | `#A9D326` | Green - success states |
 | Background | `#FFFFFF` | Page background |
 | Surface | `#EFE3D0` | Card backgrounds |
 | Text Primary | `#161616` | Main body text |
 | Text Secondary | `#6F6F6F` | Muted text |
+
+## Status Colors (V6.1.0)
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| Success | `#A9D326` | Tertiary green - confirmations, success |
+| Warning | `#F59E0B` | Amber - warnings, caution states |
+| Error | `#D0021B` | Muted red - errors, failures |
+| Info | `#ADA5C4` | Soft purple - informational |
+
+**IMPORTANT:** Orange (#FF510D) is NEVER used for errors or warnings. Use amber for warnings, red for errors.
 
 ## Typography
 
@@ -104,14 +138,20 @@ colors: {
 }
 ```
 
-### Theme Provider (Future)
-When dark mode is implemented:
+### Theme Provider (V6.3.0 ✅)
+Dark mode now implemented:
 ```tsx
 import { useBrandTheme } from '@/lib/theme'
 
 function Component() {
-  const { color, font, spacing } = useBrandTheme()
-  return <div style={{ color: color.primary }}>...</div>
+  const { tokens, mode, toggleMode } = useBrandTheme()
+  return (
+    <div style={{ color: tokens.color.primary }}>
+      <button onClick={toggleMode}>
+        {mode === 'light' ? '🌙' : '☀️'}
+      </button>
+    </div>
+  )
 }
 ```
 
@@ -133,5 +173,6 @@ Per CLAUDE.project (Section 5.5):
 ## Gotchas
 - Always use semantic color tokens, not raw hex values
 - Playfair Display is for headings only, Inter for body
-- Dark mode tokens exist but theme provider not yet implemented
+- Dark mode now implemented via theme provider (V6.3.0)
 - All monetary values display in local fiat first (ZAR), USDC secondary
+- Orange (#FF510D) is SACRED - only for growth/celebration, never errors/warnings
