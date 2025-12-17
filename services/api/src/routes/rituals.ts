@@ -10,7 +10,7 @@ import { createError } from "../middleware/error-handler";
 import { logger } from "../lib/logger";
 import { z } from "zod";
 import prisma from "../lib/prisma";
-import { LoadFactor } from "@prisma/client";
+import { LoadFactor, Prisma } from "@prisma/client";
 
 const router: ReturnType<typeof Router> = Router();
 
@@ -122,7 +122,7 @@ router.get(
       const userId = req.userId!;
       const input = listRitualsSchema.parse(req.query);
 
-      const whereClause: any = {
+      const whereClause: Prisma.HairRitualWhereInput = {
         OR: [{ userId }, ...(input.includeTemplates ? [{ isTemplate: true, userId: null }] : [])],
       };
 

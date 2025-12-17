@@ -45,8 +45,8 @@ export async function createDepositSession(params: {
     }
 
     return { success: true, ...data };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Network error" };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Network error" };
   }
 }
 
@@ -78,8 +78,8 @@ export async function createWithdrawalSession(params: {
     }
 
     return { success: true, ...data };
-  } catch (error: any) {
-    return { success: false, error: error.message || "Network error" };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Network error" };
   }
 }
 
@@ -103,8 +103,8 @@ export async function checkDepositStatus(sessionId: string) {
     }
 
     return await response.json();
-  } catch (error: any) {
-    throw new Error(error.message || "Network error");
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Network error");
   }
 }
 
@@ -132,8 +132,8 @@ export async function simulateMockCompletion(
     });
 
     return await response.json();
-  } catch (error: any) {
-    throw new Error(error.message || "Network error");
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Network error");
   }
 }
 
@@ -161,7 +161,7 @@ export async function simulateMockWithdrawal(
     });
 
     return await response.json();
-  } catch (error: any) {
-    throw new Error(error.message || "Network error");
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Network error");
   }
 }

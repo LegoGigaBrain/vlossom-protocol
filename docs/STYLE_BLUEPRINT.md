@@ -262,13 +262,13 @@ See `design/brand/icons/ICONOGRAPHY_REPORT.md` for full documentation.
 
  
 
-### 3.3 Accent Color Governance (CRITICAL)
+### 3.3 Accent Color Governance (CRITICAL) — V6.1.0 ENFORCED
 
- 
 
-**The orange accent (#FF510D) is sacred.**
 
- 
+**The orange accent (#FF510D) is sacred and now strictly enforced in code.**
+
+
 
 **Allowed usage:**
 
@@ -282,13 +282,17 @@ See `design/brand/icons/ICONOGRAPHY_REPORT.md` for full documentation.
 
 - The flower's center (when active)
 
- 
+- VlossomIcon components with `accent` prop
 
-**Forbidden usage:**
+- Achievement moments
 
-- Errors
 
-- Warnings
+
+**Forbidden usage (NEVER):**
+
+- Errors (use `status-error` - red #D0021B)
+
+- Warnings (use `status-warning` - amber #F59E0B)
 
 - System alerts
 
@@ -296,13 +300,29 @@ See `design/brand/icons/ICONOGRAPHY_REPORT.md` for full documentation.
 
 - Decorative elements
 
- 
+- Any negative or cautionary states
+
+
 
 **Maximum surface area:** 5–8% per screen
 
- 
+
+
+**Code Enforcement (V6.1.0):**
+
+- `tailwind.config.js` includes governance comments
+- `status.warning` token changed from orange to amber
+- 12 files corrected to use proper status colors
+- Orange reserved exclusively for celebration
+
+
 
 **Rationale:** Orange represents the "blossom moment" — when growth is realized. Overuse destroys its emotional power.
+
+**Color Separation:**
+- Red (`#D0021B`) = Errors, destructive actions
+- Amber (`#F59E0B`) = Warnings, caution, validation
+- Orange (`#FF510D`) = Growth, celebration, achievement ONLY
 
  
 
