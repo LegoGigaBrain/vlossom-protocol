@@ -2,6 +2,52 @@
 
 > Purpose: Solidity smart contracts for on-chain booking registry, escrow, reputation anchoring, and DeFi primitives.
 
+## Current Implementation Status
+
+**V6.2.0 Security & Smart Contract Hardening** (Dec 17, 2025)
+
+Critical security fixes: Guardian recovery nonce system (H-2), Paymaster selector validation (H-1), YieldEngine utilization tracking (M-4). Comprehensive test coverage added.
+
+---
+
+### V6.2.0 Changes
+
+**Guardian Recovery State Fix (H-2)**
+- `contracts/identity/VlossomAccount.sol` - Fixed guardian recovery vulnerability
+- Implemented nonce-based approval system to prevent replay attacks
+- Guardian approvals now tracked per-operation with unique nonces
+- Recovery operations require current nonce, auto-increment on approval
+- Prevents malicious reuse of old guardian signatures
+- Test coverage: `test/VlossomAccount.test.ts` (17 tests)
+
+**Paymaster Selector Validation (H-1)**
+- `contracts/paymaster/VlossomPaymaster.sol` - Added assembly bounds checking
+- Validates function selector length before decoding
+- Prevents malformed calldata from causing undefined behavior
+- Rejects transactions with truncated/invalid function selectors
+- Enhanced security for paymaster operation validation
+
+**YieldEngine Utilization Fix (M-4)**
+- `contracts/defi/VlossomYieldEngine.sol` - Fixed utilization calculation
+- Now tracks real-time utilization: `(totalBorrowed * 10000) / totalDeposited`
+- APY calculations now reflect actual pool usage
+- Accurate interest rate curves based on true pool state
+- Improved fairness for liquidity providers
+
+**Testing Infrastructure**
+- New test file: `contracts/test/VlossomAccount.test.ts`
+- 17 comprehensive tests for guardian recovery flow
+- Tests cover: setup, approval, execution, nonce handling, edge cases
+- All security fixes validated with automated tests
+- Test coverage increased for critical security paths
+
+**Documentation**
+- Updated contract documentation with security considerations
+- Added inline comments explaining security-critical code sections
+- Guardian recovery flow documented in test comments
+
+---
+
 ## Canonical References
 - [Doc 11: DeFi and Liquidity Architecture](../../docs/vlossom/11-defi-and-liquidity-architecture.md)
 - [Doc 12: Liquidity Pool Architecture](../../docs/vlossom/12-liquidity-pool-architecture.md)

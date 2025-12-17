@@ -4,9 +4,11 @@
 
 ## Current Version
 
-**V6.0.0** - Mobile App + Full Frontend Design Handover (December 17, 2025)
+**V6.3.0** - Phase 2 UX & Infrastructure (December 17, 2025)
 
-**Major Milestone**: Complete design system handover with botanical iconography, animation system, and React Native mobile app foundation.
+**Major Achievement**: Professional frontend tooling (logger, theme system, empty states), production backend infrastructure (Redis rate limiting, secrets manager), enhanced booking UX.
+
+**Previous**: V6.2.0 - Security & Smart Contract Hardening (OpenAPI docs, contract security fixes), V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
 
 ---
 
@@ -259,15 +261,49 @@
 
 ---
 
-## Next Steps (Post-V6.0)
+## Recent Updates
 
-### V6.1: Design System Polish
-- Fix accent orange usage in error contexts (9 files)
-- Add `status-warning-soft` color token
-- Document orange governance in STYLE_BLUEPRINT.md
-- Add Tailwind lint rule for accent color misuse
+### V6.3.0 Changes (Phase 2 UX & Infrastructure)
 
-### V6.2: Mobile App MVP
+**Frontend Tooling & UX**
+- ✅ Frontend logger system: `apps/web/lib/logger.ts` with log levels and grouping
+- ✅ ESLint no-console rule: `apps/web/.eslintrc.json` enforces structured logging
+- ✅ React Query configs: `apps/web/lib/query-config.ts` with optimized defaults
+- ✅ Theme system: `apps/web/components/ui/theme-toggle.tsx` with system/light/dark modes
+- ✅ Desktop navigation: `apps/web/components/layout/desktop-nav.tsx` responsive top nav
+- ✅ Empty state presets: 14 presets in `apps/web/components/ui/empty-state.tsx`
+- ✅ Booking error handling: improved in `booking-dialog.tsx` with user-friendly messages
+
+**Backend Infrastructure**
+- ✅ Redis rate limiting: `services/api/src/lib/redis-client.ts` distributed rate limiting
+- ✅ Secrets manager: `services/api/src/lib/secrets-manager.ts` centralized config management
+
+### V6.2.0 Changes (Security & Smart Contract Hardening)
+
+**API Security & Documentation**
+- ✅ TypeScript `any` type elimination in API (MAJOR-2 security finding)
+- ✅ OpenAPI/Swagger documentation at `/api/docs` endpoint
+
+**Smart Contract Security Fixes**
+- ✅ Guardian Recovery State Fix (H-2) in `VlossomAccount.sol` - nonce-based approval system
+- ✅ Paymaster Selector Validation (H-1) - assembly bounds checking prevents malformed calls
+- ✅ YieldEngine Utilization Fix (M-4) - real utilization tracking for accurate APY
+
+**Testing**
+- ✅ New test file: `contracts/test/VlossomAccount.test.ts` (17 tests covering guardian recovery)
+
+### V6.1.0 Changes (Orange Color Governance)
+
+**Design System Enforcement**
+- ✅ Fixed accent orange usage in error contexts (9 files)
+- ✅ Updated `status.warning` from orange to amber (#F59E0B)
+- ✅ Added code comments documenting sacred orange rules in tailwind.config.js
+- ✅ 12 files corrected for design system compliance
+- ✅ Orange governance enforced: Red for errors, Amber for warnings, Orange for celebration only
+
+## Next Steps (Post-V6.3)
+
+### V6.4: Mobile App MVP
 - Connect mobile app to API client
 - Implement wallet screen with biometric unlock
 - Add stylist discovery with map view
