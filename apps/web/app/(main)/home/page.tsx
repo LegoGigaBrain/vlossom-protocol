@@ -1,8 +1,8 @@
 /**
- * Home Page - Map-First Discovery (V5.0)
+ * Home Page - Map-First Discovery (V5.1)
  *
  * Full-screen map experience with stylist pins and quick booking.
- * - Map with color-coded stylist markers
+ * - Map with color-coded stylist markers (from API)
  * - Bottom sheet for quick booking
  * - Quick filters (availability, service type, distance)
  * - Search overlay
@@ -12,15 +12,16 @@
 
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../hooks/use-auth";
-import { BottomNav } from "../../components/layout/bottom-nav";
-import { StylistMap, BookingSheet } from "../../components/map";
-import { type StylistMarker, type SalonMarker } from "../../lib/mapbox";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import { cn } from "../../lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { useStylistMarkers, filterMarkers } from "@/hooks/use-stylist-markers";
+import { StylistMap, BookingSheet } from "@/components/map";
+import { type StylistMarker, type SalonMarker } from "@/lib/mapbox";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import {
   Search,
   SlidersHorizontal,
@@ -29,79 +30,11 @@ import {
   Star,
   Sparkles,
   MapPin,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 
-// Mock stylist data for demonstration
-const mockStylists: StylistMarker[] = [
-  {
-    id: "1",
-    name: "Thandi M.",
-    avatarUrl: undefined,
-    lat: -26.1952,
-    lng: 28.0340,
-    operatingMode: "FIXED",
-    rating: 4.9,
-    reviewCount: 127,
-    specialties: ["Box Braids", "Knotless", "Cornrows"],
-    isAvailableNow: true,
-    priceRange: { min: 250, max: 800 },
-  },
-  {
-    id: "2",
-    name: "Nomvula K.",
-    avatarUrl: undefined,
-    lat: -26.2100,
-    lng: 28.0500,
-    operatingMode: "MOBILE",
-    rating: 4.7,
-    reviewCount: 89,
-    specialties: ["Natural Styling", "Twist Outs", "Locs"],
-    isAvailableNow: false,
-    nextAvailable: "Tomorrow 10am",
-    priceRange: { min: 150, max: 500 },
-  },
-  {
-    id: "3",
-    name: "Ayanda T.",
-    avatarUrl: undefined,
-    lat: -26.1850,
-    lng: 28.0600,
-    operatingMode: "HYBRID",
-    rating: 5.0,
-    reviewCount: 203,
-    specialties: ["Silk Press", "Treatments", "Color"],
-    isAvailableNow: true,
-    priceRange: { min: 300, max: 1200 },
-  },
-  {
-    id: "4",
-    name: "Zinhle D.",
-    avatarUrl: undefined,
-    lat: -26.2200,
-    lng: 28.0200,
-    operatingMode: "FIXED",
-    rating: 4.8,
-    reviewCount: 156,
-    specialties: ["Weaves", "Wigs", "Extensions"],
-    isAvailableNow: false,
-    nextAvailable: "Today 3pm",
-    priceRange: { min: 400, max: 1500 },
-  },
-  {
-    id: "5",
-    name: "Lerato M.",
-    avatarUrl: undefined,
-    lat: -26.1900,
-    lng: 28.0150,
-    operatingMode: "MOBILE",
-    rating: 4.6,
-    reviewCount: 74,
-    specialties: ["Kids Hair", "Protective Styles"],
-    isAvailableNow: true,
-    priceRange: { min: 100, max: 400 },
-  },
-];
-
+// Mock salons - TODO: Wire to API when salon endpoints exist
 const mockSalons: SalonMarker[] = [
   {
     id: "salon-1",
@@ -138,6 +71,9 @@ export default function HomePage() {
   const router = useRouter();
   const { user } = useAuth();
 
+  // Fetch stylists from API
+  const { markers, isLoading, error, refetch } = useStylistMarkers();
+
   // Map state
   const [selectedStylist, setSelectedStylist] = useState<StylistMarker | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -145,9 +81,18 @@ export default function HomePage() {
 
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<string[]>(["available"]);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+
+  // Filter stylists based on active filters and search
+  const filteredStylists = useMemo(() => {
+    return filterMarkers(markers, {
+      availableOnly: activeFilters.includes("available"),
+      topRatedOnly: activeFilters.includes("top-rated"),
+      searchQuery: searchQuery || undefined,
+    });
+  }, [markers, activeFilters, searchQuery]);
 
   // Handle stylist selection
   const handleStylistSelect = useCallback((stylist: StylistMarker) => {
@@ -176,23 +121,47 @@ export default function HomePage() {
     );
   };
 
-  // Filter stylists based on active filters
-  const filteredStylists = mockStylists.filter((stylist) => {
-    if (activeFilters.includes("available") && !stylist.isAvailableNow) {
-      return false;
-    }
-    if (activeFilters.includes("top-rated") && stylist.rating < 4.8) {
-      return false;
-    }
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return (
-        stylist.name.toLowerCase().includes(query) ||
-        stylist.specialties.some((s) => s.toLowerCase().includes(query))
-      );
-    }
-    return true;
-  });
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 flex flex-col bg-background-primary">
+        <div className="p-4">
+          <Skeleton className="h-14 rounded-2xl" />
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <RefreshCw className="w-8 h-8 animate-spin text-brand-rose mx-auto mb-4" />
+            <p className="text-sm text-text-secondary">Finding stylists near you...</p>
+          </div>
+        </div>
+        
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="fixed inset-0 flex flex-col bg-background-primary">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center max-w-sm">
+            <AlertCircle className="w-12 h-12 text-status-error mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-text-primary mb-2">
+              Unable to Load Stylists
+            </h2>
+            <p className="text-sm text-text-secondary mb-4">
+              We couldn&apos;t fetch stylists at this time. Please try again.
+            </p>
+            <Button variant="primary" onClick={() => refetch()}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        </div>
+        
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background-primary">
@@ -247,7 +216,7 @@ export default function HomePage() {
                             {stylist.name}
                           </p>
                           <p className="text-xs text-text-muted truncate">
-                            {stylist.specialties.slice(0, 2).join(", ")}
+                            {stylist.specialties.slice(0, 2).join(", ") || "Hair Stylist"}
                           </p>
                         </div>
                         {stylist.isAvailableNow && (
@@ -257,6 +226,11 @@ export default function HomePage() {
                         )}
                       </button>
                     ))}
+                    {filteredStylists.length === 0 && (
+                      <p className="text-sm text-text-muted text-center py-4">
+                        No stylists found matching &quot;{searchQuery}&quot;
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -341,7 +315,7 @@ export default function HomePage() {
                   Welcome back{user.displayName ? `, ${user.displayName.split(" ")[0]}` : ""}!
                 </p>
                 <p className="text-xs text-text-secondary">
-                  {filteredStylists.filter((s) => s.isAvailableNow).length} stylists available now
+                  {filteredStylists.filter((s) => s.isAvailableNow).length} of {markers.length} stylists available now
                 </p>
               </div>
               <Button
@@ -365,7 +339,7 @@ export default function HomePage() {
       />
 
       {/* Bottom Navigation */}
-      <BottomNav />
+      
     </div>
   );
 }

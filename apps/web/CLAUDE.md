@@ -4,9 +4,54 @@
 
 ## Current Implementation Status
 
-**V5.0.0 Backend Complete** (Dec 17, 2025)
+**V5.1.0 Frontend Integration Complete** (Dec 17, 2025)
 
-Hair Health Intelligence backend phases 1-5 complete. Frontend components pending.
+All V5.1 phases complete. Hair Health UI, Schedule integration, and Navigation refactor finished.
+
+### V5.1.0 Changes
+
+**Phase 1: API Client Layer**
+- `lib/hair-health-client.ts` - Typed API client for hair health endpoints
+- `lib/stylist-context-client.ts` - Consent-based profile sharing client
+- `lib/calendar-client.ts` - Calendar-specific booking functions
+- Profile CRUD, learning progress, stylist context operations
+
+**Phase 2: React Query Hooks**
+- `hooks/use-hair-health.ts` - Profile and learning hooks
+  - `useHairProfile()`, `useHairProfileWithAnalysis()`
+  - `useCreateHairProfile()`, `useUpdateHairProfile()`, `useDeleteHairProfile()`
+  - `useLearningProgress()`, `useUnlockLearningNode()`
+- `hooks/use-stylist-context.ts` - Sharing hooks
+  - `useMyStylistShares()`, `useGrantStylistAccess()`, `useRevokeStylistAccess()`
+  - `useMyCustomers()`, `useCustomerContext()`, `useUpdateCustomerNotes()`
+- `hooks/use-calendar-bookings.ts` - Calendar view hooks
+  - `useCalendarBookings()`, `useMonthBookings()`, `useWeekBookings()`, `useDayBookings()`
+  - `useUpcomingBookings()`, `useCalendarEvents()`
+
+**Phase 3: Hair Health Pages**
+- `app/(main)/profile/hair-health/page.tsx` - Main dashboard with:
+  - Health Score Card (A-F grade, archetype)
+  - Hair Snapshot (texture, pattern, porosity, density)
+  - Care Insights (recommendations)
+  - Profile Analysis (strengths, concerns)
+  - Learning Progress (unlock buttons)
+- `app/(main)/profile/hair-health/onboarding/page.tsx` - 5-step wizard
+- `app/(main)/profile/hair-health/edit/page.tsx` - Tabbed editor
+
+**Phase 4: Schedule Integration** ✅
+- Connected calendar views to real booking data from API
+- GET /api/v1/bookings endpoint with filtering (role, status, date range)
+- transformBookingsToCalendarEvents() for calendar compatibility
+- Combined real bookings with mock rituals (ritual API pending)
+
+**Phase 7: Navigation Refactor** ✅
+- Created `(main)` route group with shared layout
+- BottomNav consolidated into single `app/(main)/layout.tsx`
+- Moved pages: home, schedule, profile, stylists, bookings
+- Updated all imports to use `@/` path aliases
+- Removed duplicate BottomNav from individual pages
+
+---
 
 ### V5.0 Backend Changes
 

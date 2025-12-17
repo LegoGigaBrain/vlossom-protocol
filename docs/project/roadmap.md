@@ -1,13 +1,35 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V5.0.0 Backend Complete ✅ HAIR HEALTH INTELLIGENCE**
+**V5.1.0 Hair Health Frontend ✅ PHASE 1-3 COMPLETE**
+
+✅ **V5.1.0 Frontend Integration (Dec 17, 2025)** - Hair Health UI:
+- **3 Phases Completed** - API clients, React Query hooks, Hair Health pages
+- **8 New Files** - API clients, hooks, onboarding wizard, edit page
+- **Full Hair Health UI** - Profile dashboard, 5-step onboarding, tabbed editor
+
+**What's Included:**
+- Hair Health API Client (profile CRUD, learning progress)
+- Stylist Context API Client (consent-based sharing)
+- React Query Hooks (useHairProfile, useLearningProgress, etc.)
+- Hair Health Page (health score, recommendations, learning nodes)
+- Onboarding Wizard (5-step profile creation)
+- Profile Editor (tabbed editing with delete option)
+
+**Remaining V5.1 Phases:**
+- Phase 4: Schedule Integration (calendar events)
+- Phase 5: Home Page Integration (stylists API)
+- Phase 6: Profile Integration (user profile tabs)
+- Phase 7: Navigation Refactor (optional)
+
+**Next Phase:** V5.1 Phase 4-7 → Mobile App (V6.0)
+
+---
 
 ✅ **V5.0.0 Backend Complete (Dec 17, 2025)** - Hair Health Intelligence:
 - **5 Backend Phases Completed** - Core architecture through intelligence layer
 - **~15 New Files** - Intelligence engine, recommendations, rest calculator, stylist context
 - **20+ New API Endpoints** - Hair health, stylist context, real-time bookings
-- **Frontend Pending** - UI components for hair health, calendar, map-first home
 
 **What's Included:**
 - Hair Health Profile System (20+ attributes, archetypes, scoring)
@@ -17,8 +39,6 @@
 - Stylist Context API (consent-based profile sharing)
 - Real-Time Booking Updates (SSE, session progress)
 - Location Tracking Hooks (consent-based geolocation)
-
-**Next Phase:** V5.0 Frontend Components → Mobile App (V6.0)
 
 ---
 
@@ -255,7 +275,8 @@
 | **V3.4.0** | Pre-Styling | 10 sprints | Wallet tabs, fiat, rewards, settings, admin panel | ✅ Complete |
 | **V4.0.0** | DeFi | 8 phases | Liquidity pools, yield, tier system, admin console | ✅ Complete |
 | **V5.0.0** | Hair Health | 5 phases | Intelligence engine, recommendations, stylist context (backend) | ✅ Complete |
-| **V5.1** | Hair Health UI | - | Frontend components for hair health, calendar, map-first home | 🔜 Planned |
+| **V5.1.0** | Hair Health UI | 3 phases | API clients, React Query hooks, Hair Health pages (onboarding, edit) | ✅ Complete |
+| **V5.1.x** | Integration | 4 phases | Schedule, Home, Profile, Navigation refactor | 🔜 In Progress |
 | **V6.0** | Mobile | - | React Native app, biometrics, push notifications | 🔜 Planned |
 
 ---

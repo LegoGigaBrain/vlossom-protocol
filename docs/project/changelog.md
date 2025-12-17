@@ -7,6 +7,103 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.0] - 2025-12-17
+
+### V5.1.0: Hair Health Frontend Integration (Phase 1-3) - COMPLETE ✅
+
+**Goal**: Wire V5.0 backend APIs to frontend components for Hair Health feature.
+
+**3 Phases | 8 New Files | Full Hair Health UI**
+
+#### ✅ Phase 1: API Client Layer
+
+**Hair Health API Client**
+- `apps/web/lib/hair-health-client.ts` - Typed API client for all hair health endpoints
+- Profile CRUD (get, create, update, delete)
+- Learning progress (get progress, unlock nodes)
+- Full TypeScript types for all responses
+
+**Stylist Context API Client**
+- `apps/web/lib/stylist-context-client.ts` - Consent-based profile sharing client
+- Customer endpoints (grant, revoke, list shares)
+- Stylist endpoints (list customers, view context, update notes)
+- Consent scope helpers and labels
+
+#### ✅ Phase 2: React Query Hooks
+
+**Hair Health Hooks**
+- `apps/web/hooks/use-hair-health.ts` - React Query hooks for profile management
+- `useHairProfile()` - Fetch current user's profile
+- `useHairProfileWithAnalysis()` - Profile with health score and recommendations
+- `useCreateHairProfile()` - Create new profile mutation
+- `useUpdateHairProfile()` - Update profile mutation
+- `useDeleteHairProfile()` - Delete profile mutation
+- `useLearningProgress()` - Fetch learning nodes
+- `useUnlockLearningNode()` - Unlock node mutation
+- Cache invalidation on mutations
+
+**Stylist Context Hooks**
+- `apps/web/hooks/use-stylist-context.ts` - React Query hooks for sharing
+- `useMyStylistShares()` - List stylists customer shared with
+- `useGrantStylistAccess()` - Grant access mutation
+- `useRevokeStylistAccess()` - Revoke access mutation
+- `useMyCustomers()` - Stylist view of shared customers
+- `useCustomerContext()` - Detailed customer context
+- Consent scope labels and descriptions
+
+#### ✅ Phase 3: Hair Health Integration
+
+**Hair Health Page (Wired to API)**
+- `apps/web/app/profile/hair-health/page.tsx` - Full rewrite with real data
+- Health Score Card with A-F grade and archetype
+- Hair Snapshot (texture, pattern, porosity, density)
+- Care Insights with recommendations
+- Profile Analysis (strengths, concerns)
+- Learning Progress with unlock buttons
+- Loading skeletons and error states
+
+**Onboarding Wizard (5-Step)**
+- `apps/web/app/profile/hair-health/onboarding/page.tsx` - Multi-step profile creation
+- Step 1: Texture & Pattern (type, pattern family, strand thickness)
+- Step 2: Porosity & Density (porosity level, density, shrinkage)
+- Step 3: Sensitivity (detangle, tension, scalp sensitivity)
+- Step 4: Routine (type, wash day intensity, duration)
+- Step 5: Review & Submit
+- Progress bar, back/next navigation, validation
+
+**Profile Editor (Tabbed)**
+- `apps/web/app/profile/hair-health/edit/page.tsx` - Edit existing profile
+- 4 tabs: Texture, Porosity, Sensitivity, Routine
+- Save changes with mutation
+- Delete profile with confirmation dialog
+- Clear field options for optional attributes
+
+#### Files Created
+
+```
+apps/web/
+├── lib/
+│   ├── hair-health-client.ts      ← API client (205 lines)
+│   └── stylist-context-client.ts  ← API client (160 lines)
+├── hooks/
+│   ├── use-hair-health.ts         ← React Query hooks (201 lines)
+│   └── use-stylist-context.ts     ← React Query hooks (170 lines)
+└── app/profile/hair-health/
+    ├── page.tsx                   ← Main page (601 lines)
+    ├── onboarding/page.tsx        ← Wizard (420 lines)
+    └── edit/page.tsx              ← Editor (350 lines)
+```
+
+#### What's Next (V5.1 Phase 4-7)
+
+Remaining integration work:
+- Phase 4: Schedule Integration (calendar events)
+- Phase 5: Home Page Integration (stylists API)
+- Phase 6: Profile Integration (user profile tabs)
+- Phase 7: Navigation Refactor (optional)
+
+---
+
 ## [5.0.0] - 2025-12-17
 
 ### V5.0.0: Hair Health Intelligence (Backend) - COMPLETE ✅

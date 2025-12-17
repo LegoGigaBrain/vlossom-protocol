@@ -392,3 +392,54 @@ export function generateTimeSlots(
 
   return slots;
 }
+
+// ============================================================================
+// Booking Statistics
+// ============================================================================
+
+export interface BookingStats {
+  asCustomer: {
+    total: number;
+    thisMonth: number;
+    completed: number;
+    cancelled: number;
+    totalSpentCents: string;
+  };
+  asStylist: {
+    total: number;
+    thisMonth: number;
+    completed: number;
+    cancelled: number;
+    grossEarnedCents: string;
+    netEarnedCents: string;
+  };
+  combined: {
+    total: number;
+    thisMonth: number;
+    completed: number;
+  };
+}
+
+/**
+ * Get booking statistics for the authenticated user
+ */
+export async function getBookingStats(): Promise<{ stats: BookingStats }> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_URL}/api/v1/bookings/stats`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || "Failed to fetch booking stats");
+  }
+
+  return response.json();
+}

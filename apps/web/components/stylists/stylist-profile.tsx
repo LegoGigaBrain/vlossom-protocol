@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { getOperatingModeText, type Stylist } from "@/lib/stylist-client";
+import { FavoriteButton } from "./favorite-button";
 
 interface StylistProfileProps {
   stylist: Stylist;
@@ -121,8 +122,9 @@ export function StylistProfile({ stylist, onBookNow, onBack }: StylistProfilePro
           )}
         </div>
 
-        {/* Book Now Button - Desktop */}
-        <div className="hidden sm:block">
+        {/* Actions - Desktop */}
+        <div className="hidden sm:flex items-center gap-3">
+          <FavoriteButton stylistId={stylist.id} size="lg" />
           <Button
             onClick={onBookNow}
             disabled={!stylist.isAcceptingBookings}
@@ -158,16 +160,19 @@ export function StylistProfile({ stylist, onBookNow, onBack }: StylistProfilePro
         </div>
       )}
 
-      {/* Book Now Button - Mobile (Sticky) */}
+      {/* Actions - Mobile (Sticky) */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface border-t border-border sm:hidden">
-        <Button
-          onClick={onBookNow}
-          disabled={!stylist.isAcceptingBookings}
-          className="w-full"
-          size="lg"
-        >
-          {stylist.isAcceptingBookings ? "Book Now" : "Not Available"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <FavoriteButton stylistId={stylist.id} size="md" />
+          <Button
+            onClick={onBookNow}
+            disabled={!stylist.isAcceptingBookings}
+            className="flex-1"
+            size="lg"
+          >
+            {stylist.isAcceptingBookings ? "Book Now" : "Not Available"}
+          </Button>
+        </div>
       </div>
     </div>
   );

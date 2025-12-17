@@ -1,23 +1,25 @@
 /**
- * Schedule Page - Hair-Aware Calendar (V5.0)
+ * Schedule Page - Hair-Aware Calendar (V5.1)
  *
  * Three calendar view modes:
  * - Rhythm Strip (default): Horizontal day carousel
  * - Month Garden: Full month view
  * - Day Flow: Single day timeline
  *
+ * Wired to bookings API for real booking data.
  * Reference: docs/vlossom/15-frontend-ux-flows.md Section 15
  */
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../hooks/use-auth";
-import { AppHeader } from "../../components/layout/app-header";
-import { BottomNav } from "../../components/layout/bottom-nav";
-import { Button } from "../../components/ui/button";
-import { Skeleton } from "../../components/ui/skeleton";
+import { useAuth } from "@/hooks/use-auth";
+import { useCalendarEvents } from "@/hooks/use-calendar-bookings";
+import { AppHeader } from "@/components/layout/app-header";
+
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   RhythmStrip,
   MonthGarden,
@@ -25,72 +27,55 @@ import {
   RitualSheet,
   type CalendarEvent,
   type Ritual,
-} from "../../components/calendar";
+} from "@/components/calendar";
 import {
   CalendarDays,
   CalendarRange,
   Clock,
   Plus,
   Sparkles,
+  AlertCircle,
 } from "lucide-react";
 
 type CalendarView = "rhythm" | "month" | "day";
 
-// Mock events for demonstration
-const mockEvents: CalendarEvent[] = [
-  {
-    id: "1",
-    title: "Wash Day",
-    eventCategory: "HAIR_RITUAL",
-    eventType: "WASH_DAY_FULL",
-    scheduledStart: new Date().toISOString(),
-    scheduledEnd: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-    loadLevel: "HIGH",
-    status: "DUE",
-    requiresRestBuffer: true,
-  },
-  {
-    id: "2",
-    title: "Deep Condition",
-    eventCategory: "HAIR_RITUAL",
-    eventType: "DEEP_CONDITION",
-    scheduledStart: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    scheduledEnd: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(),
-    loadLevel: "MEDIUM",
-    status: "PLANNED",
-  },
-  {
-    id: "3",
-    title: "Rest Day",
-    eventCategory: "REST_BUFFER",
-    eventType: "REST_DAY",
-    scheduledStart: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    scheduledEnd: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 24 * 60 * 60 * 1000).toISOString(),
-    loadLevel: "LOW",
-    status: "PLANNED",
-  },
-  {
-    id: "4",
-    title: "Styling Session with Sarah",
-    eventCategory: "BOOKING_SERVICE",
-    eventType: "BOOKING",
-    scheduledStart: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000).toISOString(),
-    scheduledEnd: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 13 * 60 * 60 * 1000).toISOString(),
-    loadLevel: "HIGH",
-    status: "PLANNED",
-    requiresRestBuffer: true,
-  },
-  {
-    id: "5",
-    title: "Learn: Porosity Basics",
-    eventCategory: "EDUCATION_PROMPT",
-    eventType: "LEARNING",
-    scheduledStart: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    scheduledEnd: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString(),
-    loadLevel: "LOW",
-    status: "PLANNED",
-  },
-];
+// Mock ritual events - TODO: Wire to ritual API when available
+// Bookings come from real API, rituals are still mock data
+function getMockRitualEvents(): CalendarEvent[] {
+  return [
+    {
+      id: "ritual-1",
+      title: "Wash Day",
+      eventCategory: "HAIR_RITUAL",
+      eventType: "WASH_DAY_FULL",
+      scheduledStart: new Date().toISOString(),
+      scheduledEnd: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+      loadLevel: "HIGH",
+      status: "DUE",
+      requiresRestBuffer: true,
+    },
+    {
+      id: "ritual-2",
+      title: "Deep Condition",
+      eventCategory: "HAIR_RITUAL",
+      eventType: "DEEP_CONDITION",
+      scheduledStart: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      scheduledEnd: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(),
+      loadLevel: "MEDIUM",
+      status: "PLANNED",
+    },
+    {
+      id: "ritual-3",
+      title: "Rest Day",
+      eventCategory: "REST_BUFFER",
+      eventType: "REST_DAY",
+      scheduledStart: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+      scheduledEnd: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 24 * 60 * 60 * 1000).toISOString(),
+      loadLevel: "LOW",
+      status: "PLANNED",
+    },
+  ];
+}
 
 // Mock ritual for demonstration
 const mockRitual: Ritual = {
@@ -169,12 +154,35 @@ const mockRitual: Ritual = {
 
 export default function SchedulePage() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const [view, setView] = useState<CalendarView>("rhythm");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [events] = useState<CalendarEvent[]>(mockEvents);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showRitualSheet, setShowRitualSheet] = useState(false);
+
+  // Fetch bookings from API based on current view
+  const {
+    events: bookingEvents,
+    isLoading: bookingsLoading,
+    error: bookingsError,
+  } = useCalendarEvents(selectedDate, view);
+
+  // Combine booking events with mock ritual events
+  // TODO: Replace mock rituals with real API when available
+  const events = useMemo<CalendarEvent[]>(() => {
+    const ritualEvents = getMockRitualEvents();
+    // Cast booking events to CalendarEvent type (they're compatible)
+    const allEvents = [
+      ...ritualEvents,
+      ...(bookingEvents as unknown as CalendarEvent[]),
+    ];
+    // Sort by scheduled start time
+    return allEvents.sort(
+      (a, b) =>
+        new Date(a.scheduledStart).getTime() -
+        new Date(b.scheduledStart).getTime()
+    );
+  }, [bookingEvents]);
 
   // Handle event click
   const handleEventClick = (event: CalendarEvent) => {
@@ -187,6 +195,8 @@ export default function SchedulePage() {
     }
   };
 
+  const isLoading = authLoading || bookingsLoading;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background-secondary pb-24">
@@ -196,7 +206,7 @@ export default function SchedulePage() {
           <Skeleton className="h-32" />
           <Skeleton className="h-48" />
         </div>
-        <BottomNav />
+        
       </div>
     );
   }
@@ -226,6 +236,14 @@ export default function SchedulePage() {
       />
 
       <div className="p-4 space-y-4">
+        {/* Error State */}
+        {bookingsError && (
+          <div className="flex items-center gap-2 p-3 bg-status-error/10 text-status-error rounded-lg">
+            <AlertCircle className="w-5 h-5" />
+            <p className="text-sm">Unable to load bookings. Showing ritual events only.</p>
+          </div>
+        )}
+
         {/* View Switcher */}
         <div className="flex items-center gap-2 bg-background-primary p-1 rounded-xl">
           <ViewButton
@@ -315,7 +333,7 @@ export default function SchedulePage() {
       )}
 
       {/* Bottom Navigation */}
-      <BottomNav />
+      
     </div>
   );
 }

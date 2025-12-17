@@ -1,30 +1,33 @@
 /**
- * Profile Page - V5.0 Architecture
+ * Profile Page - V5.1 Architecture
  *
  * Structure:
  * - Instagram-style header (avatar, bio, followers)
  * - Role-based tabs (Overview, Stylist, Salon)
- * - Hair Health section in Overview tab
+ * - Hair Health section in Overview tab (wired to API)
  */
 
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "../../hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
+import { useHairProfile } from "@/hooks/use-hair-health";
+import { useBookingStats } from "@/hooks/use-bookings";
+import { useFavorites, useFavoritesCount } from "@/hooks/use-favorites";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { BottomNav } from "../../components/layout/bottom-nav";
-import { ProfileHeader } from "../../components/profile/profile-header";
+
+import { ProfileHeader } from "@/components/profile/profile-header";
 import {
   RoleTabs,
   OverviewTab,
   StylistTab,
   SalonTab,
   type ProfileTabId,
-} from "../../components/profile/role-tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Button } from "../../components/ui/button";
-import { Skeleton } from "../../components/ui/skeleton";
+} from "@/components/profile/role-tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sparkles,
   Calendar,
@@ -35,6 +38,7 @@ import {
   Trophy,
   Flame,
   Award,
+  AlertCircle,
 } from "lucide-react";
 
 export default function ProfilePage() {
@@ -62,7 +66,7 @@ export default function ProfilePage() {
           <Skeleton className="h-32" />
           <Skeleton className="h-48" />
         </div>
-        <BottomNav />
+        
       </div>
     );
   }
@@ -126,16 +130,41 @@ export default function ProfilePage() {
       </div>
 
       {/* Bottom Navigation */}
-      <BottomNav />
+      
     </div>
   );
 }
 
 /**
  * Hair Health Card - Links to full Hair Health profile
+ * Wired to real API data via useHairProfile hook
  */
 function HairHealthCard() {
   const router = useRouter();
+  const { data: profile, isLoading, error } = useHairProfile();
+
+  // Format display values from API data
+  const formatTexture = (textureClass?: string, patternFamily?: string) => {
+    if (!textureClass) return "--";
+    // e.g. "TYPE_4" + "COILY" → "4C"
+    const typeNum = textureClass.replace("TYPE_", "");
+    const patternLetter = patternFamily === "COILY" ? "C" :
+                          patternFamily === "CURLY" ? "B" :
+                          patternFamily === "WAVY" ? "A" : "";
+    return `${typeNum}${patternLetter}`;
+  };
+
+  const formatPorosity = (level?: string | null) => {
+    if (!level) return "--";
+    return level.charAt(0) + level.slice(1).toLowerCase();
+  };
+
+  const formatRoutine = (routine?: string) => {
+    if (!routine) return "--";
+    return routine.charAt(0) + routine.slice(1).toLowerCase();
+  };
+
+  const hasProfile = !!profile;
 
   return (
     <Card className="overflow-hidden">
@@ -148,7 +177,7 @@ function HairHealthCard() {
             <div>
               <h3 className="font-medium text-text-primary">Hair Health</h3>
               <p className="text-sm text-text-secondary">
-                Your personalized care profile
+                {hasProfile ? "Your personalized care profile" : "Start your hair journey"}
               </p>
             </div>
           </div>
@@ -157,29 +186,52 @@ function HairHealthCard() {
             size="sm"
             onClick={() => router.push("/profile/hair-health")}
           >
-            View Profile
+            {hasProfile ? "View Profile" : "Get Started"}
             <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
         </div>
       </div>
       <CardContent className="p-4">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-lg font-bold text-text-primary">--</p>
-            <p className="text-xs text-text-secondary">Texture</p>
+        {isLoading ? (
+          <div className="grid grid-cols-3 gap-4">
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
+            <Skeleton className="h-12" />
           </div>
-          <div>
-            <p className="text-lg font-bold text-text-primary">--</p>
-            <p className="text-xs text-text-secondary">Porosity</p>
+        ) : error ? (
+          <div className="flex items-center justify-center gap-2 py-3 text-status-error">
+            <AlertCircle className="w-4 h-4" />
+            <p className="text-sm">Unable to load profile</p>
           </div>
-          <div>
-            <p className="text-lg font-bold text-text-primary">--</p>
-            <p className="text-xs text-text-secondary">Routine</p>
-          </div>
-        </div>
-        <p className="text-xs text-text-muted text-center mt-3">
-          Complete your hair profile to unlock personalized recommendations
-        </p>
+        ) : (
+          <>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-lg font-bold text-text-primary">
+                  {formatTexture(profile?.textureClass, profile?.patternFamily)}
+                </p>
+                <p className="text-xs text-text-secondary">Texture</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-text-primary">
+                  {formatPorosity(profile?.porosityLevel)}
+                </p>
+                <p className="text-xs text-text-secondary">Porosity</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-text-primary">
+                  {formatRoutine(profile?.routineType)}
+                </p>
+                <p className="text-xs text-text-secondary">Routine</p>
+              </div>
+            </div>
+            {!hasProfile && (
+              <p className="text-xs text-text-muted text-center mt-3">
+                Complete your hair profile to unlock personalized recommendations
+              </p>
+            )}
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -187,13 +239,10 @@ function HairHealthCard() {
 
 /**
  * Booking Statistics Card
+ * Wired to real booking stats API
  */
 function BookingStatsCard() {
-  // Mock data - will be from API
-  const stats = {
-    total: 12,
-    thisMonth: 3,
-  };
+  const { data: stats, isLoading, error } = useBookingStats();
 
   return (
     <Card>
@@ -204,16 +253,45 @@ function BookingStatsCard() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="text-center p-3 bg-background-secondary rounded-lg">
-            <p className="text-2xl font-bold text-text-primary">{stats.total}</p>
-            <p className="text-xs text-text-secondary">Total</p>
+        {isLoading ? (
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
           </div>
-          <div className="text-center p-3 bg-background-secondary rounded-lg">
-            <p className="text-2xl font-bold text-brand-rose">{stats.thisMonth}</p>
-            <p className="text-xs text-text-secondary">This Month</p>
+        ) : error ? (
+          <div className="flex items-center justify-center gap-2 py-3 text-status-error">
+            <AlertCircle className="w-4 h-4" />
+            <p className="text-sm">Unable to load stats</p>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="text-center p-3 bg-background-secondary rounded-lg">
+                <p className="text-2xl font-bold text-text-primary">
+                  {stats?.combined.total ?? 0}
+                </p>
+                <p className="text-xs text-text-secondary">Total</p>
+              </div>
+              <div className="text-center p-3 bg-background-secondary rounded-lg">
+                <p className="text-2xl font-bold text-brand-rose">
+                  {stats?.combined.thisMonth ?? 0}
+                </p>
+                <p className="text-xs text-text-secondary">This Month</p>
+              </div>
+            </div>
+            {stats && (stats.asCustomer.total > 0 || stats.asStylist.total > 0) && (
+              <div className="mt-2 text-xs text-text-muted text-center">
+                {stats.asCustomer.total > 0 && (
+                  <span>{stats.asCustomer.completed} completed as customer</span>
+                )}
+                {stats.asCustomer.total > 0 && stats.asStylist.total > 0 && " · "}
+                {stats.asStylist.total > 0 && (
+                  <span>{stats.asStylist.completed} completed as stylist</span>
+                )}
+              </div>
+            )}
+          </>
+        )}
         <Link
           href="/bookings"
           className="mt-3 flex items-center justify-center gap-1 text-sm text-brand-rose hover:underline"
@@ -228,9 +306,10 @@ function BookingStatsCard() {
 
 /**
  * Rewards Summary Card
+ * TODO: Wire to rewards/gamification API when available
  */
 function RewardsCard() {
-  // Mock data - will be from API
+  // Mock data - needs rewards API endpoint
   const rewards = {
     xp: 125,
     tier: "Bronze",
@@ -289,49 +368,89 @@ function RewardsCard() {
 
 /**
  * Favorite Stylists Card
+ * Wired to real favorites API
  */
 function FavoritesStylistsCard() {
-  // Mock data - will be from API
-  const favorites = [
-    { id: "1", name: "Sarah M.", specialty: "Braids & Locs", rating: 4.9 },
-    { id: "2", name: "James K.", specialty: "Fades & Cuts", rating: 4.8 },
-  ];
+  const router = useRouter();
+  const { data: favoritesData, isLoading, error } = useFavorites({ limit: 3 });
+  const { data: countData } = useFavoritesCount();
+
+  const favorites = favoritesData?.favorites ?? [];
+  const totalCount = countData?.count ?? 0;
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Heart className="w-5 h-5 text-brand-rose" />
-          Favorite Stylists
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Heart className="w-5 h-5 text-brand-rose" />
+            Favorite Stylists
+          </CardTitle>
+          {totalCount > 0 && (
+            <span className="text-xs text-text-muted">{totalCount} total</span>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        {favorites.length > 0 ? (
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center gap-2 py-3 text-status-error">
+            <AlertCircle className="w-4 h-4" />
+            <p className="text-sm">Unable to load favorites</p>
+          </div>
+        ) : favorites.length > 0 ? (
           <div className="space-y-2">
             {favorites.map((stylist) => (
               <div
                 key={stylist.id}
+                onClick={() => router.push(`/stylists/${stylist.id}`)}
                 className="flex items-center justify-between p-3 bg-background-secondary rounded-lg hover:bg-background-tertiary transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                    <Scissors className="w-5 h-5 text-brand-rose" />
+                  <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center overflow-hidden">
+                    {stylist.avatarUrl ? (
+                      <img
+                        src={stylist.avatarUrl}
+                        alt={stylist.displayName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Scissors className="w-5 h-5 text-brand-rose" />
+                    )}
                   </div>
                   <div>
                     <p className="font-medium text-text-primary text-sm">
-                      {stylist.name}
+                      {stylist.displayName}
                     </p>
-                    <p className="text-xs text-text-secondary">
-                      {stylist.specialty}
-                    </p>
+                    {stylist.profile?.specialties?.[0] && (
+                      <p className="text-xs text-text-secondary">
+                        {(stylist.profile.specialties as string[])[0]}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                  <span className="text-sm font-medium">{stylist.rating}</span>
+                  {stylist.profile?.isAcceptingBookings ? (
+                    <span className="text-xs text-tertiary">Available</span>
+                  ) : (
+                    <span className="text-xs text-text-muted">Unavailable</span>
+                  )}
                 </div>
               </div>
             ))}
+            {totalCount > 3 && (
+              <Link
+                href="/stylists"
+                className="mt-2 flex items-center justify-center gap-1 text-sm text-brand-rose hover:underline"
+              >
+                View all {totalCount} favorites
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+            )}
           </div>
         ) : (
           <div className="text-center py-6">
@@ -340,6 +459,14 @@ function FavoritesStylistsCard() {
             <p className="text-xs text-text-muted">
               Heart stylists to add them here
             </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={() => router.push("/stylists")}
+            >
+              Browse Stylists
+            </Button>
           </div>
         )}
       </CardContent>

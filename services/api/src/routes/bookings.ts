@@ -227,6 +227,108 @@ router.get("/travel-time", authenticate, async (req: AuthenticatedRequest, res: 
 // BOOKING CRUD ENDPOINTS
 // ============================================================================
 
+// Validation schema for list bookings query params
+const listBookingsSchema = z.object({
+  role: z.enum(["customer", "stylist", "all"]).optional().default("all"),
+  status: z.string().optional(), // Comma-separated statuses
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});
+
+/**
+ * GET /api/bookings
+ * List bookings for authenticated user (as customer or stylist)
+ */
+router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const input = listBookingsSchema.parse(req.query);
+    const userId = req.userId!;
+
+    // Build where clause based on role filter
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const whereClause: any = {};
+
+    if (input.role === "customer") {
+      whereClause.customerId = userId;
+    } else if (input.role === "stylist") {
+      whereClause.stylistId = userId;
+    } else {
+      // "all" - bookings where user is either customer or stylist
+      whereClause.OR = [
+        { customerId: userId },
+        { stylistId: userId },
+      ];
+    }
+
+    // Add status filter if provided
+    if (input.status) {
+      const statuses = input.status.split(",").map(s => s.trim().toUpperCase());
+      whereClause.status = { in: statuses };
+    }
+
+    // Add date range filter
+    if (input.from || input.to) {
+      whereClause.scheduledStartTime = {};
+      if (input.from) {
+        whereClause.scheduledStartTime.gte = new Date(input.from);
+      }
+      if (input.to) {
+        whereClause.scheduledStartTime.lte = new Date(input.to);
+      }
+    }
+
+    // Get total count
+    const total = await prisma.booking.count({ where: whereClause });
+
+    // Get bookings with pagination
+    const bookings = await prisma.booking.findMany({
+      where: whereClause,
+      include: {
+        customer: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+        stylist: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            category: true,
+          },
+        },
+      },
+      orderBy: { scheduledStartTime: "asc" },
+      skip: input.offset,
+      take: input.limit,
+    });
+
+    return res.json({
+      bookings,
+      total,
+      limit: input.limit,
+      offset: input.offset,
+      hasMore: input.offset + bookings.length < total,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", { details: error.errors }));
+    }
+    logger.error("Error listing bookings", { error });
+    return next(createError("INTERNAL_ERROR"));
+  }
+});
+
 /**
  * POST /api/bookings
  * Create a new booking request
@@ -1211,5 +1313,143 @@ router.post("/:id/cancel", authenticate, async (req: AuthenticatedRequest, res: 
     return next(createError("INTERNAL_ERROR"));
   }
 });
+
+// ============================================================================
+// GET /api/v1/bookings/stats
+// Get booking statistics for the authenticated user
+// ============================================================================
+
+router.get(
+  "/stats",
+  authenticate,
+  async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.userId!;
+
+      // Get start of current month
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Run all stat queries in parallel
+      const [
+        totalAsCustomer,
+        totalAsStylist,
+        thisMonthAsCustomer,
+        thisMonthAsStylist,
+        completedAsCustomer,
+        completedAsStylist,
+        cancelledAsCustomer,
+        cancelledAsStylist,
+        totalSpent,
+        totalEarned,
+      ] = await Promise.all([
+        // Total bookings as customer (all time)
+        prisma.booking.count({
+          where: { customerId: userId },
+        }),
+        // Total bookings as stylist (all time)
+        prisma.booking.count({
+          where: { stylistId: userId },
+        }),
+        // This month as customer
+        prisma.booking.count({
+          where: {
+            customerId: userId,
+            createdAt: { gte: startOfMonth },
+          },
+        }),
+        // This month as stylist
+        prisma.booking.count({
+          where: {
+            stylistId: userId,
+            createdAt: { gte: startOfMonth },
+          },
+        }),
+        // Completed as customer
+        prisma.booking.count({
+          where: {
+            customerId: userId,
+            status: BookingStatus.COMPLETED,
+          },
+        }),
+        // Completed as stylist
+        prisma.booking.count({
+          where: {
+            stylistId: userId,
+            status: BookingStatus.COMPLETED,
+          },
+        }),
+        // Cancelled as customer
+        prisma.booking.count({
+          where: {
+            customerId: userId,
+            status: BookingStatus.CANCELLED,
+          },
+        }),
+        // Cancelled as stylist
+        prisma.booking.count({
+          where: {
+            stylistId: userId,
+            status: BookingStatus.CANCELLED,
+          },
+        }),
+        // Total spent as customer (completed bookings)
+        prisma.booking.aggregate({
+          where: {
+            customerId: userId,
+            status: BookingStatus.COMPLETED,
+          },
+          _sum: {
+            quoteAmountCents: true,
+          },
+        }),
+        // Total earned as stylist (completed bookings, 90% of quote after platform fee)
+        prisma.booking.aggregate({
+          where: {
+            stylistId: userId,
+            status: BookingStatus.COMPLETED,
+          },
+          _sum: {
+            quoteAmountCents: true,
+          },
+        }),
+      ]);
+
+      // Calculate earnings (90% after platform fee)
+      const totalSpentCents = totalSpent._sum.quoteAmountCents ?? BigInt(0);
+      const grossEarnedCents = totalEarned._sum.quoteAmountCents ?? BigInt(0);
+      const netEarnedCents =
+        (grossEarnedCents * BigInt(90)) / BigInt(100); // 90% after 10% platform fee
+
+      return res.json({
+        stats: {
+          asCustomer: {
+            total: totalAsCustomer,
+            thisMonth: thisMonthAsCustomer,
+            completed: completedAsCustomer,
+            cancelled: cancelledAsCustomer,
+            totalSpentCents: totalSpentCents.toString(),
+          },
+          asStylist: {
+            total: totalAsStylist,
+            thisMonth: thisMonthAsStylist,
+            completed: completedAsStylist,
+            cancelled: cancelledAsStylist,
+            grossEarnedCents: grossEarnedCents.toString(),
+            netEarnedCents: netEarnedCents.toString(),
+          },
+          combined: {
+            total: totalAsCustomer + totalAsStylist,
+            thisMonth: thisMonthAsCustomer + thisMonthAsStylist,
+            completed: completedAsCustomer + completedAsStylist,
+          },
+        },
+      });
+    } catch (error) {
+      logger.error("Error fetching booking stats", { error });
+      return next(createError("INTERNAL_ERROR"));
+    }
+  }
+);
 
 export default router;

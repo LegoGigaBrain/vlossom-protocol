@@ -44,11 +44,86 @@ This is the source of truth for:
 
 ---
 
-## 2. Vlossom Visual Identity (UI) Principles
+## 2. Symbolic UI Language (Brand as Living System)
 
-Even before brand guidelines become a separate doc, the product UI must follow these principles:
+The Vlossom visual identity is not decorative — it is a **meaning system**.
 
-### 2.1 Luxury Beauty Aesthetic
+Every visual element must correspond to a system state, user state, or ritual state.
+
+### 2.1 The Flower Iconography System
+
+The Vlossom flower is not just a logo — it is a **carrier of meaning** that expresses user state.
+
+**Source files:** `/design/brand/logos/`
+
+#### Tier 1: Core Mark (Minimal)
+
+    Usage: Navigation icons, favicons, status indicators, app chrome
+    Visual: Single-stroke linework, minimal detail
+    When: Always present as identity anchor
+
+#### Tier 2: Narrative Flower (Illustrated)
+
+    Usage: Landing pages, onboarding, achievement moments, campaigns
+    Visual: Layered lines, botanical detail, center prominence
+    When: Hero moments, emotional peaks, "you are growing" states
+
+#### Tier 3: Botanical Fragments (Micro)
+
+    Usage: Micro-icons, progress indicators, dividers, badges
+    Visual: Isolated petals, stems, center dots
+    When: Functional UI elements that need brand continuity
+
+**Continuity rule:** All iconography should derive from the Vlossom flower linework style.
+
+### 2.2 Symbolic Meaning Map
+
+    Petals → Stages of growth (petal count = progress level)
+    Stem → Support system (platform, training, stylist relationship)
+    Center → Community / Core health (health score, "heart" indicator)
+    Closed flower → Rest state (recovery, pause, calm)
+    Open flower → Active growth (completion, achievement, celebration)
+    Petal opacity → Strength/clarity (full = strong, faded = developing)
+
+### 2.3 State-Driven Iconography
+
+Every icon should express state:
+
+    Healthy → Full opacity, open form
+    Needs attention → Partial opacity, subtle indicator
+    Critical → Muted with gentle accent
+    Growing → Animated unfold (subtle)
+    Resting → Closed/settled form
+
+### 2.4 Accent Color Governance (Orange #FF510D)
+
+**Orange is sacred. It must be earned.**
+
+Orange appears ONLY when:
+
+    Growth is acknowledged
+    A ritual is completed
+    A transition is happening
+    A celebration moment occurs
+
+NEVER use orange for:
+
+    Errors (use muted red)
+    Warnings (use amber/yellow)
+    System stress states
+    Generic CTAs
+
+**Max surface area per screen:** 5–8%
+
+This keeps orange emotionally powerful, not decorative.
+
+---
+
+## 3. Vlossom Visual Identity (UI) Principles
+
+The product UI must follow these principles:
+
+### 3.1 Luxury Beauty Aesthetic
 
     clean minimalism
 
@@ -60,7 +135,7 @@ Even before brand guidelines become a separate doc, the product UI must follow t
 
     real beauty-industry feel (never generic app aesthetic)
 
-2.2 Calm, Predictable Interactions
+### 3.2 Calm, Predictable Interactions
 
     motion that feels natural (0.2–0.3s easing)
 
@@ -68,7 +143,7 @@ Even before brand guidelines become a separate doc, the product UI must follow t
 
     reducing anxiety around payments & bookings
 
-2.3 Web2.5 Familiarity
+### 3.3 Web2.5 Familiarity
 
     looks and feels like a banking app / Uber
 
@@ -76,7 +151,7 @@ Even before brand guidelines become a separate doc, the product UI must follow t
 
     wallet-first flow is familiar and intuitive
 
-2.4 High Trust, High Legibility
+### 3.4 High Trust, High Legibility
 
     clear states (pending / confirmed / approved)
 
@@ -86,7 +161,7 @@ Even before brand guidelines become a separate doc, the product UI must follow t
 
     professional stylist & salon presentation
 
-2.5 Component-Driven Design
+### 3.5 Component-Driven Design
 
     one component = multiple variants for:
 
@@ -1640,386 +1715,7 @@ All via token swaps.
 
 ---
 
-## 10. Hair Calendar Components — V5.0
-
-The calendar is a signature surface that reflects the "growth from rest" philosophy. These components create a unique, brand-defining interaction pattern.
-
-### 10.1 Calendar Component Variants
-
-#### CalendarMonthVlossom (Month Garden)
-
-A full month view with organic, breathable design.
-
-**Structure:**
-```
-┌──────────────────────────────────────────────┐
-│  ◀  December 2025  ▶                        │
-├──────────────────────────────────────────────┤
-│  S    M    T    W    T    F    S             │
-├──────────────────────────────────────────────┤
-│       1    2    3    4    5    6             │
-│            •         ●                        │
-│  7    8    9   10   11   12   13             │
-│  ●              ●    🌙                       │
-│ ...                                          │
-└──────────────────────────────────────────────┘
-```
-
-**Design Tokens:**
-- Grid spacing: `spacing.lg` (24px)
-- Day cell: 44px minimum touch target
-- Event dots: 6px diameter, positioned below date
-- Rest marker: Moon icon, 12px, `color.semantic.rest`
-
-**Behavior:**
-- Tap day → expand to Day Flow
-- Swipe left/right → change month
-- Today highlighted with brand accent ring
-
-#### CalendarDayCarousel (Rhythm Strip)
-
-Horizontal scrolling carousel for quick check-ins.
-
-**Structure:**
-```
-┌─────────────────────────────────────────────────────┐
-│ ◀  Today  Tue  Wed  Thu  Fri  Sat  Sun  Mon  ▶     │
-│    ●      •         ●              🌙              │
-│    17     18   19   20   21   22   23   24        │
-└─────────────────────────────────────────────────────┘
-```
-
-**Design Tokens:**
-- Day width: 56px
-- Selected day: filled background with `color.brand.soft`
-- Scroll behavior: snap to center
-- Event indicator: colored dot (load level)
-
-**Behavior:**
-- Scroll horizontally
-- Tap day → expand to Day Flow below carousel
-- Default shows today + 14 days ahead
-
-#### CalendarDayFlow (Day Flow)
-
-Single day timeline view.
-
-**Structure:**
-```
-┌──────────────────────────────────────────────┐
-│  Tuesday, December 17                         │
-├──────────────────────────────────────────────┤
-│  ●──────────────────────────────────────     │
-│  │ 9:00 AM                                   │
-│  │ 💧 Wash Day - Full Routine                │
-│  │ ▓▓▓▓▓▓▓▓░░ 2h 30m   [HIGH] 🌙            │
-│  │                                           │
-│  ●──────────────────────────────────────     │
-│  │ 3:00 PM                                   │
-│  │ 🌙 Rest Buffer                            │
-│  │ Recovery time recommended                 │
-└──────────────────────────────────────────────┘
-```
-
-**Design Tokens:**
-- Timeline line: 2px, `color.neutral.divider`
-- Event card: `shadow.card`, `border.radius.card`
-- Time text: `text.caption`, `color.text.secondary`
-
-### 10.2 Event Chips
-
-Compact event indicators for calendar cells.
-
-**Variants by Category:**
-| Category | Icon | Default Color |
-|----------|------|---------------|
-| Hair Ritual | 💧 Droplet | `color.brand.purple` |
-| Booking | ✂️ Scissors | `color.brand.rose` |
-| Education | 💡 Lightbulb | `color.status.info` |
-| Rest Buffer | 🌙 Moon | `color.semantic.rest` |
-| Recovery | 🌿 Leaf | `color.semantic.growth` |
-
-**Load Level Colors:**
-| Level | Token | Hex (Light) | Meaning |
-|-------|-------|-------------|---------|
-| Low | `color.load.low` | #A9D326 (Sage) | Gentle care |
-| Medium | `color.load.medium` | #EFE3D0 (Sand) | Standard activity |
-| High | `color.load.high` | #C4725C (Terracotta) | Intensive, needs rest |
-
-**Chip Structure:**
-```
-┌─────────────────────────────────┐
-│ 💧  Wash Day        [HIGH] 🌙  │
-│     2h 30m                      │
-└─────────────────────────────────┘
-```
-
-### 10.3 Ritual Sheets (Bottom Sheets)
-
-Expandable sheets for viewing/editing rituals.
-
-**Structure:**
-```
-┌──────────────────────────────────────────────┐
-│  ━━━━━                                       │  ← Drag handle
-├──────────────────────────────────────────────┤
-│  💧 Full Wash Day Routine                    │
-│  Estimated: 2h 30m  |  Load: HIGH            │
-├──────────────────────────────────────────────┤
-│  Steps:                                       │
-│  ✓  Pre-poo treatment        15 min          │
-│  ✓  Shampoo                  10 min          │
-│  ○  Deep condition           30 min          │
-│  ○  Detangle                 20 min          │
-│  ○  Style                    45 min          │
-├──────────────────────────────────────────────┤
-│  💜 "Take your time. Your hair thanks you."  │
-├──────────────────────────────────────────────┤
-│  [ Mark Complete ]    [ Skip for Today ]     │
-└──────────────────────────────────────────────┘
-```
-
-**Design Tokens:**
-- Sheet background: `color.surface.elevated`
-- Drag handle: 40px × 4px, `color.neutral.muted`
-- Step checkbox: 24px touch target
-- Gentle copy: `text.body`, `color.brand.purple`, italic
-
-### 10.4 Hair Insight Badges
-
-Floating recommendation badges.
-
-**Variants:**
-| Type | Icon | Badge Color | Example Text |
-|------|------|-------------|--------------|
-| Moisture | 💧 | `color.status.info` | "High moisture need" |
-| Protein | 🧬 | `color.brand.purple` | "Protein balance check" |
-| Rest | 😴 | `color.semantic.rest` | "Low manipulation week" |
-| Weather | 🌦️ | `color.status.warning` | "Humidity alert" |
-| Recovery | 🌿 | `color.semantic.growth` | "Recovery window" |
-
-**Badge Structure:**
-```
-┌────────────────────────────────┐
-│ 💧 High moisture need     ✕   │
-│    Suggest: Moisture refresh   │
-│    [ View Details ]            │
-└────────────────────────────────┘
-```
-
-**Behavior:**
-- Dismissable (tap ✕)
-- Tap body → opens detail sheet
-- Max 3 visible at once
-- Stack vertically with 8px gap
-
----
-
-## 11. Map Components — V5.0
-
-Map components for the discovery-first home screen.
-
-### 11.1 Stylist Pin
-
-Color-coded pins indicating stylist availability and service mode.
-
-**Variants by Service Mode:**
-| Mode | Color | Icon | Meaning |
-|------|-------|------|---------|
-| Fixed | `color.pin.fixed` (#22C55E) | Building | Salon-based only |
-| Mobile S2S | `color.pin.mobile` (#F59E0B) | Car | Travels to salons |
-| Home-Call | `color.pin.homecall` (#EF4444) | House | Comes to customer |
-
-**Pin Structure:**
-```
-     ╭───╮
-     │ 🏠 │    ← Icon in circle
-     ╰───╯
-       ▼       ← Point
-```
-
-**States:**
-- Default: Solid color
-- Selected: Enlarged + shadow + info card
-- Clustered: Shows count badge
-
-**Design Tokens:**
-- Pin size: 40px diameter
-- Selected: 56px diameter
-- Icon: 20px, white
-- Drop shadow: `shadow.elevated`
-
-### 11.2 Salon Pin
-
-Pins for salon/property locations.
-
-**Structure:**
-```
-     ╭─────╮
-     │ ✂️🏢 │    ← Building icon with scissors
-     ╰─────╯
-       ▼
-```
-
-**Design Tokens:**
-- Pin size: 48px diameter (larger than stylist)
-- Color: `color.brand.purple`
-- Multi-stylist indicator: Small badge with count
-
-### 11.3 Cluster Pin
-
-Aggregated pin for high-density areas.
-
-**Structure:**
-```
-     ╭─────╮
-     │  12 │    ← Count
-     ╰─────╯
-       ▼
-```
-
-**Design Tokens:**
-- Size: 44px diameter
-- Background: `color.brand.rose` with 80% opacity
-- Text: `text.body.bold`, white
-- Border: 2px white stroke
-
-**Behavior:**
-- Tap → zoom in to expand cluster
-- Shows count of contained pins
-
-### 11.4 Booking Sheet
-
-Bottom sheet overlay for quick booking from map.
-
-**Structure:**
-```
-┌──────────────────────────────────────────────┐
-│  ━━━━━                                       │
-├──────────────────────────────────────────────┤
-│  👤 Stylist Name          ⭐ 4.8 (124)      │
-│  📍 2.3km away  •  Available today           │
-├──────────────────────────────────────────────┤
-│  Services:                                    │
-│  ┌────────────────────────────────────────┐  │
-│  │ Loc Retwist        R450    1h 30m      │  │
-│  └────────────────────────────────────────┘  │
-│  ┌────────────────────────────────────────┐  │
-│  │ Wash + Retwist     R650    2h 30m      │  │
-│  └────────────────────────────────────────┘  │
-├──────────────────────────────────────────────┤
-│  Quick Filters:                              │
-│  [ Today ] [ This Week ] [ Wash Included ]   │
-├──────────────────────────────────────────────┤
-│  [ View Profile ]    [ Book Now → ]          │
-└──────────────────────────────────────────────┘
-```
-
-**Design Tokens:**
-- Sheet: `color.surface.primary`, `border.radius.lg` top corners
-- Service cards: Tappable, `hover.highlight`
-- CTA buttons: Full width on mobile
-- Drag to expand: Shows more services
-
-### 11.5 Quick Filter Chips
-
-Filter chips for map search.
-
-**Variants:**
-| Filter | Label | Behavior |
-|--------|-------|----------|
-| Time | "Today", "This Week", "Tomorrow" | Single select |
-| Budget | "Budget", "Standard", "Premium" | Single select |
-| Service | "Wash Included", "Locs", "Braids" | Multi-select |
-| Distance | "< 5km", "< 10km" | Single select |
-
-**Design Tokens:**
-- Chip height: 32px
-- Padding: `spacing.sm` horizontal
-- Selected: `color.brand.purple` background, white text
-- Unselected: `color.surface.secondary`, `color.text.primary`
-
----
-
-## 12. Profile Components — V5.0
-
-Components for the Instagram-style profile architecture.
-
-### 12.1 Profile Header
-
-**Structure:**
-```
-┌──────────────────────────────────────────────┐
-│                    ⚙️                         │  ← Settings
-├──────────────────────────────────────────────┤
-│           ╭─────────╮                        │
-│           │  Avatar │                        │
-│           │   80px  │                        │
-│           ╰─────────╯                        │
-│                                              │
-│     Display Name              ✓ Verified    │
-│     @username                               │
-│                                              │
-│     "Bio text goes here, up to 150 chars"   │
-│                                              │
-│     124 Followers  •  45 Following          │
-│                                              │
-│     [ Edit Profile ]  [ Share ]             │
-├──────────────────────────────────────────────┤
-│  [ Overview ] [ Stylist ] [ Salon ]         │  ← Dynamic tabs
-└──────────────────────────────────────────────┘
-```
-
-**Design Tokens:**
-- Avatar: 80px, `border.radius.full`
-- Display name: `text.h2`
-- Username: `text.body`, `color.text.secondary`
-- Bio: `text.body`, max 150 chars
-- Stats: `text.body.bold` for numbers
-
-### 12.2 Role Tabs
-
-Dynamic tabs based on enabled roles.
-
-**Tab Variants:**
-| Tab | Shows For | Icon |
-|-----|-----------|------|
-| Overview | Everyone | Home |
-| Stylist | Stylist role | Scissors |
-| Salon | Property owner | Building |
-
-**Design Tokens:**
-- Tab height: 48px
-- Active: `color.brand.purple` underline, `text.body.bold`
-- Inactive: `color.text.secondary`
-- Underline: 2px, animated slide
-
-### 12.3 Hair Snapshot Card
-
-Compact display of hair profile on Overview tab.
-
-**Structure:**
-```
-┌──────────────────────────────────────────────┐
-│  🌿 Hair Snapshot                    [ Edit ]│
-├──────────────────────────────────────────────┤
-│  Type: 4C Coily                              │
-│  Porosity: High                              │
-│  Routine: Growth Focus                       │
-│                                              │
-│  ⚡ Sensitivity: Tension ●●○                 │
-│  💧 Wash Day: Heavy (2.5h)                  │
-└──────────────────────────────────────────────┘
-```
-
-**Design Tokens:**
-- Card: `shadow.card`, `border.radius.card`
-- Section dividers: `color.neutral.divider`
-- Sensitivity dots: 8px circles
-
----
-
-## 13. Summary
+## 10. Summary
 
 The Vlossom UI system is:
 

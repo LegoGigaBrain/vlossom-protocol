@@ -7,7 +7,7 @@ import { StylistGrid } from "@/components/stylists/stylist-grid";
 import { StylistFilters } from "@/components/stylists/stylist-filters";
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/layout/app-header";
-import { BottomNav } from "@/components/layout/bottom-nav";
+
 import type { StylistFilters as FiltersType } from "@/lib/stylist-client";
 
 export default function StylistsPage() {
@@ -113,7 +113,7 @@ export default function StylistsPage() {
       </main>
 
       {/* Bottom Navigation - Mobile */}
-      <BottomNav />
+      
     </div>
   );
 }

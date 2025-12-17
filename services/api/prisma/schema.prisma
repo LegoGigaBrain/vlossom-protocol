@@ -152,10 +152,31 @@ model User {
   customerContexts    StylistClientContext[] @relation("CustomerContexts")
   stylistContexts     StylistClientContext[] @relation("StylistContexts")
 
+  // V5.2: Favorite stylists
+  favoritedStylists   FavoriteStylist[] @relation("UserFavorites")
+  favoritedBy         FavoriteStylist[] @relation("StylistFavoritedBy")
+
   @@index([walletAddress])
   @@index([email])
   @@index([phone])
   @@map("users")
+}
+
+/// V5.2: User's favorite stylists
+model FavoriteStylist {
+  id        String   @id @default(uuid())
+  userId    String   // The user who favorited
+  stylistId String   // The stylist being favorited (references User)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user    User @relation("UserFavorites", fields: [userId], references: [id], onDelete: Cascade)
+  stylist User @relation("StylistFavoritedBy", fields: [stylistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stylistId])
+  @@index([userId])
+  @@index([stylistId])
+  @@map("favorite_stylists")
 }
 
 /// Password reset token for email-based recovery

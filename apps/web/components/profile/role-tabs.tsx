@@ -104,13 +104,14 @@ export function OverviewTab({ className, children }: OverviewTabProps) {
 
 /**
  * Stylist Tab Content - Business Dashboard
+ * TODO: Wire to stylist dashboard API when available
  */
 interface StylistTabProps {
   className?: string;
 }
 
 export function StylistTab({ className }: StylistTabProps) {
-  // Mock data - will be from API
+  // Mock data - needs stylist dashboard API endpoint
   const stats = {
     totalBookings: 47,
     thisMonth: 12,
@@ -164,13 +165,14 @@ export function StylistTab({ className }: StylistTabProps) {
 
 /**
  * Salon Tab Content - Property Dashboard
+ * TODO: Wire to salon/property dashboard API when available
  */
 interface SalonTabProps {
   className?: string;
 }
 
 export function SalonTab({ className }: SalonTabProps) {
-  // Mock data - will be from API
+  // Mock data - needs salon dashboard API endpoint
   const stats = {
     totalChairs: 4,
     activeRentals: 3,

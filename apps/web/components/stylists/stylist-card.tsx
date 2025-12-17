@@ -3,22 +3,31 @@
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils";
 import { getOperatingModeText, type StylistSummary } from "@/lib/stylist-client";
+import { FavoriteButton } from "./favorite-button";
 
 interface StylistCardProps {
   stylist: StylistSummary;
   onClick: () => void;
+  showFavorite?: boolean;
 }
 
-export function StylistCard({ stylist, onClick }: StylistCardProps) {
+export function StylistCard({ stylist, onClick, showFavorite = true }: StylistCardProps) {
   return (
     <div
       className={cn(
-        "bg-surface rounded-lg p-4 cursor-pointer transition-all",
+        "bg-surface rounded-lg p-4 cursor-pointer transition-all relative",
         "hover:shadow-lg hover:-translate-y-1",
         "border border-transparent hover:border-primary/20"
       )}
       onClick={onClick}
     >
+      {/* Favorite button - top right */}
+      {showFavorite && (
+        <div className="absolute top-3 right-3 z-10">
+          <FavoriteButton stylistId={stylist.id} size="sm" />
+        </div>
+      )}
+
       {/* Avatar */}
       <div className="flex items-start gap-3">
         <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -35,7 +44,7 @@ export function StylistCard({ stylist, onClick }: StylistCardProps) {
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 pr-8">
           {/* Name and verification */}
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-text-primary truncate">

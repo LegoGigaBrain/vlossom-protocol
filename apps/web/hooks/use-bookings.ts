@@ -13,7 +13,9 @@ import {
   updateBookingStatus,
   confirmPayment,
   cancelBooking,
+  getBookingStats,
   type BookingStatus,
+  type BookingStats,
   type CreateBookingRequest,
 } from "@/lib/booking-client";
 
@@ -122,3 +124,18 @@ export function useCancelBooking() {
     },
   });
 }
+
+/**
+ * Hook to fetch booking statistics for the authenticated user
+ */
+export function useBookingStats() {
+  return useQuery({
+    queryKey: ["bookings", "stats"],
+    queryFn: () => getBookingStats(),
+    staleTime: 60 * 1000, // 1 minute
+    select: (data) => data.stats,
+  });
+}
+
+// Re-export types
+export type { BookingStats };

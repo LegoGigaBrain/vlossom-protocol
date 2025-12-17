@@ -6,7 +6,7 @@ import { useBookings } from "@/hooks/use-bookings";
 import { BookingList } from "@/components/bookings/booking-list";
 import { Button } from "@/components/ui/button";
 import { AppHeader } from "@/components/layout/app-header";
-import { BottomNav } from "@/components/layout/bottom-nav";
+
 import { Plus } from "lucide-react";
 
 type FilterTab = "upcoming" | "completed" | "all";
@@ -131,7 +131,7 @@ export default function BookingsPage() {
       </main>
 
       {/* Bottom Navigation - Mobile */}
-      <BottomNav />
+      
     </div>
   );
 }
