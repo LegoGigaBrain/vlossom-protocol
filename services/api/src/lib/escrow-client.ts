@@ -8,23 +8,33 @@
  *
  * All operations are triggered by the relayer wallet (backend service account).
  *
+ * SECURITY FIX (C-3): Relayer private key fetched from Secrets Manager
+ * Reference: Security Review - Private keys should not be stored in plain env vars
+ *
  * L-4: Includes blockchain error telemetry via Sentry integration
  */
 
-import { createPublicClient, createWalletClient, http, keccak256, toBytes, type Address, type Hash } from 'viem';
+import { createPublicClient, createWalletClient, http, keccak256, toBytes, type Address, type Hash, type Account, type Chain, type Transport } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { CHAIN, RPC_URL } from './wallet/chain-client';
 import { escrowRateLimiter } from './escrow-rate-limiter';
+import { getRelayerPrivateKey } from './secrets-manager';
+import { logger } from './logger';
 import * as Sentry from '@sentry/node';
 
 // Contract addresses from environment
 const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS as Address;
 const USDC_ADDRESS = process.env.USDC_ADDRESS as Address;
-const RELAYER_PRIVATE_KEY = process.env.RELAYER_PRIVATE_KEY as `0x${string}`;
 
 if (!ESCROW_ADDRESS) throw new Error('ESCROW_ADDRESS not configured');
 if (!USDC_ADDRESS) throw new Error('USDC_ADDRESS not configured');
-if (!RELAYER_PRIVATE_KEY) throw new Error('RELAYER_PRIVATE_KEY not configured');
+
+// Type for our wallet client with account and chain bound
+type BoundWalletClient = ReturnType<typeof createWalletClient<Transport, Chain, Account>>;
+
+// Lazy-initialized wallet client (fetches key from Secrets Manager on first use)
+let walletClientInstance: BoundWalletClient | null = null;
+let walletClientInitializing: Promise<BoundWalletClient> | null = null;
 
 // Escrow contract ABI - minimal interface for backend operations
 const ESCROW_ABI = [
@@ -121,13 +131,62 @@ const publicClient = createPublicClient({
   transport: http(RPC_URL)
 });
 
-// Relayer wallet client for signing transactions
-const relayerAccount = privateKeyToAccount(RELAYER_PRIVATE_KEY);
-const walletClient = createWalletClient({
-  account: relayerAccount,
-  chain: CHAIN,
-  transport: http(RPC_URL)
-});
+/**
+ * Get the wallet client for signing transactions
+ * SECURITY FIX (C-3): Lazy initialization to fetch key from Secrets Manager
+ *
+ * Uses singleton pattern with async initialization to ensure:
+ * - Key is fetched only when needed (not at module load)
+ * - Multiple concurrent calls share the same initialization
+ * - Key can be fetched from AWS Secrets Manager in production
+ */
+async function getWalletClient(): Promise<BoundWalletClient> {
+  // Return cached instance if available
+  if (walletClientInstance) {
+    return walletClientInstance;
+  }
+
+  // If initialization is in progress, wait for it
+  if (walletClientInitializing) {
+    return walletClientInitializing;
+  }
+
+  // Start initialization
+  walletClientInitializing = (async () => {
+    try {
+      logger.info('Initializing relayer wallet client', {
+        event: 'relayer_init_start',
+      });
+
+      // Fetch private key from Secrets Manager (or env var fallback)
+      const relayerPrivateKey = await getRelayerPrivateKey();
+
+      const relayerAccount = privateKeyToAccount(relayerPrivateKey);
+
+      walletClientInstance = createWalletClient({
+        account: relayerAccount,
+        chain: CHAIN,
+        transport: http(RPC_URL)
+      });
+
+      logger.info('Relayer wallet client initialized', {
+        event: 'relayer_init_success',
+        address: relayerAccount.address,
+      });
+
+      return walletClientInstance;
+    } catch (error) {
+      walletClientInitializing = null; // Allow retry on failure
+      logger.error('Failed to initialize relayer wallet', {
+        event: 'relayer_init_error',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      throw error;
+    }
+  })();
+
+  return walletClientInitializing;
+}
 
 /**
  * Escrow status enum (matches Solidity contract)
@@ -268,6 +327,7 @@ export async function releaseFundsFromEscrow(params: {
     }
 
     // Call releaseFunds as relayer
+    const walletClient = await getWalletClient();
     const hash = await walletClient.writeContract({
       address: ESCROW_ADDRESS,
       abi: ESCROW_ABI,
@@ -363,6 +423,7 @@ export async function refundFromEscrow(params: {
     }
 
     // Call refund as relayer
+    const walletClient = await getWalletClient();
     const hash = await walletClient.writeContract({
       address: ESCROW_ADDRESS,
       abi: ESCROW_ABI,

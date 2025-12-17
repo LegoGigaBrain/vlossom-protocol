@@ -16,28 +16,47 @@ const NETWORK_MODE = process.env.NEXT_PUBLIC_NETWORK_MODE || "testnet";
 // Chain selection: "base" | "base_sepolia" | "arbitrum" | "arbitrum_sepolia"
 const CHAIN = process.env.NEXT_PUBLIC_CHAIN || "base_sepolia";
 
-// RPC URLs - Base
+// =============================================================================
+// SECURITY FIX (CRITICAL-1): Remove hardcoded API keys
+// Reference: Security Review - API keys must not be committed to codebase
+// Public RPC endpoints are used as fallback for dev only
+// =============================================================================
+
+// RPC URLs - Base (public endpoints as fallback)
 const BASE_TESTNET_RPC_URL =
   process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org";
 const BASE_MAINNET_RPC_URL =
   process.env.NEXT_PUBLIC_BASE_MAINNET_RPC_URL || "https://mainnet.base.org";
 
-// RPC URLs - Arbitrum (with Alchemy)
+// RPC URLs - Arbitrum
+// IMPORTANT: In production, NEXT_PUBLIC_ARB_*_RPC_URL must be set to your own RPC endpoint
+// Public endpoints have strict rate limits and should not be used in production
 const ARB_TESTNET_RPC_URL =
-  process.env.NEXT_PUBLIC_ARB_SEPOLIA_RPC_URL ||
-  "https://arb-sepolia.g.alchemy.com/v2/zQHwv8tQDCiQOV9f6g_8E";
+  process.env.NEXT_PUBLIC_ARB_SEPOLIA_RPC_URL || "https://sepolia-rollup.arbitrum.io/rpc";
 const ARB_MAINNET_RPC_URL =
-  process.env.NEXT_PUBLIC_ARB_MAINNET_RPC_URL ||
-  "https://arb-mainnet.g.alchemy.com/v2/zQHwv8tQDCiQOV9f6g_8E";
+  process.env.NEXT_PUBLIC_ARB_MAINNET_RPC_URL || "https://arb1.arbitrum.io/rpc";
 
 // Legacy alias for backwards compatibility
 const TESTNET_RPC_URL = BASE_TESTNET_RPC_URL;
 const MAINNET_RPC_URL = BASE_MAINNET_RPC_URL;
 
 // WalletConnect Project ID (reserved for future use when SSR issues are resolved)
+// IMPORTANT: In production, NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID must be set
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const WALLETCONNECT_PROJECT_ID =
-  process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "9ac430b26fb8a47a8bc6a8065b81132c";
+const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+
+// =============================================================================
+// Production Environment Validation
+// =============================================================================
+if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
+  // Warn about missing RPC URLs in production (they should use private endpoints)
+  if (!process.env.NEXT_PUBLIC_ARB_SEPOLIA_RPC_URL && !process.env.NEXT_PUBLIC_ARB_MAINNET_RPC_URL) {
+    console.warn(
+      "[Vlossom] Production warning: Arbitrum RPC URLs not configured. " +
+      "Public endpoints have rate limits. Set NEXT_PUBLIC_ARB_SEPOLIA_RPC_URL or NEXT_PUBLIC_ARB_MAINNET_RPC_URL."
+    );
+  }
+}
 
 /**
  * Get chains based on network mode

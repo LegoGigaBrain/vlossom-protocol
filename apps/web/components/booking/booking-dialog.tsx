@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Booking Dialog - Multi-step booking wizard
+ *
+ * UX P0: Improved error handling with specific user-friendly messages
+ * Reference: UX Review - Generic catch with console.error only
+ */
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog } from "@/components/ui/dialog";
@@ -10,8 +17,95 @@ import { BookingSummary } from "./booking-summary";
 import { PaymentStep } from "./payment-step";
 import { useCreateBooking } from "@/hooks/use-bookings";
 import { calculatePriceBreakdown } from "@/lib/booking-client";
+import { logger } from "@/lib/logger";
+import { toast } from "sonner";
 import type { Stylist, Service } from "@/lib/stylist-client";
 import type { LocationType } from "@/lib/booking-client";
+
+/**
+ * Parse booking errors into user-friendly messages
+ */
+function getBookingErrorMessage(error: unknown): {
+  title: string;
+  description: string;
+  recoverable: boolean;
+} {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+
+  // Network/connection errors
+  if (
+    errorMessage.includes("fetch") ||
+    errorMessage.includes("network") ||
+    errorMessage.includes("NetworkError") ||
+    errorMessage.includes("Failed to fetch")
+  ) {
+    return {
+      title: "Connection issue",
+      description: "Check your internet connection and try again.",
+      recoverable: true,
+    };
+  }
+
+  // Auth errors
+  if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
+    return {
+      title: "Session expired",
+      description: "Please sign in again to continue booking.",
+      recoverable: false,
+    };
+  }
+
+  // Slot unavailable
+  if (
+    errorMessage.includes("slot") ||
+    errorMessage.includes("unavailable") ||
+    errorMessage.includes("SLOT_UNAVAILABLE")
+  ) {
+    return {
+      title: "Time slot no longer available",
+      description: "This time was just booked. Please choose another slot.",
+      recoverable: true,
+    };
+  }
+
+  // Insufficient balance
+  if (
+    errorMessage.includes("balance") ||
+    errorMessage.includes("insufficient") ||
+    errorMessage.includes("INSUFFICIENT_BALANCE")
+  ) {
+    return {
+      title: "Insufficient balance",
+      description: "Add funds to your wallet to complete this booking.",
+      recoverable: false,
+    };
+  }
+
+  // Validation errors
+  if (errorMessage.includes("validation") || errorMessage.includes("invalid")) {
+    return {
+      title: "Invalid booking details",
+      description: "Please check your booking information and try again.",
+      recoverable: true,
+    };
+  }
+
+  // Rate limit
+  if (errorMessage.includes("rate") || errorMessage.includes("too many")) {
+    return {
+      title: "Too many requests",
+      description: "Please wait a moment before trying again.",
+      recoverable: true,
+    };
+  }
+
+  // Default error
+  return {
+    title: "Booking failed",
+    description: "Something went wrong. Please try again.",
+    recoverable: true,
+  };
+}
 
 type BookingStep =
   | "service"
@@ -157,12 +251,22 @@ export function BookingDialog({
     setStep(editStep);
   };
 
+  // Error state for showing inline errors
+  const [bookingError, setBookingError] = useState<{
+    title: string;
+    description: string;
+    recoverable: boolean;
+  } | null>(null);
+
   // Create booking and go to payment
   const handleConfirm = async () => {
     if (!state.service) return;
 
     const scheduledDateTime = getScheduledDateTime();
     if (!scheduledDateTime) return;
+
+    // Clear any previous error
+    setBookingError(null);
 
     try {
       const booking = await createBooking.mutateAsync({
@@ -177,8 +281,36 @@ export function BookingDialog({
       setBookingId(booking.id);
       setStep("payment");
     } catch (error) {
-      console.error("Failed to create booking:", error);
+      // Log error for debugging
+      logger.error("Failed to create booking", {
+        error: error instanceof Error ? error.message : String(error),
+        stylistId: stylist.id,
+        serviceId: state.service.id,
+      });
+
+      // Parse and display user-friendly error
+      const errorInfo = getBookingErrorMessage(error);
+      setBookingError(errorInfo);
+
+      // Show toast for quick feedback
+      toast.error(errorInfo.title, {
+        description: errorInfo.description,
+      });
+
+      // If slot unavailable, go back to datetime selection
+      if (
+        error instanceof Error &&
+        (error.message.includes("slot") || error.message.includes("SLOT_UNAVAILABLE"))
+      ) {
+        setStep("datetime");
+      }
     }
+  };
+
+  // Handle retry after error
+  const handleRetry = () => {
+    setBookingError(null);
+    handleConfirm();
   };
 
   // Handle successful payment
@@ -312,20 +444,64 @@ export function BookingDialog({
         )}
 
         {step === "summary" && state.service && priceBreakdown && (
-          <BookingSummary
-            stylist={stylist}
-            service={state.service}
-            scheduledDate={state.scheduledDate!}
-            scheduledTime={state.scheduledTime!}
-            locationType={state.locationType}
-            locationAddress={state.locationAddress}
-            notes={state.notes}
-            priceBreakdown={priceBreakdown}
-            onEdit={handleEdit}
-            onNotesChange={handleNotesChange}
-            onConfirm={handleConfirm}
-            isLoading={createBooking.isPending}
-          />
+          <>
+            {/* Inline error display */}
+            {bookingError && (
+              <div
+                className="mb-4 p-4 rounded-lg bg-status-error/10 border border-status-error/20"
+                role="alert"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-status-error/20 flex items-center justify-center mt-0.5">
+                    <svg
+                      className="w-3 h-3 text-status-error"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-status-error text-sm">
+                      {bookingError.title}
+                    </p>
+                    <p className="text-text-secondary text-sm mt-1">
+                      {bookingError.description}
+                    </p>
+                    {bookingError.recoverable && (
+                      <button
+                        onClick={handleRetry}
+                        className="mt-2 text-sm text-primary hover:text-primary/80 font-medium underline underline-offset-2"
+                      >
+                        Try again
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <BookingSummary
+              stylist={stylist}
+              service={state.service}
+              scheduledDate={state.scheduledDate!}
+              scheduledTime={state.scheduledTime!}
+              locationType={state.locationType}
+              locationAddress={state.locationAddress}
+              notes={state.notes}
+              priceBreakdown={priceBreakdown}
+              onEdit={handleEdit}
+              onNotesChange={handleNotesChange}
+              onConfirm={handleConfirm}
+              isLoading={createBooking.isPending}
+            />
+          </>
         )}
 
         {step === "payment" && bookingId && priceBreakdown && (

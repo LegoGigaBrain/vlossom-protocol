@@ -166,7 +166,7 @@ When adding new features:
 ---
 
 **Last Updated**: December 17, 2025
-**Current Version**: V6.2.0 (Security & Smart Contract Hardening) ✅
+**Current Version**: V6.3.0 (Phase 2 UX & Infrastructure) ✅
 
 ### What's Complete
 - All user-facing flows and UX pathways
@@ -179,9 +179,10 @@ When adding new features:
 - Hair health tracking (V5.0)
 - Mobile app foundation (V6.0)
 - Security hardening (V6.2)
+- UX infrastructure (V6.3)
 
 ### Recent Releases
+- **V6.3.0** - Frontend logger, theme system, desktop nav, error handling, Redis/secrets infra
 - **V6.2.0** - TypeScript type safety, OpenAPI docs, smart contract security fixes
 - **V6.1.0** - Orange color governance enforcement
 - **V6.0.0** - React Native mobile app + botanical design system
-- **V4.0.0** - DeFi integration with liquidity pools

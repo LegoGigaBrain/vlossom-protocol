@@ -176,5 +176,98 @@ function EmptyState({
   );
 }
 
+/**
+ * Preset empty states for common use cases (UX P0)
+ * Reference: UX Review - Inconsistent empty states across pages
+ */
+
+export interface EmptyStatePreset {
+  illustration: IllustrationType;
+  title: string;
+  description: string;
+}
+
+export const emptyStatePresets: Record<string, EmptyStatePreset> = {
+  /** No stylists found in search area */
+  noStylists: {
+    illustration: "search",
+    title: "No stylists nearby",
+    description: "Try expanding your search area or adjusting your filters to find more stylists.",
+  },
+  /** No services available */
+  noServices: {
+    illustration: "scissors",
+    title: "No services available",
+    description: "This stylist hasn't added any services yet. Check back later!",
+  },
+  /** No availability slots */
+  noAvailability: {
+    illustration: "calendar",
+    title: "No availability",
+    description: "No open slots for the selected dates. Try a different time or date.",
+  },
+  /** No upcoming bookings */
+  noBookings: {
+    illustration: "calendar",
+    title: "No upcoming appointments",
+    description: "You don't have any scheduled appointments. Book your next session!",
+  },
+  /** No past bookings */
+  noHistory: {
+    illustration: "calendar",
+    title: "No booking history",
+    description: "Your completed appointments will appear here.",
+  },
+  /** Empty wallet - no transactions */
+  noTransactions: {
+    illustration: "wallet",
+    title: "No transactions yet",
+    description: "Your transaction history will appear here once you make a booking.",
+  },
+  /** No notifications */
+  noNotifications: {
+    illustration: "inbox",
+    title: "All caught up!",
+    description: "You'll see booking updates, messages, and alerts here.",
+  },
+  /** No reviews */
+  noReviews: {
+    illustration: "reviews",
+    title: "No reviews yet",
+    description: "Reviews from your clients will appear here.",
+  },
+  /** No messages */
+  noMessages: {
+    illustration: "message",
+    title: "No messages",
+    description: "Start a conversation with a stylist or client.",
+  },
+  /** Search with no results */
+  noSearchResults: {
+    illustration: "search",
+    title: "No results found",
+    description: "Try different keywords or adjust your filters.",
+  },
+  /** Favorites empty */
+  noFavorites: {
+    illustration: "scissors",
+    title: "No favorites yet",
+    description: "Save your favorite stylists to quickly book with them again.",
+  },
+  /** Network error */
+  networkError: {
+    illustration: "inbox",
+    title: "Connection issue",
+    description: "We couldn't load this content. Check your connection and try again.",
+  },
+};
+
+/**
+ * Helper to use preset empty states
+ */
+export function getEmptyStateProps(preset: keyof typeof emptyStatePresets): EmptyStatePreset {
+  return emptyStatePresets[preset];
+}
+
 export { EmptyState };
 export type { EmptyStateProps, IllustrationType };

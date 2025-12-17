@@ -7,6 +7,130 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.3.0] - 2025-12-17
+
+### V6.3.0: Phase 2 UX & Infrastructure - COMPLETE ✅
+
+**Goal**: Complete Phase 2 code quality and UX improvements. Add production infrastructure for logging, rate limiting, and secrets management.
+
+---
+
+#### ✅ Frontend Logger (MAJOR-1)
+
+**New File:** `apps/web/lib/logger.ts`
+
+Structured logging utility that:
+- Strips debug/info logs in production builds
+- Sends errors and warnings to Sentry
+- Includes correlation context (user, session)
+- Type-safe log levels (debug, info, warn, error)
+
+#### ✅ ESLint no-console Rule
+
+**New File:** `apps/web/.eslintrc.json`
+
+- Added `"no-console": ["error", { "allow": ["warn", "error"] }]`
+- Logger file exempted via override
+- Prevents accidental console statements in production
+
+#### ✅ React Query Configs (MAJOR-4)
+
+**New File:** `apps/web/lib/query-config.ts`
+
+Standardized query configurations:
+- Smart retry logic (don't retry 401s, retry network errors more)
+- Auth-aware error handling
+- Stale time presets (static, standard, dynamic, realtime)
+- Pre-configured options for common patterns (wallet, critical, etc.)
+
+#### ✅ Theme System (Design P0)
+
+**New Files:**
+- `apps/web/components/ui/theme-toggle.tsx` - Toggle and selector components
+- Uses existing `apps/web/lib/theme/` infrastructure
+
+Features:
+- Light/dark mode toggle with animated icons
+- System preference detection
+- Preference persistence to localStorage
+- ThemeSelector dropdown with Light/Dark/System options
+
+#### ✅ Desktop Navigation (Design P0)
+
+**New File:** `apps/web/components/layout/desktop-nav.tsx`
+
+Features:
+- Horizontal header navigation for md+ screens
+- Integrated with VlossomIcon botanical icons
+- Role-based navigation items
+- Theme selector integration
+- Spacer component for fixed header offset
+
+#### ✅ Empty State Presets (UX P0)
+
+**Updated File:** `apps/web/components/ui/empty-state.tsx`
+
+Added 14 preset empty states:
+- noStylists, noServices, noAvailability
+- noBookings, noHistory, noTransactions
+- noNotifications, noReviews, noMessages
+- noSearchResults, noFavorites, networkError
+
+Each preset includes illustration, title, and description.
+
+#### ✅ Booking Error Handling (UX P0)
+
+**Updated File:** `apps/web/components/booking/booking-dialog.tsx`
+
+Features:
+- `getBookingErrorMessage()` parser for specific error types
+- Network errors: "Check your internet connection"
+- Auth errors: "Please sign in again"
+- Slot unavailable: "This time was just booked"
+- Insufficient balance: "Add funds to your wallet"
+- Inline error state with retry support
+- Automatic redirect to datetime step on slot conflicts
+
+#### ✅ Redis Rate Limiting (C-2)
+
+**New File:** `services/api/src/lib/redis-client.ts`
+
+Production-ready rate limiting infrastructure:
+- Automatic connection with retry logic
+- Graceful fallback to in-memory for development
+- Helper functions: `rateLimitIncrement`, `rateLimitIsBlocked`, `rateLimitBlock`
+- Connection pooling and exponential backoff
+- Dynamic import (works without ioredis installed)
+
+#### ✅ Secrets Manager (C-3)
+
+**New File:** `services/api/src/lib/secrets-manager.ts`
+
+Secure credential storage:
+- AWS Secrets Manager integration for production
+- Environment variable fallback for development
+- Secret caching with 5-minute TTL
+- `getRelayerPrivateKey()` for critical key retrieval
+- JSON parsing support for complex secrets
+
+---
+
+#### Files Changed Summary
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| Frontend Logger | 2 | Logger utility + ESLint config |
+| React Query | 1 | Standardized query configurations |
+| Theme System | 1 | Theme toggle component |
+| Navigation | 1 | Desktop header navigation |
+| Empty States | 1 | 14 preset empty state patterns |
+| Booking | 1 | Error handling improvements |
+| Infrastructure | 2 | Redis client + Secrets manager |
+| Documentation | 2 | README + changelog updates |
+| Config | 2 | .env.example files |
+
+---
+
 ## [6.2.0] - 2025-12-17
 
 ### V6.2.0: Security, Quality & Smart Contract Hardening - COMPLETE ✅
