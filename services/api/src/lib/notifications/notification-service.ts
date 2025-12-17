@@ -3,6 +3,7 @@
  * Core orchestration for multi-channel notifications
  */
 
+import { Prisma } from "@prisma/client";
 import prisma from "../prisma";
 import logger from "../logger";
 import { sendEmail } from "./email-provider";
@@ -15,6 +16,17 @@ import type {
   SendNotificationInput,
   NotificationResult,
 } from "./types";
+
+/** Notification response item for API responses */
+interface NotificationItem {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  metadata: Prisma.JsonValue;
+  read: boolean;
+  createdAt: string;
+}
 
 /**
  * Send notifications to a user via multiple channels
@@ -85,7 +97,7 @@ export async function sendNotification(
           status: sendError ? "FAILED" : channel === "IN_APP" ? "SENT" : "SENT",
           title,
           body,
-          metadata: metadata as any,
+          metadata: metadata as Prisma.InputJsonValue,
           sentAt: sendError ? null : new Date(),
           externalId,
           error: sendError,
@@ -183,20 +195,17 @@ export async function getUserNotifications(
     unreadOnly?: boolean;
   } = {}
 ): Promise<{
-  notifications: any[];
+  notifications: NotificationItem[];
   total: number;
   hasMore: boolean;
 }> {
   const { page = 1, limit = 20, unreadOnly = false } = options;
 
-  const where: any = {
+  const where: Prisma.NotificationWhereInput = {
     userId,
     channel: "IN_APP", // Only return in-app notifications to user
+    ...(unreadOnly && { readAt: null }),
   };
-
-  if (unreadOnly) {
-    where.readAt = null;
-  }
 
   const [notifications, total] = await Promise.all([
     prisma.notification.findMany({

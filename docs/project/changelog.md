@@ -7,6 +7,256 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.2.0] - 2025-12-17
+
+### V6.2.0: Security, Quality & Smart Contract Hardening - COMPLETE ✅
+
+**Goal**: Address high-priority findings from comprehensive 7-review audit. Fix TypeScript type safety issues, add API documentation, and resolve critical smart contract vulnerabilities.
+
+---
+
+#### ✅ TypeScript Any Elimination (MAJOR-2)
+
+Eliminated all production `any` types for type safety:
+
+**Files Modified:**
+- `services/api/src/lib/notifications/notification-service.ts`
+  - Added `Prisma.InputJsonValue` for metadata typing
+  - Created `NotificationItem` interface
+  - Typed `where` clause with `Prisma.NotificationWhereInput`
+- `services/api/src/middleware/rate-limiter.ts`
+  - Created `RequestWithAuth` interface for authenticated requests
+- `services/api/src/middleware/error-handler.ts`
+  - Created `RequestWithTracking` interface for request correlation
+  - Updated `createError` to accept `Record<string, unknown> | string`
+- `services/api/src/routes/stylists.ts`
+  - Created `WeeklySchedule` interface for availability typing
+- `services/api/src/routes/bookings.ts`
+  - Fixed `BookingStatus[]` type casting
+
+---
+
+#### ✅ OpenAPI/Swagger Documentation (API Docs)
+
+Full API documentation now available at `/api/docs`:
+
+**New Files:**
+- `services/api/src/lib/swagger.ts` - Complete OpenAPI 3.0.3 configuration
+
+**Features:**
+- Interactive Swagger UI at `/api/docs`
+- OpenAPI JSON spec at `/api/docs/openapi.json`
+- Schemas for: User, Booking, Stylist, Service, Wallet, Review, Notification, Property
+- Security scheme: JWT Bearer authentication
+- Rate limiting documentation
+- Standard error response format
+
+**Dependencies Added:**
+- `swagger-jsdoc@^6.2.8`
+- `swagger-ui-express@^5.0.1`
+
+---
+
+#### ✅ Smart Contract Security Fixes
+
+##### H-2: Guardian Recovery State Fix (VlossomAccount.sol)
+
+**Problem**: Stale approval mappings persisted after recovery cancellation, allowing old approvals to carry over to new recovery attempts.
+
+**Solution**: Implemented nonce-based recovery approval system.
+
+**Changes:**
+```solidity
+// Added nonce to RecoveryRequest struct
+struct RecoveryRequest {
+    address newOwner;
+    uint256 initiatedAt;
+    uint256 approvalCount;
+    bool isActive;
+    uint256 nonce;  // H-2 fix
+}
+
+// Changed approval mapping to include nonce
+mapping(address => mapping(uint256 => bool)) private _recoveryApprovals;
+
+// New getter for recovery nonce
+function getRecoveryNonce() external view returns (uint256);
+```
+
+##### H-1: Paymaster Selector Validation (VlossomPaymaster.sol)
+
+**Problem**: Assembly extraction of inner selector lacked bounds checking, potentially reading garbage data.
+
+**Solution**: Added comprehensive bounds validation before extracting selector.
+
+**Changes:**
+```solidity
+assembly {
+    // Validate funcOffset + 32 doesn't exceed calldata length
+    if lt(add(funcLengthPosition, 32), add(callDataLen, 1)) {
+        // Validate funcLength >= 4 bytes for selector
+        if iszero(lt(funcLength, 4)) {
+            // Validate selectorPosition + 4 doesn't exceed calldata
+            if lt(add(selectorPosition, 4), add(callDataLen, 1)) {
+                // Safe to extract
+                validExtraction := 1
+            }
+        }
+    }
+}
+```
+
+##### M-4: YieldEngine Utilization Fix (VlossomYieldEngine.sol)
+
+**Problem**: Hardcoded 50% utilization placeholder instead of querying actual pool utilization.
+
+**Solution**: Added oracle-based utilization tracking.
+
+**Changes:**
+```solidity
+// New storage
+mapping(address => uint256) public poolUtilization;
+uint256 public defaultUtilization;
+
+// New functions
+function updatePoolUtilization(address pool, uint256 utilization) external;
+function setDefaultUtilization(uint256 utilization) external;
+function getPoolUtilization(address pool) public view returns (uint256);
+
+// Event added to interface
+event PoolUtilizationUpdated(address indexed pool, uint256 utilization);
+```
+
+---
+
+#### ✅ Smart Contract Test Coverage
+
+**New Test File:** `contracts/test/VlossomAccount.test.ts`
+
+**17 Tests Added:**
+- Guardian Management (3 tests)
+  - Adding guardians
+  - Max guardian limit enforcement
+  - Removing guardians
+- Recovery Initiation (4 tests)
+  - Guardian initiates recovery
+  - Non-guardian rejection
+  - Zero address rejection
+  - Current owner rejection
+- Recovery Approval (2 tests)
+  - Guardian approval tracking
+  - Double approval prevention
+- Recovery Execution (3 tests)
+  - Post-delay execution
+  - Pre-delay rejection
+  - Insufficient approvals rejection
+- Recovery Cancellation (2 tests)
+  - Owner cancellation
+  - Non-owner rejection
+- H-2 Nonce Tests (3 tests)
+  - Old approvals invalidated after cancellation
+  - New nonce per recovery attempt
+  - Correct per-nonce tracking
+
+**Test Stats:** All 123 contract tests passing
+
+---
+
+#### Files Changed Summary
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| TypeScript Types | 5 | `any` elimination in API |
+| API Documentation | 2 | Swagger setup + index.ts |
+| Smart Contracts | 3 | VlossomAccount, VlossomPaymaster, VlossomYieldEngine |
+| Contract Interfaces | 1 | IYieldEngine event |
+| Contract Tests | 1 | VlossomAccount.test.ts |
+| Documentation | 3 | README, docs/README, changelog |
+
+---
+
+## [6.1.0] - 2025-12-17
+
+### V6.1.0: Orange Color Governance Enforcement - COMPLETE ✅
+
+**Goal**: Enforce the sacred orange governance rule across the entire frontend codebase. Orange (#FF510D) is reserved exclusively for growth and celebration moments (<8% surface area), never for errors, warnings, or alerts.
+
+**Commit**: d283261
+
+**Major Achievement**: Complete adherence to Doc 16 color governance rules by systematically replacing accent-orange with status-error in error contexts and status-warning for validation/caution states.
+
+---
+
+#### ✅ Color Governance Implementation
+
+##### Changed Files (12 total)
+
+**Error State Corrections (9 files)**
+- `apps/web/components/error-boundary.tsx` - Error boundary uses `status-error` (red), not orange
+- `apps/web/app/error.tsx` - Global error page uses `status-error` (red), not orange
+- `apps/web/app/(main)/bookings/page.tsx` - Empty state error messaging uses `status-error`
+- `apps/web/app/(main)/bookings/[id]/page.tsx` - Booking error states use `status-error`
+- `apps/web/app/(main)/stylists/page.tsx` - Stylist discovery errors use `status-error`
+- `apps/web/app/(main)/stylists/[id]/page.tsx` - Profile error states use `status-error`
+- `apps/web/components/bookings/booking-details.tsx` - Cancellation warnings use `status-error`
+- `apps/web/components/booking/payment-step.tsx` - Payment validation errors use `status-error`
+
+**Warning State Corrections (3 files)**
+- `apps/web/components/bookings/cancel-dialog.tsx` - Refund policy warnings use `status-warning` (amber)
+- `apps/web/components/booking/location-selector.tsx` - Availability warnings use `status-warning` (amber)
+- `apps/web/components/stylists/stylist-filters.tsx` - "Clear filters" action reverted to `brand-rose` link color
+
+**Design Token Updates (1 file)**
+- `apps/web/tailwind.config.js` - Updated `status.warning` from orange (#FF510D) to amber (#F59E0B)
+  - Added sacred orange governance comments to prevent future misuse
+  - Documented that orange is for growth/celebration only (<8% surface)
+
+##### Code Comment Documentation
+
+Added sacred orange governance rules as code comments in `tailwind.config.js`:
+
+```javascript
+// Accent: Orange - SACRED, reserved for growth & celebration ONLY
+// DO NOT use for errors, warnings, or alerts. Use status-error/status-warning instead.
+// Surface area < 8%. Examples: growth milestones, achievements, positive celebrations
+
+// Status colors
+// IMPORTANT: Orange (#FF510D) is SACRED - reserved for growth/celebration only
+// Use amber for warnings, muted red for errors
+```
+
+##### Color Token Changes
+
+| Token | Before | After | Rationale |
+|-------|--------|-------|-----------|
+| `status.warning` | `#FF510D` (orange) | `#F59E0B` (amber) | Orange is sacred for celebration, amber is appropriate for warnings |
+| `accent` usage | Error/warning contexts | Growth/celebration only | Strict enforcement of Doc 16 governance |
+
+##### Correct Orange Usage Examples
+
+Orange (#FF510D) remains correctly used in:
+- `VlossomIcon` components with `accent` prop for growth moments
+- Achievement celebrations
+- Milestone completions
+- Ritual completion confirmations
+- The flower's center in active states
+
+#### Design System Compliance
+
+**Before V6.1.0:**
+- 9 files incorrectly used orange for errors
+- 3 files used orange for warnings
+- `status.warning` token mapped to orange
+- Color governance rules not enforced in code
+
+**After V6.1.0:**
+- 100% compliance with sacred orange rule
+- Clear separation: Red for errors, Amber for warnings, Orange for celebration
+- Code comments prevent future violations
+- Design system integrity restored
+
+---
+
 ## [6.0.0] - 2025-12-17
 
 ### V6.0.0: Mobile App + Full Frontend Design Handover - COMPLETE ✅

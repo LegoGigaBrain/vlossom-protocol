@@ -10,6 +10,12 @@ import { ZodError } from 'zod';
 import { Prisma } from '@prisma/client';
 import { logger } from '../lib/logger';
 
+/** Extended request with tracking context */
+interface RequestWithTracking extends Request {
+  requestId?: string;
+  userId?: string;
+}
+
 /**
  * Standard error response format
  */
@@ -139,7 +145,7 @@ export class AppError extends Error {
     public code: string,
     public message: string,
     public statusCode: number = 500,
-    public details?: any
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'AppError';
@@ -243,14 +249,15 @@ export function errorHandler(
   _next: NextFunction
 ) {
   // Log the error with request ID for tracing
+  const trackedReq = req as RequestWithTracking;
   logger.error('Unhandled error', {
-    requestId: (req as any).requestId,
+    requestId: trackedReq.requestId,
     error: err.message,
     stack: err.stack,
     path: req.path,
     method: req.method,
     ip: req.ip,
-    userId: (req as any).userId
+    userId: trackedReq.userId
   });
 
   // Handle different error types
@@ -287,7 +294,7 @@ export function errorHandler(
   // Include request ID in error response for client-side tracing
   const responseWithRequestId = {
     ...response,
-    requestId: (req as any).requestId
+    requestId: trackedReq.requestId
   };
 
   // Send error response
@@ -303,14 +310,22 @@ export function notFoundHandler(req: Request, res: Response) {
       'NOT_FOUND',
       `Route ${req.method} ${req.path} not found`
     ),
-    requestId: (req as any).requestId
+    requestId: (req as RequestWithTracking).requestId
   });
 }
 
 /**
  * Create a standardized error
+ * @param code - Error code from ERROR_CODES
+ * @param detailsOrMessage - Optional details object or custom message string
  */
-export function createError(code: string, details?: unknown): AppError {
+export function createError(code: string, detailsOrMessage?: Record<string, unknown> | string): AppError {
   const errorDef = ERROR_CODES[code] || ERROR_CODES.INTERNAL_ERROR;
+
+  // Allow passing a string message for convenience
+  const details = typeof detailsOrMessage === 'string'
+    ? { message: detailsOrMessage }
+    : detailsOrMessage;
+
   return new AppError(code, errorDef.message, errorDef.status, details);
 }

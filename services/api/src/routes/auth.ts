@@ -9,7 +9,7 @@ import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import { PrismaClient, AuthProvider } from "@prisma/client";
 import { getAddress, isAddress, recoverMessageAddress, type Hex } from "viem";
-import { generateToken, authenticate, type AuthenticatedRequest } from "../middleware/auth";
+import { generateToken, authenticate, type AuthenticatedRequest, BCRYPT_ROUNDS } from "../middleware/auth";
 import { logger } from "../lib/logger";
 import { createWallet } from "../lib/wallet/wallet-service";
 import {
@@ -22,7 +22,6 @@ import { createError } from "../middleware/error-handler";
 
 const router: ReturnType<typeof Router> = Router();
 const prisma = new PrismaClient();
-const BCRYPT_ROUNDS = 10;
 
 // SIWE Configuration (V3.2)
 const SIWE_NONCE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
@@ -118,9 +117,53 @@ function parseSiweMessage(message: string): {
 }
 
 /**
- * POST /api/v1/auth/signup
- * Create new user account with email/password
- * F4.7: Rate limited to 3 attempts per hour
+ * @openapi
+ * /api/v1/auth/signup:
+ *   post:
+ *     summary: Create new user account
+ *     description: Register a new user with email and password. Rate limited to 3 attempts per hour.
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password, role]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 example: "securepassword123"
+ *               role:
+ *                 type: string
+ *                 enum: [CUSTOMER, STYLIST]
+ *               displayName:
+ *                 type: string
+ *                 example: "Jane Doe"
+ *     responses:
+ *       201:
+ *         description: Account created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 token:
+ *                   type: string
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       409:
+ *         description: Email already exists
+ *       429:
+ *         $ref: '#/components/responses/RateLimited'
  */
 router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -205,9 +248,44 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
 });
 
 /**
- * POST /api/v1/auth/login
- * Authenticate existing user with email/password
- * F4.7: Rate limited to 5 attempts per 15 minutes, with account lockout
+ * @openapi
+ * /api/v1/auth/login:
+ *   post:
+ *     summary: Login with email and password
+ *     description: Authenticate existing user. Rate limited to 5 attempts per 15 minutes with account lockout.
+ *     tags: [Auth]
+ *     security: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Invalid credentials
+ *       423:
+ *         description: Account locked
+ *       429:
+ *         $ref: '#/components/responses/RateLimited'
  */
 router.post("/login", rateLimiters.login, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -522,24 +600,8 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
       return next(createError("SIWE_MESSAGE_EXPIRED"));
     }
 
-    // Verify nonce exists and hasn't been used
-    const storedNonce = await prisma.siweNonce.findUnique({
-      where: { nonce },
-    });
-
-    if (!storedNonce) {
-      return next(createError("SIWE_NONCE_INVALID"));
-    }
-
-    if (storedNonce.isUsed) {
-      return next(createError("SIWE_NONCE_USED"));
-    }
-
-    if (new Date() > storedNonce.expiresAt) {
-      return next(createError("SIWE_NONCE_INVALID"));
-    }
-
-    // Verify signature using viem's recoverMessageAddress
+    // Verify signature using viem's recoverMessageAddress BEFORE consuming nonce
+    // This prevents wasting nonces on invalid signatures
     let recoveredAddress: string;
     try {
       recoveredAddress = await recoverMessageAddress({
@@ -555,11 +617,44 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
       return next(createError("INVALID_SIWE_SIGNATURE"));
     }
 
-    // Mark nonce as used
-    await prisma.siweNonce.update({
-      where: { nonce },
-      data: { isUsed: true },
-    });
+    // SECURITY FIX (C-1): Atomically verify AND consume nonce in a single transaction
+    // This prevents race condition where multiple requests could use the same nonce
+    // Reference: Security Review C-1 - SIWE Nonce Replay Attack
+    try {
+      await prisma.$transaction(async (tx) => {
+        const nonceRecord = await tx.siweNonce.findUnique({
+          where: { nonce },
+        });
+
+        if (!nonceRecord) {
+          throw new Error("SIWE_NONCE_INVALID");
+        }
+
+        if (nonceRecord.isUsed) {
+          throw new Error("SIWE_NONCE_USED");
+        }
+
+        if (new Date() > nonceRecord.expiresAt) {
+          throw new Error("SIWE_NONCE_EXPIRED");
+        }
+
+        // Atomically mark nonce as used within the same transaction
+        await tx.siweNonce.update({
+          where: { nonce },
+          data: { isUsed: true },
+        });
+      });
+    } catch (nonceError) {
+      // Map transaction errors to proper API errors
+      const errorMessage = nonceError instanceof Error ? nonceError.message : "SIWE_NONCE_INVALID";
+      if (errorMessage === "SIWE_NONCE_USED") {
+        return next(createError("SIWE_NONCE_USED"));
+      }
+      if (errorMessage === "SIWE_NONCE_EXPIRED") {
+        return next(createError("SIWE_NONCE_INVALID"));
+      }
+      return next(createError("SIWE_NONCE_INVALID"));
+    }
 
     // Check if external provider already exists
     let externalProvider = await prisma.externalAuthProvider.findUnique({

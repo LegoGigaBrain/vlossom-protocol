@@ -165,8 +165,8 @@ When adding new features:
 
 ---
 
-**Last Updated**: December 16, 2025
-**Current Version**: V3.3.0 (Feature Completion - Pre-DeFi) ✅
+**Last Updated**: December 17, 2025
+**Current Version**: V6.2.0 (Security & Smart Contract Hardening) ✅
 
 ### What's Complete
 - All user-facing flows and UX pathways
@@ -175,8 +175,13 @@ When adding new features:
 - Reviews, ratings, reputation
 - Disputes and issue resolution
 - Notifications system
-- Help center and support
-- ~50 new components in V3.3.0 alone
+- DeFi liquidity pools (V4.0)
+- Hair health tracking (V5.0)
+- Mobile app foundation (V6.0)
+- Security hardening (V6.2)
 
-### Next Phase
-UI/UX Styling → DeFi Integration (V4.0)
+### Recent Releases
+- **V6.2.0** - TypeScript type safety, OpenAPI docs, smart contract security fixes
+- **V6.1.0** - Orange color governance enforcement
+- **V6.0.0** - React Native mobile app + botanical design system
+- **V4.0.0** - DeFi integration with liquidity pools

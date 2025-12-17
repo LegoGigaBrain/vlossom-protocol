@@ -9,7 +9,7 @@
 // Audit date: 2025-12-15
 
 import { Router, Response, NextFunction } from "express";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, Prisma } from "@prisma/client";
 import prisma from "../lib/prisma";
 import { authenticate, type AuthenticatedRequest } from "../middleware/auth";
 import { authorizeBookingAccess } from "../middleware/authorize";
@@ -110,8 +110,57 @@ async function logStatusChange(
 // ============================================================================
 
 /**
- * POST /api/bookings/check-availability
- * Check if a specific time slot is available for booking
+ * @openapi
+ * /api/v1/bookings/check-availability:
+ *   post:
+ *     summary: Check slot availability
+ *     description: Check if a specific time slot is available for booking
+ *     tags: [Bookings]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [stylistId, serviceId, startTime, locationType]
+ *             properties:
+ *               stylistId:
+ *                 type: string
+ *                 format: uuid
+ *               serviceId:
+ *                 type: string
+ *                 format: uuid
+ *               startTime:
+ *                 type: string
+ *                 format: date-time
+ *               locationType:
+ *                 type: string
+ *                 enum: [STYLIST_BASE, CUSTOMER_HOME]
+ *               customerLat:
+ *                 type: number
+ *               customerLng:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Availability check result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 available:
+ *                   type: boolean
+ *                 conflicts:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                 suggestedAlternatives:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     format: date-time
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
  */
 router.post("/check-availability", authenticate, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
@@ -247,8 +296,7 @@ router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response, n
     const userId = req.userId!;
 
     // Build where clause based on role filter
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const whereClause: any = {};
+    const whereClause: Prisma.BookingWhereInput = {};
 
     if (input.role === "customer") {
       whereClause.customerId = userId;
@@ -264,7 +312,7 @@ router.get("/", authenticate, async (req: AuthenticatedRequest, res: Response, n
 
     // Add status filter if provided
     if (input.status) {
-      const statuses = input.status.split(",").map(s => s.trim().toUpperCase());
+      const statuses = input.status.split(",").map(s => s.trim().toUpperCase()) as BookingStatus[];
       whereClause.status = { in: statuses };
     }
 

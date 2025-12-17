@@ -48,6 +48,13 @@ contract VlossomYieldEngine is IYieldEngine, AccessControl {
     /// @notice Last update timestamp per pool
     mapping(address => uint256) public lastUpdateTime;
 
+    /// @notice M-4 fix: Pool utilization (basis points, 0-10000)
+    /// @dev Updated by authorized pools or admin oracle
+    mapping(address => uint256) public poolUtilization;
+
+    /// @notice M-4 fix: Default utilization for pools without oracle data
+    uint256 public defaultUtilization;
+
     // ============ Constants ============
 
     uint256 public constant BASIS_POINTS = 10000;
@@ -74,6 +81,9 @@ contract VlossomYieldEngine is IYieldEngine, AccessControl {
         slope1 = 1000;            // +10% at optimal
         slope2 = 10000;           // +100% slope above optimal
         optimalUtilization = 8000; // 80%
+
+        // M-4 fix: Default utilization for pools without oracle data
+        defaultUtilization = 5000; // 50% default
 
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
         _grantRole(ADMIN_ROLE, _admin);
@@ -137,9 +147,12 @@ contract VlossomYieldEngine is IYieldEngine, AccessControl {
         uint256 timeElapsed = block.timestamp - lastUpdate;
         if (timeElapsed == 0) return;
 
-        // Get current utilization (simplified: assume 50% average utilization)
-        // In production, this would query actual pool utilization
-        uint256 utilization = 5000; // 50% placeholder
+        // M-4 fix: Get actual pool utilization from oracle/mapping
+        // Falls back to defaultUtilization if not set
+        uint256 utilization = poolUtilization[pool];
+        if (utilization == 0) {
+            utilization = defaultUtilization;
+        }
 
         uint256 apy = this.calculateAPY(utilization);
 
@@ -201,6 +214,41 @@ contract VlossomYieldEngine is IYieldEngine, AccessControl {
 
         poolIndices[pool] = PRECISION;
         lastUpdateTime[pool] = block.timestamp;
+    }
+
+    /**
+     * @notice M-4 fix: Update pool utilization (called by pool or oracle)
+     * @param pool Pool address
+     * @param utilization Utilization in basis points (0-10000)
+     */
+    function updatePoolUtilization(address pool, uint256 utilization) external {
+        // Only pool itself or admin can update
+        if (msg.sender != pool && !hasRole(ADMIN_ROLE, msg.sender)) revert Unauthorized();
+        if (utilization > BASIS_POINTS) revert InvalidParams();
+
+        poolUtilization[pool] = utilization;
+        emit PoolUtilizationUpdated(pool, utilization);
+    }
+
+    /**
+     * @notice M-4 fix: Set default utilization for pools without oracle data
+     * @param _defaultUtilization Default utilization in basis points
+     */
+    function setDefaultUtilization(uint256 _defaultUtilization) external {
+        if (!hasRole(ADMIN_ROLE, msg.sender)) revert Unauthorized();
+        if (_defaultUtilization > BASIS_POINTS) revert InvalidParams();
+
+        defaultUtilization = _defaultUtilization;
+    }
+
+    /**
+     * @notice M-4 fix: Get pool utilization
+     * @param pool Pool address
+     * @return utilization Current utilization in basis points
+     */
+    function getPoolUtilization(address pool) external view returns (uint256) {
+        uint256 utilization = poolUtilization[pool];
+        return utilization > 0 ? utilization : defaultUtilization;
     }
 
     // ============ View Functions ============

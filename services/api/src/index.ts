@@ -65,6 +65,7 @@ import { logger, logRequest, logResponse } from "./lib/logger";
 import { apiSecurityHeaders, corsHeaders } from "./middleware/security-headers";
 import { rateLimiters } from "./middleware/rate-limiter";
 import { correlationIdMiddleware } from "./middleware/correlation-id";
+import { setupSwagger } from "./lib/swagger";
 
 const app: ReturnType<typeof express> = express();
 const PORT = process.env.PORT || 3002;
@@ -107,6 +108,9 @@ app.use((req, res, next) => {
 app.get("/health", (_req, res) => {
   res.json({ status: "ok", service: "@vlossom/api" });
 });
+
+// API Documentation (Swagger UI)
+setupSwagger(app);
 
 // API v1 routes
 app.use("/api/v1/auth", authRouter);

@@ -275,26 +275,66 @@ contract VlossomPaymaster is BasePaymaster, Pausable, IVlossomPaymaster {
             // Extract inner function selector from the 'func' parameter of execute()
             // execute(address dest, uint256 value, bytes calldata func)
             // The inner selector is the first 4 bytes of the 'func' parameter
-            if (userOp.callData.length >= 100) {
-                // Position: 4 (selector) + 32 (dest) + 32 (value) + 32 (offset to func) = 100
-                // Then: length at offset, selector is next 4 bytes
+            //
+            // H-1 security fix: Add comprehensive bounds checking before assembly extraction
+            // CallData layout for execute():
+            // - bytes 0-3: outer selector (execute)
+            // - bytes 4-35: dest address (padded to 32 bytes)
+            // - bytes 36-67: value (uint256)
+            // - bytes 68-99: offset to func parameter (uint256)
+            // - At offset: length (uint256), then actual func calldata
+
+            uint256 callDataLen = userOp.callData.length;
+
+            // Minimum length check: 4 + 32 + 32 + 32 = 100 bytes for the fixed parts
+            if (callDataLen >= 100) {
                 bytes memory callData = userOp.callData;
                 bytes4 innerSelector;
+                bool validExtraction = false;
+
                 assembly {
-                    // Read the offset to func parameter (at byte 68-100)
+                    // Read the offset to func parameter (at byte 68, which is 4 + 32 + 32)
                     let funcOffset := mload(add(add(callData, 32), 68))
-                    // The inner func data starts at: 4 + funcOffset
-                    // Skip the length (32 bytes) to get the actual func calldata
-                    // Selector is first 4 bytes of func calldata
-                    let funcDataStart := add(add(callData, 36), funcOffset)
-                    innerSelector := and(mload(funcDataStart), 0xffffffff00000000000000000000000000000000000000000000000000000000)
+
+                    // H-1 fix: Validate funcOffset is within bounds
+                    // funcOffset should point to a location that can hold at least length + 4 bytes (selector)
+                    // The func data starts at: 4 (outer selector) + funcOffset
+                    // At that location: first 32 bytes = length, then func calldata
+                    let funcLengthPosition := add(4, funcOffset)
+
+                    // Check: funcLengthPosition + 32 (length) must be within calldata
+                    if lt(add(funcLengthPosition, 32), add(callDataLen, 1)) {
+                        // Read the length of func parameter
+                        let funcLength := mload(add(add(callData, 32), funcLengthPosition))
+
+                        // Check: func must have at least 4 bytes for a selector
+                        // gte(a,b) = not(lt(a,b)) = a >= b
+                        if iszero(lt(funcLength, 4)) {
+                            // Check: the selector position must be within calldata bounds
+                            let selectorPosition := add(funcLengthPosition, 32)
+                            if lt(add(selectorPosition, 4), add(callDataLen, 1)) {
+                                // Extract the inner selector (first 4 bytes of func calldata)
+                                let funcDataStart := add(add(callData, 32), selectorPosition)
+                                innerSelector := and(mload(funcDataStart), 0xffffffff00000000000000000000000000000000000000000000000000000000)
+                                validExtraction := 1
+                            }
+                        }
+                    }
                 }
 
-                // Check if this function is allowed for the target
-                if (!_allowedFunctions[target][innerSelector]) {
+                // H-1 fix: Only check whitelist if we successfully extracted a selector
+                // If extraction failed (malformed calldata), reject the operation
+                if (validExtraction) {
+                    if (!_allowedFunctions[target][innerSelector]) {
+                        revert FunctionNotWhitelisted();
+                    }
+                } else {
+                    // Malformed calldata - reject
                     revert FunctionNotWhitelisted();
                 }
             }
+            // Note: If callData < 100 bytes, no inner func check is performed
+            // This handles direct calls or execute() with empty func parameter
         }
 
         // Check and update rate limit

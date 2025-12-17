@@ -25,6 +25,8 @@ interface IYieldEngine {
     );
     event PoolIndexUpdated(address indexed pool, uint256 newIndex);
     event YieldDistributedToPool(address indexed pool, uint256 amount);
+    /// @notice M-4 fix: Emitted when pool utilization is updated
+    event PoolUtilizationUpdated(address indexed pool, uint256 utilization);
 
     // ============ Functions ============
 

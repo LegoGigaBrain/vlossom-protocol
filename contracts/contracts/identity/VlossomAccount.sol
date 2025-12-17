@@ -73,18 +73,24 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     // ============================================================================
 
     /// @notice M-1 fix: Recovery request structure
+    /// @dev H-2 fix: Added nonce to invalidate stale approvals
     struct RecoveryRequest {
         address newOwner;
         uint256 initiatedAt;
         uint256 approvalCount;
         bool isActive;
+        uint256 nonce;  // H-2 fix: Recovery nonce for approval invalidation
     }
 
     /// @notice M-1 fix: Current recovery request
     RecoveryRequest private _recoveryRequest;
 
-    /// @notice M-1 fix: Mapping of guardian approvals for current recovery
-    mapping(address => bool) private _recoveryApprovals;
+    /// @notice H-2 fix: Recovery nonce counter - increments on each new recovery
+    uint256 private _recoveryNonce;
+
+    /// @notice H-2 fix: Mapping of guardian approvals keyed by (guardian, nonce)
+    /// @dev Using nested mapping ensures old approvals are automatically invalidated
+    mapping(address => mapping(uint256 => bool)) private _recoveryApprovals;
 
     /// @notice Emitted when the account is initialized
     event VlossomAccountInitialized(IEntryPoint indexed entryPoint, address indexed owner);
@@ -303,15 +309,19 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
         if (_recoveryRequest.isActive) revert RecoveryAlreadyActive();
         if (_guardianCount < MIN_RECOVERY_APPROVALS) revert InsufficientApprovals();
 
+        // H-2 fix: Increment nonce to invalidate all previous approvals
+        uint256 newNonce = ++_recoveryNonce;
+
         _recoveryRequest = RecoveryRequest({
             newOwner: newOwner,
             initiatedAt: block.timestamp,
             approvalCount: 1,
-            isActive: true
+            isActive: true,
+            nonce: newNonce
         });
 
-        // Initiating guardian auto-approves
-        _recoveryApprovals[msg.sender] = true;
+        // Initiating guardian auto-approves (using current nonce)
+        _recoveryApprovals[msg.sender][newNonce] = true;
 
         emit RecoveryInitiated(msg.sender, newOwner, block.timestamp + RECOVERY_DELAY);
     }
@@ -319,12 +329,14 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     /**
      * @notice Approve a pending recovery (M-1 fix)
      * @dev Only callable by guardians who haven't already approved
+     * @dev H-2 fix: Approvals are keyed by nonce to prevent stale approval reuse
      */
     function approveRecovery() external override onlyGuardian {
         if (!_recoveryRequest.isActive) revert NoActiveRecovery();
-        if (_recoveryApprovals[msg.sender]) revert AlreadyApproved();
+        uint256 currentNonce = _recoveryRequest.nonce;
+        if (_recoveryApprovals[msg.sender][currentNonce]) revert AlreadyApproved();
 
-        _recoveryApprovals[msg.sender] = true;
+        _recoveryApprovals[msg.sender][currentNonce] = true;
         _recoveryRequest.approvalCount++;
 
         emit RecoveryApproved(msg.sender, _recoveryRequest.approvalCount);
@@ -387,25 +399,39 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     /**
      * @notice Check if a guardian has approved current recovery (M-1 fix)
      * @param guardian Guardian address to check
+     * @dev H-2 fix: Only returns true if approved for current nonce
      */
     function hasApprovedRecovery(address guardian) external view returns (bool) {
-        return _recoveryApprovals[guardian];
+        if (!_recoveryRequest.isActive) return false;
+        return _recoveryApprovals[guardian][_recoveryRequest.nonce];
     }
 
     /**
      * @dev Clear recovery state (M-1 fix)
-     * @dev Note: We cannot iterate over all guardians to clear approvals due to gas costs.
-     *      The approval mappings become stale but safe since isActive is false.
+     * @dev H-2 fix: No need to clear approval mappings - nonce increment handles this
+     *      When a new recovery starts, it uses a new nonce, making old approvals invalid
      */
     function _clearRecoveryState() private {
-        // Reset the recovery request
+        // Reset the recovery request (keep nonce for reference)
+        uint256 oldNonce = _recoveryRequest.nonce;
         _recoveryRequest = RecoveryRequest({
             newOwner: address(0),
             initiatedAt: 0,
             approvalCount: 0,
-            isActive: false
+            isActive: false,
+            nonce: oldNonce  // Preserve nonce for hasApprovedRecovery queries
         });
-        // Note: _recoveryApprovals mappings are not cleared to save gas
-        // They are only valid when _recoveryRequest.isActive is true
+        // H-2 fix: No need to clear _recoveryApprovals mappings
+        // Old approvals are automatically invalid because:
+        // 1. hasApprovedRecovery checks isActive first
+        // 2. New recoveries will use incremented nonce
+    }
+
+    /**
+     * @notice Get current recovery nonce
+     * @dev Useful for tracking recovery attempts
+     */
+    function getRecoveryNonce() external view returns (uint256) {
+        return _recoveryNonce;
     }
 }

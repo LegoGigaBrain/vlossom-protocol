@@ -2,39 +2,58 @@
  * Rate Limiter Middleware (F4.7: Security Hardening)
  * Prevents abuse by limiting request rates per IP/user
  *
- * SECURITY AUDIT (V1.9.0) - H-2: Rate Limiting Architecture
- * ============================================================
+ * SECURITY FIX (C-2): Production-ready rate limiting with Redis
+ * Reference: Security Review - In-memory rate limiting not suitable for horizontal scaling
  *
- * IMPORTANT: This implementation uses IN-MEMORY storage and is suitable
- * for SINGLE-INSTANCE deployments only.
+ * Architecture:
+ * - Uses Redis (via redis-client.ts) when REDIS_URL is configured
+ * - Falls back to in-memory Map when Redis is unavailable
+ * - Automatic failover: if Redis fails mid-operation, falls back to in-memory
  *
- * For horizontal scaling / multi-instance deployments:
- * 1. Deploy a Redis instance (AWS ElastiCache, Redis Cloud, etc.)
- * 2. Replace the Map-based rateLimitStore with ioredis client
- * 3. Use atomic INCR/EXPIRE operations for thread-safe counting
- * 4. Consider using sliding window algorithm for more accurate limiting
- *
- * Upgrade path documented in: docs/security/rate-limiting.md
- *
- * Current limitations:
- * - Each instance maintains its own counter (no sharing)
- * - Rate limits reset on server restart
- * - Not suitable for load-balanced deployments
+ * For production deployments:
+ * 1. Set REDIS_URL environment variable
+ * 2. Redis provides atomic INCR/EXPIRE for thread-safe counting
+ * 3. All instances share the same rate limit counters
  *
  * @see https://redis.io/commands/incr for atomic counter pattern
  */
 
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../lib/logger";
+import {
+  rateLimitIncrement,
+  rateLimitIsBlocked,
+  rateLimitBlock,
+  isRedisAvailable,
+  initRedis,
+} from "../lib/redis-client";
 
-// H-2: Production warning for in-memory rate limiting
-if (process.env.NODE_ENV === 'production') {
-  logger.warn('Rate limiter using in-memory storage', {
-    event: 'rate_limiter_init',
-    warning: 'Not suitable for horizontal scaling - consider Redis for multi-instance deployments',
-    upgradeGuide: 'docs/security/rate-limiting.md',
-  });
-}
+// Track whether we've logged the storage mode
+let storageModeLoogged = false;
+
+// Initialize Redis on module load (async, non-blocking)
+initRedis().then(() => {
+  if (!storageModeLoogged) {
+    storageModeLoogged = true;
+    if (isRedisAvailable()) {
+      logger.info("Rate limiter using Redis storage", {
+        event: "rate_limiter_init",
+        mode: "redis",
+      });
+    } else if (process.env.NODE_ENV === "production") {
+      logger.warn("Rate limiter using in-memory storage", {
+        event: "rate_limiter_init",
+        warning: "Redis not available - not suitable for horizontal scaling",
+        recommendation: "Set REDIS_URL for multi-instance deployments",
+      });
+    } else {
+      logger.info("Rate limiter using in-memory storage", {
+        event: "rate_limiter_init",
+        mode: "development",
+      });
+    }
+  }
+});
 
 // In-memory store for rate limiting
 // NOTE: For production with multiple instances, replace with Redis
@@ -109,12 +128,17 @@ export const RATE_LIMIT_PRESETS = {
   },
 };
 
+/** Request with optional authentication context */
+interface RequestWithAuth extends Request {
+  userId?: string;
+}
+
 /**
  * Get client identifier for rate limiting
  */
 function getClientKey(req: Request, prefix: string = ""): string {
   // Try to get user ID from authenticated request
-  const userId = (req as any).userId;
+  const userId = (req as RequestWithAuth).userId;
   if (userId) {
     return `${prefix}:user:${userId}`;
   }
@@ -130,6 +154,7 @@ function getClientKey(req: Request, prefix: string = ""): string {
 
 /**
  * Create a rate limiter middleware
+ * Uses Redis when available, falls back to in-memory storage
  */
 export function createRateLimiter(config: RateLimitConfig) {
   const {
@@ -139,11 +164,74 @@ export function createRateLimiter(config: RateLimitConfig) {
     keyGenerator,
   } = config;
 
-  return (req: Request, res: Response, next: NextFunction) => {
+  const windowSeconds = Math.ceil(windowMs / 1000);
+  const blockDurationSeconds = blockDurationMs ? Math.ceil(blockDurationMs / 1000) : 0;
+
+  return async (req: Request, res: Response, next: NextFunction) => {
     const key = keyGenerator ? keyGenerator(req) : getClientKey(req);
     const now = Date.now();
 
-    // Get or create entry
+    // Try Redis first if available
+    if (isRedisAvailable()) {
+      try {
+        // Check if blocked in Redis
+        const blockTtl = await rateLimitIsBlocked(key);
+        if (blockTtl !== null && blockTtl > 0) {
+          res.setHeader("Retry-After", blockTtl);
+          res.setHeader("X-RateLimit-Limit", maxRequests);
+          res.setHeader("X-RateLimit-Remaining", 0);
+          res.setHeader("X-RateLimit-Reset", Math.ceil((now + blockTtl * 1000) / 1000));
+
+          return res.status(429).json({
+            error: {
+              code: "RATE_LIMIT_EXCEEDED",
+              message: "Too many requests. Please try again later.",
+              retryAfter: blockTtl,
+            },
+          });
+        }
+
+        // Increment counter in Redis
+        const result = await rateLimitIncrement(key, windowSeconds);
+        if (result !== null) {
+          const { count, ttl } = result;
+          const remaining = Math.max(0, maxRequests - count);
+
+          res.setHeader("X-RateLimit-Limit", maxRequests);
+          res.setHeader("X-RateLimit-Remaining", remaining);
+          res.setHeader("X-RateLimit-Reset", Math.ceil((now + ttl * 1000) / 1000));
+
+          // Check if over limit
+          if (count > maxRequests) {
+            // Apply block if configured
+            if (blockDurationSeconds > 0) {
+              await rateLimitBlock(key, blockDurationSeconds);
+            }
+
+            res.setHeader("Retry-After", ttl);
+
+            return res.status(429).json({
+              error: {
+                code: "RATE_LIMIT_EXCEEDED",
+                message: "Too many requests. Please try again later.",
+                retryAfter: ttl,
+              },
+            });
+          }
+
+          return next();
+        }
+        // If result is null, fall through to in-memory
+      } catch (error) {
+        // Redis error - fall through to in-memory
+        logger.warn("Redis rate limit error, falling back to in-memory", {
+          event: "rate_limiter_redis_fallback",
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
+    }
+
+    // In-memory fallback
     let entry = rateLimitStore.get(key);
 
     // Check if blocked

@@ -46,6 +46,14 @@ interface AvailabilityException {
   note?: string;
 }
 
+/**
+ * Weekly schedule structure
+ * Maps day names to time slot arrays
+ */
+interface WeeklySchedule {
+  [dayOfWeek: string]: Array<{ start: string; end: string }>;
+}
+
 // ============================================================================
 // VALIDATION SCHEMAS FOR M3 ENDPOINTS
 // ============================================================================
@@ -224,7 +232,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
         if (isBlocked) return false;
 
         // Check if day of week has schedule
-        const schedule = (stylist.availability.schedule as any) || {};
+        const schedule = (stylist.availability.schedule as unknown as WeeklySchedule) || {};
         const daySchedule = schedule[dayOfWeek];
         if (!daySchedule || daySchedule.length === 0) return false;
 
