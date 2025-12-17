@@ -189,7 +189,7 @@ export function BookingDetails({ booking, onCancel, onBack }: BookingDetailsProp
           <Button
             variant="outline"
             onClick={onCancel}
-            className="w-full text-accent border-accent hover:bg-accent hover:text-white"
+            className="w-full text-status-error border-status-error hover:bg-status-error hover:text-white"
           >
             Cancel Booking
           </Button>
@@ -198,8 +198,8 @@ export function BookingDetails({ booking, onCancel, onBack }: BookingDetailsProp
 
       {/* Cancelled Info */}
       {booking.status === "CANCELLED" && booking.cancelledAt && (
-        <div className="bg-accent/10 rounded-lg p-4">
-          <p className="text-sm text-accent">
+        <div className="bg-status-error/10 rounded-lg p-4">
+          <p className="text-sm text-status-error">
             Cancelled on {formatDate(booking.cancelledAt)}
           </p>
         </div>

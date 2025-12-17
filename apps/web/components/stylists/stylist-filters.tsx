@@ -146,7 +146,7 @@ export function StylistFilters({
       {hasActiveFilters && (
         <button
           onClick={clearFilters}
-          className="text-sm text-accent hover:underline"
+          className="text-sm text-primary hover:underline"
         >
           Clear all filters
         </button>

@@ -30,9 +30,9 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         this.props.fallback || (
           <div className="p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-status-error/10 flex items-center justify-center">
               <svg
-                className="w-8 h-8 text-accent"
+                className="w-8 h-8 text-status-error"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

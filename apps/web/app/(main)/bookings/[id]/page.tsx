@@ -38,9 +38,9 @@ export default function BookingDetailsPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-status-error/10 flex items-center justify-center">
             <svg
-              className="w-10 h-10 text-accent"
+              className="w-10 h-10 text-status-error"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

@@ -20,7 +20,9 @@ module.exports = {
         secondary: {
           DEFAULT: "#EFE3D0",
         },
-        // Accent: Orange - notifications, highlights, urgency
+        // Accent: Orange - SACRED, reserved for growth & celebration ONLY
+        // DO NOT use for errors, warnings, or alerts. Use status-error/status-warning instead.
+        // Surface area < 8%. Examples: growth milestones, achievements, positive celebrations
         accent: {
           DEFAULT: "#FF510D",
         },
@@ -47,11 +49,13 @@ module.exports = {
           },
         },
         // Status colors
+        // IMPORTANT: Orange (#FF510D) is SACRED - reserved for growth/celebration only
+        // Use amber for warnings, muted red for errors
         status: {
-          success: "#A9D326",
-          warning: "#FF510D",
-          error: "#D0021B",
-          info: "#ADA5C4",
+          success: "#A9D326",   // Tertiary green - confirmations, success
+          warning: "#F59E0B",   // Amber - warnings, caution states
+          error: "#D0021B",     // Muted red - errors, failures
+          info: "#ADA5C4",      // Soft purple - informational
         },
         // Text colors (from design tokens)
         text: {

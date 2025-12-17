@@ -137,7 +137,7 @@ export function LocationSelector({
                 onChange={(e) => handleAddressChange(e.target.value)}
               />
               {customerAddress.length > 0 && customerAddress.length < 10 && (
-                <p className="text-sm text-accent mt-1">
+                <p className="text-sm text-status-warning mt-1">
                   Please enter a complete address
                 </p>
               )}
@@ -218,7 +218,7 @@ export function LocationSelector({
                   onChange={(e) => handleAddressChange(e.target.value)}
                 />
                 {customerAddress.length > 0 && customerAddress.length < 10 && (
-                  <p className="text-sm text-accent mt-1">
+                  <p className="text-sm text-status-warning mt-1">
                     Please enter a complete address
                   </p>
                 )}

@@ -274,10 +274,10 @@ export function PaymentStep({
   if (state === "insufficient" || (!hasBalance && state === "idle")) {
     return (
       <div className="space-y-4">
-        <div className="bg-accent/10 border border-accent rounded-lg p-4">
+        <div className="bg-status-warning/10 border border-status-warning rounded-lg p-4">
           <div className="flex items-start gap-3">
             <svg
-              className="w-6 h-6 text-accent flex-shrink-0"
+              className="w-6 h-6 text-status-warning flex-shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -290,7 +290,7 @@ export function PaymentStep({
               />
             </svg>
             <div>
-              <p className="font-medium text-accent">Insufficient Balance</p>
+              <p className="font-medium text-status-warning">Insufficient Balance</p>
               <p className="text-sm text-text-secondary mt-1">
                 You need {formatPrice((amountUSD - walletBalance) * 100)} more to
                 complete this booking.
@@ -333,9 +333,9 @@ export function PaymentStep({
     return (
       <div className="space-y-4 py-4">
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-accent/10 flex items-center justify-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-status-error/10 flex items-center justify-center">
             <svg
-              className="w-8 h-8 text-accent"
+              className="w-8 h-8 text-status-error"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
