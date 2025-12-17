@@ -11,7 +11,11 @@ export type NotificationType =
   | "SERVICE_STARTED"
   | "SERVICE_COMPLETED"
   | "BOOKING_CANCELLED"
-  | "BOOKING_REMINDER";
+  | "BOOKING_REMINDER"
+  // V5.0 Phase 4: Real-time session tracking
+  | "SESSION_PROGRESS"
+  | "STYLIST_ARRIVED"
+  | "CUSTOMER_ARRIVED";
 
 export type NotificationChannel = "EMAIL" | "SMS" | "IN_APP";
 
@@ -27,6 +31,9 @@ export interface NotificationMetadata {
   refundAmount?: number;
   cancellationReason?: string;
   deepLink?: string;
+  // V5.0 Phase 4: Real-time session tracking
+  etaMinutes?: number;
+  progressPercent?: number;
   [key: string]: unknown;
 }
 

@@ -1765,7 +1765,296 @@ Columns:
 
 ---
 
-## 12. What Changed in v1.1 (Quick Diff View)
+## 12. Hair Health Intelligence Tables (v0.7)
+
+The Hair Health Intelligence system enables personalized care recommendations, ritual scheduling, and stylist context sharing. These tables support the "growth from rest" philosophy by modeling hair care as ongoing wellness, not just transactions.
+
+### 12.1 hair_health_profiles
+
+Core hair profile for personalized care intelligence.
+
+```sql
+CREATE TABLE hair_health_profiles (
+  id                        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id                   uuid UNIQUE NOT NULL REFERENCES users(id),
+  profile_version           text NOT NULL DEFAULT '0.7',
+
+  -- Core classification (Andre Walker + extensions)
+  texture_class             text CHECK (texture_class IN (
+    '1A','1B','1C','2A','2B','2C','3A','3B','3C','4A','4B','4C','MIXED','UNKNOWN'
+  )),
+  pattern_family            text CHECK (pattern_family IN (
+    'STRAIGHT','WAVY','CURLY','COILY','KINKY','UNKNOWN'
+  )),
+  strand_thickness          text CHECK (strand_thickness IN ('FINE','MEDIUM','COARSE','UNKNOWN')),
+  density_level             text CHECK (density_level IN ('LOW','MEDIUM','HIGH','UNKNOWN')),
+  shrinkage_tendency        text CHECK (shrinkage_tendency IN ('MINIMAL','MODERATE','HIGH','EXTREME','UNKNOWN')),
+
+  -- Health metrics
+  porosity_level            text CHECK (porosity_level IN ('LOW','MEDIUM','HIGH','UNKNOWN')),
+  retention_risk            text CHECK (retention_risk IN ('LOW','MEDIUM','HIGH')),  -- derived from porosity + texture
+
+  -- Sensitivity & tolerance
+  detangle_tolerance        text CHECK (detangle_tolerance IN ('LOW','MEDIUM','HIGH')),
+  manipulation_tolerance    text CHECK (manipulation_tolerance IN ('LOW','MEDIUM','HIGH')),
+  tension_sensitivity       text CHECK (tension_sensitivity IN ('LOW','MEDIUM','HIGH')),
+  scalp_sensitivity         text CHECK (scalp_sensitivity IN ('LOW','MEDIUM','HIGH')),
+
+  -- Wash day characteristics
+  wash_day_load_factor      text CHECK (wash_day_load_factor IN ('LIGHT','STANDARD','HEAVY')),
+  estimated_wash_day_minutes integer CHECK (estimated_wash_day_minutes BETWEEN 30 AND 480),
+
+  -- Routine strategy
+  routine_type              text CHECK (routine_type IN (
+    'GROWTH','REPAIR','MAINTENANCE','KIDS','PROTECTIVE','TRANSITION','UNKNOWN'
+  )),
+
+  -- Learning progress (which concepts user has unlocked)
+  learning_nodes_unlocked   text[],  -- e.g., ['POROSITY_BASICS','MOISTURE_PROTEIN_BALANCE']
+
+  created_at                timestamptz NOT NULL DEFAULT now(),
+  updated_at                timestamptz NOT NULL DEFAULT now(),
+  last_reviewed_at          timestamptz
+);
+
+CREATE INDEX idx_hair_health_profiles_user ON hair_health_profiles(user_id);
+```
+
+---
+
+### 12.2 hair_rituals
+
+Templates for hair care rituals (wash day, deep condition, etc.).
+
+```sql
+CREATE TABLE hair_rituals (
+  id                        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id                   uuid REFERENCES users(id),  -- NULL for system templates
+
+  ritual_type               text NOT NULL CHECK (ritual_type IN (
+    'WASH_DAY_FULL',
+    'WASH_DAY_QUICK',
+    'DEEP_CONDITION',
+    'MOISTURE_REFRESH',
+    'PROTEIN_TREATMENT',
+    'SCALP_TREATMENT',
+    'DETANGLE_SESSION',
+    'PROTECTIVE_STYLE_PREP',
+    'TAKEDOWN_RECOVERY',
+    'TRIM_MAINTENANCE',
+    'CUSTOM'
+  )),
+
+  name                      text NOT NULL,
+  description               text,
+  default_duration_minutes  integer NOT NULL,
+  load_level                text NOT NULL CHECK (load_level IN ('LOW','MEDIUM','HIGH')),
+
+  -- For educational content linkage
+  education_hint_id         text,
+
+  -- Template vs custom
+  is_template               boolean NOT NULL DEFAULT false,
+  created_by_stylist_id     uuid REFERENCES users(id),  -- if shared by stylist
+
+  created_at                timestamptz NOT NULL DEFAULT now(),
+  updated_at                timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_hair_rituals_user ON hair_rituals(user_id);
+CREATE INDEX idx_hair_rituals_type ON hair_rituals(ritual_type);
+```
+
+---
+
+### 12.3 hair_ritual_steps
+
+Individual steps within a ritual.
+
+```sql
+CREATE TABLE hair_ritual_steps (
+  id                        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  ritual_id                 uuid NOT NULL REFERENCES hair_rituals(id) ON DELETE CASCADE,
+
+  step_order                integer NOT NULL,
+  step_type                 text NOT NULL CHECK (step_type IN (
+    'PRE_POO',
+    'SHAMPOO',
+    'CLARIFY',
+    'CONDITION',
+    'DEEP_CONDITION',
+    'PROTEIN_TREATMENT',
+    'DETANGLE',
+    'RINSE',
+    'LEAVE_IN',
+    'MOISTURIZE',
+    'SEAL',
+    'STYLE',
+    'DRY',
+    'SCALP_MASSAGE',
+    'CUSTOM'
+  )),
+
+  name                      text,  -- custom step name if type is CUSTOM
+  estimated_minutes         integer NOT NULL,
+  optional                  boolean NOT NULL DEFAULT false,
+  notes                     text,
+
+  created_at                timestamptz NOT NULL DEFAULT now(),
+
+  UNIQUE(ritual_id, step_order)
+);
+
+CREATE INDEX idx_hair_ritual_steps_ritual ON hair_ritual_steps(ritual_id);
+```
+
+---
+
+### 12.4 hair_calendar_events
+
+Scheduled hair care events (rituals, bookings, prompts).
+
+```sql
+CREATE TABLE hair_calendar_events (
+  id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id                     uuid NOT NULL REFERENCES users(id),
+
+  event_category              text NOT NULL CHECK (event_category IN (
+    'HAIR_RITUAL',
+    'BOOKING_SERVICE',
+    'EDUCATION_PROMPT',
+    'REST_BUFFER',
+    'RECOVERY_WINDOW'
+  )),
+  event_type                  text NOT NULL,  -- specific ritual/service type
+
+  title                       text NOT NULL,
+  description                 text,
+
+  scheduled_start             timestamptz NOT NULL,
+  scheduled_end               timestamptz NOT NULL,
+
+  -- Load and recovery
+  load_level                  text CHECK (load_level IN ('LOW','MEDIUM','HIGH')),
+  requires_rest_buffer        boolean NOT NULL DEFAULT false,
+  recommended_rest_hours_after integer,
+
+  -- Status tracking
+  status                      text NOT NULL DEFAULT 'PLANNED' CHECK (status IN (
+    'PLANNED',
+    'DUE',
+    'IN_PROGRESS',
+    'COMPLETED',
+    'SKIPPED',
+    'RESCHEDULED'
+  )),
+  completion_quality          text CHECK (completion_quality IN ('FULL','PARTIAL','RUSHED')),
+  completed_at                timestamptz,
+
+  -- Linkages
+  linked_ritual_id            uuid REFERENCES hair_rituals(id),
+  linked_booking_id           uuid REFERENCES bookings(id),
+  linked_education_content_id text,
+
+  -- Generation metadata
+  generated_by                text CHECK (generated_by IN ('SYSTEM','USER','STYLIST')),
+  recurrence_rule             jsonb,  -- iCal RRULE-like for future expansion
+
+  created_at                  timestamptz NOT NULL DEFAULT now(),
+  updated_at                  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_hair_calendar_events_user_time ON hair_calendar_events(user_id, scheduled_start);
+CREATE INDEX idx_hair_calendar_events_status ON hair_calendar_events(status);
+CREATE INDEX idx_hair_calendar_events_booking ON hair_calendar_events(linked_booking_id);
+```
+
+---
+
+### 12.5 hair_insights
+
+Generated care recommendations and insights.
+
+```sql
+CREATE TABLE hair_insights (
+  id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id                     uuid NOT NULL REFERENCES users(id),
+
+  insight_type                text NOT NULL CHECK (insight_type IN (
+    'MOISTURE_NEED',
+    'PROTEIN_NEED',
+    'REST_RECOMMENDATION',
+    'RECOVERY_WINDOW',
+    'WASH_DAY_REMINDER',
+    'WEATHER_ALERT',
+    'ROUTINE_ADJUSTMENT',
+    'LEARNING_PROMPT',
+    'STYLIST_PREP'
+  )),
+
+  title                       text NOT NULL,
+  body                        text NOT NULL,
+
+  confidence_score            numeric(3,2) CHECK (confidence_score BETWEEN 0 AND 1),
+  priority                    text NOT NULL DEFAULT 'NORMAL' CHECK (priority IN ('LOW','NORMAL','HIGH')),
+
+  -- Display control
+  display_start               timestamptz NOT NULL DEFAULT now(),
+  display_end                 timestamptz,
+  is_dismissed                boolean NOT NULL DEFAULT false,
+  dismissed_at                timestamptz,
+
+  -- Linkages
+  linked_event_id             uuid REFERENCES hair_calendar_events(id),
+  linked_booking_id           uuid REFERENCES bookings(id),
+
+  -- Metadata
+  source_data                 jsonb,  -- what data generated this insight
+
+  created_at                  timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_hair_insights_user ON hair_insights(user_id, is_dismissed);
+CREATE INDEX idx_hair_insights_display ON hair_insights(display_start, display_end);
+```
+
+---
+
+### 12.6 stylist_client_contexts
+
+Consent-based sharing of hair health context with stylists.
+
+```sql
+CREATE TABLE stylist_client_contexts (
+  id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_user_id            uuid NOT NULL REFERENCES users(id),
+  stylist_user_id             uuid NOT NULL REFERENCES users(id),
+
+  -- Consent management
+  consent_granted             boolean NOT NULL DEFAULT false,
+  consent_granted_at          timestamptz,
+  consent_scope               text[] NOT NULL DEFAULT '{}',  -- e.g., ['TEXTURE','POROSITY','SENSITIVITY']
+
+  -- Visible data snapshot (refreshed on booking)
+  shared_profile_snapshot     jsonb,  -- subset of hair_health_profile based on consent_scope
+
+  -- Notes from stylist
+  stylist_notes               text,
+  last_service_notes          text,
+
+  created_at                  timestamptz NOT NULL DEFAULT now(),
+  updated_at                  timestamptz NOT NULL DEFAULT now(),
+
+  UNIQUE(customer_user_id, stylist_user_id)
+);
+
+CREATE INDEX idx_stylist_client_contexts_customer ON stylist_client_contexts(customer_user_id);
+CREATE INDEX idx_stylist_client_contexts_stylist ON stylist_client_contexts(stylist_user_id);
+```
+
+---
+
+## 13. What Changed in v1.1 (Quick Diff View)
 
 To make your life easier when updating the existing file:
 

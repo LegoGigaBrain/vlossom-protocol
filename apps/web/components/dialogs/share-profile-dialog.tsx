@@ -161,7 +161,7 @@ export function ShareProfileDialog({
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {/* Native Share (if available) */}
-                {typeof navigator !== "undefined" && navigator.share && (
+                {typeof navigator !== "undefined" && typeof navigator.share === "function" && (
                   <button
                     onClick={handleNativeShare}
                     className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"

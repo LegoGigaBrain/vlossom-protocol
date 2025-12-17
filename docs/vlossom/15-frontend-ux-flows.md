@@ -1637,7 +1637,273 @@ Principles:
 
 ---
 
-## 13. Implementation Notes
+## 13. Global Navigation Model (Mobile-First) — V5.0
+
+Vlossom adopts a 5-tab primary navigation structure that puts discovery, financial control, and identity at the user's fingertips.
+
+### 13.1 Tab Structure
+
+| Tab | Icon | Purpose | Primary Surfaces |
+|-----|------|---------|-----------------|
+| **Home** | Map pin | Immediate discovery + booking | Map view, stylist pins, booking overlay |
+| **Search** | Magnifying glass | Intentional exploration | Following feed, search by name/service/vibe |
+| **Wallet** | Wallet (center, elevated) | Financial hub | Balance, P2P, DeFi, Rewards, History |
+| **Notifications** | Bell | Global inbox | All system events, approvals, social |
+| **Profile** | User | Identity + dashboards | Hair health, schedule, role dashboards |
+
+**Design Principles:**
+- Wallet is center tab (elevated, brand-colored) — signals economic transparency
+- No more than 5 tabs for cognitive load
+- Each tab has singular, clear purpose
+- Role-specific features appear within tabs, not as separate tabs
+
+### 13.2 Home Tab — Map-First Discovery
+
+**Philosophy**: Uber-like intent-first discovery. User arrives with a need; map shows who can help.
+
+**Core Elements:**
+- Full-screen map with stylist/salon pins
+- Color-coded pins by service mode:
+  - 🟢 **Green**: Fixed location (salon-based)
+  - 🟡 **Amber**: Mobile salon-to-salon
+  - 🔴 **Red**: Home-call specialists
+- Bottom sheet booking overlay (never leaves map)
+- Quick filters: Today, This week, Budget, Wash included
+
+**Empty State**: "No stylists in your area yet. Be the first to request one."
+
+### 13.3 Search Tab — Intentional Exploration
+
+**Philosophy**: For users who want to browse, explore, or find specific stylists.
+
+**Core Elements:**
+- Following feed (stylists you follow, their availability, new work)
+- Search by: name, @username, service type, vibe/aesthetic
+- Filter chips: Price range, rating, distance, specialty
+- Results as cards with quick-book CTA
+
+### 13.4 Profile Tab — Role-Aware Dashboard
+
+**Philosophy**: Instagram-style profile that adapts to user's active roles.
+
+#### Header (Always Visible)
+- Large avatar (tappable to edit)
+- @username, display name
+- Bio (short, 150 chars)
+- Follower/following counts
+- Verified badge (if applicable)
+- Settings gear icon
+
+#### Dynamic Tabs (Role-Based)
+| Tab | Shows For | Contains |
+|-----|-----------|----------|
+| **Overview** | Everyone | Hair health, upcoming bookings, quick actions |
+| **Stylist** | Stylist role enabled | Business dashboard, earnings, schedule, requests |
+| **Salon** | Property owner role enabled | Property stats, chair occupancy, pending approvals |
+
+Tabs appear/disappear based on enabled roles. Role tabs ARE the dashboards — no separate screens needed.
+
+---
+
+## 14. Hair Health Intelligence UX — V5.0
+
+Hair health is modeled as an intelligence layer, not a feature. It informs recommendations, calendar events, and stylist context.
+
+### 14.1 Hair Health Profile (Customer)
+
+**Location**: Profile → Overview → "Hair Snapshot" card
+
+**Progressive Disclosure:**
+1. **Onboarding** (optional): 5-question wizard for texture, porosity, sensitivity
+2. **Smart defaults**: System infers from booking history if not completed
+3. **Edit anytime**: Tappable card to update profile
+
+**Displayed Data:**
+- Hair archetype (e.g., "4C Coily, High Porosity")
+- Routine type (e.g., "Growth Focus")
+- Wash day load (e.g., "Heavy — 2.5 hours")
+- Sensitivity indicators (icons for tension, scalp)
+
+### 14.2 Care Insights (Recommendations)
+
+**Location**: Profile → Overview → "Care Insights" section
+
+**Insight Types:**
+- 💧 "High moisture need" — suggest hydrating ritual
+- 🧬 "Protein balance check" — recommend treatment
+- 😴 "Low manipulation week" — suggest rest period
+- 🌦️ "Weather alert" — humidity-aware tips (future)
+
+**Behavior:**
+- Insights appear based on calendar, booking history, profile
+- Dismissable but not deletable (for audit)
+- Tapping opens detail sheet with action (book service, schedule ritual)
+
+### 14.3 Learning Progress
+
+**Location**: Profile → Hair Health → "Knowledge" section
+
+**Philosophy**: Users don't know what they don't know. System tracks unlocked concepts.
+
+**Display:**
+- Progress bar (e.g., "5 of 12 care concepts learned")
+- Concept chips with locked/unlocked states
+- Tapping unlocked chip shows explainer
+- Tapping locked chip shows how to unlock (complete a ritual, book a service)
+
+---
+
+## 15. Hair-Aware Calendar (Schedule) — V5.0
+
+The calendar is a signature surface — a daily check-in point that understands hair care as ritual, not transaction.
+
+### 15.1 Calendar Modes
+
+Three display modes, switchable via toggle:
+
+#### Rhythm Strip (Default)
+- Horizontal day carousel
+- Thumb-first scrolling
+- Shows today + 14 days
+- Each day shows: event count, highest load level, rest markers
+- Tap day to expand to Day Flow
+
+#### Month Garden
+- Full month grid view
+- Days with events show accent dots (color = load level)
+- Rest days shown with subtle rest icon
+- Tap day to expand to Day Flow
+
+#### Day Flow
+- Single day timeline
+- Shows all events with:
+  - Icon (ritual type, booking, rest)
+  - Time range
+  - Load level badge (green/amber/terracotta)
+  - Rest buffer marker if applicable
+- Tap event to open ritual sheet or booking detail
+
+### 15.2 Event Types
+
+| Category | Examples | Visual |
+|----------|----------|--------|
+| **Hair Ritual** | Wash day, deep condition, moisture refresh | Droplet icon |
+| **Booking Service** | Retwist appointment, protective style install | Calendar+scissors icon |
+| **Education Prompt** | "Learn about protein balance" | Lightbulb icon |
+| **Rest Buffer** | Post-style recovery window | Moon icon |
+| **Recovery Window** | Takedown recovery period | Leaf icon |
+
+### 15.3 Load Level Visualization
+
+Load levels use warm, organic colors per brand guidelines:
+
+| Level | Color | Meaning |
+|-------|-------|---------|
+| **Low** | Soft sage green | Light activity, gentle care |
+| **Medium** | Warm sand/cream | Standard activity |
+| **High** | Muted terracotta | Intensive session, needs rest after |
+
+### 15.4 Ritual Sheets
+
+When tapping a ritual event, a bottom sheet opens showing:
+- Ritual name and estimated duration
+- Step list with checkmarks (if in progress)
+- Estimated time per step
+- Gentle copy: "Take your time. Your hair thanks you."
+- Mark as complete / Skip options
+
+### 15.5 Calendar Intelligence
+
+**Automatic Event Generation:**
+- System generates ritual events based on hair profile + routine type
+- Booking creates linked calendar event
+- High-load bookings trigger rest buffer insertion
+- Conflicting events show warning badge
+
+**Booking Integration:**
+- When booking includes wash: suppress duplicate wash day event
+- Day before booking: auto-add "Prep" event if needed
+- After high-tension style: insert recovery window
+
+---
+
+## 16. Stylist Context Sharing — V5.0
+
+Consent-based sharing of hair health data with stylists for better service.
+
+### 16.1 Consent Flow
+
+**Trigger**: First booking with a stylist, or from stylist profile
+
+**Modal:**
+```
+Share Hair Profile with [Stylist Name]?
+
+Sharing helps your stylist prepare better and
+understand your hair's needs.
+
+You control what's shared:
+☑️ Hair type & texture
+☑️ Porosity level
+☑️ Sensitivity indicators
+☐ Routine history
+
+[Share Selected] [Not Now]
+```
+
+### 16.2 Shared Context (Stylist View)
+
+**Location**: Stylist dashboard → Booking detail → "Client Hair Context"
+
+**Shows:**
+- Hair archetype
+- Porosity (affects product choices)
+- Sensitivity flags (tension, scalp)
+- Last 3 services (if consent includes history)
+- Stylist's own notes from previous sessions
+
+### 16.3 Privacy Controls
+
+**Location**: Profile → Settings → Privacy → "Stylist Data Sharing"
+
+- See list of stylists with access
+- Revoke access per stylist
+- Modify what's shared globally
+- Data is never sold or shared beyond consented stylists
+
+---
+
+## 17. Session Progress Tracking — V5.0
+
+Real-time progress tracking during active bookings.
+
+### 17.1 Service Steps (Stylist Input)
+
+When booking starts, stylist sees step list:
+- Pre-defined steps based on service type
+- Estimated duration per step
+- Tap to mark step complete
+- Delay option: "This step is taking longer" → adjusts timeline
+
+### 17.2 Customer View
+
+Customer sees:
+- Overall progress bar
+- Current step indicator
+- Estimated time remaining
+- Delay notifications (gentle): "Your stylist is taking extra care with conditioning"
+
+### 17.3 Dispute Resolution Value
+
+Session progress creates factual record:
+- Step completion times
+- Any marked delays
+- Both parties see same timeline
+- Reduces "he said, she said" in disputes
+
+---
+
+## 18. Implementation Notes
 
 For designers:
 

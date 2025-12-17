@@ -10,6 +10,29 @@
 
 ## Current Implementation Status
 
+**V5.0 Backend Complete - Hair Health Intelligence** (Dec 17, 2025)
+
+### V5.0 Changes
+
+**Hair Health Intelligence System:**
+- Hair health routes (`routes/hair-health.ts`) — Profile CRUD, learning progress
+- Intelligence engine (`lib/hair-health/intelligence-engine.ts`) — Health scoring, archetypes, risk assessment
+- Recommendations (`lib/hair-health/recommendations.ts`) — Care suggestions, weekly focus, quick wins
+- Rest buffer calculator (`lib/hair-health/rest-buffer-calculator.ts`) — Recovery calculation, load assessment
+- Stylist context routes (`routes/stylist-context.ts`) — Consent-based profile sharing
+
+**Real-Time Session Tracking:**
+- Bookings realtime routes (`routes/bookings-realtime.ts`) — SSE, session progress, arrival notifications
+- New notification types: `SESSION_PROGRESS`, `STYLIST_ARRIVED`, `CUSTOMER_ARRIVED`
+
+**New Database Models:**
+- `StylistClientContext` — Consent-based hair profile sharing between customers and stylists
+
+**New Library Modules:**
+- `lib/hair-health/` — Hair health intelligence module with 6 services
+
+---
+
 **V4.0.0 Complete - DeFi Integration** (Dec 16, 2025)
 
 ### V4.0.0 Changes
@@ -213,6 +236,38 @@ POST   /api/v1/liquidity/yield/claim     — Claim yield from pool
 POST   /api/v1/liquidity/yield/claim-all — Claim all yield
 GET    /api/v1/liquidity/tier            — User's referral tier
 GET    /api/v1/liquidity/stats           — Global DeFi stats
+```
+
+### Hair Health (6 endpoints) - V5.0
+```
+GET    /api/v1/hair-health/profile        — Get user's hair profile
+POST   /api/v1/hair-health/profile        — Create hair profile
+PATCH  /api/v1/hair-health/profile        — Update hair profile
+DELETE /api/v1/hair-health/profile        — Delete hair profile
+GET    /api/v1/hair-health/learning       — Get learning progress
+POST   /api/v1/hair-health/learning/:nodeId — Unlock learning node
+```
+
+### Stylist Context (7 endpoints) - V5.0
+```
+GET    /api/v1/stylist-context/:stylistId — Get shared context (customer)
+POST   /api/v1/stylist-context/grant      — Grant stylist access
+DELETE /api/v1/stylist-context/:stylistId — Revoke stylist access
+GET    /api/v1/stylist-context/my-shares  — List stylists with access
+GET    /api/v1/stylist-context/customers  — List shared customers (stylist)
+GET    /api/v1/stylist-context/customer/:id — Get customer context (stylist)
+PATCH  /api/v1/stylist-context/customer/:id — Update notes (stylist)
+```
+
+### Real-Time Bookings (7 endpoints) - V5.0
+```
+GET    /api/v1/bookings/:id/live              — SSE live updates
+POST   /api/v1/bookings/:id/session/progress  — Update session progress
+GET    /api/v1/bookings/:id/session/progress  — Get session progress
+POST   /api/v1/bookings/:id/session/arrived   — Mark stylist arrived
+POST   /api/v1/bookings/:id/session/customer-arrived — Mark customer arrived
+POST   /api/v1/bookings/:id/session/end       — End session tracking
+GET    /api/v1/bookings/active-sessions       — Get all active sessions
 ```
 
 ### Admin Users (3 endpoints) - V3.4

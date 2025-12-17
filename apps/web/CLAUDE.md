@@ -2,6 +2,26 @@
 
 > Purpose: Main customer-facing web application (PWA) for booking services, managing profiles, and wallet interactions.
 
+## Current Implementation Status
+
+**V5.0.0 Backend Complete** (Dec 17, 2025)
+
+Hair Health Intelligence backend phases 1-5 complete. Frontend components pending.
+
+### V5.0 Backend Changes
+
+**Real-Time Hooks (Phase 4)**
+- `hooks/use-location-tracking.ts` - Consent-based location tracking for stylists
+- `hooks/use-live-updates.ts` - SSE connection for real-time booking updates
+
+**Supported Features:**
+- Geolocation with permission prompts
+- Session-only location sharing (no persistence)
+- Server-Sent Events for live booking status
+- Auto-reconnect with exponential backoff
+
+---
+
 ## Canonical References
 - [Doc 15: Frontend UX Flows](../../docs/vlossom/15-frontend-ux-flows.md)
 - [Doc 16: UI Components and Design System](../../docs/vlossom/16-ui-components-and-design-system.md)

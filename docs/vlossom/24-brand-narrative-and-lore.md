@@ -862,6 +862,135 @@ This document is the emotional checksum of the entire system.
 
 When in doubt, return here.
 
+---
+
+## 13. Motion Principles (V5.0)
+
+Motion in Vlossom is not decoration—it is emotional language.
+
+Every animation must embody the philosophy of "growth from rest."
+
+### 13.1 The Three Motion Archetypes
+
+**Unfolding**
+Motion that reveals, expands, or opens—like a flower blooming.
+
+- Used for: expanding panels, opening sheets, revealing content
+- Easing: ease-out (fast start, gentle landing)
+- Duration: 300-400ms
+- Example: Calendar event expanding to show ritual steps
+
+**Breathing**
+Motion that pulses, scales subtly, or creates rhythm—like natural breath.
+
+- Used for: loading states, hover feedback, focus indicators
+- Easing: ease-in-out (symmetrical, calm)
+- Duration: 1000-2000ms (loops)
+- Example: Active event gently pulsing on calendar
+
+**Settling**
+Motion that resolves, lands, or comes to rest—like a leaf finding ground.
+
+- Used for: completing actions, confirming choices, transitioning states
+- Easing: spring (subtle bounce, 0.3 damping)
+- Duration: 200-300ms
+- Example: Event chip settling into calendar slot
+
+### 13.2 Motion Rules
+
+**Rule 1: Motion Must Calm, Never Startle**
+No motion should cause anxiety. Avoid:
+- Sudden jumps
+- Jarring directional changes
+- Aggressive shake/bounce effects
+- Rapid-fire sequential animations
+
+**Rule 2: Motion Should Breathe, Not Rush**
+Prefer slightly longer, smoother transitions over snappy micro-interactions.
+The system is never in a hurry.
+
+**Rule 3: Motion Must Respect Attention**
+Animations should guide focus, not compete for it.
+Only one primary motion at a time. Secondary motions should be subtle.
+
+**Rule 4: Motion Should Feel Organic**
+Prefer spring physics over linear timing.
+Prefer curves over straight lines.
+Prefer asymmetric easing (ease-out) over symmetric (ease-in-out) for reveals.
+
+**Rule 5: Motion Should Be Skippable**
+Respect `prefers-reduced-motion`. All animations must have static fallbacks.
+The experience must remain complete without motion.
+
+### 13.3 Calendar-Specific Motion
+
+The Hair Health Calendar is a signature surface. Its motion defines the brand.
+
+**Rhythm Strip (Horizontal Carousel)**
+- Scroll: momentum-based, physics-driven
+- Day change: subtle scale (1.0 → 1.05) with settling
+- Event appear: fade-up with unfold (0 → 1 opacity, 8px → 0 translateY)
+
+**Month Garden (Month View)**
+- Month transition: crossfade with subtle slide (200ms)
+- Event dots: breathing pulse on hover (scale 1.0 → 1.1 → 1.0)
+- Day selection: ring expand with settling
+
+**Day Flow (Timeline)**
+- Timeline scroll: smooth, buttery, 60fps minimum
+- Event cards: stagger unfold on initial load (50ms delay between cards)
+- Ritual expand: accordion unfold with content fade
+
+**Ritual Sheets (Bottom Sheets)**
+- Sheet open: unfold from bottom (spring, 350ms)
+- Sheet close: settle down (ease-out, 250ms)
+- Step progress: gentle fill animation (ease-out, 400ms)
+- Step completion: check mark unfold with micro-bounce
+
+### 13.4 Global Motion Tokens
+
+```css
+/* Durations */
+--motion-instant: 100ms;
+--motion-fast: 200ms;
+--motion-normal: 300ms;
+--motion-slow: 400ms;
+--motion-breath: 2000ms;
+
+/* Easings */
+--ease-unfold: cubic-bezier(0.0, 0.0, 0.2, 1);   /* ease-out */
+--ease-settle: cubic-bezier(0.34, 1.56, 0.64, 1); /* spring */
+--ease-breathe: cubic-bezier(0.4, 0.0, 0.6, 1);   /* ease-in-out */
+
+/* Spring presets (for Framer Motion / React Spring) */
+--spring-gentle: { stiffness: 120, damping: 14 };
+--spring-snappy: { stiffness: 200, damping: 20 };
+--spring-bouncy: { stiffness: 180, damping: 12 };
+```
+
+### 13.5 Anti-Patterns (What to Avoid)
+
+| Anti-Pattern | Why It Violates Brand | Alternative |
+|--------------|----------------------|-------------|
+| Shake on error | Creates anxiety | Gentle pulse with red tint |
+| Countdown timers with urgency | Rushes the user | Calm progress ring |
+| Rapid sequential toasts | Overwhelms attention | Single consolidated message |
+| Bounce-in modals | Too playful, jarring | Unfold from center |
+| Confetti/particles | Off-brand energy | Subtle glow or ring expand |
+| Aggressive loading spinners | Creates impatience | Breathing dots or gentle pulse |
+
+### 13.6 Motion as Emotional Feedback
+
+Motion should communicate care:
+
+- **Success**: Gentle settle with soft glow (not explosion)
+- **Error**: Calm pulse with muted red (not aggressive shake)
+- **Loading**: Breathing rhythm (not frantic spinner)
+- **Transition**: Smooth crossfade (not harsh cut)
+- **Completion**: Satisfying settle (not abrupt stop)
+
+The goal: Users should feel held, not hurried.
+
 
 
 

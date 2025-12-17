@@ -313,6 +313,40 @@ export function PropertyIllustration({ className = "" }: IllustrationProps) {
 }
 
 /**
+ * Message illustration for reviews/comments
+ */
+export function MessageIllustration({ className = "" }: IllustrationProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 120 120"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      {/* Speech bubble */}
+      <path
+        d="M20 35C20 30.5817 23.5817 27 28 27H82C86.4183 27 90 30.5817 90 35V65C90 69.4183 86.4183 73 82 73H50L35 88V73H28C23.5817 73 20 69.4183 20 65V35Z"
+        className="fill-secondary stroke-primary"
+        strokeWidth="2"
+      />
+      {/* Text lines */}
+      <rect x="30" y="40" width="50" height="4" rx="2" className="fill-primary-soft" />
+      <rect x="30" y="50" width="40" height="4" rx="2" className="fill-border-subtle" />
+      <rect x="30" y="60" width="30" height="4" rx="2" className="fill-border-subtle" />
+      {/* Sparkle */}
+      <circle cx="100" cy="35" r="4" className="fill-accent" />
+      <path
+        d="M100 28V32M100 38V42M93 35H97M103 35H107"
+        className="stroke-accent"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/**
  * Notification/inbox illustration
  */
 export function InboxIllustration({ className = "" }: IllustrationProps) {

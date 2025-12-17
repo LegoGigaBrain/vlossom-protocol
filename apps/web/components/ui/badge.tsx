@@ -6,7 +6,7 @@
 
 import * as React from "react";
 
-type BadgeVariant = "default" | "success" | "warning" | "error" | "danger" | "info" | "secondary";
+export type BadgeVariant = "default" | "success" | "warning" | "error" | "danger" | "info" | "secondary" | "outline" | "primary";
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   children: React.ReactNode;
@@ -21,6 +21,8 @@ const variantClasses: Record<BadgeVariant, string> = {
   danger: "bg-status-error/10 text-status-error",
   info: "bg-tertiary/10 text-tertiary",
   secondary: "bg-background-secondary text-text-secondary",
+  outline: "bg-transparent border border-border-default text-text-secondary",
+  primary: "bg-brand-rose/10 text-brand-rose",
 };
 
 export function Badge({

@@ -1,7 +1,26 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V4.0.0 Complete ✅ DEFI INTEGRATION**
+**V5.0.0 Backend Complete ✅ HAIR HEALTH INTELLIGENCE**
+
+✅ **V5.0.0 Backend Complete (Dec 17, 2025)** - Hair Health Intelligence:
+- **5 Backend Phases Completed** - Core architecture through intelligence layer
+- **~15 New Files** - Intelligence engine, recommendations, rest calculator, stylist context
+- **20+ New API Endpoints** - Hair health, stylist context, real-time bookings
+- **Frontend Pending** - UI components for hair health, calendar, map-first home
+
+**What's Included:**
+- Hair Health Profile System (20+ attributes, archetypes, scoring)
+- Intelligence Engine (health grades A-F, risk assessment)
+- Recommendations Engine (weekly focus, quick wins)
+- Rest Buffer Calculator (load assessment, recovery periods)
+- Stylist Context API (consent-based profile sharing)
+- Real-Time Booking Updates (SSE, session progress)
+- Location Tracking Hooks (consent-based geolocation)
+
+**Next Phase:** V5.0 Frontend Components → Mobile App (V6.0)
+
+---
 
 ✅ **V4.0.0 Complete (Dec 16, 2025)** - DeFi Integration:
 - **Full Liquidity Pool System** - Genesis Pool (VLP) + Community Pools
@@ -235,8 +254,9 @@
 | **V3.3.0** | Feature Complete | 8 sprints | All user flows, ~50 files, ready for styling | ✅ Complete |
 | **V3.4.0** | Pre-Styling | 10 sprints | Wallet tabs, fiat, rewards, settings, admin panel | ✅ Complete |
 | **V4.0.0** | DeFi | 8 phases | Liquidity pools, yield, tier system, admin console | ✅ Complete |
-| **V4.1** | UI/UX Styling | - | Visual polish, design system refinement | 🔜 Planned |
-| **V5.0** | Mobile | - | React Native app, biometrics, push notifications | 🔜 Planned |
+| **V5.0.0** | Hair Health | 5 phases | Intelligence engine, recommendations, stylist context (backend) | ✅ Complete |
+| **V5.1** | Hair Health UI | - | Frontend components for hair health, calendar, map-first home | 🔜 Planned |
+| **V6.0** | Mobile | - | React Native app, biometrics, push notifications | 🔜 Planned |
 
 ---
 

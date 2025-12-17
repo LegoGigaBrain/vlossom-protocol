@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { Skeleton } from "../../../components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -19,7 +20,6 @@ import { Switch } from "../../../components/ui/switch";
 import { toast } from "../../../hooks/use-toast";
 import { cn } from "../../../lib/utils";
 import {
-  Cog,
   Code,
   Terminal,
   Wallet,
@@ -34,6 +34,41 @@ import {
 } from "lucide-react";
 
 export default function AdvancedSettingsPage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-4 w-48 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-20 w-full" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-56 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-32 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return <AdvancedSettingsContent />;
+}
+
+function AdvancedSettingsContent() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { switchChain, isPending: isSwitchingChain } = useSwitchChain();
@@ -42,8 +77,25 @@ export default function AdvancedSettingsPage() {
   const [devMode, setDevMode] = useState(false);
   const [showTestnets, setShowTestnets] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [storageSize, setStorageSize] = useState(0);
 
-  // Load preferences
+  // Calculate storage size
+  const calculateStorageSize = () => {
+    try {
+      let total = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key) {
+          total += localStorage.getItem(key)?.length || 0;
+        }
+      }
+      return total;
+    } catch {
+      return 0;
+    }
+  };
+
+  // Load preferences (only on client)
   useEffect(() => {
     const saved = localStorage.getItem("vlossom_advanced");
     if (saved) {
@@ -56,10 +108,12 @@ export default function AdvancedSettingsPage() {
         // Use defaults
       }
     }
+    setStorageSize(calculateStorageSize());
   }, []);
 
   // Save preferences
   const savePreferences = () => {
+    if (typeof window === "undefined") return;
     localStorage.setItem(
       "vlossom_advanced",
       JSON.stringify({ web3Mode, devMode, showTestnets })
@@ -312,7 +366,7 @@ export default function AdvancedSettingsPage() {
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium">Local Storage</span>
               <span className="text-sm text-text-secondary">
-                ~{Math.round(JSON.stringify(localStorage).length / 1024)} KB used
+                ~{Math.round(storageSize / 1024)} KB used
               </span>
             </div>
             <div className="w-full bg-background-tertiary rounded-full h-2">
@@ -320,7 +374,7 @@ export default function AdvancedSettingsPage() {
                 className="bg-brand-rose h-2 rounded-full"
                 style={{
                   width: `${Math.min(
-                    (JSON.stringify(localStorage).length / (5 * 1024 * 1024)) * 100,
+                    (storageSize / (5 * 1024 * 1024)) * 100,
                     100
                   )}%`,
                 }}

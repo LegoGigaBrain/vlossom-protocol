@@ -39,6 +39,7 @@ function validateProductionSecrets(): void {
 validateProductionSecrets();
 import authRouter from "./routes/auth";
 import bookingsRouter from "./routes/bookings";
+import bookingsRealtimeRouter from "./routes/bookings-realtime";
 import stylistsRouter from "./routes/stylists";
 import walletRouter from "./routes/wallet";
 import notificationsRouter from "./routes/notifications";
@@ -49,6 +50,8 @@ import reviewsRouter from "./routes/reviews";
 import fiatRouter from "./routes/fiat";
 import rewardsRouter from "./routes/rewards";
 import liquidityRouter from "./routes/liquidity";
+import hairHealthRouter from "./routes/hair-health";
+import stylistContextRouter from "./routes/stylist-context";
 import adminPaymasterRouter from "./routes/admin/paymaster";
 import adminUsersRouter from "./routes/admin/users";
 import adminBookingsRouter from "./routes/admin/bookings";
@@ -106,6 +109,7 @@ app.get("/health", (_req, res) => {
 // API v1 routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/bookings", bookingsRouter);
+app.use("/api/v1/bookings", bookingsRealtimeRouter);
 app.use("/api/v1/stylists", stylistsRouter);
 app.use("/api/v1/wallet", walletRouter);
 app.use("/api/v1/notifications", notificationsRouter);
@@ -116,6 +120,8 @@ app.use("/api/v1/reviews", reviewsRouter);
 app.use("/api/v1/fiat", fiatRouter);
 app.use("/api/v1/rewards", rewardsRouter);
 app.use("/api/v1/liquidity", liquidityRouter);
+app.use("/api/v1/hair-health", hairHealthRouter);
+app.use("/api/v1/stylist-context", stylistContextRouter);
 app.use("/api/v1/admin/paymaster", adminPaymasterRouter);
 app.use("/api/v1/admin/users", adminUsersRouter);
 app.use("/api/v1/admin/bookings", adminBookingsRouter);

@@ -148,6 +148,10 @@ model User {
   // Password reset tokens
   passwordResetTokens PasswordResetToken[]
 
+  // V5.0: Hair health context sharing
+  customerContexts    StylistClientContext[] @relation("CustomerContexts")
+  stylistContexts     StylistClientContext[] @relation("StylistContexts")
+
   @@index([walletAddress])
   @@index([email])
   @@index([phone])
@@ -289,6 +293,7 @@ model Booking {
   service        StylistService?        @relation(fields: [serviceId], references: [id])
   statusHistory  BookingStatusHistory[]
   escrowFailures EscrowFailure[]        // M-1: Track escrow failures for this booking
+  hairCalendarEvents HairCalendarEvent[] // V5.0: Link to hair calendar
 
   @@index([customerId])
   @@index([stylistId])
@@ -483,6 +488,10 @@ enum NotificationType {
   SERVICE_COMPLETED
   BOOKING_CANCELLED
   BOOKING_REMINDER
+  // V5.0 Phase 4: Real-time session tracking
+  SESSION_PROGRESS
+  STYLIST_ARRIVED
+  CUSTOMER_ARRIVED
 }
 
 enum NotificationChannel {
@@ -1521,5 +1530,316 @@ model SystemConfig {
   updatedAt DateTime @updatedAt
 
   @@map("system_config")
+}
+
+// ============================================================================
+// HAIR HEALTH INTELLIGENCE (V5.0)
+// Reference: docs/vlossom/06-database-schema.md Section 12
+// ============================================================================
+
+/// Hair texture classification
+enum TextureClass {
+  TYPE_1A
+  TYPE_1B
+  TYPE_1C
+  TYPE_2A
+  TYPE_2B
+  TYPE_2C
+  TYPE_3A
+  TYPE_3B
+  TYPE_3C
+  TYPE_4A
+  TYPE_4B
+  TYPE_4C
+  MIXED
+  UNKNOWN
+}
+
+/// Hair pattern family
+enum PatternFamily {
+  STRAIGHT
+  WAVY
+  CURLY
+  COILY
+  KINKY
+  UNKNOWN
+}
+
+/// Three-level scale for various hair attributes
+enum ThreeLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+/// Load factor for wash days
+enum LoadFactor {
+  LIGHT
+  STANDARD
+  HEAVY
+}
+
+/// Routine strategy type
+enum RoutineType {
+  GROWTH
+  REPAIR
+  MAINTENANCE
+  KIDS
+  PROTECTIVE
+  TRANSITION
+  UNKNOWN
+}
+
+/// Hair calendar event category
+enum HairEventCategory {
+  HAIR_RITUAL
+  BOOKING_SERVICE
+  EDUCATION_PROMPT
+  REST_BUFFER
+  RECOVERY_WINDOW
+}
+
+/// Hair calendar event status
+enum HairEventStatus {
+  PLANNED
+  DUE
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+  RESCHEDULED
+}
+
+/// Hair insight type
+enum HairInsightType {
+  MOISTURE_NEED
+  PROTEIN_NEED
+  REST_RECOMMENDATION
+  RECOVERY_WINDOW
+  WASH_DAY_REMINDER
+  WEATHER_ALERT
+  ROUTINE_ADJUSTMENT
+  LEARNING_PROMPT
+  STYLIST_PREP
+}
+
+/// V5.0: Core hair health profile
+model HairHealthProfile {
+  id               String       @id @default(uuid())
+  userId           String       @unique
+  profileVersion   String       @default("0.7")
+
+  // Core classification
+  textureClass     TextureClass @default(UNKNOWN)
+  patternFamily    PatternFamily @default(UNKNOWN)
+  strandThickness  ThreeLevel?
+  densityLevel     ThreeLevel?
+  shrinkageTendency ThreeLevel?
+
+  // Health metrics
+  porosityLevel    ThreeLevel?
+  retentionRisk    ThreeLevel?  // Derived from porosity + texture
+
+  // Sensitivity & tolerance
+  detangleTolerance     ThreeLevel?
+  manipulationTolerance ThreeLevel?
+  tensionSensitivity    ThreeLevel?
+  scalpSensitivity      ThreeLevel?
+
+  // Wash day characteristics
+  washDayLoadFactor      LoadFactor?
+  estimatedWashDayMinutes Int?
+
+  // Routine strategy
+  routineType      RoutineType @default(UNKNOWN)
+
+  // Learning progress
+  learningNodesUnlocked Json @default("[]") // string[]
+
+  // Timestamps
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  lastReviewedAt   DateTime?
+
+  // Relations
+  calendarEvents   HairCalendarEvent[]
+  insights         HairInsight[]
+  stylistContexts  StylistClientContext[] @relation("CustomerContext")
+
+  @@index([userId])
+  @@map("hair_health_profiles")
+}
+
+/// V5.0: Hair care ritual templates
+model HairRitual {
+  id                    String      @id @default(uuid())
+  userId                String?     // null for system templates
+  ritualType            String      // wash_day_full, deep_condition, etc.
+  name                  String
+  description           String?
+  defaultDurationMinutes Int
+  loadLevel             LoadFactor
+
+  // Template management
+  isTemplate            Boolean     @default(false)
+  createdByStylistId    String?
+
+  // Educational content
+  educationHintId       String?
+
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  // Relations
+  steps                 HairRitualStep[]
+  calendarEvents        HairCalendarEvent[]
+
+  @@index([userId])
+  @@index([ritualType])
+  @@map("hair_rituals")
+}
+
+/// V5.0: Steps within a ritual
+model HairRitualStep {
+  id               String   @id @default(uuid())
+  ritualId         String
+  stepOrder        Int
+  stepType         String   // pre_poo, shampoo, condition, etc.
+  name             String?  // Custom name if type is CUSTOM
+  estimatedMinutes Int
+  optional         Boolean  @default(false)
+  notes            String?
+
+  // Timestamps
+  createdAt        DateTime @default(now())
+
+  // Relations
+  ritual           HairRitual @relation(fields: [ritualId], references: [id], onDelete: Cascade)
+
+  @@unique([ritualId, stepOrder])
+  @@index([ritualId])
+  @@map("hair_ritual_steps")
+}
+
+/// V5.0: Scheduled hair care events
+model HairCalendarEvent {
+  id                String           @id @default(uuid())
+  userId            String
+  profileId         String?
+
+  // Event details
+  eventCategory     HairEventCategory
+  eventType         String
+  title             String
+  description       String?
+
+  // Scheduling
+  scheduledStart    DateTime
+  scheduledEnd      DateTime
+
+  // Load and recovery
+  loadLevel         LoadFactor?
+  requiresRestBuffer Boolean         @default(false)
+  recommendedRestHoursAfter Int?
+
+  // Status tracking
+  status            HairEventStatus  @default(PLANNED)
+  completionQuality String?          // full, partial, rushed
+  completedAt       DateTime?
+
+  // Linkages
+  linkedRitualId    String?
+  linkedBookingId   String?
+  linkedEducationContentId String?
+
+  // Generation metadata
+  generatedBy       String?          // system, user, stylist
+  recurrenceRule    Json?            // iCal RRULE-like
+
+  // Timestamps
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  // Relations
+  profile           HairHealthProfile? @relation(fields: [profileId], references: [id])
+  ritual            HairRitual?       @relation(fields: [linkedRitualId], references: [id])
+  booking           Booking?          @relation(fields: [linkedBookingId], references: [id])
+
+  @@index([userId, scheduledStart])
+  @@index([status])
+  @@index([linkedBookingId])
+  @@map("hair_calendar_events")
+}
+
+/// V5.0: Generated care recommendations
+model HairInsight {
+  id              String          @id @default(uuid())
+  userId          String
+  profileId       String?
+
+  // Insight details
+  insightType     HairInsightType
+  title           String
+  body            String
+
+  // Confidence
+  confidenceScore Float?
+  priority        String          @default("NORMAL") // LOW, NORMAL, HIGH
+
+  // Display control
+  displayStart    DateTime        @default(now())
+  displayEnd      DateTime?
+  isDismissed     Boolean         @default(false)
+  dismissedAt     DateTime?
+
+  // Linkages
+  linkedEventId   String?
+  linkedBookingId String?
+
+  // Metadata
+  sourceData      Json?
+
+  // Timestamps
+  createdAt       DateTime        @default(now())
+
+  // Relations
+  profile         HairHealthProfile? @relation(fields: [profileId], references: [id])
+
+  @@index([userId, isDismissed])
+  @@index([displayStart, displayEnd])
+  @@map("hair_insights")
+}
+
+/// V5.0: Consent-based stylist context sharing
+model StylistClientContext {
+  id                   String    @id @default(uuid())
+  customerUserId       String
+  stylistUserId        String
+
+  // Consent management
+  consentGranted       Boolean   @default(false)
+  consentGrantedAt     DateTime?
+  consentScope         Json      @default("[]") // string[] - TEXTURE, POROSITY, etc.
+
+  // Shared data
+  sharedProfileSnapshot Json?
+
+  // Stylist notes
+  stylistNotes         String?
+  lastServiceNotes     String?
+
+  // Timestamps
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  // Relations
+  customerProfile      HairHealthProfile? @relation("CustomerContext", fields: [customerUserId], references: [userId], map: "stylist_client_contexts_profile_fkey")
+  customer             User               @relation("CustomerContexts", fields: [customerUserId], references: [id], map: "stylist_client_contexts_customer_fkey")
+  stylist              User               @relation("StylistContexts", fields: [stylistUserId], references: [id], map: "stylist_client_contexts_stylist_fkey")
+
+  @@unique([customerUserId, stylistUserId])
+  @@index([customerUserId])
+  @@index([stylistUserId])
+  @@map("stylist_client_contexts")
 }
 

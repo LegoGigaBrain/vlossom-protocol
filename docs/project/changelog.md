@@ -7,6 +7,133 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.0] - 2025-12-17
+
+### V5.0.0: Hair Health Intelligence (Backend) - COMPLETE ✅
+
+**Goal**: Build intelligent hair care system with profile analysis, recommendations, calendar integration, and stylist context sharing.
+
+**5 Backend Phases | ~15 New Files | Intelligence Layer Foundation**
+
+#### ✅ Phase 1: Core Architecture
+
+**Hair Health Profile System**
+- `services/api/src/lib/hair-health/types.ts` - TypeScript interfaces (50+ types)
+- `services/api/src/lib/hair-health/profile-service.ts` - CRUD operations
+- `services/api/src/routes/hair-health.ts` - 6 API endpoints
+
+**Profile Attributes:**
+- Texture (2A-4C, mixed, unknown)
+- Pattern Family (straight, wavy, curly, coily, kinky)
+- Strand Thickness (fine, medium, coarse)
+- Porosity Level (low, medium, high)
+- Sensitivity Metrics (scalp, tension, manipulation, detangle)
+- Routine Type (growth, repair, maintenance, kids)
+
+#### ✅ Phase 2: Calendar Intelligence
+
+**Database Schema Updates**
+- `HairHealthProfile` model with 20+ fields
+- `HairCalendarEvent` model for ritual tracking
+- `StylistClientContext` model for consent-based sharing
+- Load level enums (LIGHT, MEDIUM, HEAVY)
+
+#### ✅ Phase 3: Map-First Home (Schema)
+
+**Location Support**
+- Added location fields to profile schema
+- Geospatial query support preparation
+
+#### ✅ Phase 4: Real-Time Features
+
+**Booking Live Updates**
+- `services/api/src/routes/bookings-realtime.ts` - 7 new endpoints
+- Server-Sent Events (SSE) for live status streaming
+- Session progress tracking (ETA, location, completion %)
+
+**Frontend Hooks**
+- `apps/web/hooks/use-location-tracking.ts` - Consent-based geolocation
+- `apps/web/hooks/use-live-updates.ts` - SSE connection management
+
+**New Endpoints:**
+- `GET /api/v1/bookings/:id/live` - SSE stream
+- `POST /api/v1/bookings/:id/session/progress` - Update progress
+- `GET /api/v1/bookings/:id/session/progress` - Get progress
+- `POST /api/v1/bookings/:id/session/arrived` - Stylist arrival
+- `POST /api/v1/bookings/:id/session/customer-arrived` - Customer arrival
+- `POST /api/v1/bookings/:id/session/end` - End session
+- `GET /api/v1/bookings/active-sessions` - List active sessions
+
+**Notification Types Added:**
+- `SESSION_PROGRESS` - Service progress updates
+- `STYLIST_ARRIVED` - Stylist arrival notification
+- `CUSTOMER_ARRIVED` - Customer arrival notification
+
+#### ✅ Phase 5: Intelligence Layer
+
+**Intelligence Engine**
+- `services/api/src/lib/hair-health/intelligence-engine.ts` - Core analysis
+- Health scoring (0-100 scale, A-F grades)
+- 8 hair archetypes (Resilient Coily, Delicate Fine, etc.)
+- Risk assessment with severity levels and mitigation
+- Weekly load capacity calculation
+
+**Hair Archetypes:**
+1. Resilient Coily - High-shrinkage, low-porosity, protective-ready
+2. Delicate Fine - Low density, high porosity, gentle care needed
+3. Balanced Wavy - Medium everything, versatile routine
+4. High-Maintenance Curly - High porosity, moisture-dependent
+5. Low-Porosity Guardian - Product buildup prone, heat-activated
+6. Sensitive Scalp - Scalp-first approach required
+7. Growth Focused - Length retention priority
+8. Unknown Explorer - Needs profiling guidance
+
+**Recommendations Engine**
+- `services/api/src/lib/hair-health/recommendations.ts` - Care suggestions
+- Weekly focus generation
+- Quick wins for immediate improvement
+- Category-based recommendations (moisture, protein, scalp, etc.)
+
+**Rest Buffer Calculator**
+- `services/api/src/lib/hair-health/rest-buffer-calculator.ts` - Recovery logic
+- Event load scoring (0-100)
+- Profile-adjusted rest requirements
+- Weekly load status tracking
+- Optimal scheduling suggestions
+
+**Stylist Context API**
+- `services/api/src/routes/stylist-context.ts` - Consent-based sharing
+- 7 endpoints for customer-stylist profile sharing
+
+**Customer Endpoints:**
+- `GET /api/v1/stylist-context/:stylistId` - View shared context
+- `POST /api/v1/stylist-context/grant` - Grant stylist access
+- `DELETE /api/v1/stylist-context/:stylistId` - Revoke access
+- `GET /api/v1/stylist-context/my-shares` - List all shares
+
+**Stylist Endpoints:**
+- `GET /api/v1/stylist-context/customers` - List shared customers
+- `GET /api/v1/stylist-context/customer/:id` - View customer context
+- `PATCH /api/v1/stylist-context/customer/:id` - Update notes
+
+**Consent Scopes:**
+- `TEXTURE` - Basic texture data
+- `POROSITY` - Porosity and retention risk
+- `SENSITIVITY` - All sensitivity metrics
+- `ROUTINE` - Wash day and routine info
+- `FULL` - Complete profile access
+
+#### What's Next (V5.0 Frontend)
+
+Frontend components pending:
+- Hair Health Profile UI (onboarding + display)
+- Calendar Views (Rhythm Strip, Month Garden, Day Flow)
+- Map-First Home with stylist pins
+- 5-Tab Navigation
+- Profile Role Tabs
+
+---
+
 ## [4.0.1] - 2025-12-17
 
 ### V4.0.1: DeFi UI/UX Polish - COMPLETE ✅

@@ -88,6 +88,27 @@ export function getInAppContent(
         } is ${metadata.scheduledTime ? formatDateTime(metadata.scheduledTime) : "coming up soon"}.`,
       };
 
+    // V5.0 Phase 4: Real-time session tracking
+    case "SESSION_PROGRESS":
+      return {
+        title: "Stylist Update",
+        body: metadata.etaMinutes !== undefined
+          ? `${metadata.stylistName || "Your stylist"} is on their way. ETA: ${metadata.etaMinutes} minutes.`
+          : `${metadata.stylistName || "Your stylist"} updated their progress.`,
+      };
+
+    case "STYLIST_ARRIVED":
+      return {
+        title: "Stylist Arrived",
+        body: `${metadata.stylistName || "Your stylist"} has arrived and is ready to begin your service.`,
+      };
+
+    case "CUSTOMER_ARRIVED":
+      return {
+        title: "Customer Arrived",
+        body: `${metadata.customerName || "Your customer"} has arrived at the location.`,
+      };
+
     default:
       return {
         title: "Notification",
@@ -199,6 +220,21 @@ export function getSMSContent(
       message = `Vlossom: Reminder - Your appointment is ${
         metadata.scheduledTime ? formatDateTime(metadata.scheduledTime) : "coming up soon"
       }. See you soon!`;
+      break;
+
+    // V5.0 Phase 4: Real-time session tracking
+    case "SESSION_PROGRESS":
+      message = metadata.etaMinutes !== undefined
+        ? `Vlossom: ${metadata.stylistName || "Your stylist"} is on their way. ETA: ${metadata.etaMinutes} min.`
+        : `Vlossom: ${metadata.stylistName || "Your stylist"} updated their progress.`;
+      break;
+
+    case "STYLIST_ARRIVED":
+      message = `Vlossom: ${metadata.stylistName || "Your stylist"} has arrived!`;
+      break;
+
+    case "CUSTOMER_ARRIVED":
+      message = `Vlossom: ${metadata.customerName || "Your customer"} has arrived at the location.`;
       break;
 
     default:

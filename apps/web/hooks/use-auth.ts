@@ -33,11 +33,11 @@ export function useAuth() {
     // Update query cache with new user
     queryClient.setQueryData(["auth", "currentUser"], result.user);
 
-    // Redirect based on role
+    // Redirect based on role (V5.0: Home is default landing)
     if (result.user.role === "STYLIST") {
       router.push("/stylist/dashboard");
     } else {
-      router.push("/wallet");
+      router.push("/home");
     }
 
     return result;
@@ -50,11 +50,11 @@ export function useAuth() {
     // Update query cache with user
     queryClient.setQueryData(["auth", "currentUser"], result.user);
 
-    // Redirect based on role
+    // Redirect based on role (V5.0: Home is default landing)
     if (result.user.role === "STYLIST") {
       router.push("/stylist/dashboard");
     } else {
-      router.push("/wallet");
+      router.push("/home");
     }
 
     return result;

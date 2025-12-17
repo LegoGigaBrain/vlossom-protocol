@@ -169,7 +169,7 @@ export default function AccountSettingsPage() {
               <div>
                 <p className="text-sm font-medium">Location</p>
                 <p className="text-sm text-text-secondary">
-                  {user.city && user.province
+                  {"city" in user && "province" in user && user.city && user.province
                     ? `${user.city}, ${user.province}`
                     : "Not set"}
                 </p>
@@ -186,11 +186,13 @@ export default function AccountSettingsPage() {
               <div>
                 <p className="text-sm font-medium">Member Since</p>
                 <p className="text-sm text-text-secondary">
-                  {new Date(user.createdAt).toLocaleDateString("en-ZA", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  {"createdAt" in user && user.createdAt
+                    ? new Date(user.createdAt as string).toLocaleDateString("en-ZA", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "Unknown"}
                 </p>
               </div>
             </div>

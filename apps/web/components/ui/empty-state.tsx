@@ -12,6 +12,7 @@ import {
   ScissorsIllustration,
   InboxIllustration,
   ReviewsIllustration,
+  MessageIllustration,
 } from "./illustrations";
 
 type IllustrationType =
@@ -21,6 +22,7 @@ type IllustrationType =
   | "scissors"
   | "inbox"
   | "reviews"
+  | "message"
   | "custom";
 
 interface EmptyStateProps {
@@ -72,6 +74,7 @@ const illustrations: Record<Exclude<IllustrationType, "custom">, React.FC<{ clas
   scissors: ScissorsIllustration,
   inbox: InboxIllustration,
   reviews: ReviewsIllustration,
+  message: MessageIllustration,
 };
 
 const sizeStyles = {
