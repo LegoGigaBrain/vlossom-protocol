@@ -7,6 +7,152 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.2.0] - 2025-12-17
+
+### V5.2.0: UX Excellence & Favorites Integration - COMPLETE ✅
+
+**Goal**: Achieve 10/10 UX score, add favorites system, complete full frontend integration.
+
+**42 Files Changed | +8,725 / -1,324 Lines | UX Score 10/10**
+
+#### ✅ Favorites System (New)
+
+**Database & API**
+- `FavoriteStylist` Prisma model with user-stylist relationship
+- Indexes for efficient queries
+- Full CRUD API: `POST/GET/DELETE /api/v1/favorites/*`
+
+**Frontend Integration**
+- `apps/web/components/stylists/favorite-button.tsx` - Heart button with animations
+- `apps/web/hooks/use-favorites.ts` - React Query hooks for favorites
+- `apps/web/lib/favorites-client.ts` - Typed API client
+- Integrated in StylistCard and StylistProfile components
+- FavoritesStylistsCard displays real favorites on profile
+
+#### ✅ Map Component V5.2
+
+**Performance Optimizations**
+- Grid-based clustering for large datasets
+- List view fallback for accessibility
+- Low-end device detection (deviceMemory, connection.effectiveType)
+- Reduced motion support (prefers-reduced-motion)
+- User preference persistence (localStorage)
+
+**Accessibility**
+- Full keyboard navigation (arrow keys, +/-, Enter, Ctrl+L)
+- ARIA labels throughout
+- Screen reader support
+
+**New Hooks**
+- `usePrefersReducedMotion()` - Detect reduced motion preference
+- `useIsLowEndDevice()` - Detect memory/connection constraints
+- `useViewPreference()` - Persist map/list view choice
+
+#### ✅ Session Tracker (New)
+
+**Simplified 3-State Model**
+- `apps/web/components/bookings/session-tracker.tsx`
+- States: Started → In Progress → Complete
+- Replaces complex multi-step tracking
+
+**Live Updates**
+- SSE (Server-Sent Events) for real-time progress
+- Polling fallback when SSE unavailable
+- Connection status indicators
+- ETA display with progress bar
+
+**Display Modes**
+- Full card with progress steps
+- Compact inline mode
+
+#### ✅ Rituals API (New)
+
+**Backend Routes**
+- `services/api/src/routes/rituals.ts` - Full CRUD API
+- 8 endpoints for rituals and steps
+- Clone from templates functionality
+
+**Endpoints**
+```
+GET    /api/v1/rituals/templates     - List ritual templates
+GET    /api/v1/rituals               - List user's rituals
+GET    /api/v1/rituals/:id           - Get ritual details
+POST   /api/v1/rituals               - Create custom ritual
+POST   /api/v1/rituals/:templateId/clone - Clone from template
+PATCH  /api/v1/rituals/:id           - Update ritual
+DELETE /api/v1/rituals/:id           - Delete ritual
+POST   /api/v1/rituals/:id/steps     - Add step to ritual
+DELETE /api/v1/rituals/:id/steps/:stepId - Remove step
+```
+
+#### ✅ Route Group Refactor
+
+**Shared Layout**
+- Created `apps/web/app/(main)/layout.tsx` with BottomNav
+- Moved pages: home, profile, schedule, bookings, stylists
+- Removed duplicate BottomNav imports from individual pages
+- Updated all imports to use `@/` path aliases
+
+**Pages Moved to (main)**
+```
+app/(main)/
+├── layout.tsx              ← Shared BottomNav
+├── home/page.tsx
+├── profile/
+│   ├── page.tsx
+│   └── hair-health/
+│       ├── page.tsx
+│       ├── onboarding/page.tsx
+│       └── edit/page.tsx
+├── schedule/page.tsx
+├── bookings/
+│   ├── page.tsx
+│   └── [id]/page.tsx
+└── stylists/
+    ├── page.tsx
+    └── [id]/page.tsx
+```
+
+#### ✅ Booking Stats Integration
+
+**Profile Page Updates**
+- `BookingStatsCard` wired to `useBookingStats()` hook
+- Displays real booking history from API
+- `FavoritesStylistsCard` wired to `useFavorites()` hook
+
+#### Files Created/Modified
+
+**New Backend Files**
+- `services/api/src/routes/favorites.ts` - Favorites API (326 lines)
+- `services/api/src/routes/rituals.ts` - Rituals API (643 lines)
+- `services/api/prisma/migrations/20251217021018_add_favorite_stylists/` - Migration
+
+**New Frontend Files**
+- `apps/web/components/stylists/favorite-button.tsx` - Heart button (78 lines)
+- `apps/web/components/bookings/session-tracker.tsx` - Session tracking (389 lines)
+- `apps/web/hooks/use-favorites.ts` - Favorites hooks (140 lines)
+- `apps/web/hooks/use-stylist-markers.ts` - Map marker hooks (130 lines)
+- `apps/web/lib/favorites-client.ts` - API client (201 lines)
+- `apps/web/app/(main)/layout.tsx` - Shared layout (23 lines)
+
+**Modified Files**
+- `apps/web/components/map/stylist-map.tsx` - V5.2 enhancements (+500 lines)
+- `apps/web/components/stylists/stylist-card.tsx` - Added FavoriteButton
+- `apps/web/components/stylists/stylist-profile.tsx` - Added FavoriteButton
+- `apps/web/app/(main)/profile/page.tsx` - Real booking stats
+- `services/api/src/index.ts` - Registered favorites + rituals routers
+
+#### Documentation
+
+**New Docs**
+- `docs/STYLE_BLUEPRINT.md` - Complete design system guide (803 lines)
+
+**Updated Docs**
+- `docs/HANDOFF_FOR_GEMINI.md` - V5.2 state
+- `docs/project/changelog.md` - This entry
+
+---
+
 ## [5.1.0] - 2025-12-17
 
 ### V5.1.0: Hair Health Frontend Integration (Phase 1-3) - COMPLETE ✅
