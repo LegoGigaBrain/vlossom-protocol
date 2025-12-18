@@ -69,12 +69,12 @@ export function BottomNav({ className }: BottomNavProps) {
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 bg-background-primary border-t border-border-default md:hidden pb-safe z-50",
+        "fixed bottom-0 left-0 right-0 bg-surface-elevated-light dark:bg-surface-elevated-dark border-t border-border-subtle shadow-vlossom-soft md:hidden pb-safe z-sticky",
         className
       )}
       aria-label="Main navigation"
     >
-      <div className="flex justify-around items-end py-2">
+      <div className="flex justify-around items-center h-20">
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
@@ -83,29 +83,30 @@ export function BottomNav({ className }: BottomNavProps) {
             <button
               key={item.path}
               className={cn(
-                "flex flex-col items-center min-h-[44px]",
+                "relative flex flex-col items-center justify-center w-16 h-16",
                 MOTION_CLASSES.transitionNav,
                 item.isCenter
-                  ? "py-2 px-5 -mt-3 bg-primary text-white rounded-full shadow-md hover:shadow-lg hover:scale-105"
-                  : "py-3 px-3",
-                !item.isCenter && (active ? "text-primary" : "text-text-secondary hover:text-text-primary")
+                  ? "-mt-4 bg-primary text-white rounded-full shadow-card hover:shadow-elevated hover:scale-105"
+                  : "",
+                !item.isCenter && (active ? "text-primary" : "text-text-muted hover:text-text-primary")
               )}
               onClick={() => router.push(item.path)}
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
             >
               <Icon
-                size={item.isCenter ? 24 : 20}
+                size={item.isCenter ? 24 : 24}
                 className={cn(
                   MOTION_CLASSES.iconStateChange,
-                  active && !item.isCenter && "scale-110"
+                  active && !item.isCenter && "scale-105"
                 )}
                 accent={active && !item.isCenter}
                 aria-hidden="true"
               />
               <span className={cn(
-                "mt-1",
-                item.isCenter ? "text-[10px] font-medium" : "text-xs"
+                "mt-1 text-caption",
+                item.isCenter ? "text-[10px] font-medium" : "",
+                active && !item.isCenter && "font-medium"
               )}>
                 {item.label}
               </span>
@@ -113,7 +114,7 @@ export function BottomNav({ className }: BottomNavProps) {
               {active && !item.isCenter && (
                 <span
                   className={cn(
-                    "absolute -bottom-0.5 w-1 h-1 rounded-full bg-primary",
+                    "absolute bottom-1 w-1.5 h-1.5 rounded-full bg-primary",
                     MOTION_CLASSES.navIndicatorActive
                   )}
                 />

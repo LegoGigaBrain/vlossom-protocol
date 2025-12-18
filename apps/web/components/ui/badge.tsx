@@ -19,7 +19,7 @@ const variantClasses: Record<BadgeVariant, string> = {
   warning: "bg-status-warning/10 text-status-warning",
   error: "bg-status-error/10 text-status-error",
   danger: "bg-status-error/10 text-status-error",
-  info: "bg-tertiary/10 text-tertiary",
+  info: "bg-status-info/10 text-status-info",
   secondary: "bg-background-secondary text-text-secondary",
   outline: "bg-transparent border border-border-default text-text-secondary",
   primary: "bg-brand-rose/10 text-brand-rose",
