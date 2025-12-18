@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Icon } from "@/components/icons";
 
 interface Property {
@@ -24,7 +25,8 @@ interface Property {
   };
   chairCount: number;
   createdAt: string;
-  imageUrls?: string[];
+  images: string[];
+  coverImage: string | null;
 }
 
 interface PropertyStats {
@@ -48,7 +50,11 @@ const mockProperties: Property[] = [
     owner: { displayName: "Jane Smith", email: "jane@example.com" },
     chairCount: 4,
     createdAt: new Date(Date.now() - 86400000).toISOString(),
-    imageUrls: [],
+    images: [
+      "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400",
+      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400",
+    ],
+    coverImage: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400",
   },
   {
     id: "p2",
@@ -62,7 +68,12 @@ const mockProperties: Property[] = [
     owner: { displayName: "Mike Johnson", email: "mike@example.com" },
     chairCount: 8,
     createdAt: new Date(Date.now() - 172800000).toISOString(),
-    imageUrls: [],
+    images: [
+      "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=400",
+      "https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=400",
+      "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?w=400",
+    ],
+    coverImage: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=400",
   },
   {
     id: "p3",
@@ -76,7 +87,8 @@ const mockProperties: Property[] = [
     owner: { displayName: "Sarah Williams", email: "sarah@example.com" },
     chairCount: 2,
     createdAt: new Date(Date.now() - 259200000).toISOString(),
-    imageUrls: [],
+    images: [],
+    coverImage: null,
   },
 ];
 
@@ -314,14 +326,33 @@ export default function AdminPropertiesPage() {
                 <tr key={property.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <Icon name="location" size="md" className="text-purple-600" />
+                      <div className="flex-shrink-0 h-12 w-12 rounded-lg overflow-hidden bg-purple-100">
+                        {property.coverImage ? (
+                          <Image
+                            src={property.coverImage}
+                            alt={property.name}
+                            width={48}
+                            height={48}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center">
+                            <Icon name="image" size="md" className="text-purple-400" />
+                          </div>
+                        )}
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
                           {property.name}
                         </div>
-                        <div className="text-sm text-gray-500">{property.address}</div>
+                        <div className="text-sm text-gray-500">
+                          {property.address}
+                          {property.images.length > 0 && (
+                            <span className="ml-2 text-purple-600">
+                              ({property.images.length} photo{property.images.length !== 1 ? "s" : ""})
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>

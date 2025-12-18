@@ -4,6 +4,10 @@
 
 ## Current Implementation Status
 
+**V6.5.1 Property Owner UI Components** (Dec 19, 2025)
+
+Complete property owner frontend with image upload, amenity picker, and chair management components.
+
 **V6.5.0 Phosphor Icon Migration** (Dec 18, 2025)
 
 Complete migration from Lucide to Phosphor icons across 50+ files using centralized Icon bridge system for consistent botanical iconography.
@@ -27,6 +31,23 @@ Sacred orange rule enforced across 12 files. Orange (#FF510D) now strictly reser
 **V6.0.0 Mobile App + Full Frontend Design Handover** (Dec 17, 2025)
 
 Complete design system with botanical icons (28 SVGs), animation system (unfold/breathe/settle), and typography/color audits. All design documentation updated.
+
+---
+
+### V6.5.1 Changes
+
+**Property Owner UI Components**
+- `lib/property-client.ts` - Complete typed API client for properties and chairs
+- `hooks/use-properties.ts` - React Query hooks with mutations and cache invalidation
+- `components/property-owner/property-image-upload.tsx` - Drag-and-drop image upload with cover selection
+- `components/property-owner/amenity-picker.tsx` - Multi-select grid for 10 chair amenities
+- `components/property-owner/chair-form-dialog.tsx` - 3-step wizard for chair configuration
+- `components/property-owner/index.ts` - Component exports
+- `src/app/property-owner/properties/[id]/page.tsx` - Property detail page with full CRUD
+- `app/admin/properties/page.tsx` - Enhanced with image preview in table
+
+**New Routes:**
+- `/property-owner/properties/[id]` - Property detail with image management
 
 ---
 

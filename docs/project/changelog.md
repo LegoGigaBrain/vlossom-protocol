@@ -7,6 +7,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.5.1] - 2025-12-19
+
+### V6.5.1: Property Owner UI Components - COMPLETE ✅
+
+**Goal**: Create missing property owner UI components for salon/property image uploads, amenity management, and chair configuration.
+
+---
+
+#### ✅ Property Image Management System
+
+**New API Endpoints (Backend):**
+- `POST /api/upload/property/:propertyId` - Upload property images (max 10)
+- `DELETE /api/upload/property/:propertyId/:publicId` - Delete property image
+- `POST /api/upload/property/:propertyId/cover` - Set cover image
+
+**New File:** `services/api/src/routes/upload.ts` (3 new endpoints)
+
+#### ✅ Property API Client
+
+**New File:** `apps/web/lib/property-client.ts` (~350 lines)
+
+Complete typed API client for properties and chairs:
+- Types: PropertyCategory, ChairType, ChairStatus, RentalMode, ApprovalMode
+- Property CRUD: getMyProperties, getProperty, createProperty, updateProperty, deleteProperty
+- Chair CRUD: createChair, updateChair, deleteChair
+- Image operations: uploadPropertyImage, deletePropertyImage, setPropertyCoverImage
+- Utility functions: getCategoryDisplayName, getChairTypeDisplayName, getApprovalModeDescription
+
+#### ✅ React Query Hooks
+
+**New File:** `apps/web/hooks/use-properties.ts` (~400 lines)
+
+React Query hooks for property management:
+- Query hooks: useMyProperties(), useProperty(propertyId)
+- Property mutations: useCreateProperty, useUpdateProperty, useDeleteProperty
+- Chair mutations: useCreateChair, useUpdateChair, useDeleteChair
+- Image mutations: useUploadPropertyImage, useDeletePropertyImage, useSetPropertyCoverImage
+
+#### ✅ Property Owner Components
+
+**New File:** `apps/web/components/property-owner/property-image-upload.tsx` (~350 lines)
+
+Drag-and-drop image upload component with:
+- File validation (type & size, max 10MB)
+- Cover image selection with star badge
+- Image grid with hover actions
+- Delete confirmation
+- Upload progress indicators
+- Helper tips for best practices
+
+**New File:** `apps/web/components/property-owner/amenity-picker.tsx` (~150 lines)
+
+Multi-select amenity grid with 10 predefined chair amenities:
+- wash_basin, adjustable_seat, mirror, lighting, plug_points
+- premium_tools, air_circulation, privacy_divider, storage, wifi
+
+**New File:** `apps/web/components/property-owner/chair-form-dialog.tsx` (~250 lines)
+
+3-step wizard dialog for creating/editing chairs:
+- Step 1: Basic Details (name, type, description)
+- Step 2: Amenities (integrated AmenityPicker)
+- Step 3: Pricing (hourly rate, daily rate, rental mode)
+
+**New File:** `apps/web/components/property-owner/index.ts`
+
+Component exports for property owner module.
+
+#### ✅ Property Detail Page
+
+**New File:** `apps/web/src/app/property-owner/properties/[id]/page.tsx` (~350 lines)
+
+Full property detail page with:
+- Cover image display with gradient overlay
+- Property details card with edit mode
+- Booking settings (approval mode, min rating)
+- Quick stats (chairs, pending rentals)
+- Quick actions (manage chairs, view requests)
+- PropertyImageUpload integration
+- Delete confirmation modal
+
+#### ✅ Admin Properties Page Enhancement
+
+**Updated File:** `apps/web/app/admin/properties/page.tsx`
+
+- Added image preview in property table (shows cover image thumbnail)
+- Added photo count indicator
+- Mock data updated with sample images
+- Uses Next.js Image component for optimization
+
+---
+
+#### Files Summary (V6.5.1)
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| Backend API | 2 | Upload routes, error handler |
+| API Client | 1 | property-client.ts |
+| React Query | 1 | use-properties.ts hooks |
+| Components | 4 | Image upload, amenity picker, chair form, index |
+| Pages | 1 | Property detail page |
+| Admin | 1 | Properties page with images |
+
+**Total:** ~1,500 lines of new code
+
+---
+
 ## [6.5.0] - 2025-12-18
 
 ### V6.5.0: Phosphor Icon Migration - COMPLETE ✅
