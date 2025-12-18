@@ -201,7 +201,7 @@ async function triggerReputationRecalculation(): Promise<void> {
   try {
     console.log("[Scheduler] Triggering reputation recalculation...");
 
-    const response = await fetch(`${apiUrl}/api/internal/reputation/recalculate`, {
+    const response = await fetch(`${apiUrl}/api/v1/internal/reputation/recalculate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -235,7 +235,7 @@ async function triggerEscrowRelease(bookingId: string): Promise<void> {
   }
 
   try {
-    const response = await fetch(`${apiUrl}/api/internal/bookings/${bookingId}/release-escrow`, {
+    const response = await fetch(`${apiUrl}/api/v1/internal/bookings/${bookingId}/release-escrow`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

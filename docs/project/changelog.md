@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.4.0] - 2025-12-18
+
+### V6.4.0: Local Development & Service Fixes
+
+**Goal**: Fix local development issues, enable Redis rate limiting, and create admin panel scaffold.
+
+---
+
+#### ✅ Redis Cloud Integration
+
+**Updated File:** `services/api/.env`
+
+- Connected to Redis Cloud (free tier) for distributed rate limiting
+- Added `ioredis` dependency to `services/api`
+- Rate limiter now uses Redis storage instead of in-memory Map
+- Enables horizontal scaling of API instances
+
+#### ✅ Scheduler Endpoint Routing Fix
+
+**Updated File:** `services/scheduler/src/index.ts`
+
+Fixed internal API endpoint routing:
+- Changed `/api/internal/reputation/recalculate` → `/api/v1/internal/reputation/recalculate`
+- Changed `/api/internal/bookings/:id/release-escrow` → `/api/v1/internal/bookings/:id/release-escrow`
+- Scheduler now successfully calls API internal endpoints
+
+**New File:** `services/scheduler/.env`
+- Created environment configuration for local development
+
+#### ✅ Admin Panel Scaffold
+
+**New Files:**
+- `apps/admin/src/app/layout.tsx` - Root layout with metadata
+- `apps/admin/src/app/page.tsx` - Dashboard placeholder with navigation cards
+- `apps/admin/src/app/globals.css` - Base styles
+
+Features:
+- Next.js 14 app router structure
+- Placeholder dashboard with Users, Bookings, Disputes, DeFi Config cards
+- Admin panel now starts without errors at http://localhost:3001
+
+**Removed:** `apps/admin/src/.gitkeep` (no longer needed)
+
+---
+
 ## [6.3.0] - 2025-12-17
 
 ### V6.3.0: Phase 2 UX & Infrastructure - COMPLETE ✅

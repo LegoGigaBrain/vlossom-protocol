@@ -10,6 +10,10 @@
 
 ## Current Implementation Status
 
+**V6.4.0 Local Development & Service Fixes** (Dec 18, 2025)
+
+Redis Cloud connected for production rate limiting. Added `ioredis` dependency.
+
 **V6.3.0 Phase 2 UX & Infrastructure** (Dec 17, 2025)
 
 Redis-based distributed rate limiting and centralized secrets management for production readiness.
@@ -19,6 +23,21 @@ Redis-based distributed rate limiting and centralized secrets management for pro
 TypeScript type safety improvements, OpenAPI/Swagger documentation endpoint.
 
 **V5.2.0 UX Excellence & Favorites Integration** (Dec 17, 2025)
+
+---
+
+### V6.4.0 Changes
+
+**Redis Cloud Integration**
+- Connected to Redis Cloud (free tier) for distributed rate limiting
+- Added `ioredis` package as dependency
+- Rate limiter now uses Redis storage instead of in-memory Map
+- Enables horizontal scaling of API instances
+
+**Environment:**
+```env
+REDIS_URL="redis://default:PASSWORD@redis-xxxxx.cloud.redislabs.com:PORT"
+```
 
 ---
 

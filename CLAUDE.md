@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V6.3.0** - Phase 2 UX & Infrastructure (December 17, 2025)
+**V6.4.0** - Local Development & Service Fixes (December 18, 2025)
 
-**Major Achievement**: Professional frontend tooling (logger, theme system, empty states), production backend infrastructure (Redis rate limiting, secrets manager), enhanced booking UX.
+**Major Achievement**: Redis Cloud integration for distributed rate limiting, scheduler endpoint routing fix, admin panel scaffold created.
 
-**Previous**: V6.2.0 - Security & Smart Contract Hardening (OpenAPI docs, contract security fixes), V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
+**Previous**: V6.3.0 - Phase 2 UX & Infrastructure (frontend tooling, theme system), V6.2.0 - Security & Smart Contract Hardening, V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
 
 ---
 
@@ -39,16 +39,16 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V5.3.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.3.0 |
 | `apps/mobile/` | React Native + Expo mobile app | ✅ V6.0.0 |
-| `apps/admin/` | Admin dashboard | ✅ V3.4.0 |
+| `apps/admin/` | Admin dashboard | ✅ V6.4.0 |
 
 ### `services/` - Backend Services
 | Service | Purpose | Status |
 |---------|---------|--------|
-| `services/api/` | Fastify REST API | ✅ V5.3.0 |
+| `services/api/` | Express REST API | ✅ V6.4.0 |
+| `services/scheduler/` | Background job scheduler | ✅ V6.4.0 |
 | `services/indexer/` | Blockchain event indexer | ✅ V3.2.0 |
-| `services/scheduler/` | Cron jobs for bookings/payouts | ✅ V3.1.0 |
 
 ### `packages/` - Shared Code
 | Package | Purpose |
@@ -263,6 +263,20 @@
 
 ## Recent Updates
 
+### V6.4.0 Changes (Local Development & Service Fixes)
+
+**Infrastructure**
+- ✅ Redis Cloud integration: Distributed rate limiting via `ioredis` package
+- ✅ Scheduler endpoint fix: Changed `/api/internal/*` → `/api/v1/internal/*`
+- ✅ Scheduler environment: Created `services/scheduler/.env`
+
+**Admin Panel**
+- ✅ Admin scaffold: `apps/admin/src/app/` with layout, page, globals.css
+- ✅ Dashboard placeholder with Users, Bookings, Disputes, DeFi Config cards
+- ✅ Admin panel now starts at http://localhost:3001
+
+---
+
 ### V6.3.0 Changes (Phase 2 UX & Infrastructure)
 
 **Frontend Tooling & UX**
@@ -301,13 +315,19 @@
 - ✅ 12 files corrected for design system compliance
 - ✅ Orange governance enforced: Red for errors, Amber for warnings, Orange for celebration only
 
-## Next Steps (Post-V6.3)
+## Next Steps (Post-V6.4)
 
-### V6.4: Mobile App MVP
+### V6.5: Mobile App MVP
 - Connect mobile app to API client
 - Implement wallet screen with biometric unlock
 - Add stylist discovery with map view
 - Build booking flow (mobile-optimized)
+
+### V6.6: Admin Panel MVP
+- Connect admin panel to API endpoints
+- User management page
+- Booking management page
+- Dispute resolution workflow
 
 ### V7.0: Production Readiness
 - Security audit (smart contracts + API)
