@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronDown, ChevronUp } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface FAQItem {
   question: string;
@@ -140,7 +140,7 @@ export default function FAQPage() {
             href="/help"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <Icon name="chevronLeft" size="sm" />
             Back to Help Center
           </Link>
         </div>
@@ -178,9 +178,9 @@ export default function FAQPage() {
                           {faq.question}
                         </span>
                         {isOpen ? (
-                          <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                          <Icon name="chevronUp" size="md" className="text-gray-400 flex-shrink-0" />
                         ) : (
-                          <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                          <Icon name="chevronDown" size="md" className="text-gray-400 flex-shrink-0" />
                         )}
                       </button>
                       {isOpen && (

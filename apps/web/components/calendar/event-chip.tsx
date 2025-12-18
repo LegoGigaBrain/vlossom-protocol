@@ -12,14 +12,7 @@
 "use client";
 
 import { cn } from "../../lib/utils";
-import {
-  Droplets,
-  Sparkles,
-  Calendar,
-  BookOpen,
-  Moon,
-  Heart,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 export type EventCategory =
   | "HAIR_RITUAL"
@@ -57,12 +50,12 @@ interface EventChipProps {
   className?: string;
 }
 
-const categoryIcons: Record<EventCategory, typeof Droplets> = {
-  HAIR_RITUAL: Droplets,
-  BOOKING_SERVICE: Calendar,
-  EDUCATION_PROMPT: BookOpen,
-  REST_BUFFER: Moon,
-  RECOVERY_WINDOW: Heart,
+const categoryIcons: Record<EventCategory, IconName> = {
+  HAIR_RITUAL: "care",
+  BOOKING_SERVICE: "calendar",
+  EDUCATION_PROMPT: "learning",
+  REST_BUFFER: "resting",
+  RECOVERY_WINDOW: "favorite",
 };
 
 const loadColors: Record<LoadLevel, { bg: string; text: string; dot: string }> = {
@@ -98,7 +91,7 @@ export function EventChip({
   onClick,
   className,
 }: EventChipProps) {
-  const Icon = categoryIcons[event.eventCategory] || Sparkles;
+  const iconName = categoryIcons[event.eventCategory] || "sparkle";
   const load = event.loadLevel || "MEDIUM";
   const colors = loadColors[load];
 
@@ -123,9 +116,9 @@ export function EventChip({
         )}
         aria-label={event.title}
       >
-        <Icon className={cn("w-3 h-3", colors.text)} />
+        <Icon name={iconName} size="xs" className={colors.text} />
         {event.requiresRestBuffer && (
-          <Moon className="w-2 h-2 text-brand-purple" />
+          <Icon name="resting" size="xs" className="text-brand-purple" />
         )}
       </button>
     );
@@ -151,7 +144,7 @@ export function EventChip({
               colors.bg
             )}
           >
-            <Icon className={cn("w-5 h-5", colors.text)} />
+            <Icon name={iconName} size="md" className={colors.text} />
           </div>
           <div className="flex-1 text-left">
             <div className="flex items-center gap-2">
@@ -159,7 +152,7 @@ export function EventChip({
                 {event.title}
               </h4>
               {event.requiresRestBuffer && (
-                <Moon className="w-3 h-3 text-brand-purple" />
+                <Icon name="resting" size="xs" className="text-brand-purple" />
               )}
             </div>
             <p className="text-xs text-text-secondary mt-0.5">{timeStr}</p>
@@ -188,12 +181,12 @@ export function EventChip({
       )}
       aria-label={event.title}
     >
-      <Icon className={cn("w-4 h-4", colors.text)} />
+      <Icon name={iconName} size="sm" className={colors.text} />
       <span className="text-sm text-text-primary truncate flex-1 text-left">
         {event.title}
       </span>
       {event.requiresRestBuffer && (
-        <Moon className="w-3 h-3 text-brand-purple" />
+        <Icon name="resting" size="xs" className="text-brand-purple" />
       )}
       <span className={cn("w-2 h-2 rounded-full", colors.dot)} />
     </button>

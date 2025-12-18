@@ -18,19 +18,7 @@ import { cn } from "../../lib/utils";
 import { type StylistMarker, formatDistance, calculateDistance } from "../../lib/mapbox";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import {
-  X,
-  Star,
-  MapPin,
-  Clock,
-  Car,
-  Home,
-  ChevronRight,
-  Calendar,
-  Heart,
-  Share2,
-  MessageCircle,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 interface BookingSheetProps {
   stylist: StylistMarker | null;
@@ -68,12 +56,12 @@ export function BookingSheet({
 
   // Operating mode config
   const modeConfig = {
-    FIXED: { icon: MapPin, label: "Fixed Location", color: "text-status-success" },
-    MOBILE: { icon: Car, label: "Mobile Stylist", color: "text-accent-gold" },
-    HYBRID: { icon: Home, label: "Flexible", color: "text-brand-purple" },
+    FIXED: { iconName: "location" as IconName, label: "Fixed Location", color: "text-status-success" },
+    MOBILE: { iconName: "location" as IconName, label: "Mobile Stylist", color: "text-accent-gold" },
+    HYBRID: { iconName: "location" as IconName, label: "Flexible", color: "text-brand-purple" },
   }[stylist.operatingMode];
 
-  const ModeIcon = modeConfig?.icon || MapPin;
+  const modeIconName = modeConfig?.iconName || "location";
 
   const handleViewProfile = () => {
     router.push(`/stylists/${stylist.id}`);
@@ -140,7 +128,7 @@ export function BookingSheet({
                   </h2>
                   <div className="flex items-center gap-2 mt-0.5">
                     <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-accent-gold fill-accent-gold" />
+                      <Icon name="star" size="sm" weight="fill" className="text-accent-gold fill-accent-gold" aria-hidden="true" />
                       <span className="text-sm font-medium text-text-primary">
                         {stylist.rating.toFixed(1)}
                       </span>
@@ -163,14 +151,14 @@ export function BookingSheet({
                   className="p-2 -mr-2 -mt-1 rounded-full hover:bg-background-tertiary transition-colors"
                   aria-label="Close"
                 >
-                  <X className="w-5 h-5 text-text-secondary" />
+                  <Icon name="close" size="md" className="text-text-secondary" aria-hidden="true" />
                 </button>
               </div>
 
               {/* Mode & Status */}
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant="secondary" className="gap-1 text-xs">
-                  <ModeIcon className={cn("w-3 h-3", modeConfig?.color)} />
+                  <Icon name={modeIconName} size="xs" className={cn(modeConfig?.color)} aria-hidden="true" />
                   {modeConfig?.label}
                 </Badge>
                 {stylist.isAvailableNow ? (
@@ -214,20 +202,24 @@ export function BookingSheet({
             onClick={() => setIsFavorite(!isFavorite)}
             className="flex-1"
           >
-            <Heart
+            <Icon
+              name="favorite"
+              size="sm"
+              weight={isFavorite ? "fill" : "light"}
               className={cn(
-                "w-4 h-4 mr-1",
+                "mr-1",
                 isFavorite && "fill-brand-rose text-brand-rose"
               )}
+              aria-hidden="true"
             />
             {isFavorite ? "Saved" : "Save"}
           </Button>
           <Button variant="outline" size="sm" className="flex-1">
-            <MessageCircle className="w-4 h-4 mr-1" />
+            <Icon name="chat" size="sm" className="mr-1" aria-hidden="true" />
             Message
           </Button>
           <Button variant="outline" size="sm" className="flex-1">
-            <Share2 className="w-4 h-4 mr-1" />
+            <Icon name="share" size="sm" className="mr-1" aria-hidden="true" />
             Share
           </Button>
         </div>
@@ -254,7 +246,7 @@ export function BookingSheet({
                     {service.name}
                   </p>
                   <p className="text-xs text-text-muted flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
+                    <Icon name="clock" size="xs" aria-hidden="true" />
                     {Math.floor(service.duration / 60)}h{" "}
                     {service.duration % 60 > 0 && `${service.duration % 60}m`}
                   </p>
@@ -277,7 +269,7 @@ export function BookingSheet({
             onClick={handleViewProfile}
           >
             View Profile
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <Icon name="chevronRight" size="sm" className="ml-1" aria-hidden="true" />
           </Button>
           <Button
             variant="primary"
@@ -285,7 +277,7 @@ export function BookingSheet({
             onClick={handleBookNow}
             disabled={!selectedService}
           >
-            <Calendar className="w-4 h-4 mr-1" />
+            <Icon name="calendar" size="sm" className="mr-1" aria-hidden="true" />
             Book Now
           </Button>
         </div>

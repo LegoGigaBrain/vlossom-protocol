@@ -23,21 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
-import {
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw,
-  Wallet,
-  PiggyBank,
-  CreditCard,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface FinanceStats {
   totalEscrowed: number;
@@ -202,7 +188,7 @@ export default function AdminFinancePage() {
             </SelectContent>
           </Select>
           <Button onClick={refresh} disabled={isLoading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+            <Icon name="settings" size="sm" className={`mr-2 ${isLoading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
         </div>
@@ -220,7 +206,7 @@ export default function AdminFinancePage() {
                 </p>
               </div>
               <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <PiggyBank className="w-6 h-6 text-blue-600" />
+                <Icon name="wallet" size="lg" className="text-blue-600" />
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
@@ -239,11 +225,11 @@ export default function AdminFinancePage() {
                 </p>
               </div>
               <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <ArrowUpRight className="w-6 h-6 text-green-600" />
+                <Icon name="growing" size="lg" className="text-green-600" />
               </div>
             </div>
             <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
+              <Icon name="growing" className="w-3 h-3" />
               +12% from yesterday
             </p>
           </CardContent>
@@ -259,7 +245,7 @@ export default function AdminFinancePage() {
                 </p>
               </div>
               <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-purple-600" />
+                <Icon name="currency" size="lg" className="text-purple-600" />
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
@@ -278,7 +264,7 @@ export default function AdminFinancePage() {
                 </p>
               </div>
               <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                <ArrowDownRight className="w-6 h-6 text-orange-600" />
+                <Icon name="chevronDown" size="lg" className="text-orange-600" />
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">
@@ -294,7 +280,7 @@ export default function AdminFinancePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-yellow-600" />
+              <Icon name="clock" size="md" className="text-yellow-600" />
               Pending Settlements
             </CardTitle>
             <CardDescription>
@@ -315,7 +301,7 @@ export default function AdminFinancePage() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                        <Wallet className="w-5 h-5 text-yellow-600" />
+                        <Icon name="wallet" size="md" className="text-yellow-600" />
                       </div>
                       <div>
                         <p className="font-medium">{tx.user?.displayName}</p>
@@ -343,7 +329,7 @@ export default function AdminFinancePage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+              <Icon name="calmError" size="md" className="text-red-600" />
               Refund Queue
             </CardTitle>
             <CardDescription>
@@ -353,7 +339,7 @@ export default function AdminFinancePage() {
           <CardContent>
             {refundQueue.length === 0 ? (
               <div className="text-center py-8">
-                <CheckCircle className="w-12 h-12 mx-auto text-green-400" />
+                <Icon name="success" size="2xl" className="mx-auto text-green-400" />
                 <p className="text-gray-500 mt-2">No pending refunds</p>
               </div>
             ) : (
@@ -365,7 +351,7 @@ export default function AdminFinancePage() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                        <XCircle className="w-5 h-5 text-red-600" />
+                        <Icon name="cancelled" size="md" className="text-red-600" />
                       </div>
                       <div>
                         <p className="font-medium">{tx.user?.displayName}</p>
@@ -393,7 +379,7 @@ export default function AdminFinancePage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
+              <Icon name="wallet" size="md" />
               Recent Payouts
             </CardTitle>
             <CardDescription>
@@ -434,7 +420,7 @@ export default function AdminFinancePage() {
                       </td>
                       <td className="py-3 px-4">
                         <Badge className="bg-green-100 text-green-700">
-                          <CheckCircle className="w-3 h-3 mr-1" />
+                          <Icon name="success" className="w-3 h-3 mr-1" />
                           Confirmed
                         </Badge>
                       </td>
@@ -454,7 +440,7 @@ export default function AdminFinancePage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
+            <Icon name="growing" size="md" />
             Revenue Over Time
           </CardTitle>
           <CardDescription>
@@ -464,7 +450,7 @@ export default function AdminFinancePage() {
         <CardContent>
           <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
             <div className="text-center">
-              <TrendingUp className="w-12 h-12 mx-auto text-gray-300" />
+              <Icon name="growing" size="2xl" className="mx-auto text-gray-300" />
               <p className="text-gray-500 mt-2">Revenue chart visualization</p>
               <p className="text-xs text-gray-400">
                 Connect analytics provider for full reporting

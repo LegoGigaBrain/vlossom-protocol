@@ -6,18 +6,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import {
-  TrendingUp,
-  Coins,
-  Users,
-  ArrowRight,
-  ArrowUpRight,
-  ArrowDownRight,
-  Loader2,
-  RefreshCw,
-  Star,
-  Gift,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 import { Button } from "../../../components/ui/button";
 import {
   Dialog,
@@ -156,18 +145,18 @@ function StatCard({
   label,
   value,
   subValue,
-  icon: Icon,
+  iconName,
 }: {
   label: string;
   value: string;
   subValue?: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  iconName?: IconName;
 }) {
   return (
     <div className="text-center p-4 bg-background-secondary rounded-lg transition-all duration-medium hover:bg-background-tertiary">
-      {Icon && (
+      {iconName && (
         <div className="flex justify-center mb-2">
-          <Icon className="h-5 w-5 text-text-tertiary" />
+          <Icon name={iconName} size="sm" className="text-text-tertiary" />
         </div>
       )}
       <p className="text-2xl font-bold text-text-primary">{value}</p>
@@ -188,7 +177,7 @@ function PoolCard({
   onDeposit: (poolId: string) => void;
   onWithdraw: (poolId: string) => void;
 }) {
-  const Icon = pool.isGenesis ? Coins : Users;
+  const poolIconName: IconName = pool.isGenesis ? "wallet" : "profile";
   const hasDeposit = userDeposit && parseFloat(userDeposit.depositAmount) > 0;
 
   return (
@@ -202,9 +191,9 @@ function PoolCard({
           }`}
         >
           <Icon
-            className={`h-6 w-6 ${
-              pool.isGenesis ? "text-brand-rose" : "text-text-secondary"
-            }`}
+            name={poolIconName}
+            size="md"
+            className={pool.isGenesis ? "text-brand-rose" : "text-text-secondary"}
           />
         </div>
         <div className="flex-1 min-w-0">
@@ -214,7 +203,7 @@ function PoolCard({
             </h4>
             {pool.isGenesis && (
               <span className="px-2 py-0.5 bg-brand-rose/10 text-brand-rose text-xs rounded-full flex items-center gap-1">
-                <Star className="h-3 w-3" /> Genesis
+                <Icon name="star" size="xs" /> Genesis
               </span>
             )}
           </div>
@@ -274,7 +263,7 @@ function PoolCard({
             size="sm"
             onClick={() => onDeposit(pool.id)}
           >
-            <ArrowUpRight className="h-4 w-4 mr-1" /> Deposit
+            <Icon name="send" size="sm" className="mr-1" /> Deposit
           </Button>
           {hasDeposit && (
             <Button
@@ -282,7 +271,7 @@ function PoolCard({
               size="sm"
               onClick={() => onWithdraw(pool.id)}
             >
-              <ArrowDownRight className="h-4 w-4 mr-1" /> Withdraw
+              <Icon name="receive" size="sm" className="mr-1" /> Withdraw
             </Button>
           )}
         </div>
@@ -455,7 +444,7 @@ function DepositDialog({
             Cancel
           </Button>
           <Button onClick={handleDeposit} disabled={loading || !amount}>
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {loading && <Icon name="loading" size="sm" className="mr-2 animate-spin" />}
             Deposit
           </Button>
         </div>
@@ -547,7 +536,7 @@ function WithdrawDialog({
             Cancel
           </Button>
           <Button onClick={handleWithdraw} disabled={loading || !shares}>
-            {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {loading && <Icon name="loading" size="sm" className="mr-2 animate-spin" />}
             Withdraw
           </Button>
         </div>
@@ -713,8 +702,10 @@ export default function WalletDeFiPage() {
           onClick={() => loadData(false)}
           disabled={refreshing}
         >
-          <RefreshCw
-            className={`h-4 w-4 mr-2 ${refreshing ? "animate-spin" : ""}`}
+          <Icon
+            name="refresh"
+            size="sm"
+            className={`mr-2 ${refreshing ? "animate-spin" : ""}`}
           />
           Refresh
         </Button>
@@ -728,7 +719,7 @@ export default function WalletDeFiPage() {
           </h3>
           {totalPendingYield > 0 && (
             <Button variant="primary" size="sm" onClick={handleClaimAll}>
-              <Gift className="h-4 w-4 mr-2" /> Claim All Yield
+              <Icon name="sparkle" size="sm" className="mr-2" /> Claim All Yield
             </Button>
           )}
         </div>
@@ -736,18 +727,18 @@ export default function WalletDeFiPage() {
           <StatCard
             label="Total Deposited"
             value={`$${totalDeposited.toFixed(2)}`}
-            icon={ArrowUpRight}
+            iconName="send"
           />
           <StatCard
             label="Current Value"
             value={`$${totalValue.toFixed(2)}`}
-            icon={TrendingUp}
+            iconName="growing"
           />
           <StatCard
             label="Pending Yield"
             value={`$${totalPendingYield.toFixed(2)}`}
             subValue={totalPendingYield > 0 ? "Ready to claim!" : undefined}
-            icon={Gift}
+            iconName="sparkle"
           />
           <StatCard
             label="Your Tier"
@@ -757,7 +748,7 @@ export default function WalletDeFiPage() {
                 ? `Top ${tierInfo.referralPercentile.toFixed(0)}%`
                 : "No referrals"
             }
-            icon={Star}
+            iconName="star"
           />
         </div>
       </div>
@@ -791,7 +782,7 @@ export default function WalletDeFiPage() {
         </h3>
         {pools.length === 0 ? (
           <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
-            <Coins className="h-12 w-12 mx-auto mb-4 text-text-tertiary" />
+            <Icon name="wallet" size="2xl" className="mx-auto mb-4 text-text-tertiary" />
             <p className="text-text-secondary">No pools available yet.</p>
             <p className="text-caption text-text-tertiary mt-2">
               Check back soon for new opportunities!

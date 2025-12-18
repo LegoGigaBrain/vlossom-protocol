@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V6.4.0** - Local Development & Service Fixes (December 18, 2025)
+**V6.5.0** - Phosphor Icon Migration (December 18, 2025)
 
-**Major Achievement**: Redis Cloud integration for distributed rate limiting, scheduler endpoint routing fix, admin panel scaffold created.
+**Major Achievement**: Complete migration from Lucide to Phosphor icons across 50+ frontend files using centralized Icon bridge system.
 
-**Previous**: V6.3.0 - Phase 2 UX & Infrastructure (frontend tooling, theme system), V6.2.0 - Security & Smart Contract Hardening, V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
+**Previous**: V6.4.0 - Local Development & Service Fixes, V6.3.0 - Phase 2 UX & Infrastructure, V6.2.0 - Security & Smart Contract Hardening, V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
 
 ---
 
@@ -39,7 +39,7 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.3.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.5.0 |
 | `apps/mobile/` | React Native + Expo mobile app | ✅ V6.0.0 |
 | `apps/admin/` | Admin dashboard | ✅ V6.4.0 |
 
@@ -262,6 +262,24 @@
 ---
 
 ## Recent Updates
+
+### V6.5.0 Changes (Phosphor Icon Migration)
+
+**Complete Lucide to Phosphor Migration (50+ Files)**
+- ✅ Icon Bridge System: `apps/web/components/icons/index.tsx` with centralized `Icon` component
+- ✅ Components migrated: notification, booking, wallet, profile, dialog, review, calendar, map, admin/paymaster
+- ✅ Pages migrated: settings (5), help (8), auth (2), main app (7), admin (3)
+- ✅ Pattern updates: Helper components now use `IconName` type instead of `React.ComponentType`
+- ✅ Size standardization: sm, md, lg, xl, 2xl size tokens
+- ✅ Zero Lucide imports remain in `apps/web` directory
+
+**Icon Mapping Reference:**
+- `Sparkles` → `sparkle`, `Calendar` → `calendar`, `Heart` → `favorite`
+- `Star` → `star`, `Clock` → `clock`, `MapPin` → `location`
+- `AlertCircle` → `calmError`, `Check` → `check`, `Plus` → `add`
+- `Loader2` → `timer`, `TrendingUp` → `growing`, `DollarSign` → `currency`
+
+---
 
 ### V6.4.0 Changes (Local Development & Service Fixes)
 

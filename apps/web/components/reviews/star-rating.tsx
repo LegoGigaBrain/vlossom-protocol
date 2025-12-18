@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Star } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 
 interface StarRatingProps {
@@ -13,10 +13,13 @@ interface StarRatingProps {
   className?: string;
 }
 
-const sizes = {
-  sm: "w-4 h-4",
-  md: "w-5 h-5",
-  lg: "w-6 h-6",
+type StarSize = "sm" | "md" | "lg";
+type IconSize = "sm" | "md" | "md";
+
+const sizeMap: Record<StarSize, IconSize> = {
+  sm: "sm",
+  md: "sm",
+  lg: "md",
 };
 
 export function StarRating({
@@ -71,30 +74,17 @@ export function StarRating({
               )}
               aria-label={`${rating} star${rating !== 1 ? "s" : ""}`}
             >
-              {/* Background star (empty) */}
-              <Star
+              {/* Star icon with conditional fill */}
+              <Icon
+                name="star"
+                size={sizeMap[size]}
+                weight={isFilled || isHalfFilled ? "fill" : "regular"}
                 className={cn(
-                  sizes[size],
-                  "text-border-default",
+                  isFilled || isHalfFilled ? "text-status-warning" : "text-border-default",
                   !readonly && "transition-colors"
                 )}
-                fill="none"
-                strokeWidth={1.5}
+                style={isHalfFilled ? { clipPath: "inset(0 50% 0 0)" } : undefined}
               />
-
-              {/* Filled star overlay */}
-              {(isFilled || isHalfFilled) && (
-                <Star
-                  className={cn(
-                    sizes[size],
-                    "absolute inset-0 text-status-warning",
-                    !readonly && "transition-colors"
-                  )}
-                  fill="currentColor"
-                  strokeWidth={0}
-                  style={isHalfFilled ? { clipPath: "inset(0 50% 0 0)" } : undefined}
-                />
-              )}
             </button>
           );
         })}
@@ -124,10 +114,11 @@ export function RatingDisplay({
 }: RatingDisplayProps) {
   return (
     <div className={cn("flex items-center gap-1.5", className)}>
-      <Star
-        className={cn(sizes[size], "text-status-warning")}
-        fill="currentColor"
-        strokeWidth={0}
+      <Icon
+        name="star"
+        size={sizeMap[size]}
+        weight="fill"
+        className="text-status-warning"
       />
       <span className="text-sm font-medium text-text-primary">
         {rating > 0 ? rating.toFixed(1) : "New"}

@@ -25,16 +25,7 @@ import { AppHeader } from "@/components/layout/app-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Sparkles,
-  Droplets,
-  Shield,
-  Calendar,
-  Save,
-  Trash2,
-  Loader2,
-  AlertTriangle,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 type TabId = "texture" | "porosity" | "sensitivity" | "routine";
 
@@ -124,11 +115,11 @@ export default function HairHealthEditPage() {
     return null;
   }
 
-  const tabs: { id: TabId; label: string; icon: typeof Sparkles }[] = [
-    { id: "texture", label: "Texture", icon: Sparkles },
-    { id: "porosity", label: "Porosity", icon: Droplets },
-    { id: "sensitivity", label: "Sensitivity", icon: Shield },
-    { id: "routine", label: "Routine", icon: Calendar },
+  const tabs: { id: TabId; label: string; icon: import("@/components/icons").IconName }[] = [
+    { id: "texture", label: "Texture", icon: "sparkle" },
+    { id: "porosity", label: "Porosity", icon: "moisture" },
+    { id: "sensitivity", label: "Sensitivity", icon: "trusted" },
+    { id: "routine", label: "Routine", icon: "calendar" },
   ];
 
   return (
@@ -153,7 +144,7 @@ export default function HairHealthEditPage() {
                   : "bg-background-primary text-text-secondary hover:text-text-primary"
               }`}
             >
-              <tab.icon className="w-4 h-4" />
+              <Icon name={tab.icon} size="sm" />
               {tab.label}
             </button>
           ))}
@@ -166,7 +157,7 @@ export default function HairHealthEditPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-brand-rose" />
+                <Icon name="sparkle" size="md" className="text-brand-rose" />
                 Texture & Pattern
               </CardTitle>
             </CardHeader>
@@ -239,7 +230,7 @@ export default function HairHealthEditPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Droplets className="w-5 h-5 text-brand-purple" />
+                <Icon name="moisture" size="md" className="text-brand-purple" />
                 Porosity & Moisture
               </CardTitle>
             </CardHeader>
@@ -271,7 +262,7 @@ export default function HairHealthEditPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Shield className="w-5 h-5 text-accent-gold" />
+                <Icon name="trusted" size="md" className="text-accent-gold" />
                 Sensitivity Levels
               </CardTitle>
             </CardHeader>
@@ -332,7 +323,7 @@ export default function HairHealthEditPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-status-success" />
+                <Icon name="calendar" size="md" className="text-status-success" />
                 Routine & Habits
               </CardTitle>
             </CardHeader>
@@ -406,12 +397,12 @@ export default function HairHealthEditPage() {
         >
           {updateProfile.isPending ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Icon name="timer" size="sm" className="mr-2 animate-spin" />
               Saving...
             </>
           ) : (
             <>
-              <Save className="w-4 h-4 mr-2" />
+              <Icon name="check" size="sm" className="mr-2" />
               Save Changes
             </>
           )}
@@ -421,7 +412,7 @@ export default function HairHealthEditPage() {
         <Card className="border-status-error/20">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2 text-status-error">
-              <AlertTriangle className="w-5 h-5" />
+              <Icon name="calmError" size="md" />
               Danger Zone
             </CardTitle>
           </CardHeader>
@@ -432,7 +423,7 @@ export default function HairHealthEditPage() {
                 className="w-full border-status-error/50 text-status-error hover:bg-status-error/10"
                 onClick={() => setShowDeleteConfirm(true)}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Icon name="delete" size="sm" className="mr-2" />
                 Delete Hair Profile
               </Button>
             ) : (
@@ -456,7 +447,7 @@ export default function HairHealthEditPage() {
                     disabled={deleteProfile.isPending}
                   >
                     {deleteProfile.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Icon name="timer" size="sm" className="animate-spin" />
                     ) : (
                       "Delete"
                     )}

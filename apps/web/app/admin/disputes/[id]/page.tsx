@@ -31,21 +31,7 @@ import {
 import { Skeleton } from "../../../../components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../../components/ui/avatar";
 import { toast } from "../../../../hooks/use-toast";
-import {
-  ArrowLeft,
-  AlertTriangle,
-  User,
-  Calendar,
-  Clock,
-  MessageSquare,
-  FileText,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Send,
-  Image as ImageIcon,
-  ExternalLink,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 interface DisputeMessage {
   id: string;

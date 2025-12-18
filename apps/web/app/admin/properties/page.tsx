@@ -7,22 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Building,
-  RefreshCw,
-  MapPin,
-  Check,
-  X,
-  Eye,
-  MoreVertical,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 interface Property {
   id: string;
@@ -185,14 +170,14 @@ export default function AdminPropertiesPage() {
       case "VERIFIED":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            <CheckCircle className="w-3 h-3 mr-1" />
+            <Icon name="success" size="sm" className="mr-1" />
             Verified
           </span>
         );
       case "REJECTED":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-            <XCircle className="w-3 h-3 mr-1" />
+            <Icon name="cancelled" size="sm" className="mr-1" />
             Rejected
           </span>
         );
@@ -200,7 +185,7 @@ export default function AdminPropertiesPage() {
       default:
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-            <Clock className="w-3 h-3 mr-1" />
+            <Icon name="clock" size="sm" className="mr-1" />
             Pending
           </span>
         );
@@ -231,7 +216,7 @@ export default function AdminPropertiesPage() {
           disabled={isRefreshing}
           className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
         >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          <Icon name="settings" size="sm" className={isRefreshing ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
@@ -260,7 +245,7 @@ export default function AdminPropertiesPage() {
       <div className="bg-white rounded-lg shadow p-4">
         <form onSubmit={handleSearch} className="flex gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name, address, or city..."
@@ -330,7 +315,7 @@ export default function AdminPropertiesPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                        <Building className="h-5 w-5 text-purple-600" />
+                        <Icon name="location" size="md" className="text-purple-600" />
                       </div>
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">
@@ -342,7 +327,7 @@ export default function AdminPropertiesPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center text-sm text-gray-500">
-                      <MapPin className="h-4 w-4 mr-1" />
+                      <Icon name="location" size="sm" className="mr-1" />
                       {property.city}, {property.province}
                     </div>
                   </td>
@@ -373,7 +358,7 @@ export default function AdminPropertiesPage() {
                         }
                         className="p-2 hover:bg-gray-100 rounded-full"
                       >
-                        <MoreVertical className="h-4 w-4 text-gray-500" />
+                        <Icon name="more" size="sm" className="text-gray-500" />
                       </button>
                       {showActionMenu === property.id && (
                         <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
@@ -382,7 +367,7 @@ export default function AdminPropertiesPage() {
                               href={`/admin/properties/${property.id}`}
                               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             >
-                              <Eye className="h-4 w-4 mr-2" />
+                              <Icon name="visible" size="sm" className="mr-2" />
                               View Details
                             </Link>
                             {property.verificationStatus === "PENDING" && (
@@ -391,14 +376,14 @@ export default function AdminPropertiesPage() {
                                   onClick={() => handleVerify(property.id)}
                                   className="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-gray-100"
                                 >
-                                  <Check className="h-4 w-4 mr-2" />
+                                  <Icon name="check" size="sm" className="mr-2" />
                                   Verify Property
                                 </button>
                                 <button
                                   onClick={() => handleReject(property.id)}
                                   className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
                                 >
-                                  <X className="h-4 w-4 mr-2" />
+                                  <Icon name="close" size="sm" className="mr-2" />
                                   Reject Property
                                 </button>
                               </>
@@ -408,7 +393,7 @@ export default function AdminPropertiesPage() {
                                 onClick={() => handleVerify(property.id)}
                                 className="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-gray-100"
                               >
-                                <Check className="h-4 w-4 mr-2" />
+                                <Icon name="check" size="sm" className="mr-2" />
                                 Re-verify Property
                               </button>
                             )}
@@ -426,7 +411,7 @@ export default function AdminPropertiesPage() {
         {/* Empty State */}
         {!isLoading && filteredProperties.length === 0 && (
           <div className="p-8 text-center">
-            <Building className="h-12 w-12 mx-auto text-gray-300" />
+            <Icon name="location" size="2xl" className="mx-auto text-gray-300" />
             <p className="mt-4 text-gray-500">No properties found</p>
           </div>
         )}

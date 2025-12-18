@@ -15,7 +15,7 @@
 import { useState, useMemo } from "react";
 import { cn } from "../../lib/utils";
 import { EventDot, type CalendarEvent, type LoadLevel } from "./event-chip";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface MonthGardenProps {
   events: CalendarEvent[];
@@ -160,14 +160,14 @@ export function MonthGarden({
             className="p-2 rounded-full hover:bg-background-tertiary transition-colors"
             aria-label="Previous month"
           >
-            <ChevronLeft className="w-5 h-5 text-text-secondary" />
+            <Icon name="chevronLeft" size="md" className="text-text-secondary" />
           </button>
           <button
             onClick={() => navigateMonth(1)}
             className="p-2 rounded-full hover:bg-background-tertiary transition-colors"
             aria-label="Next month"
           >
-            <ChevronRight className="w-5 h-5 text-text-secondary" />
+            <Icon name="chevronRight" size="md" className="text-text-secondary" />
           </button>
         </div>
       </div>

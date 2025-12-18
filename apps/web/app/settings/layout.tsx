@@ -10,51 +10,43 @@ import Link from "next/link";
 import { AppHeader } from "../../components/layout/app-header";
 import { BottomNav } from "../../components/layout/bottom-nav";
 import { cn } from "../../lib/utils";
-import {
-  User,
-  Palette,
-  Bell,
-  Shield,
-  Lock,
-  Cog,
-  ChevronRight,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 const settingsNav = [
   {
     label: "Account",
     href: "/settings",
-    icon: User,
+    iconName: "profile" as IconName,
     description: "Profile and personal info",
   },
   {
     label: "Display",
     href: "/settings/display",
-    icon: Palette,
+    iconName: "sparkle" as IconName,
     description: "Currency and appearance",
   },
   {
     label: "Notifications",
     href: "/settings/notifications",
-    icon: Bell,
+    iconName: "notifications" as IconName,
     description: "Push and email alerts",
   },
   {
     label: "Privacy",
     href: "/settings/privacy",
-    icon: Shield,
+    iconName: "trusted" as IconName,
     description: "Profile visibility",
   },
   {
     label: "Security",
     href: "/settings/security",
-    icon: Lock,
+    iconName: "locked" as IconName,
     description: "Authentication and 2FA",
   },
   {
     label: "Advanced",
     href: "/settings/advanced",
-    icon: Cog,
+    iconName: "settings" as IconName,
     description: "Developer options",
   },
 ];
@@ -86,7 +78,6 @@ export default function SettingsLayout({
                   item.href === "/settings"
                     ? pathname === "/settings"
                     : pathname.startsWith(item.href);
-                const Icon = item.icon;
 
                 return (
                   <Link
@@ -99,7 +90,7 @@ export default function SettingsLayout({
                         : "text-text-secondary hover:bg-background-secondary hover:text-text-primary"
                     )}
                   >
-                    <Icon className="w-5 h-5 flex-shrink-0" />
+                    <Icon name={item.iconName} className="flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm">{item.label}</p>
                       <p className="text-xs text-text-muted truncate">
@@ -120,7 +111,6 @@ export default function SettingsLayout({
                   item.href === "/settings"
                     ? pathname === "/settings"
                     : pathname.startsWith(item.href);
-                const Icon = item.icon;
 
                 return (
                   <Link
@@ -133,7 +123,7 @@ export default function SettingsLayout({
                         : "bg-background-secondary text-text-secondary"
                     )}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon name={item.iconName} size="sm" />
                     {item.label}
                   </Link>
                 );

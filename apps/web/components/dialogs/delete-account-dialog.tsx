@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, AlertTriangle, Trash2 } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -81,7 +81,7 @@ export function DeleteAccountDialog({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-status-error/30 bg-status-error/5">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-status-error" />
+              <Icon name="calmError" size="sm" className="text-status-error" />
               <Dialog.Title className="text-lg font-semibold text-status-error">
                 Delete Account
               </Dialog.Title>
@@ -91,7 +91,7 @@ export function DeleteAccountDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -155,7 +155,7 @@ export function DeleteAccountDialog({
                 disabled={!canDelete}
                 className="flex-1"
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Icon name="trash" size="sm" className="mr-2" />
                 Delete Account
               </Button>
             </div>

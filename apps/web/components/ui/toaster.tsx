@@ -14,13 +14,13 @@ import {
   ToastTitle,
   ToastViewport,
 } from "./toast";
-import { CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
-const icons = {
-  success: CheckCircle,
-  error: XCircle,
-  warning: AlertTriangle,
-  info: Info,
+const iconNames: Record<string, IconName | null> = {
+  success: "success",
+  error: "error",
+  warning: "calmError",
+  info: "info",
   default: null,
 };
 
@@ -30,13 +30,13 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
-        const Icon = variant ? icons[variant] : null;
+        const iconName = variant ? iconNames[variant] : null;
 
         return (
           <Toast key={id} variant={variant} {...props}>
             <div className="flex gap-3">
-              {Icon && (
-                <Icon className="h-5 w-5 shrink-0 mt-0.5" aria-hidden="true" />
+              {iconName && (
+                <Icon name={iconName} size="sm" className="shrink-0 mt-0.5" aria-hidden="true" />
               )}
               <div className="grid gap-1">
                 {title && <ToastTitle>{title}</ToastTitle>}

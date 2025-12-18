@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Star } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -129,7 +129,7 @@ export function ReviewDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>

@@ -25,21 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Sparkles,
-  Droplets,
-  Shield,
-  Calendar,
-  BookOpen,
-  ChevronRight,
-  Info,
-  Lock,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp,
-  Heart,
-  Zap,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 export default function HairHealthPage() {
   const router = useRouter();
@@ -92,7 +78,7 @@ export default function HairHealthPage() {
         <div className="p-4">
           <Card>
             <CardContent className="p-6 text-center">
-              <AlertCircle className="w-12 h-12 text-status-error mx-auto mb-4" />
+              <Icon name="calmError" size="2xl" className="text-status-error mx-auto mb-4" />
               <h2 className="text-lg font-semibold text-text-primary mb-2">
                 Unable to Load Profile
               </h2>
@@ -126,7 +112,7 @@ export default function HairHealthPage() {
           <Card className="overflow-hidden">
             <div className="bg-gradient-to-br from-brand-rose/20 via-brand-purple/10 to-accent-gold/20 p-6 text-center">
               <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-brand-rose/20 flex items-center justify-center">
-                <Sparkles className="w-10 h-10 text-brand-rose" />
+                <Icon name="sparkle" size="xl" className="text-brand-rose" />
               </div>
               <h2 className="text-xl font-display font-bold text-text-primary mb-2">
                 Discover Your Hair Profile
@@ -143,7 +129,7 @@ export default function HairHealthPage() {
                 onClick={() => router.push("/profile/hair-health/onboarding")}
               >
                 Start Hair Assessment
-                <ChevronRight className="w-4 h-4 ml-1" />
+                <Icon name="chevronRight" size="sm" className="ml-1" />
               </Button>
               <p className="text-xs text-text-muted text-center mt-3">
                 Takes about 3-5 minutes
@@ -155,28 +141,28 @@ export default function HairHealthPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Info className="w-5 h-5 text-brand-purple" />
+                <Icon name="info" size="md" className="text-brand-purple" />
                 What You&apos;ll Discover
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <DiscoveryItem
-                icon={Sparkles}
+                icon="sparkle"
                 title="Your Hair Archetype"
                 description="Texture class, pattern family, and density"
               />
               <DiscoveryItem
-                icon={Droplets}
+                icon="moisture"
                 title="Porosity Level"
                 description="How your hair absorbs and retains moisture"
               />
               <DiscoveryItem
-                icon={Shield}
+                icon="trusted"
                 title="Sensitivity Profile"
                 description="Detangling, manipulation, and tension tolerance"
               />
               <DiscoveryItem
-                icon={Calendar}
+                icon="calendar"
                 title="Optimal Routine"
                 description="Personalized wash day schedule and rituals"
               />
@@ -185,7 +171,7 @@ export default function HairHealthPage() {
 
           {/* Privacy Note */}
           <div className="flex items-start gap-3 p-4 bg-background-primary rounded-xl border border-border-default">
-            <Lock className="w-5 h-5 text-brand-purple mt-0.5" />
+            <Icon name="locked" size="md" className="text-brand-purple mt-0.5" />
             <div>
               <p className="text-sm font-medium text-text-primary">
                 Your data stays private
@@ -223,7 +209,7 @@ export default function HairHealthPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-brand-rose" />
+              <Icon name="sparkle" size="md" className="text-brand-rose" />
               Hair Snapshot
             </CardTitle>
           </CardHeader>
@@ -263,7 +249,7 @@ export default function HairHealthPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-brand-purple" />
+              <Icon name="calendar" size="md" className="text-brand-purple" />
               Current Routine
             </CardTitle>
           </CardHeader>
@@ -306,7 +292,7 @@ export default function HairHealthPage() {
               onClick={() => router.push("/schedule")}
             >
               View Care Calendar
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <Icon name="chevronRight" size="sm" className="ml-1" />
             </Button>
           </CardContent>
         </Card>
@@ -316,7 +302,7 @@ export default function HairHealthPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-accent-gold" />
+                <Icon name="info" size="md" className="text-accent-gold" />
                 Care Insights
               </CardTitle>
             </CardHeader>
@@ -328,7 +314,7 @@ export default function HairHealthPage() {
                       key={idx}
                       className="flex items-start gap-3 p-3 bg-background-secondary rounded-lg"
                     >
-                      <Zap className="w-4 h-4 text-accent-gold mt-0.5" />
+                      <Icon name="energy" size="sm" className="text-accent-gold mt-0.5" />
                       <p className="text-sm text-text-primary">{rec}</p>
                     </div>
                   ))}
@@ -352,7 +338,7 @@ export default function HairHealthPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-status-success" />
+                <Icon name="growing" size="md" className="text-status-success" />
                 Profile Analysis
               </CardTitle>
             </CardHeader>
@@ -360,7 +346,7 @@ export default function HairHealthPage() {
               {analysis.strengths.length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-text-secondary mb-2 flex items-center gap-1">
-                    <Heart className="w-3 h-3" /> Strengths
+                    <Icon name="favorite" className="w-3 h-3" /> Strengths
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {analysis.strengths.map((strength, idx) => (
@@ -374,7 +360,7 @@ export default function HairHealthPage() {
               {analysis.concerns.length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-text-secondary mb-2 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> Areas to Watch
+                    <Icon name="info" className="w-3 h-3" /> Areas to Watch
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {analysis.concerns.map((concern, idx) => (
@@ -394,7 +380,7 @@ export default function HairHealthPage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-status-success" />
+                <Icon name="intelligence" size="md" className="text-status-success" />
                 Learning Progress
               </span>
               {learningData && (
@@ -423,9 +409,9 @@ export default function HairHealthPage() {
                     }`}
                   >
                     {node.isUnlocked ? (
-                      <CheckCircle className="w-5 h-5 text-status-success" />
+                      <Icon name="success" size="md" className="text-status-success" />
                     ) : (
-                      <Lock className="w-5 h-5 text-text-muted" />
+                      <Icon name="locked" size="md" className="text-text-muted" />
                     )}
                     <div className="flex-1">
                       <p className="text-sm font-medium text-text-primary">
@@ -508,18 +494,18 @@ function HealthScoreCard({ analysis }: { analysis: ProfileAnalysis }) {
 }
 
 function DiscoveryItem({
-  icon: Icon,
+  icon,
   title,
   description,
 }: {
-  icon: typeof Sparkles;
+  icon: IconName;
   title: string;
   description: string;
 }) {
   return (
     <div className="flex items-start gap-3">
       <div className="w-8 h-8 rounded-lg bg-brand-rose/10 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-4 h-4 text-brand-rose" />
+        <Icon name={icon} size="sm" className="text-brand-rose" />
       </div>
       <div>
         <p className="text-sm font-medium text-text-primary">{title}</p>

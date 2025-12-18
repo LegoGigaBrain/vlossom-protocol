@@ -3,7 +3,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "../../lib/utils";
 import { StarRating } from "./star-rating";
-import { User, ThumbsUp, Flag } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export interface Review {
   id: string;
@@ -63,7 +63,7 @@ export function ReviewCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-sm font-medium text-text-secondary">
-              {initials || <User className="w-5 h-5" />}
+              {initials || <Icon name="profile" size="sm" />}
             </div>
           )}
         </div>
@@ -112,7 +112,7 @@ export function ReviewCard({
                       : "text-text-muted hover:text-text-secondary"
                   )}
                 >
-                  <ThumbsUp className="w-3.5 h-3.5" />
+                  <Icon name="check" size="xs" />
                   Helpful
                   {review.helpful && review.helpful > 0 && (
                     <span>({review.helpful})</span>
@@ -124,7 +124,7 @@ export function ReviewCard({
                   onClick={() => onReport(review.id)}
                   className="flex items-center gap-1 text-xs text-text-muted hover:text-status-error transition-gentle"
                 >
-                  <Flag className="w-3.5 h-3.5" />
+                  <Icon name="error" size="xs" />
                   Report
                 </button>
               )}

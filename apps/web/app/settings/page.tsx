@@ -21,16 +21,7 @@ import { AvatarUpload } from "../../components/profile/avatar-upload";
 import { LinkedAccounts } from "../../components/settings/linked-accounts";
 import { Skeleton } from "../../components/ui/skeleton";
 import { toast } from "../../hooks/use-toast";
-import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  LogOut,
-  Trash2,
-  AlertTriangle,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export default function AccountSettingsPage() {
   const { user, isLoading, logout, refetch } = useAuth();
@@ -72,7 +63,7 @@ export default function AccountSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <User className="w-5 h-5" />
+            <Icon name="profile" />
             Profile Information
           </CardTitle>
           <CardDescription>
@@ -120,7 +111,7 @@ export default function AccountSettingsPage() {
           <div className="flex items-center justify-between py-3 border-b border-border-default">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-background-secondary flex items-center justify-center">
-                <Mail className="w-5 h-5 text-text-secondary" />
+                <Icon name="email" className="text-text-secondary" />
               </div>
               <div>
                 <p className="text-sm font-medium">Email</p>
@@ -140,7 +131,7 @@ export default function AccountSettingsPage() {
           <div className="flex items-center justify-between py-3 border-b border-border-default">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-background-secondary flex items-center justify-center">
-                <Phone className="w-5 h-5 text-text-secondary" />
+                <Icon name="phone" className="text-text-secondary" />
               </div>
               <div>
                 <p className="text-sm font-medium">Phone</p>
@@ -164,7 +155,7 @@ export default function AccountSettingsPage() {
           <div className="flex items-center justify-between py-3 border-b border-border-default">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-background-secondary flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-text-secondary" />
+                <Icon name="location" className="text-text-secondary" />
               </div>
               <div>
                 <p className="text-sm font-medium">Location</p>
@@ -181,7 +172,7 @@ export default function AccountSettingsPage() {
           <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-background-secondary flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-text-secondary" />
+                <Icon name="calendar" className="text-text-secondary" />
               </div>
               <div>
                 <p className="text-sm font-medium">Member Since</p>
@@ -217,7 +208,7 @@ export default function AccountSettingsPage() {
       <Card className="border-status-error/30">
         <CardHeader>
           <CardTitle className="text-lg text-status-error flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
+            <Icon name="calmError" />
             Danger Zone
           </CardTitle>
         </CardHeader>
@@ -235,7 +226,7 @@ export default function AccountSettingsPage() {
               onClick={handleLogout}
               loading={isLoggingOut}
             >
-              <LogOut className="w-4 h-4 mr-2" />
+              <Icon name="logout" size="sm" className="mr-2" />
               Log out
             </Button>
           </div>
@@ -254,7 +245,7 @@ export default function AccountSettingsPage() {
                 size="sm"
                 onClick={() => setShowDeleteConfirm(true)}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Icon name="delete" size="sm" className="mr-2" />
                 Delete account
               </Button>
             ) : (

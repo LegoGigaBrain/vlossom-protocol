@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { format } from "date-fns";
-import { X, Calendar, Clock, MapPin, User, ArrowRight, DollarSign } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 
@@ -106,7 +106,7 @@ export function BookingQuickViewDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -140,7 +140,7 @@ export function BookingQuickViewDialog({
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-lg font-semibold text-text-secondary">
-                    {initials || <User className="w-6 h-6" />}
+                    {initials || <Icon name="profile" size="md" />}
                   </div>
                 )}
               </div>
@@ -150,14 +150,14 @@ export function BookingQuickViewDialog({
                 </p>
                 <p className="text-sm text-text-secondary">Stylist</p>
               </div>
-              <ArrowRight className="w-4 h-4 text-text-muted" />
+              <Icon name="chevronRight" size="sm" className="text-text-muted" />
             </button>
 
             {/* Date & Time */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center shrink-0">
-                  <Calendar className="w-5 h-5 text-brand-rose" />
+                  <Icon name="calendar" size="sm" className="text-brand-rose" />
                 </div>
                 <div>
                   <p className="font-medium text-text-primary">
@@ -172,7 +172,7 @@ export function BookingQuickViewDialog({
               {booking.location && (
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5 text-brand-rose" />
+                    <Icon name="pin" size="sm" className="text-brand-rose" />
                   </div>
                   <div>
                     <p className="text-sm text-text-primary">{booking.location}</p>
@@ -184,7 +184,7 @@ export function BookingQuickViewDialog({
             {/* Services */}
             <div className="bg-background-tertiary rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
-                <Clock className="w-4 h-4 text-text-muted" />
+                <Icon name="clock" size="sm" className="text-text-muted" />
                 <span className="text-sm text-text-secondary">Services</span>
               </div>
               <ul className="space-y-1">

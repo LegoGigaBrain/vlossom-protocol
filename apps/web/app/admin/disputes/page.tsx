@@ -25,16 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
-import {
-  AlertTriangle,
-  Search,
-  Filter,
-  ChevronRight,
-  Clock,
-  User,
-  Calendar,
-  RefreshCw,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 interface Dispute {
   id: string;
@@ -172,7 +163,7 @@ export default function AdminDisputesPage() {
           <p className="text-gray-500">Review and resolve customer disputes</p>
         </div>
         <Button onClick={() => fetchDisputes()}>
-          <RefreshCw className="w-4 h-4 mr-2" />
+          <Icon name="settings" size="sm" className="mr-2" />
           Refresh
         </Button>
       </div>
@@ -224,7 +215,7 @@ export default function AdminDisputesPage() {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-4">
-              <Clock className="w-8 h-8 text-gray-400" />
+              <Icon name="clock" size="lg" className="text-gray-400" />
               <div>
                 <div className="text-sm text-gray-500">Average Resolution Time</div>
                 <div className="text-xl font-bold">
@@ -242,7 +233,7 @@ export default function AdminDisputesPage() {
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Icon name="search" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <Input
                   placeholder="Search disputes..."
                   value={searchQuery}
@@ -253,7 +244,7 @@ export default function AdminDisputesPage() {
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
-                <Filter className="w-4 h-4 mr-2" />
+                <Icon name="search" size="sm" className="mr-2" />
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -282,7 +273,7 @@ export default function AdminDisputesPage() {
       {/* Loading State */}
       {isLoading && (
         <div className="text-center py-12">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto text-gray-400" />
+          <Icon name="clock" size="lg" className="animate-spin mx-auto text-gray-400" />
           <p className="mt-2 text-gray-500">Loading disputes...</p>
         </div>
       )}
@@ -291,7 +282,7 @@ export default function AdminDisputesPage() {
       {!isLoading && filteredDisputes.length === 0 && (
         <Card>
           <CardContent className="py-12 text-center">
-            <AlertTriangle className="w-12 h-12 mx-auto text-gray-300" />
+            <Icon name="calmError" size="2xl" className="mx-auto text-gray-300" />
             <p className="mt-4 text-gray-500">No disputes found</p>
           </CardContent>
         </Card>
@@ -331,14 +322,14 @@ export default function AdminDisputesPage() {
                       {/* Meta Info */}
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                         <div className="flex items-center gap-1">
-                          <User className="w-4 h-4" />
+                          <Icon name="profile" size="sm" />
                           <span>
                             {dispute.filedBy?.displayName || "Unknown"} vs{" "}
                             {dispute.filedAgainst?.displayName || "Unknown"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                          <Icon name="calendar" size="sm" />
                           <span>
                             {new Date(dispute.createdAt).toLocaleDateString()}
                           </span>
@@ -353,7 +344,7 @@ export default function AdminDisputesPage() {
                       </div>
                     </div>
 
-                    <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
+                    <Icon name="chevronRight" size="md" className="text-gray-400 flex-shrink-0 ml-4" />
                   </div>
                 </CardContent>
               </Card>

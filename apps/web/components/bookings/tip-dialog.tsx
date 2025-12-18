@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Heart, DollarSign } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
@@ -122,7 +122,7 @@ export function TipDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -148,7 +148,7 @@ export function TipDialog({
                 {stylistName}
               </p>
               <p className="text-sm text-text-secondary flex items-center gap-1 mt-1">
-                <Heart className="w-4 h-4 text-brand-rose" />
+                <Icon name="favorite" size="sm" className="text-brand-rose" />
                 Show your appreciation
               </p>
             </div>
@@ -188,7 +188,7 @@ export function TipDialog({
 
             {showCustom && (
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-secondary" />
+                <Icon name="currency" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                 <input
                   type="number"
                   value={customAmount}

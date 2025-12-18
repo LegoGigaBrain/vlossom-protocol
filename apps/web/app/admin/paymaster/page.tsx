@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { RefreshCw } from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 import { StatsCards } from "../../../components/admin/paymaster/stats-cards";
 import { AlertsPanel } from "../../../components/admin/paymaster/alerts-panel";
 
@@ -147,8 +147,10 @@ export default function PaymasterDashboardPage() {
           disabled={isRefreshing}
           className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
         >
-          <RefreshCw
-            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+          <Icon
+            name="settings"
+            size="sm"
+            className={isRefreshing ? "animate-spin" : ""}
           />
           Refresh
         </button>

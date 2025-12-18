@@ -32,18 +32,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Sparkles,
-  Calendar,
-  Heart,
-  Star,
-  Scissors,
-  ChevronRight,
-  Trophy,
-  Flame,
-  Award,
-  AlertCircle,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export default function ProfilePage() {
   const { user, isLoading } = useAuth();
@@ -179,7 +168,7 @@ function HairHealthCard() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-brand-rose/20 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-brand-rose" />
+              <Icon name="sparkle" size="md" className="text-brand-rose" />
             </div>
             <div>
               <h3 className="font-medium text-text-primary">Hair Health</h3>
@@ -194,7 +183,7 @@ function HairHealthCard() {
             onClick={() => router.push("/profile/hair-health")}
           >
             {hasProfile ? "View Profile" : "Get Started"}
-            <ChevronRight className="w-4 h-4 ml-1" />
+            <Icon name="chevronRight" size="sm" className="ml-1" />
           </Button>
         </div>
       </div>
@@ -207,7 +196,7 @@ function HairHealthCard() {
           </div>
         ) : error ? (
           <div className="flex items-center justify-center gap-2 py-3 text-status-error">
-            <AlertCircle className="w-4 h-4" />
+            <Icon name="calmError" size="sm" />
             <p className="text-sm">Unable to load profile</p>
           </div>
         ) : (
@@ -255,7 +244,7 @@ function BookingStatsCard() {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-brand-rose" />
+          <Icon name="calendar" size="md" className="text-brand-rose" />
           Bookings
         </CardTitle>
       </CardHeader>
@@ -267,7 +256,7 @@ function BookingStatsCard() {
           </div>
         ) : error ? (
           <div className="flex items-center justify-center gap-2 py-3 text-status-error">
-            <AlertCircle className="w-4 h-4" />
+            <Icon name="calmError" size="sm" />
             <p className="text-sm">Unable to load stats</p>
           </div>
         ) : (
@@ -304,7 +293,7 @@ function BookingStatsCard() {
           className="mt-3 flex items-center justify-center gap-1 text-sm text-brand-rose hover:underline"
         >
           View all bookings
-          <ChevronRight className="w-4 h-4" />
+          <Icon name="chevronRight" size="sm" />
         </Link>
       </CardContent>
     </Card>
@@ -322,7 +311,7 @@ function RewardsCard() {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-brand-rose" />
+          <Icon name="star" size="md" className="text-brand-rose" />
           Rewards
         </CardTitle>
       </CardHeader>
@@ -337,7 +326,7 @@ function RewardsCard() {
           </div>
         ) : error ? (
           <div className="flex items-center justify-center gap-2 py-3 text-status-error">
-            <AlertCircle className="w-4 h-4" />
+            <Icon name="calmError" size="sm" />
             <p className="text-sm">Unable to load rewards</p>
           </div>
         ) : (
@@ -355,14 +344,14 @@ function RewardsCard() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="flex items-center gap-2 p-2 bg-background-secondary rounded-lg">
-                <Flame className="w-4 h-4 text-orange-500" />
+                <Icon name="energy" size="sm" className="text-orange-500" />
                 <div>
                   <p className="text-sm font-medium">{rewards.streak}</p>
                   <p className="text-xs text-text-muted">Streak</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 p-2 bg-background-secondary rounded-lg">
-                <Award className="w-4 h-4 text-brand-rose" />
+                <Icon name="star" size="sm" className="text-brand-rose" />
                 <div>
                   <p className="text-sm font-medium">{rewards.badges}</p>
                   <p className="text-xs text-text-muted">Badges</p>
@@ -376,7 +365,7 @@ function RewardsCard() {
           className="mt-3 flex items-center justify-center gap-1 text-sm text-brand-rose hover:underline"
         >
           View rewards
-          <ChevronRight className="w-4 h-4" />
+          <Icon name="chevronRight" size="sm" />
         </Link>
       </CardContent>
     </Card>
@@ -400,7 +389,7 @@ function FavoritesStylistsCard() {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <Heart className="w-5 h-5 text-brand-rose" />
+            <Icon name="favorite" size="md" className="text-brand-rose" />
             Favorite Stylists
           </CardTitle>
           {totalCount > 0 && (
@@ -416,7 +405,7 @@ function FavoritesStylistsCard() {
           </div>
         ) : error ? (
           <div className="flex items-center justify-center gap-2 py-3 text-status-error">
-            <AlertCircle className="w-4 h-4" />
+            <Icon name="calmError" size="sm" />
             <p className="text-sm">Unable to load favorites</p>
           </div>
         ) : favorites.length > 0 ? (
@@ -436,7 +425,7 @@ function FavoritesStylistsCard() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Scissors className="w-5 h-5 text-brand-rose" />
+                      <Icon name="scissors" size="md" className="text-brand-rose" />
                     )}
                   </div>
                   <div>
@@ -465,13 +454,13 @@ function FavoritesStylistsCard() {
                 className="mt-2 flex items-center justify-center gap-1 text-sm text-brand-rose hover:underline"
               >
                 View all {totalCount} favorites
-                <ChevronRight className="w-4 h-4" />
+                <Icon name="chevronRight" size="sm" />
               </Link>
             )}
           </div>
         ) : (
           <div className="text-center py-6">
-            <Heart className="w-10 h-10 text-text-muted mx-auto mb-2" />
+            <Icon name="favorite" size="xl" className="text-text-muted mx-auto mb-2" />
             <p className="text-sm text-text-secondary">No favorites yet</p>
             <p className="text-xs text-text-muted">
               Heart stylists to add them here

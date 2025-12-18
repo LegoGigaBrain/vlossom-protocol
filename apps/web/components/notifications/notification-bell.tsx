@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { NotificationDropdown } from "./notification-dropdown";
 import { useAuth } from "../../hooks/use-auth";
@@ -75,7 +75,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <Bell className="w-5 h-5 text-text-secondary" />
+        <Icon name="notifications" size="md" className="text-text-secondary" />
 
         {/* Unread Badge */}
         {unreadCount > 0 && (

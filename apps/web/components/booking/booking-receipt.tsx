@@ -3,16 +3,7 @@
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
-import {
-  CheckCircle,
-  Calendar,
-  Clock,
-  MapPin,
-  Receipt,
-  Download,
-  Share2,
-  User,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface BookingService {
   name: string;
@@ -72,7 +63,7 @@ export function BookingReceipt({
       {/* Header */}
       <div className="bg-status-success/10 px-6 py-8 text-center">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-status-success/20 flex items-center justify-center">
-          <CheckCircle className="w-8 h-8 text-status-success" />
+          <Icon name="check" size="lg" className="text-status-success" />
         </div>
         <h2 className="text-xl font-bold text-text-primary">
           Booking Confirmed!
@@ -96,7 +87,7 @@ export function BookingReceipt({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-lg font-medium text-text-secondary">
-                {initials || <User className="w-6 h-6" />}
+                {initials || <Icon name="profile" size="md" />}
               </div>
             )}
           </div>
@@ -113,7 +104,7 @@ export function BookingReceipt({
       <div className="px-6 py-4 space-y-4 border-b border-border-default">
         {/* Date & Time */}
         <div className="flex items-start gap-3">
-          <Calendar className="w-5 h-5 text-text-secondary mt-0.5" />
+          <Icon name="calendar" size="sm" className="text-text-secondary mt-0.5" />
           <div>
             <p className="font-medium text-text-primary">
               {format(date, "EEEE, MMMM d, yyyy")}
@@ -127,7 +118,7 @@ export function BookingReceipt({
         {/* Location */}
         {booking.location && (
           <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-text-secondary mt-0.5" />
+            <Icon name="pin" size="sm" className="text-text-secondary mt-0.5" />
             <div>
               <p className="font-medium text-text-primary">Location</p>
               <p className="text-sm text-text-secondary">{booking.location}</p>
@@ -157,7 +148,7 @@ export function BookingReceipt({
       {/* Payment Summary */}
       <div className="px-6 py-4 border-b border-border-default">
         <div className="flex items-center gap-2 mb-3">
-          <Receipt className="w-5 h-5 text-text-secondary" />
+          <Icon name="receipt" size="sm" className="text-text-secondary" />
           <h3 className="font-medium text-text-primary">Payment Summary</h3>
         </div>
         <div className="space-y-2">
@@ -181,7 +172,7 @@ export function BookingReceipt({
 
         {/* Payment Status */}
         <div className="mt-4 flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-status-success" />
+          <Icon name="check" size="sm" className="text-status-success" />
           <span className="text-sm text-status-success font-medium">
             {booking.paymentStatus === "COMPLETED"
               ? "Payment Complete"
@@ -208,13 +199,13 @@ export function BookingReceipt({
       <div className="px-6 py-4 flex gap-3">
         {onDownload && (
           <Button variant="outline" onClick={onDownload} className="flex-1">
-            <Download className="w-4 h-4 mr-2" />
+            <Icon name="download" size="sm" className="mr-2" />
             Download
           </Button>
         )}
         {onShare && (
           <Button variant="outline" onClick={onShare} className="flex-1">
-            <Share2 className="w-4 h-4 mr-2" />
+            <Icon name="share" size="sm" className="mr-2" />
             Share
           </Button>
         )}

@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, AlertTriangle, Upload, X as XIcon } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -166,7 +166,7 @@ export function ReportIssueDialog({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border-default sticky top-0 bg-background-primary">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-status-warning" />
+              <Icon name="calmError" size="sm" className="text-status-warning" />
               <Dialog.Title className="text-lg font-semibold text-text-primary">
                 Report an Issue
               </Dialog.Title>
@@ -176,7 +176,7 @@ export function ReportIssueDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -265,7 +265,7 @@ export function ReportIssueDialog({
                       onClick={() => removeImage(index)}
                       className="absolute -top-2 -right-2 w-5 h-5 bg-status-error text-white rounded-full flex items-center justify-center"
                     >
-                      <XIcon className="w-3 h-3" />
+                      <Icon name="close" size="xs" />
                     </button>
                   </div>
                 ))}
@@ -273,7 +273,7 @@ export function ReportIssueDialog({
                 {/* Upload button */}
                 {images.length < 3 && (
                   <label className="w-20 h-20 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default cursor-pointer hover:border-brand-rose hover:bg-brand-rose/5 transition-gentle">
-                    <Upload className="w-5 h-5 text-text-muted" />
+                    <Icon name="upload" size="sm" className="text-text-muted" />
                     <span className="text-xs text-text-muted mt-1">Upload</span>
                     <input
                       type="file"

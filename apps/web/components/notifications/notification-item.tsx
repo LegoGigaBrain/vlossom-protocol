@@ -3,17 +3,7 @@
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { cn } from "../../lib/utils";
-import {
-  Calendar,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Wallet,
-  Star,
-  AlertTriangle,
-  Bell,
-  User,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 export interface Notification {
   id: string;
@@ -50,50 +40,50 @@ interface NotificationItemProps {
 
 const typeConfig: Record<
   NotificationType,
-  { icon: typeof Bell; color: string; bgColor: string }
+  { iconName: IconName; color: string; bgColor: string }
 > = {
   BOOKING_REQUEST: {
-    icon: Calendar,
+    iconName: "calendar",
     color: "text-status-info",
     bgColor: "bg-status-info/10",
   },
   BOOKING_CONFIRMED: {
-    icon: CheckCircle,
+    iconName: "check",
     color: "text-status-success",
     bgColor: "bg-status-success/10",
   },
   BOOKING_CANCELLED: {
-    icon: XCircle,
+    iconName: "close",
     color: "text-status-error",
     bgColor: "bg-status-error/10",
   },
   BOOKING_REMINDER: {
-    icon: Clock,
+    iconName: "clock",
     color: "text-status-warning",
     bgColor: "bg-status-warning/10",
   },
   PAYMENT_RECEIVED: {
-    icon: Wallet,
+    iconName: "wallet",
     color: "text-status-success",
     bgColor: "bg-status-success/10",
   },
   PAYMENT_SENT: {
-    icon: Wallet,
+    iconName: "wallet",
     color: "text-brand-rose",
     bgColor: "bg-brand-rose/10",
   },
   REVIEW_RECEIVED: {
-    icon: Star,
+    iconName: "star",
     color: "text-status-warning",
     bgColor: "bg-status-warning/10",
   },
   SYSTEM: {
-    icon: AlertTriangle,
+    iconName: "calmError",
     color: "text-status-info",
     bgColor: "bg-status-info/10",
   },
   GENERAL: {
-    icon: Bell,
+    iconName: "notifications",
     color: "text-text-secondary",
     bgColor: "bg-background-tertiary",
   },
@@ -125,7 +115,6 @@ export function NotificationItem({
   showFullMessage = false,
 }: NotificationItemProps) {
   const config = typeConfig[notification.type] || typeConfig.GENERAL;
-  const Icon = config.icon;
   const link = getNotificationLink(notification);
 
   const timeAgo = formatDistanceToNow(new Date(notification.createdAt), {
@@ -155,7 +144,7 @@ export function NotificationItem({
           config.bgColor
         )}
       >
-        <Icon className={cn("w-5 h-5", config.color)} />
+        <Icon name={config.iconName} size="sm" className={config.color} />
       </div>
 
       {/* Content */}

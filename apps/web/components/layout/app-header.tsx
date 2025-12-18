@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "../../lib/utils";
 import { NotificationBell } from "../notifications/notification-bell";
 import { Button } from "../ui/button";
-import { ChevronLeft, User } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface AppHeaderProps {
   title: string;
@@ -55,7 +55,7 @@ export function AppHeader({
                 className="p-2 -ml-2 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Go back"
               >
-                <ChevronLeft className="w-5 h-5 text-text-secondary" />
+                <Icon name="chevronLeft" size="sm" className="text-text-secondary" />
               </button>
             )}
             <div>
@@ -74,7 +74,7 @@ export function AppHeader({
             {showProfile && (
               <Link href="/profile">
                 <Button variant="ghost" size="sm" aria-label="Profile">
-                  <User className="w-5 h-5" />
+                  <Icon name="profile" size="sm" />
                 </Button>
               </Link>
             )}

@@ -15,15 +15,7 @@
 import { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
-import {
-  X,
-  Clock,
-  CheckCircle,
-  Circle,
-  Droplets,
-  Sparkles,
-  Heart,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export interface RitualStep {
   id: string;
@@ -138,7 +130,7 @@ export function RitualSheet({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <Droplets className="w-5 h-5 text-brand-rose" />
+                <Icon name="care" size="md" className="text-brand-rose" />
                 <h2 className="text-lg font-display font-semibold text-text-primary">
                   {ritual.name}
                 </h2>
@@ -154,7 +146,7 @@ export function RitualSheet({
                 </span>
                 <span className="text-xs text-text-muted">•</span>
                 <span className="text-xs text-text-muted flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+                  <Icon name="clock" size="xs" />
                   {remainingMinutes} min remaining
                 </span>
               </div>
@@ -164,7 +156,7 @@ export function RitualSheet({
               className="p-2 -mr-2 rounded-full hover:bg-background-tertiary transition-colors"
               aria-label="Close"
             >
-              <X className="w-5 h-5 text-text-secondary" />
+              <Icon name="close" size="md" className="text-text-secondary" />
             </button>
           </div>
 
@@ -211,7 +203,7 @@ export function RitualSheet({
                     )}
                   >
                     {isCompleted ? (
-                      <CheckCircle className="w-4 h-4" />
+                      <Icon name="success" size="sm" />
                     ) : (
                       <span className="text-xs font-medium">{index + 1}</span>
                     )}
@@ -256,7 +248,7 @@ export function RitualSheet({
           {completedCount === totalSteps ? (
             <div className="text-center">
               <div className="flex items-center justify-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-brand-rose" />
+                <Icon name="sparkle" size="md" className="text-brand-rose" />
                 <p className="font-medium text-text-primary">
                   Ritual complete!
                 </p>
@@ -269,7 +261,7 @@ export function RitualSheet({
                 className="w-full mt-4"
                 onClick={onClose}
               >
-                <Heart className="w-4 h-4 mr-2" />
+                <Icon name="favorite" size="sm" className="mr-2" />
                 Finish
               </Button>
             </div>

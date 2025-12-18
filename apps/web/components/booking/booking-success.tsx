@@ -4,14 +4,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
-import {
-  CheckCircle,
-  Calendar,
-  Clock,
-  MapPin,
-  ArrowRight,
-  Plus,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface BookingSuccessProps {
   booking: {
@@ -47,7 +40,7 @@ export function BookingSuccess({
       {/* Success Animation */}
       <div className="relative">
         <div className="w-24 h-24 mx-auto rounded-full bg-status-success/10 flex items-center justify-center animate-bounce-in">
-          <CheckCircle className="w-12 h-12 text-status-success" />
+          <Icon name="check" size="xl" className="text-status-success" />
         </div>
         <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full bg-status-success/20 animate-ping" />
       </div>
@@ -68,7 +61,7 @@ export function BookingSuccess({
       <div className="bg-background-secondary rounded-card p-4 text-left space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-brand-rose" />
+            <Icon name="calendar" size="sm" className="text-brand-rose" />
           </div>
           <div>
             <p className="font-medium text-text-primary">
@@ -82,7 +75,7 @@ export function BookingSuccess({
 
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-            <Clock className="w-5 h-5 text-brand-rose" />
+            <Icon name="clock" size="sm" className="text-brand-rose" />
           </div>
           <div>
             <p className="font-medium text-text-primary">
@@ -95,7 +88,7 @@ export function BookingSuccess({
         {booking.location && (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-brand-rose" />
+              <Icon name="pin" size="sm" className="text-brand-rose" />
             </div>
             <div>
               <p className="font-medium text-text-primary">Location</p>
@@ -140,7 +133,7 @@ export function BookingSuccess({
       <div className="space-y-3">
         {onAddToCalendar && (
           <Button variant="outline" onClick={onAddToCalendar} className="w-full">
-            <Plus className="w-4 h-4 mr-2" />
+            <Icon name="add" size="sm" className="mr-2" />
             Add to Calendar
           </Button>
         )}
@@ -150,7 +143,7 @@ export function BookingSuccess({
           className="w-full"
         >
           View Booking Details
-          <ArrowRight className="w-4 h-4 ml-2" />
+          <Icon name="chevronRight" size="sm" className="ml-2" />
         </Button>
 
         <button

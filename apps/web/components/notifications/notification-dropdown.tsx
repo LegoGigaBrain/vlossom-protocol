@@ -6,7 +6,7 @@ import { NotificationItem, type Notification } from "./notification-item";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../ui/empty-state";
-import { Bell, CheckCheck, ArrowRight } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface NotificationDropdownProps {
   onClose: () => void;
@@ -115,7 +115,7 @@ export function NotificationDropdown({ onClose, onMarkAllRead }: NotificationDro
             disabled={isMarkingAll}
             className="text-xs text-brand-rose hover:text-brand-clay transition-gentle flex items-center gap-1 disabled:opacity-50"
           >
-            <CheckCheck className="w-3.5 h-3.5" />
+            <Icon name="check" size="xs" />
             Mark all read
           </button>
         )}
@@ -169,7 +169,7 @@ export function NotificationDropdown({ onClose, onMarkAllRead }: NotificationDro
             className="text-sm text-brand-rose hover:text-brand-clay transition-gentle flex items-center justify-center gap-1"
           >
             View all notifications
-            <ArrowRight className="w-4 h-4" />
+            <Icon name="chevronRight" size="sm" />
           </Link>
         </div>
       )}

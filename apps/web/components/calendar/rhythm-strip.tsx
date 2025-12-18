@@ -15,7 +15,7 @@
 import { useState, useRef, useEffect } from "react";
 import { cn } from "../../lib/utils";
 import { EventChip, EventDot, type CalendarEvent } from "./event-chip";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface RhythmStripProps {
   events: CalendarEvent[];
@@ -114,14 +114,14 @@ export function RhythmStrip({
             className="p-2 rounded-full hover:bg-background-tertiary transition-colors"
             aria-label="Previous week"
           >
-            <ChevronLeft className="w-5 h-5 text-text-secondary" />
+            <Icon name="chevronLeft" size="md" className="text-text-secondary" />
           </button>
           <button
             onClick={() => navigateDays(7)}
             className="p-2 rounded-full hover:bg-background-tertiary transition-colors"
             aria-label="Next week"
           >
-            <ChevronRight className="w-5 h-5 text-text-secondary" />
+            <Icon name="chevronRight" size="md" className="text-text-secondary" />
           </button>
         </div>
       </div>

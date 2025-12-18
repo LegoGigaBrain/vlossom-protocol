@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, XCircle, Clock, ExternalLink } from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 interface Transaction {
   id: string;
@@ -79,11 +79,11 @@ export function TransactionsTable({
   const StatusIcon = ({ status }: { status: string }) => {
     switch (status) {
       case "SUCCESS":
-        return <CheckCircle className="h-5 w-5 text-green-500" />;
+        return <Icon name="success" size="sm" className="text-green-500" />;
       case "FAILED":
-        return <XCircle className="h-5 w-5 text-red-500" />;
+        return <Icon name="error" size="sm" className="text-red-500" />;
       default:
-        return <Clock className="h-5 w-5 text-yellow-500" />;
+        return <Icon name="clock" size="sm" className="text-yellow-500" />;
     }
   };
 
@@ -168,7 +168,7 @@ export function TransactionsTable({
                         onClick={(e) => e.stopPropagation()}
                       >
                         {formatAddress(tx.txHash)}
-                        <ExternalLink className="h-3 w-3" />
+                        <Icon name="external" size="xs" />
                       </a>
                     ) : (
                       <span className="text-gray-400">-</span>

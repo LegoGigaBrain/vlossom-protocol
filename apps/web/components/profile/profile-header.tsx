@@ -17,15 +17,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import {
-  Settings,
-  CheckCircle,
-  Scissors,
-  Building2,
-  Edit2,
-  Users,
-  UserPlus,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export interface ProfileHeaderUser {
   id: string;
@@ -98,7 +90,7 @@ export function ProfileHeader({
                 className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-rose text-white flex items-center justify-center shadow-md hover:bg-brand-rose/90 transition-colors"
                 aria-label="Edit profile photo"
               >
-                <Edit2 className="w-4 h-4" />
+                <Icon name="edit" size="sm" />
               </button>
             )}
           </div>
@@ -112,7 +104,7 @@ export function ProfileHeader({
                   size="sm"
                   onClick={() => router.push("/settings")}
                 >
-                  <Settings className="w-4 h-4 mr-1" />
+                  <Icon name="settings" size="sm" className="mr-1" />
                   Settings
                 </Button>
               </>
@@ -125,12 +117,12 @@ export function ProfileHeader({
                 >
                   {isFollowing ? (
                     <>
-                      <Users className="w-4 h-4 mr-1" />
+                      <Icon name="profile" size="sm" className="mr-1" />
                       Following
                     </>
                   ) : (
                     <>
-                      <UserPlus className="w-4 h-4 mr-1" />
+                      <Icon name="add" size="sm" className="mr-1" />
                       Follow
                     </>
                   )}
@@ -147,7 +139,7 @@ export function ProfileHeader({
               {displayName}
             </h1>
             {user.isVerified && (
-              <CheckCircle className="w-5 h-5 text-brand-purple fill-brand-purple/20" />
+              <Icon name="verified" size="sm" className="text-brand-purple" />
             )}
           </div>
           <p className="text-sm text-text-secondary">@{username}</p>
@@ -158,13 +150,13 @@ export function ProfileHeader({
           <div className="flex gap-2 mt-2">
             {isStylist && (
               <Badge variant="secondary" className="gap-1">
-                <Scissors className="w-3 h-3" />
+                <Icon name="care" size="xs" />
                 Stylist
               </Badge>
             )}
             {isSalonOwner && (
               <Badge variant="secondary" className="gap-1">
-                <Building2 className="w-3 h-3" />
+                <Icon name="pin" size="xs" />
                 Salon Owner
               </Badge>
             )}

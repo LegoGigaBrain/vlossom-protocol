@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Check } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 /**
  * Getting Started Guide (F5.4)
@@ -16,7 +16,7 @@ export default function GettingStartedPage() {
             href="/help"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <Icon name="chevronLeft" size="sm" />
             Back to Help Center
           </Link>
         </div>
@@ -56,19 +56,19 @@ export default function GettingStartedPage() {
             </div>
             <ul className="space-y-2">
               <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <Icon name="check" size="md" className="text-green-500 flex-shrink-0 mt-0.5" />
                 <span className="text-gray-700">
                   Enter your email and create a secure password
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <Icon name="check" size="md" className="text-green-500 flex-shrink-0 mt-0.5" />
                 <span className="text-gray-700">
                   Choose your display name (this is what others will see)
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                <Icon name="check" size="md" className="text-green-500 flex-shrink-0 mt-0.5" />
                 <span className="text-gray-700">
                   Select your role: Customer or Stylist
                 </span>

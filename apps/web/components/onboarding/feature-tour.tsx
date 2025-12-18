@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, ChevronRight, ChevronLeft } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface TourStep {
   target: string; // CSS selector for element to highlight
@@ -204,7 +204,7 @@ export function FeatureTour({ userRole, onComplete, onSkip }: FeatureTourProps) 
           className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
           aria-label="Close tour"
         >
-          <X className="h-4 w-4" aria-hidden="true" />
+          <Icon name="close" size="sm" aria-hidden="true" />
         </button>
 
         {/* Step indicator */}
@@ -232,7 +232,7 @@ export function FeatureTour({ userRole, onComplete, onSkip }: FeatureTourProps) 
             disabled={currentStep === 0}
             className="flex items-center gap-1 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <Icon name="chevronLeft" size="sm" />
             Back
           </button>
           <span className="text-sm text-gray-500">
@@ -243,7 +243,7 @@ export function FeatureTour({ userRole, onComplete, onSkip }: FeatureTourProps) 
             className="flex items-center gap-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
           >
             {currentStep === steps.length - 1 ? "Finish" : "Next"}
-            <ChevronRight className="h-4 w-4" />
+            <Icon name="chevronRight" size="sm" />
           </button>
         </div>
       </div>

@@ -17,15 +17,7 @@ import { Button } from "../../../components/ui/button";
 import { Label } from "../../../components/ui/label";
 import { toast } from "../../../hooks/use-toast";
 import { cn } from "../../../lib/utils";
-import {
-  Palette,
-  DollarSign,
-  Sun,
-  Moon,
-  Monitor,
-  Check,
-  Globe,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 // Currency options
 const currencies = [
@@ -39,9 +31,9 @@ const currencies = [
 
 // Theme options
 const themes = [
-  { id: "light", name: "Light", icon: Sun, description: "Light background" },
-  { id: "dark", name: "Dark", icon: Moon, description: "Dark background" },
-  { id: "system", name: "System", icon: Monitor, description: "Follow device" },
+  { id: "light", name: "Light", iconName: "active" as const, description: "Light background" },
+  { id: "dark", name: "Dark", iconName: "rest" as const, description: "Dark background" },
+  { id: "system", name: "System", iconName: "settings" as const, description: "Follow device" },
 ];
 
 // Language options (for future)
@@ -94,7 +86,7 @@ export default function DisplaySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
+            <Icon name="currency" />
             Display Currency
           </CardTitle>
           <CardDescription>
@@ -120,7 +112,7 @@ export default function DisplaySettingsPage() {
                   <p className="text-sm text-text-secondary">{curr.name}</p>
                 </div>
                 {currency === curr.code && (
-                  <Check className="w-5 h-5 text-brand-rose" />
+                  <Icon name="check" className="text-brand-rose" />
                 )}
               </button>
             ))}
@@ -135,7 +127,7 @@ export default function DisplaySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Palette className="w-5 h-5" />
+            <Icon name="sparkle" />
             Theme
           </CardTitle>
           <CardDescription>
@@ -145,7 +137,6 @@ export default function DisplaySettingsPage() {
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-3">
             {themes.map((t) => {
-              const Icon = t.icon;
               return (
                 <button
                   key={t.id}
@@ -157,11 +148,11 @@ export default function DisplaySettingsPage() {
                       : "border-border-default hover:border-brand-rose/50"
                   )}
                 >
-                  <Icon className="w-8 h-8" />
+                  <Icon name={t.iconName} size="lg" />
                   <p className="font-medium">{t.name}</p>
                   <p className="text-xs text-text-secondary">{t.description}</p>
                   {theme === t.id && (
-                    <Check className="w-5 h-5 text-brand-rose" />
+                    <Icon name="check" className="text-brand-rose" />
                   )}
                 </button>
               );
@@ -177,7 +168,7 @@ export default function DisplaySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Globe className="w-5 h-5" />
+            <Icon name="web" />
             Language
           </CardTitle>
           <CardDescription>
@@ -207,7 +198,7 @@ export default function DisplaySettingsPage() {
                   )}
                 </div>
                 {language === lang.code && (
-                  <Check className="w-5 h-5 text-brand-rose" />
+                  <Icon name="check" className="text-brand-rose" />
                 )}
               </button>
             ))}

@@ -14,15 +14,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useLiveUpdates, useSessionProgress } from "@/hooks/use-live-updates";
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  MapPin,
-  Loader2,
-  WifiOff,
-  RefreshCw,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
 // Simplified session states
@@ -134,7 +126,7 @@ export function SessionTracker({
       {!isConnected && !isReconnecting && (
         <div className="flex items-center justify-between mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-            <WifiOff className="w-4 h-4" aria-hidden="true" />
+            <Icon name="web" size="sm" aria-hidden="true" />
             <span className="text-sm">Live updates unavailable</span>
           </div>
           <Button
@@ -147,7 +139,7 @@ export function SessionTracker({
             className="h-7 px-2"
             aria-label="Retry connection"
           >
-            <RefreshCw className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
+            <Icon name="refresh" size="xs" className="mr-1" aria-hidden="true" />
             Retry
           </Button>
         </div>
@@ -155,7 +147,7 @@ export function SessionTracker({
 
       {isReconnecting && (
         <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
-          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+          <Icon name="loading" size="sm" className="animate-spin" aria-hidden="true" />
           <span className="text-sm">Reconnecting...</span>
         </div>
       )}
@@ -196,8 +188,8 @@ export function SessionTracker({
             stepState="started"
             label="Session Started"
             description="Your stylist has arrived and begun"
-            icon={<Circle className="w-5 h-5" />}
-            activeIcon={<CheckCircle2 className="w-5 h-5" />}
+            icon={<Icon name="circle" size="sm" />}
+            activeIcon={<Icon name="check" size="sm" />}
           />
           <SessionStep
             state={sessionState}
@@ -208,8 +200,8 @@ export function SessionTracker({
                 ? `${progressPercent}% complete${eta ? ` • ~${eta} min remaining` : ""}`
                 : "Service is being performed"
             }
-            icon={<Clock className="w-5 h-5" />}
-            activeIcon={<Loader2 className="w-5 h-5 animate-spin" />}
+            icon={<Icon name="clock" size="sm" />}
+            activeIcon={<Icon name="loading" size="sm" className="animate-spin" />}
             showProgress={sessionState === "in_progress"}
             progressPercent={progressPercent}
           />
@@ -218,8 +210,8 @@ export function SessionTracker({
             stepState="complete"
             label="Complete"
             description="Session has ended successfully"
-            icon={<CheckCircle2 className="w-5 h-5" />}
-            activeIcon={<CheckCircle2 className="w-5 h-5" />}
+            icon={<Icon name="check" size="sm" />}
+            activeIcon={<Icon name="check" size="sm" />}
           />
         </ul>
       </div>
@@ -228,7 +220,7 @@ export function SessionTracker({
       {sessionState === "in_progress" && eta && eta > 0 && (
         <div className="mt-4 p-3 bg-brand-rose/10 rounded-lg">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-brand-rose" aria-hidden="true" />
+            <Icon name="clock" size="sm" className="text-brand-rose" aria-hidden="true" />
             <span className="text-sm font-medium text-brand-rose">
               Estimated completion in {eta} minutes
             </span>
@@ -240,7 +232,7 @@ export function SessionTracker({
       {sessionProgress?.lat && sessionProgress?.lng && sessionState !== "complete" && (
         <div className="mt-4 p-3 bg-background-secondary rounded-lg">
           <div className="flex items-center gap-2 text-text-secondary">
-            <MapPin className="w-4 h-4" aria-hidden="true" />
+            <Icon name="pin" size="sm" aria-hidden="true" />
             <span className="text-sm">Stylist location available</span>
           </div>
         </div>
@@ -331,17 +323,17 @@ function SessionStateIcon({
   state: SessionState;
   size?: "sm" | "md";
 }) {
-  const sizeClass = size === "sm" ? "w-4 h-4" : "w-5 h-5";
+  const iconSize = size === "sm" ? "xs" : "sm";
 
   switch (state) {
     case "not_started":
-      return <Circle className={cn(sizeClass, "text-text-tertiary")} aria-hidden="true" />;
+      return <Icon name="circle" size={iconSize} className="text-text-tertiary" aria-hidden="true" />;
     case "started":
-      return <Circle className={cn(sizeClass, "text-brand-rose fill-brand-rose/20")} aria-hidden="true" />;
+      return <Icon name="circle" size={iconSize} className="text-brand-rose" aria-hidden="true" />;
     case "in_progress":
-      return <Loader2 className={cn(sizeClass, "text-brand-rose animate-spin")} aria-hidden="true" />;
+      return <Icon name="loading" size={iconSize} className="text-brand-rose animate-spin" aria-hidden="true" />;
     case "complete":
-      return <CheckCircle2 className={cn(sizeClass, "text-green-500")} aria-hidden="true" />;
+      return <Icon name="check" size={iconSize} className="text-green-500" aria-hidden="true" />;
   }
 }
 

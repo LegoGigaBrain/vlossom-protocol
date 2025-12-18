@@ -17,24 +17,13 @@ import { Button } from "../../../components/ui/button";
 import { Switch } from "../../../components/ui/switch";
 import { Label } from "../../../components/ui/label";
 import { toast } from "../../../hooks/use-toast";
-import {
-  Bell,
-  Mail,
-  Smartphone,
-  Calendar,
-  MessageSquare,
-  DollarSign,
-  Star,
-  Gift,
-  AlertCircle,
-  Megaphone,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 interface NotificationCategory {
   id: string;
   label: string;
   description: string;
-  icon: React.ElementType;
+  iconName: IconName;
   push: boolean;
   email: boolean;
 }
@@ -44,7 +33,7 @@ const defaultCategories: NotificationCategory[] = [
     id: "bookings",
     label: "Bookings",
     description: "New bookings, confirmations, and cancellations",
-    icon: Calendar,
+    iconName: "calendar",
     push: true,
     email: true,
   },
@@ -52,7 +41,7 @@ const defaultCategories: NotificationCategory[] = [
     id: "messages",
     label: "Messages",
     description: "Direct messages from stylists and customers",
-    icon: MessageSquare,
+    iconName: "chat",
     push: true,
     email: false,
   },
@@ -60,7 +49,7 @@ const defaultCategories: NotificationCategory[] = [
     id: "payments",
     label: "Payments",
     description: "Payment confirmations, refunds, and wallet updates",
-    icon: DollarSign,
+    iconName: "wallet",
     push: true,
     email: true,
   },
@@ -68,7 +57,7 @@ const defaultCategories: NotificationCategory[] = [
     id: "reviews",
     label: "Reviews",
     description: "New reviews and rating requests",
-    icon: Star,
+    iconName: "star",
     push: true,
     email: false,
   },
@@ -76,7 +65,7 @@ const defaultCategories: NotificationCategory[] = [
     id: "rewards",
     label: "Rewards & XP",
     description: "Badge unlocks, tier upgrades, and streak updates",
-    icon: Gift,
+    iconName: "gift",
     push: true,
     email: false,
   },
@@ -84,7 +73,7 @@ const defaultCategories: NotificationCategory[] = [
     id: "disputes",
     label: "Disputes",
     description: "Dispute updates and resolution notifications",
-    icon: AlertCircle,
+    iconName: "error",
     push: true,
     email: true,
   },
@@ -92,7 +81,7 @@ const defaultCategories: NotificationCategory[] = [
     id: "marketing",
     label: "Marketing",
     description: "Promotions, new features, and platform updates",
-    icon: Megaphone,
+    iconName: "broadcast",
     push: false,
     email: false,
   },
@@ -172,7 +161,7 @@ export default function NotificationSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Bell className="w-5 h-5" />
+            <Icon name="notifications" size="sm" />
             Notification Channels
           </CardTitle>
           <CardDescription>
@@ -184,7 +173,7 @@ export default function NotificationSettingsPage() {
           <div className="flex items-center justify-between p-4 rounded-lg bg-background-secondary">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                <Smartphone className="w-5 h-5 text-brand-rose" />
+                <Icon name="phone" size="sm" className="text-brand-rose" />
               </div>
               <div>
                 <p className="font-medium">Push Notifications</p>
@@ -203,7 +192,7 @@ export default function NotificationSettingsPage() {
           <div className="flex items-center justify-between p-4 rounded-lg bg-background-secondary">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-brand-rose" />
+                <Icon name="email" size="sm" className="text-brand-rose" />
               </div>
               <div>
                 <p className="font-medium">Email Notifications</p>
@@ -238,15 +227,13 @@ export default function NotificationSettingsPage() {
             </div>
 
             {/* Categories */}
-            {categories.map((category) => {
-              const Icon = category.icon;
-              return (
+            {categories.map((category) => (
                 <div
                   key={category.id}
                   className="grid grid-cols-[1fr_80px_80px] gap-4 items-center py-3 border-b border-border-subtle last:border-0"
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5 text-text-secondary flex-shrink-0" />
+                    <Icon name={category.iconName} size="sm" className="text-text-secondary flex-shrink-0" />
                     <div>
                       <p className="font-medium text-sm">{category.label}</p>
                       <p className="text-xs text-text-muted">
@@ -269,8 +256,7 @@ export default function NotificationSettingsPage() {
                     />
                   </div>
                 </div>
-              );
-            })}
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -279,7 +265,7 @@ export default function NotificationSettingsPage() {
       <Card className="opacity-60">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Bell className="w-5 h-5" />
+            <Icon name="notifications" size="sm" />
             Quiet Hours
             <span className="px-2 py-0.5 text-xs bg-brand-rose/10 text-brand-rose rounded-full">
               Coming Soon

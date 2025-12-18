@@ -27,16 +27,7 @@ import {
 import { AppHeader } from "@/components/layout/app-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Sparkles,
-  Droplets,
-  Shield,
-  Calendar,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 // Form state type
 interface OnboardingFormState {
@@ -145,7 +136,7 @@ export default function HairHealthOnboardingPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background-secondary flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-rose" />
+        <Icon name="timer" size="lg" className="animate-spin text-brand-rose" />
       </div>
     );
   }
@@ -181,7 +172,7 @@ export default function HairHealthOnboardingPage() {
         {/* Step 1: Texture & Pattern */}
         {currentStep === 1 && (
           <StepCard
-            icon={Sparkles}
+            icon="sparkle"
             title="Texture & Pattern"
             description="Let's start with your hair's natural texture"
           >
@@ -227,7 +218,7 @@ export default function HairHealthOnboardingPage() {
         {/* Step 2: Porosity & Density */}
         {currentStep === 2 && (
           <StepCard
-            icon={Droplets}
+            icon="moisture"
             title="Porosity & Density"
             description="How your hair absorbs and holds moisture"
           >
@@ -271,7 +262,7 @@ export default function HairHealthOnboardingPage() {
         {/* Step 3: Sensitivity */}
         {currentStep === 3 && (
           <StepCard
-            icon={Shield}
+            icon="trusted"
             title="Sensitivity Levels"
             description="How your hair responds to manipulation"
           >
@@ -315,7 +306,7 @@ export default function HairHealthOnboardingPage() {
         {/* Step 4: Routine */}
         {currentStep === 4 && (
           <StepCard
-            icon={Calendar}
+            icon="calendar"
             title="Your Routine"
             description="How you currently care for your hair"
           >
@@ -373,7 +364,7 @@ export default function HairHealthOnboardingPage() {
         {/* Step 5: Review */}
         {currentStep === 5 && (
           <StepCard
-            icon={Check}
+            icon="check"
             title="Review Your Profile"
             description="Make sure everything looks right"
           >
@@ -423,7 +414,7 @@ export default function HairHealthOnboardingPage() {
             className="flex-1"
             onClick={handleBack}
           >
-            <ChevronLeft className="w-4 h-4 mr-1" />
+            <Icon name="chevronLeft" size="sm" className="mr-1" />
             Back
           </Button>
 
@@ -435,7 +426,7 @@ export default function HairHealthOnboardingPage() {
               disabled={!canProceed()}
             >
               Next
-              <ChevronRight className="w-4 h-4 ml-1" />
+              <Icon name="chevronRight" size="sm" className="ml-1" />
             </Button>
           ) : (
             <Button
@@ -446,13 +437,13 @@ export default function HairHealthOnboardingPage() {
             >
               {createProfile.isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Icon name="timer" size="sm" className="mr-2 animate-spin" />
                   Creating...
                 </>
               ) : (
                 <>
                   Create Profile
-                  <Check className="w-4 h-4 ml-1" />
+                  <Icon name="check" size="sm" className="ml-1" />
                 </>
               )}
             </Button>
@@ -466,12 +457,12 @@ export default function HairHealthOnboardingPage() {
 // Helper Components
 
 function StepCard({
-  icon: Icon,
+  icon,
   title,
   description,
   children,
 }: {
-  icon: typeof Sparkles;
+  icon: import("@/components/icons").IconName;
   title: string;
   description: string;
   children: React.ReactNode;
@@ -481,7 +472,7 @@ function StepCard({
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-brand-rose" />
+            <Icon name={icon} size="md" className="text-brand-rose" />
           </div>
           <div>
             <p className="text-text-primary">{title}</p>

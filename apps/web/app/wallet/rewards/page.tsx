@@ -6,22 +6,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Star,
-  Flame,
-  Trophy,
-  Award,
-  Crown,
-  Shield,
-  Sparkles,
-  Target,
-  Calendar,
-  TrendingUp,
-  Gift,
-  Users,
-  Clock,
-  CheckCircle,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 import {
   ReputationBadge,
   getReputationLevel,
@@ -33,7 +18,7 @@ interface Badge {
   id: string;
   name: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  iconName: IconName;
   earned: boolean;
   earnedAt?: string;
   requirement: string;
@@ -44,7 +29,7 @@ const allBadges: Badge[] = [
     id: "first_booking",
     name: "First Steps",
     description: "Complete your first booking",
-    icon: CheckCircle,
+    iconName: "success",
     earned: false,
     requirement: "Complete 1 booking",
   },
@@ -52,7 +37,7 @@ const allBadges: Badge[] = [
     id: "ten_bookings",
     name: "Getting Started",
     description: "Complete 10 bookings",
-    icon: Star,
+    iconName: "star",
     earned: false,
     requirement: "Complete 10 bookings",
   },
@@ -60,7 +45,7 @@ const allBadges: Badge[] = [
     id: "fifty_bookings",
     name: "Regular",
     description: "Complete 50 bookings",
-    icon: Award,
+    iconName: "verified",
     earned: false,
     requirement: "Complete 50 bookings",
   },
@@ -68,7 +53,7 @@ const allBadges: Badge[] = [
     id: "hundred_bookings",
     name: "Veteran",
     description: "Complete 100 bookings",
-    icon: Crown,
+    iconName: "verified",
     earned: false,
     requirement: "Complete 100 bookings",
   },
@@ -76,7 +61,7 @@ const allBadges: Badge[] = [
     id: "perfect_tps",
     name: "Punctuality Pro",
     description: "Maintain perfect TPS for a month",
-    icon: Clock,
+    iconName: "clock",
     earned: false,
     requirement: "100% TPS for 30 days",
   },
@@ -84,7 +69,7 @@ const allBadges: Badge[] = [
     id: "five_star_streak",
     name: "Five Star Streak",
     description: "Receive 5 five-star reviews in a row",
-    icon: Sparkles,
+    iconName: "sparkle",
     earned: false,
     requirement: "5 consecutive 5-star reviews",
   },
@@ -92,7 +77,7 @@ const allBadges: Badge[] = [
     id: "top_referrer",
     name: "Community Builder",
     description: "Refer 10 active users",
-    icon: Users,
+    iconName: "profile",
     earned: false,
     requirement: "10 successful referrals",
   },
@@ -100,7 +85,7 @@ const allBadges: Badge[] = [
     id: "early_adopter",
     name: "Early Adopter",
     description: "Join during beta period",
-    icon: Gift,
+    iconName: "sparkle",
     earned: true,
     earnedAt: "2025-01-01",
     requirement: "Join before public launch",
@@ -236,7 +221,7 @@ export default function WalletRewardsPage() {
           <div className="bg-gradient-to-br from-brand-rose/10 to-brand-clay/10 rounded-card p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-h2 text-text-primary flex items-center gap-2">
-                <Star className="h-5 w-5 text-brand-rose" />
+                <Icon name="star" size="sm" className="text-brand-rose" />
                 Experience Points
               </h2>
               <div className="text-right">
@@ -274,7 +259,7 @@ export default function WalletRewardsPage() {
           <div className="bg-background-primary rounded-card shadow-vlossom p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-body font-semibold text-text-primary flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-brand-rose" />
+                <Icon name="verified" size="sm" className="text-brand-rose" />
                 Your Tier
               </h3>
               <span
@@ -335,7 +320,7 @@ export default function WalletRewardsPage() {
             {/* Streak Card */}
             <div className="bg-background-primary rounded-card shadow-vlossom p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Flame className="h-5 w-5 text-orange-500" />
+                <Icon name="energy" size="sm" className="text-orange-500" />
                 <h3 className="text-body font-semibold text-text-primary">
                   Streak
                 </h3>
@@ -356,7 +341,7 @@ export default function WalletRewardsPage() {
             {/* Reputation Card */}
             <div className="bg-background-primary rounded-card shadow-vlossom p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Shield className="h-5 w-5 text-brand-rose" />
+                <Icon name="trusted" size="sm" className="text-brand-rose" />
                 <h3 className="text-body font-semibold text-text-primary">
                   Reputation
                 </h3>
@@ -381,7 +366,7 @@ export default function WalletRewardsPage() {
           <div className="bg-background-primary rounded-card shadow-vlossom p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-body font-semibold text-text-primary flex items-center gap-2">
-                <Award className="h-5 w-5 text-brand-rose" />
+                <Icon name="verified" size="sm" className="text-brand-rose" />
                 Recent Badges
               </h3>
               <button
@@ -395,14 +380,13 @@ export default function WalletRewardsPage() {
             {earnedBadges.length > 0 ? (
               <div className="flex gap-4 overflow-x-auto pb-2">
                 {earnedBadges.slice(0, 4).map((badge) => {
-                  const Icon = badge.icon;
                   return (
                     <div
                       key={badge.id}
                       className="flex-shrink-0 w-20 text-center"
                     >
                       <div className="w-16 h-16 mx-auto bg-brand-rose/10 rounded-full flex items-center justify-center mb-2">
-                        <Icon className="h-8 w-8 text-brand-rose" />
+                        <Icon name={badge.iconName} size="xl" className="text-brand-rose" />
                       </div>
                       <p className="text-caption text-text-primary font-medium truncate">
                         {badge.name}
@@ -430,14 +414,13 @@ export default function WalletRewardsPage() {
             {earnedBadges.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {earnedBadges.map((badge) => {
-                  const Icon = badge.icon;
                   return (
                     <div
                       key={badge.id}
                       className="p-4 bg-background-secondary rounded-lg text-center"
                     >
                       <div className="w-16 h-16 mx-auto bg-brand-rose/10 rounded-full flex items-center justify-center mb-2">
-                        <Icon className="h-8 w-8 text-brand-rose" />
+                        <Icon name={badge.iconName} size="xl" className="text-brand-rose" />
                       </div>
                       <p className="text-body font-medium text-text-primary">
                         {badge.name}
@@ -469,14 +452,13 @@ export default function WalletRewardsPage() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {unearnedBadges.map((badge) => {
-                const Icon = badge.icon;
                 return (
                   <div
                     key={badge.id}
                     className="p-4 bg-background-secondary rounded-lg text-center opacity-60"
                   >
                     <div className="w-16 h-16 mx-auto bg-background-tertiary rounded-full flex items-center justify-center mb-2">
-                      <Icon className="h-8 w-8 text-text-tertiary" />
+                      <Icon name={badge.iconName} size="xl" className="text-text-tertiary" />
                     </div>
                     <p className="text-body font-medium text-text-primary">
                       {badge.name}
@@ -498,7 +480,7 @@ export default function WalletRewardsPage() {
             Rewards History
           </h3>
           <div className="text-center py-12">
-            <Target className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+            <Icon name="empty" size="2xl" className="text-text-tertiary mx-auto mb-4" />
             <p className="text-body text-text-secondary mb-2">
               No rewards activity yet
             </p>
@@ -512,7 +494,7 @@ export default function WalletRewardsPage() {
       {/* How to Earn XP */}
       <div className="bg-background-primary rounded-card shadow-vlossom p-6">
         <h3 className="text-body font-semibold text-text-primary mb-4 flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-brand-rose" />
+          <Icon name="growing" size="sm" className="text-brand-rose" />
           How to Earn XP
         </h3>
         <div className="space-y-3">

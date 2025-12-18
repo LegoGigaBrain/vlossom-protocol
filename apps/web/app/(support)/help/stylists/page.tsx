@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronLeft, User, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 const articles = [
   {
@@ -87,12 +87,12 @@ export default function StylistsHelpPage() {
             href="/help"
             className="inline-flex items-center gap-1 text-sm text-brand-rose hover:text-brand-clay transition-gentle mb-4"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <Icon name="chevronLeft" size="sm" />
             Back to Help Center
           </Link>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-brand-rose/10 flex items-center justify-center">
-              <User className="w-6 h-6 text-brand-rose" />
+              <Icon name="profile" size="lg" className="text-brand-rose" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-text-primary">
@@ -120,7 +120,7 @@ export default function StylistsHelpPage() {
                 <span className="font-medium text-text-primary">
                   {article.title}
                 </span>
-                <ChevronRight className="w-5 h-5 text-text-muted transition-transform group-open:rotate-90" />
+                <Icon name="chevronRight" size="md" className="text-text-muted transition-transform group-open:rotate-90" />
               </summary>
               <div
                 className="px-4 pb-4 prose prose-sm max-w-none text-text-secondary"

@@ -19,19 +19,7 @@ import { Button } from "../../../components/ui/button";
 import { Switch } from "../../../components/ui/switch";
 import { toast } from "../../../hooks/use-toast";
 import { cn } from "../../../lib/utils";
-import {
-  Code,
-  Terminal,
-  Wallet,
-  Network,
-  Bug,
-  Zap,
-  Copy,
-  Check,
-  ExternalLink,
-  AlertTriangle,
-  RefreshCw,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export default function AdvancedSettingsPage() {
   const [mounted, setMounted] = useState(false);
@@ -164,7 +152,7 @@ function AdvancedSettingsContent() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Wallet className="w-5 h-5" />
+            <Icon name="wallet" />
             Web3 Mode
             <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-700 rounded-full">
               Beta
@@ -218,9 +206,9 @@ function AdvancedSettingsContent() {
                           className="h-8 w-8 p-0"
                         >
                           {copied ? (
-                            <Check className="w-4 h-4 text-status-success" />
+                            <Icon name="check" size="sm" className="text-status-success" />
                           ) : (
-                            <Copy className="w-4 h-4" />
+                            <Icon name="copy" size="sm" />
                           )}
                         </Button>
                       </div>
@@ -247,7 +235,7 @@ function AdvancedSettingsContent() {
                         onClick={handleSwitchNetwork}
                         loading={isSwitchingChain}
                       >
-                        <Network className="w-4 h-4 mr-2" />
+                        <Icon name="web" size="sm" className="mr-2" />
                         Switch to Base Sepolia
                       </Button>
                     )}
@@ -265,7 +253,7 @@ function AdvancedSettingsContent() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <ExternalLink className="w-4 h-4 mr-2" />
+                    <Icon name="link" size="sm" className="mr-2" />
                     View on Explorer
                   </a>
                 </Button>
@@ -275,7 +263,7 @@ function AdvancedSettingsContent() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <Zap className="w-4 h-4 mr-2" />
+                    <Icon name="energy" size="sm" className="mr-2" />
                     Get Test ETH
                   </a>
                 </Button>
@@ -289,7 +277,7 @@ function AdvancedSettingsContent() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Code className="w-5 h-5" />
+            <Icon name="settings" />
             Developer Options
           </CardTitle>
           <CardDescription>
@@ -334,7 +322,7 @@ function AdvancedSettingsContent() {
           {devMode && (
             <div className="p-4 rounded-lg border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20">
               <div className="flex items-start gap-3">
-                <Bug className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                <Icon name="info" className="text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-medium text-amber-800 dark:text-amber-200">
                     Developer Mode Active
@@ -353,7 +341,7 @@ function AdvancedSettingsContent() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Terminal className="w-5 h-5" />
+            <Icon name="settings" />
             Cache & Storage
           </CardTitle>
           <CardDescription>
@@ -391,7 +379,7 @@ function AdvancedSettingsContent() {
               </p>
             </div>
             <Button variant="outline" onClick={clearLocalStorage}>
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <Icon name="delete" size="sm" className="mr-2" />
               Clear cache
             </Button>
           </div>
@@ -429,7 +417,7 @@ function AdvancedSettingsContent() {
                 className="text-brand-rose hover:underline flex items-center gap-1"
               >
                 View on BaseScan
-                <ExternalLink className="w-3 h-3" />
+                <Icon name="link" size="sm" />
               </a>
             </div>
           </div>
@@ -440,7 +428,7 @@ function AdvancedSettingsContent() {
       <Card className="border-status-error/30">
         <CardHeader>
           <CardTitle className="text-lg text-status-error flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
+            <Icon name="calmError" />
             Reset Settings
           </CardTitle>
         </CardHeader>

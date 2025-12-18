@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "../../lib/utils";
-import { Shield, Star, Award, Crown, Sparkles } from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 export type ReputationLevel = "new" | "rising" | "trusted" | "verified" | "elite";
 
@@ -17,7 +17,7 @@ const levelConfig: Record<
   ReputationLevel,
   {
     label: string;
-    icon: typeof Star;
+    iconName: IconName;
     color: string;
     bgColor: string;
     minScore: number;
@@ -25,55 +25,61 @@ const levelConfig: Record<
 > = {
   new: {
     label: "New",
-    icon: Sparkles,
+    iconName: "sparkles",
     color: "text-text-secondary",
     bgColor: "bg-background-tertiary",
     minScore: 0,
   },
   rising: {
     label: "Rising",
-    icon: Star,
+    iconName: "star",
     color: "text-status-info",
     bgColor: "bg-status-info/10",
     minScore: 25,
   },
   trusted: {
     label: "Trusted",
-    icon: Shield,
+    iconName: "trusted",
     color: "text-status-success",
     bgColor: "bg-status-success/10",
     minScore: 50,
   },
   verified: {
     label: "Verified",
-    icon: Award,
+    iconName: "verified",
     color: "text-brand-rose",
     bgColor: "bg-brand-rose/10",
     minScore: 75,
   },
   elite: {
     label: "Elite",
-    icon: Crown,
+    iconName: "crown",
     color: "text-status-warning",
     bgColor: "bg-status-warning/10",
     minScore: 95,
   },
 };
 
+type BadgeSize = "sm" | "md" | "lg";
+type IconSize = "xs" | "sm" | "md";
+
+const sizeMap: Record<BadgeSize, IconSize> = {
+  sm: "xs",
+  md: "sm",
+  lg: "sm",
+};
+
 const sizes = {
   sm: {
     badge: "px-2 py-0.5",
-    icon: "w-3 h-3",
     text: "text-xs",
   },
   md: {
     badge: "px-2.5 py-1",
-    icon: "w-4 h-4",
     text: "text-sm",
   },
   lg: {
     badge: "px-3 py-1.5",
-    icon: "w-5 h-5",
     text: "text-base",
   },
 };
@@ -94,7 +100,6 @@ export function ReputationBadge({
   className,
 }: ReputationBadgeProps) {
   const config = levelConfig[level];
-  const Icon = config.icon;
   const sizeConfig = sizes[size];
 
   return (
@@ -106,7 +111,7 @@ export function ReputationBadge({
         className
       )}
     >
-      <Icon className={cn(sizeConfig.icon, config.color)} />
+      <Icon name={config.iconName} size={sizeMap[size]} className={config.color} />
       {showLabel && (
         <span className={cn(sizeConfig.text, config.color)}>
           {config.label}

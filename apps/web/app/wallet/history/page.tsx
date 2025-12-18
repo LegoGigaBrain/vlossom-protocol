@@ -5,7 +5,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, Filter, Calendar, Search, RefreshCw } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { TransactionList } from "../../../components/wallet/transaction-list";
 import { useVlossomWallet } from "../../../hooks/use-vlossom-wallet";
 import { Button } from "../../../components/ui/button";
@@ -117,8 +117,10 @@ export default function WalletHistoryPage() {
             onClick={() => refetch()}
             disabled={isLoading}
           >
-            <RefreshCw
-              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            <Icon
+              name="refresh"
+              size="sm"
+              className={`mr-2 ${isLoading ? "animate-spin" : ""}`}
             />
             Refresh
           </Button>
@@ -128,7 +130,7 @@ export default function WalletHistoryPage() {
             onClick={handleExport}
             disabled={filteredTransactions.length === 0}
           >
-            <Download className="h-4 w-4 mr-2" />
+            <Icon name="download" size="sm" className="mr-2" />
             Export
           </Button>
         </div>
@@ -168,7 +170,7 @@ export default function WalletHistoryPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-tertiary" />
+            <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary" />
             <input
               type="text"
               placeholder="Search by type, address, memo..."
@@ -180,7 +182,7 @@ export default function WalletHistoryPage() {
 
           {/* Date Filter */}
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-text-tertiary" />
+            <Icon name="calendar" size="sm" className="text-text-tertiary" />
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value as DateFilter)}
@@ -198,7 +200,7 @@ export default function WalletHistoryPage() {
       {/* Transaction List */}
       {isLoading && transactions.length === 0 ? (
         <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
-          <RefreshCw className="h-8 w-8 text-text-tertiary mx-auto mb-4 animate-spin" />
+          <Icon name="refresh" size="lg" className="text-text-tertiary mx-auto mb-4 animate-spin" />
           <p className="text-body text-text-secondary">
             Loading transactions...
           </p>
@@ -216,7 +218,7 @@ export default function WalletHistoryPage() {
         filteredTransactions.length === 0 &&
         transactions.length > 0 && (
           <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
-            <Filter className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+            <Icon name="filter" size="xl" className="text-text-tertiary mx-auto mb-4" />
             <p className="text-body text-text-secondary mb-2">
               No transactions match your filters
             </p>

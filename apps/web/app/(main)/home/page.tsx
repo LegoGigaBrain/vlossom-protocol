@@ -23,25 +23,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import {
-  Search,
-  SlidersHorizontal,
-  X,
-  Clock,
-  Star,
-  Sparkles,
-  MapPin,
-  RefreshCw,
-  AlertCircle,
-  Database,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 import { MOCK_SALONS } from "@/lib/mock-data";
 
 // Filter options
 const filterOptions = [
-  { id: "available", label: "Available Now", icon: Clock },
-  { id: "top-rated", label: "Top Rated", icon: Star },
-  { id: "nearby", label: "Nearby", icon: MapPin },
+  { id: "available", label: "Available Now", icon: "clock" as const },
+  { id: "top-rated", label: "Top Rated", icon: "star" as const },
+  { id: "nearby", label: "Nearby", icon: "location" as const },
 ];
 
 export default function HomePage() {
@@ -107,7 +96,7 @@ export default function HomePage() {
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <RefreshCw className="w-8 h-8 animate-spin text-brand-rose mx-auto mb-4" />
+            <Icon name="unfold" size="lg" className="animate-spin text-brand-rose mx-auto mb-4" />
             <p className="text-sm text-text-secondary">Finding stylists near you...</p>
           </div>
         </div>
@@ -122,7 +111,7 @@ export default function HomePage() {
       <div className="fixed inset-0 flex flex-col bg-background-primary">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-sm">
-            <AlertCircle className="w-12 h-12 text-status-error mx-auto mb-4" />
+            <Icon name="calmError" size="2xl" className="text-status-error mx-auto mb-4" />
             <h2 className="text-lg font-semibold text-text-primary mb-2">
               Unable to Load Stylists
             </h2>
@@ -130,7 +119,7 @@ export default function HomePage() {
               We couldn&apos;t fetch stylists at this time. Please try again.
             </p>
             <Button variant="primary" onClick={() => refetch()}>
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <Icon name="unfold" size="sm" className="mr-2" />
               Retry
             </Button>
           </div>
@@ -149,7 +138,7 @@ export default function HomePage() {
             // Expanded search
             <div className="bg-background-primary rounded-2xl shadow-lg p-3 animate-in fade-in duration-200">
               <div className="flex items-center gap-3">
-                <Search className="w-5 h-5 text-text-muted flex-shrink-0" />
+                <Icon name="search" size="md" className="text-text-muted flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="Search stylists, services..."
@@ -165,7 +154,7 @@ export default function HomePage() {
                   }}
                   className="p-1.5 rounded-full hover:bg-background-tertiary transition-colors"
                 >
-                  <X className="w-5 h-5 text-text-secondary" />
+                  <Icon name="close" size="md" className="text-text-secondary" />
                 </button>
               </div>
               {searchQuery && (
@@ -218,7 +207,7 @@ export default function HomePage() {
               onClick={() => setShowSearch(true)}
               className="w-full bg-background-primary rounded-2xl shadow-lg p-4 flex items-center gap-3 hover:shadow-xl transition-shadow"
             >
-              <Search className="w-5 h-5 text-text-muted" />
+              <Icon name="search" size="md" className="text-text-muted" />
               <span className="text-text-secondary text-sm flex-1 text-left">
                 Search stylists, services...
               </span>
@@ -234,7 +223,7 @@ export default function HomePage() {
                     : "hover:bg-background-tertiary text-text-secondary"
                 )}
               >
-                <SlidersHorizontal className="w-5 h-5" />
+                <Icon name="settings" size="md" />
               </button>
             </button>
           )}
@@ -244,7 +233,6 @@ export default function HomePage() {
         {showFilters && !showSearch && (
           <div className="pointer-events-auto mt-3 flex gap-2 overflow-x-auto pb-1 animate-in slide-in-from-top-2 duration-200">
             {filterOptions.map((filter) => {
-              const Icon = filter.icon;
               const isActive = activeFilters.includes(filter.id);
               return (
                 <button
@@ -257,7 +245,7 @@ export default function HomePage() {
                       : "bg-background-primary text-text-secondary shadow hover:shadow-md"
                   )}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon name={filter.icon} size="sm" />
                   {filter.label}
                 </button>
               );
@@ -283,7 +271,7 @@ export default function HomePage() {
       {isUsingMockData && process.env.NODE_ENV === "development" && (
         <div className="absolute top-20 right-4 z-50">
           <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
-            <Database className="w-3 h-3 mr-1" />
+            <Icon name="info" className="w-3 h-3 mr-1" />
             Demo Data
           </Badge>
         </div>
@@ -295,7 +283,7 @@ export default function HomePage() {
           <div className="pointer-events-auto bg-background-primary/95 backdrop-blur-sm rounded-2xl p-4 shadow-lg animate-in slide-in-from-bottom-4 duration-300">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-rose to-brand-purple flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
+                <Icon name="sparkle" size="md" className="text-white" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-text-primary">

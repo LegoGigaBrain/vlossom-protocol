@@ -5,7 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Shield, AlertCircle, Upload, X as XIcon, DollarSign } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -177,7 +177,7 @@ export function DisputeDialog({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border-default sticky top-0 bg-background-primary">
             <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-status-error" />
+              <Icon name="secure" size="sm" className="text-status-error" />
               <Dialog.Title className="text-lg font-semibold text-text-primary">
                 Open a Dispute
               </Dialog.Title>
@@ -187,7 +187,7 @@ export function DisputeDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -197,7 +197,7 @@ export function DisputeDialog({
             <div className="p-4 space-y-6">
               <div className="bg-status-warning/10 rounded-lg p-4">
                 <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-status-warning shrink-0 mt-0.5" />
+                  <Icon name="error" size="sm" className="text-status-warning shrink-0 mt-0.5" />
                   <div>
                     <h3 className="font-medium text-text-primary">
                       Before you continue
@@ -338,7 +338,7 @@ export function DisputeDialog({
                     Requested refund amount
                   </label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Icon name="currency" size="sm" className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
                     <Input
                       id="refundAmount"
                       type="number"
@@ -407,14 +407,14 @@ export function DisputeDialog({
                         onClick={() => removeEvidence(index)}
                         className="absolute -top-2 -right-2 w-5 h-5 bg-status-error text-white rounded-full flex items-center justify-center"
                       >
-                        <XIcon className="w-3 h-3" />
+                        <Icon name="close" size="xs" />
                       </button>
                     </div>
                   ))}
 
                   {evidence.length < 5 && (
                     <label className="w-20 h-20 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default cursor-pointer hover:border-brand-rose hover:bg-brand-rose/5 transition-gentle">
-                      <Upload className="w-5 h-5 text-text-muted" />
+                      <Icon name="upload" size="sm" className="text-text-muted" />
                       <span className="text-xs text-text-muted mt-1">Upload</span>
                       <input
                         type="file"
@@ -433,7 +433,7 @@ export function DisputeDialog({
 
               {/* Warning */}
               <div className="bg-status-error/10 rounded-lg p-3 flex gap-2">
-                <AlertCircle className="w-4 h-4 text-status-error shrink-0 mt-0.5" />
+                <Icon name="error" size="sm" className="text-status-error shrink-0 mt-0.5" />
                 <p className="text-xs text-text-secondary">
                   False or frivolous disputes may result in account restrictions.
                   Please only file a dispute if you have a legitimate concern.

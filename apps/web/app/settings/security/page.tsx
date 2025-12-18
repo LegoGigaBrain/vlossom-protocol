@@ -20,16 +20,7 @@ import { Label } from "../../../components/ui/label";
 import { LinkedAccounts } from "../../../components/settings/linked-accounts";
 import { Skeleton } from "../../../components/ui/skeleton";
 import { toast } from "../../../hooks/use-toast";
-import {
-  Lock,
-  Key,
-  Smartphone,
-  Shield,
-  History,
-  AlertTriangle,
-  Check,
-  X,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export default function SecuritySettingsPage() {
   const { user, isLoading } = useAuth();
@@ -111,7 +102,7 @@ export default function SecuritySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Key className="w-5 h-5" />
+            <Icon name="locked" />
             Authentication Methods
           </CardTitle>
           <CardDescription>
@@ -128,7 +119,7 @@ export default function SecuritySettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Lock className="w-5 h-5" />
+              <Icon name="locked" />
               Password
             </CardTitle>
             <CardDescription>
@@ -193,25 +184,25 @@ export default function SecuritySettingsPage() {
                   <ul className="text-sm text-text-secondary space-y-1">
                     <li className="flex items-center gap-2">
                       {passwordForm.new.length >= 8 ? (
-                        <Check className="w-4 h-4 text-status-success" />
+                        <Icon name="check" size="sm" className="text-status-success" />
                       ) : (
-                        <X className="w-4 h-4 text-text-muted" />
+                        <Icon name="close" size="sm" className="text-text-muted" />
                       )}
                       At least 8 characters
                     </li>
                     <li className="flex items-center gap-2">
                       {/[A-Z]/.test(passwordForm.new) ? (
-                        <Check className="w-4 h-4 text-status-success" />
+                        <Icon name="check" size="sm" className="text-status-success" />
                       ) : (
-                        <X className="w-4 h-4 text-text-muted" />
+                        <Icon name="close" size="sm" className="text-text-muted" />
                       )}
                       One uppercase letter
                     </li>
                     <li className="flex items-center gap-2">
                       {/[0-9]/.test(passwordForm.new) ? (
-                        <Check className="w-4 h-4 text-status-success" />
+                        <Icon name="check" size="sm" className="text-status-success" />
                       ) : (
-                        <X className="w-4 h-4 text-text-muted" />
+                        <Icon name="close" size="sm" className="text-text-muted" />
                       )}
                       One number
                     </li>
@@ -250,7 +241,7 @@ export default function SecuritySettingsPage() {
       <Card className="opacity-60">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Smartphone className="w-5 h-5" />
+            <Icon name="phone" />
             Two-Factor Authentication
             <span className="px-2 py-0.5 text-xs bg-brand-rose/10 text-brand-rose rounded-full">
               Coming Soon
@@ -279,7 +270,7 @@ export default function SecuritySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <History className="w-5 h-5" />
+            <Icon name="clock" />
             Active Sessions
           </CardTitle>
           <CardDescription>
@@ -294,7 +285,7 @@ export default function SecuritySettingsPage() {
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-background-tertiary flex items-center justify-center">
-                  <Shield className="w-5 h-5 text-text-secondary" />
+                  <Icon name="trusted" className="text-text-secondary" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -324,7 +315,7 @@ export default function SecuritySettingsPage() {
           ))}
 
           <Button variant="outline" className="w-full text-status-error">
-            <AlertTriangle className="w-4 h-4 mr-2" />
+            <Icon name="calmError" size="sm" className="mr-2" />
             Sign out all other devices
           </Button>
         </CardContent>
