@@ -4,6 +4,10 @@
 
 ## Current Version
 
+**V6.4.0 Brand Logo Integration** (December 18, 2025)
+
+Brand logos integrated across web app. VlossomLogo, VlossomIcon, VlossomWordmark components created with purple/cream/auto variants.
+
 **V6.3.0 Phase 2 UX & Infrastructure** (December 17, 2025)
 
 Theme system with light/dark mode support. Theme toggle component and system preference detection added.

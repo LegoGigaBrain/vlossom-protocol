@@ -23,6 +23,7 @@ import {
   VlossomNotifications,
   VlossomProfile,
 } from "@/components/ui/vlossom-icons";
+import { VlossomIcon, VlossomWordmark } from "@/components/ui/vlossom-logo";
 import { ThemeSelector } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { MOTION_CLASSES } from "@/lib/motion";
@@ -77,25 +78,8 @@ export function DesktopNav({ className }: DesktopNavProps) {
           href="/home"
           className="flex items-center gap-2 text-primary font-display text-xl font-semibold"
         >
-          <svg
-            width="32"
-            height="32"
-            viewBox="0 0 40 40"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-primary"
-          >
-            <circle cx="20" cy="20" r="18" stroke="currentColor" strokeWidth="2" />
-            <path
-              d="M20 8C20 8 12 16 12 22C12 26.4183 15.5817 30 20 30C24.4183 30 28 26.4183 28 22C28 16 20 8 20 8Z"
-              fill="currentColor"
-              fillOpacity="0.2"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-            <circle cx="20" cy="22" r="4" fill="currentColor" />
-          </svg>
-          <span className="hidden lg:inline">Vlossom</span>
+          <VlossomIcon size={32} variant="auto" />
+          <VlossomWordmark className="hidden lg:block" height={24} variant="auto" />
         </Link>
 
         {/* Navigation Links */}

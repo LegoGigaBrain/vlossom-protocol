@@ -10,6 +10,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { SiweButton, SiweDivider } from "../../../components/auth/siwe-button";
+import { VlossomLogo } from "../../../components/ui/vlossom-logo";
 import Link from "next/link";
 
 const loginSchema = z.object({
@@ -69,11 +70,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background-secondary px-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-h1 text-brand-rose">Welcome back</h1>
-          <p className="text-body text-text-secondary">
-            Log in to your Vlossom account
-          </p>
+        <div className="text-center space-y-4">
+          <VlossomLogo iconSize={48} wordmarkHeight={32} variant="purple" className="justify-center" />
+          <div className="space-y-2">
+            <h1 className="text-h1 text-brand-rose">Welcome back</h1>
+            <p className="text-body text-text-secondary">
+              Log in to your Vlossom account
+            </p>
+          </div>
         </div>
 
         {/* Login Form */}

@@ -4,9 +4,14 @@
 
 ## Current Version
 
-**V6.4.0** - Local Development & Service Fixes (December 18, 2025)
+**V6.4.0** - Local Development, Brand & Map UX (December 18, 2025)
 
-**Major Achievement**: Redis Cloud integration for distributed rate limiting, scheduler endpoint routing fix, admin panel scaffold created.
+**Major Achievements**:
+- Redis Cloud integration for distributed rate limiting
+- Scheduler endpoint routing fix, admin panel scaffold
+- Custom Uber-style Google Maps integration with dark/light themes
+- Brand logo components (VlossomIcon, VlossomWordmark, VlossomLogo) with purple/cream/auto variants
+- Production deployment to Vercel
 
 **Previous**: V6.3.0 - Phase 2 UX & Infrastructure (frontend tooling, theme system), V6.2.0 - Security & Smart Contract Hardening, V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
 

@@ -9,6 +9,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { PasswordStrength } from "../../../components/ui/password-strength";
+import { VlossomLogo } from "../../../components/ui/vlossom-logo";
 import Link from "next/link";
 
 const signupSchema = z.object({
@@ -67,11 +68,14 @@ export default function OnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-background-secondary px-4">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-h1 text-brand-rose">Welcome to Vlossom</h1>
-          <p className="text-body text-text-secondary">
-            Where you blossom. Create your account to get started.
-          </p>
+        <div className="text-center space-y-4">
+          <VlossomLogo iconSize={48} wordmarkHeight={32} variant="purple" className="justify-center" />
+          <div className="space-y-2">
+            <h1 className="text-h1 text-brand-rose">Welcome to Vlossom</h1>
+            <p className="text-body text-text-secondary">
+              Where you blossom. Create your account to get started.
+            </p>
+          </div>
         </div>
 
         {/* Signup Form */}

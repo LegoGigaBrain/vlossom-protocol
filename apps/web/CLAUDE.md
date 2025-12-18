@@ -4,6 +4,10 @@
 
 ## Current Implementation Status
 
+**V6.4.0 Brand Logo & Map UX** (Dec 18, 2025)
+
+Custom Uber-style Google Maps with dark/light themes, brand logo components integrated across app, production Vercel deployment.
+
 **V6.3.0 Phase 2 UX & Infrastructure** (Dec 17, 2025)
 
 Professional frontend tooling, theme system, desktop navigation, empty state presets, and enhanced booking error handling.
@@ -19,6 +23,33 @@ Sacred orange rule enforced across 12 files. Orange (#FF510D) now strictly reser
 **V6.0.0 Mobile App + Full Frontend Design Handover** (Dec 17, 2025)
 
 Complete design system with botanical icons (28 SVGs), animation system (unfold/breathe/settle), and typography/color audits. All design documentation updated.
+
+---
+
+### V6.4.0 Changes
+
+**Google Maps Integration**
+- `components/map/stylist-map.tsx` - Complete rewrite with real Google Maps
+- Custom Vlossom dark/light map themes inspired by Uber
+- Theme toggle (sun/moon icons) with localStorage persistence
+- `@react-google-maps/api` integration with MarkerF, InfoWindowF
+- Brand purple (#311E6B) integrated into map styling
+
+**Brand Logo Components**
+- `components/ui/vlossom-logo.tsx` - New brand logo component library
+- `VlossomIcon` - Flower symbol SVG
+- `VlossomWordmark` - Text logo SVG with height-based sizing
+- `VlossomLogo` - Combined icon + wordmark
+- Variants: purple, cream, auto (auto adapts to light/dark mode)
+
+**Logo Integration**
+- `components/layout/desktop-nav.tsx` - Brand logo in header
+- `app/(auth)/login/page.tsx` - Logo on login page
+- `app/(auth)/onboarding/page.tsx` - Logo on signup page
+
+**Production Deployment**
+- Deployed to Vercel (https://vlossom-protocol.vercel.app)
+- Build configuration verified and working
 
 ---
 

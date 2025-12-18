@@ -9,11 +9,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.4.0] - 2025-12-18
 
-### V6.4.0: Local Development & Service Fixes
+### V6.4.0: Local Development, Brand & Map UX
 
-**Goal**: Fix local development issues, enable Redis rate limiting, and create admin panel scaffold.
+**Goal**: Fix local development issues, enable Redis rate limiting, create admin panel scaffold, implement custom map styling, and integrate brand logos.
 
 ---
+
+#### ✅ Google Maps Integration (NEW)
+
+**Updated File:** `apps/web/components/map/stylist-map.tsx`
+
+Complete rewrite with real Google Maps:
+- Custom Vlossom dark/light map themes inspired by Uber
+- Theme toggle (sun/moon icons) with localStorage persistence
+- `@react-google-maps/api` integration with MarkerF, InfoWindowF
+- Brand purple (#311E6B) integrated into map styling
+- Layer toggle for stylists/salons visibility
+
+#### ✅ Brand Logo Components (NEW)
+
+**New File:** `apps/web/components/ui/vlossom-logo.tsx`
+
+Brand logo component library:
+- `VlossomIcon` - Flower symbol SVG
+- `VlossomWordmark` - Text logo SVG with height-based sizing
+- `VlossomLogo` - Combined icon + wordmark
+- Variants: purple, cream, auto (auto adapts to light/dark mode)
+
+**Updated Files:**
+- `apps/web/components/layout/desktop-nav.tsx` - Brand logo in header
+- `apps/web/app/(auth)/login/page.tsx` - Logo on login page
+- `apps/web/app/(auth)/onboarding/page.tsx` - Logo on signup page
+
+#### ✅ Production Deployment (NEW)
+
+- Deployed to Vercel: https://vlossom-protocol.vercel.app
+- Build configuration verified and working
+- Environment variables configured
+
+#### ✅ Context Sync (NEW)
+
+Updated version headers in folder-level CLAUDE.md files:
+- `services/indexer/CLAUDE.md` → V6.4.0
+- `packages/sdk/CLAUDE.md` → V6.4.0
+- `packages/types/CLAUDE.md` → V6.4.0
+- `packages/ui/CLAUDE.md` → V6.4.0
+- `packages/config/CLAUDE.md` → V6.4.0
+- `infra/CLAUDE.md` → V6.4.0
+- `design/CLAUDE.md` → V6.4.0
 
 #### ✅ Redis Cloud Integration
 
