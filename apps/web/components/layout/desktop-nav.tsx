@@ -67,7 +67,7 @@ export function DesktopNav({ className }: DesktopNavProps) {
   return (
     <header
       className={cn(
-        "hidden md:flex fixed top-0 left-0 right-0 h-16 bg-background-primary dark:bg-background-dark border-b border-border z-50",
+        "hidden md:flex fixed top-0 left-0 right-0 h-16 bg-surface-elevated-light dark:bg-surface-elevated-dark border-b border-border-subtle shadow-vlossom-soft z-sticky",
         className
       )}
     >
@@ -118,7 +118,7 @@ export function DesktopNav({ className }: DesktopNavProps) {
                 aria-current={active ? "page" : undefined}
               >
                 <Icon
-                  size={18}
+                  size={20}
                   accent={active}
                   aria-hidden="true"
                 />

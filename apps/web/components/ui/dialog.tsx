@@ -53,7 +53,7 @@ export function Dialog({
           className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-fadeIn data-[state=closed]:animate-fadeOut"
         />
         <RadixDialog.Content
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-card bg-background-primary p-4 sm:p-6 shadow-vlossom focus:outline-none max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain data-[state=open]:animate-dialogIn data-[state=closed]:animate-dialogOut"
+          className="fixed left-1/2 top-1/2 z-modal w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-surface-elevated-light dark:bg-surface-elevated-dark p-6 sm:p-8 shadow-vlossom-modal focus:outline-none max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain data-[state=open]:animate-dialogIn data-[state=closed]:animate-dialogOut"
           aria-label={ariaLabel}
           onInteractOutside={(e) => {
             if (preventClose) {
@@ -97,7 +97,7 @@ interface DialogTitleProps {
 
 export function DialogTitle({ children, className }: DialogTitleProps) {
   return (
-    <RadixDialog.Title className={`text-h2 text-text-primary ${className || ""}`}>
+    <RadixDialog.Title className={`font-display text-h2 text-text-primary ${className || ""}`}>
       {children}
     </RadixDialog.Title>
   );
