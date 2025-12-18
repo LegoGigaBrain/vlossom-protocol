@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Icon } from "@/components/icons";
 
 interface UserData {
@@ -341,10 +342,12 @@ export default function AdminUsersPage() {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         {user.avatarUrl ? (
-                          <img
+                          <Image
                             className="h-10 w-10 rounded-full"
                             src={user.avatarUrl}
                             alt=""
+                            width={40}
+                            height={40}
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">

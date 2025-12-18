@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { NotificationDropdown } from "./notification-dropdown";
@@ -16,7 +16,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch unread count
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -37,7 +37,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
     } catch (error) {
       console.error("Failed to fetch unread count:", error);
     }
-  };
+  }, [user]);
 
   // Fetch on mount and periodically
   useEffect(() => {
@@ -46,7 +46,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
     // Poll every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [fetchUnreadCount]);
 
   if (!user) return null;
 

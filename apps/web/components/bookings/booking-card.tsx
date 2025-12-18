@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { formatPrice, formatDate, formatTimeFromDate } from "@/lib/utils";
 import { StatusBadge } from "./status-badge";
 import type { Booking } from "@/lib/booking-client";
@@ -19,9 +20,11 @@ export function BookingCard({ booking, onClick }: BookingCardProps) {
         {/* Avatar */}
         <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
           {booking.stylist.avatarUrl ? (
-            <img
+            <Image
               src={booking.stylist.avatarUrl}
               alt={booking.stylist.displayName}
+              width={48}
+              height={48}
               className="w-full h-full object-cover"
             />
           ) : (

@@ -94,7 +94,7 @@ export default function AdminPropertiesPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [, setCurrentPage] = useState(1);
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
 
   const fetchProperties = useCallback(async () => {
@@ -102,7 +102,7 @@ export default function AdminPropertiesPage() {
     // In a real app, fetch from API
     await new Promise((r) => setTimeout(r, 500));
     setIsLoading(false);
-  }, [search, statusFilter, currentPage]);
+  }, []);
 
   useEffect(() => {
     fetchProperties();

@@ -20,6 +20,7 @@ import { useFavorites, useFavoritesCount } from "@/hooks/use-favorites";
 import { useSocialStats, useRewardsStats } from "@/hooks/use-profile-stats";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 import { ProfileHeader } from "@/components/profile/profile-header";
 import {
@@ -419,10 +420,12 @@ function FavoritesStylistsCard() {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center overflow-hidden">
                     {stylist.avatarUrl ? (
-                      <img
+                      <Image
                         src={stylist.avatarUrl}
                         alt={stylist.displayName}
                         className="w-full h-full object-cover"
+                        width={40}
+                        height={40}
                       />
                     ) : (
                       <Icon name="scissors" size="md" className="text-brand-rose" />

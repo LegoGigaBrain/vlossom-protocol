@@ -127,14 +127,14 @@ export function PaymentStep({
         lockFunds();
       });
     }
-  }, [isApprovalConfirmed, state]);
+  }, [isApprovalConfirmed, state, refetchAllowance, lockFunds]);
 
   // Handle lock confirmation - submit to backend
   useEffect(() => {
     if (isLockConfirmed && txHash && state === "waiting-lock") {
       submitToBackend(txHash);
     }
-  }, [isLockConfirmed, txHash, state]);
+  }, [isLockConfirmed, txHash, state, submitToBackend]);
 
   // Determine if dialog should prevent closing (during critical states)
   const isProcessing = [
@@ -174,7 +174,7 @@ export function PaymentStep({
   }, [writeLockFunds, bookingIdBytes32, amountInUsdcUnits]);
 
   // Submit confirmed transaction to backend with on-chain verification
-  const submitToBackend = async (confirmedTxHash: Hash) => {
+  const submitToBackend = useCallback(async (confirmedTxHash: Hash) => {
     try {
       setState("processing");
 
@@ -205,7 +205,7 @@ export function PaymentStep({
       setError(message);
       toast.error("Failed to confirm payment", { description: message });
     }
-  };
+  }, [bookingId, confirmPayment, onSuccess]);
 
   const handleConfirmPayment = async () => {
     if (!hasBalance) {

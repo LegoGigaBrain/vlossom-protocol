@@ -5,9 +5,10 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { api } from "../../../../lib/api";
 import { Button } from "../../../../components/ui/button";
 import {
@@ -134,7 +135,7 @@ export default function DisputeDetailPage() {
   const [newMessage, setNewMessage] = useState("");
   const [isInternalMessage, setIsInternalMessage] = useState(false);
 
-  const fetchDispute = async () => {
+  const fetchDispute = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -147,11 +148,11 @@ export default function DisputeDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [disputeId]);
 
   useEffect(() => {
     fetchDispute();
-  }, [disputeId]);
+  }, [disputeId, fetchDispute]);
 
   const handleAssignToMe = async () => {
     setIsAssigning(true);
@@ -347,10 +348,12 @@ export default function DisputeDetailPage() {
                       rel="noopener noreferrer"
                       className="block aspect-square rounded-lg bg-gray-100 overflow-hidden hover:opacity-75 transition-opacity"
                     >
-                      <img
+                      <Image
                         src={url}
                         alt={`Evidence ${index + 1}`}
                         className="w-full h-full object-cover"
+                        width={200}
+                        height={200}
                       />
                     </a>
                   ))}

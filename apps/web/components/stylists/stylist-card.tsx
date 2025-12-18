@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/utils";
 import { getOperatingModeText, type StylistSummary } from "@/lib/stylist-client";
 import { FavoriteButton } from "./favorite-button";
+import Image from "next/image";
 
 interface StylistCardProps {
   stylist: StylistSummary;
@@ -32,10 +33,12 @@ export function StylistCard({ stylist, onClick, showFavorite = true }: StylistCa
       <div className="flex items-start gap-3">
         <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
           {stylist.avatarUrl ? (
-            <img
+            <Image
               src={stylist.avatarUrl}
               alt={stylist.displayName}
               className="w-full h-full object-cover"
+              width={64}
+              height={64}
             />
           ) : (
             <span className="text-2xl text-primary font-semibold">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { format } from "date-fns";
 import { Icon } from "@/components/icons";
@@ -132,10 +133,12 @@ export function BookingQuickViewDialog({
             >
               <div className="w-12 h-12 rounded-full overflow-hidden bg-background-secondary shrink-0">
                 {booking.stylist.avatarUrl ? (
-                  <img
+                  <Image
                     src={booking.stylist.avatarUrl}
                     alt={booking.stylist.displayName}
                     className="w-full h-full object-cover"
+                    width={48}
+                    height={48}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-lg font-semibold text-text-secondary">
