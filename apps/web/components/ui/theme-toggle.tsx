@@ -15,7 +15,7 @@
 
 import { useState } from "react";
 import { useThemeMode } from "@/lib/theme/use-theme";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { Button } from "./button";
 
 interface ThemeToggleProps {
@@ -31,7 +31,7 @@ interface ThemeToggleProps {
 export function ThemeToggle({ variant = "icon", size = "default" }: ThemeToggleProps) {
   const { mode, toggleMode } = useThemeMode();
 
-  const iconSize = size === "sm" ? 16 : size === "lg" ? 24 : 20;
+  const iconSize = size === "sm" ? "sm" : size === "lg" ? "lg" : "md";
 
   if (variant === "labeled") {
     return (
@@ -44,12 +44,12 @@ export function ThemeToggle({ variant = "icon", size = "default" }: ThemeToggleP
       >
         {mode === "light" ? (
           <>
-            <Moon size={iconSize} />
+            <Icon name="rest" size={iconSize} />
             <span>Dark mode</span>
           </>
         ) : (
           <>
-            <Sun size={iconSize} />
+            <Icon name="active" size={iconSize} />
             <span>Light mode</span>
           </>
         )}
@@ -65,11 +65,13 @@ export function ThemeToggle({ variant = "icon", size = "default" }: ThemeToggleP
       aria-label={`Switch to ${mode === "light" ? "dark" : "light"} mode`}
       className="relative h-10 w-10"
     >
-      <Sun
+      <Icon
+        name="active"
         size={iconSize}
         className="absolute transition-transform duration-200 rotate-0 scale-100 dark:-rotate-90 dark:scale-0"
       />
-      <Moon
+      <Icon
+        name="rest"
         size={iconSize}
         className="absolute transition-transform duration-200 rotate-90 scale-0 dark:rotate-0 dark:scale-100"
       />
@@ -85,7 +87,7 @@ export function ThemeSelector({ size = "default" }: Pick<ThemeToggleProps, "size
   const { mode, setMode, isSystemPreference, resetToSystemPreference } = useThemeMode();
   const [isOpen, setIsOpen] = useState(false);
 
-  const iconSize = size === "sm" ? 14 : 16;
+  const iconSize = size === "sm" ? "sm" : "md";
 
   return (
     <div className="relative">
@@ -97,12 +99,14 @@ export function ThemeSelector({ size = "default" }: Pick<ThemeToggleProps, "size
         aria-expanded={isOpen}
         className="relative h-10 w-10"
       >
-        <Sun
-          size={iconSize + 4}
+        <Icon
+          name="active"
+          size="md"
           className="absolute transition-transform duration-200 rotate-0 scale-100 dark:-rotate-90 dark:scale-0"
         />
-        <Moon
-          size={iconSize + 4}
+        <Icon
+          name="rest"
+          size="md"
           className="absolute transition-transform duration-200 rotate-90 scale-0 dark:rotate-0 dark:scale-100"
         />
         <span className="sr-only">Toggle theme</span>
@@ -128,7 +132,7 @@ export function ThemeSelector({ size = "default" }: Pick<ThemeToggleProps, "size
                 mode === "light" && !isSystemPreference ? "bg-secondary dark:bg-surface-elevated-dark" : ""
               }`}
             >
-              <Sun size={iconSize} />
+              <Icon name="active" size={iconSize} />
               Light
             </button>
             <button
@@ -140,7 +144,7 @@ export function ThemeSelector({ size = "default" }: Pick<ThemeToggleProps, "size
                 mode === "dark" && !isSystemPreference ? "bg-secondary dark:bg-surface-elevated-dark" : ""
               }`}
             >
-              <Moon size={iconSize} />
+              <Icon name="rest" size={iconSize} />
               Dark
             </button>
             <button
@@ -152,7 +156,7 @@ export function ThemeSelector({ size = "default" }: Pick<ThemeToggleProps, "size
                 isSystemPreference ? "bg-secondary dark:bg-surface-elevated-dark" : ""
               }`}
             >
-              <Monitor size={iconSize} />
+              <Icon name="settings" size={iconSize} />
               System
             </button>
           </div>
