@@ -1,6 +1,7 @@
 "use client";
 
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+import type { IconName } from "@/components/icons/types";
 
 interface PaymasterStats {
   currentBalance: { wei: string; eth: number };

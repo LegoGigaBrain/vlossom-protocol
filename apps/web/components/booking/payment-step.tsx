@@ -83,24 +83,22 @@ export function PaymentStep({
   // Write contract hooks
   const {
     writeContract: writeApprove,
-    isPending: isApprovePending,
     data: approveData,
   } = useWriteContract();
 
   const {
     writeContract: writeLockFunds,
-    isPending: isLockPending,
     data: lockFundsData,
   } = useWriteContract();
 
   // Wait for approval transaction
-  const { isLoading: isApprovalConfirming, isSuccess: isApprovalConfirmed } =
+  const { isSuccess: isApprovalConfirmed } =
     useWaitForTransactionReceipt({
       hash: approvalTxHash,
     });
 
   // Wait for lock funds transaction
-  const { isLoading: isLockConfirming, isSuccess: isLockConfirmed } =
+  const { isSuccess: isLockConfirmed } =
     useWaitForTransactionReceipt({
       hash: txHash,
     });

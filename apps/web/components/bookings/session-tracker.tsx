@@ -42,9 +42,7 @@ export function SessionTracker({
     isConnected,
     isReconnecting,
     sessionProgress,
-    error,
     connect,
-    disconnect,
   } = useLiveUpdates({
     bookingId,
     onProgress: (progress) => {

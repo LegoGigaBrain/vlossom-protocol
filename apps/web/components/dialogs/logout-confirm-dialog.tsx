@@ -74,7 +74,7 @@ export function LogoutConfirmDialog({
                 Are you sure you want to log out?
               </p>
               <p className="text-sm text-text-secondary mt-1">
-                You'll need to sign in again to access your account.
+                You&apos;ll need to sign in again to access your account.
               </p>
             </div>
 

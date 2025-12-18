@@ -14,7 +14,6 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch unread count
   const fetchUnreadCount = async () => {
@@ -48,15 +47,6 @@ export function NotificationBell({ className }: NotificationBellProps) {
     const interval = setInterval(fetchUnreadCount, 30000);
     return () => clearInterval(interval);
   }, [user]);
-
-  // Refresh count when dropdown closes
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      // Refresh count after closing (in case user marked notifications as read)
-      setTimeout(fetchUnreadCount, 500);
-    }
-  };
 
   if (!user) return null;
 

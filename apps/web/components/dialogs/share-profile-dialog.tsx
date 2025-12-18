@@ -3,7 +3,6 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Icon } from "@/components/icons";
-import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
 

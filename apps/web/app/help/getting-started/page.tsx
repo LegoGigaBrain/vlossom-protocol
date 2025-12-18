@@ -44,7 +44,7 @@ export default function GettingStartedPage() {
           </div>
           <div className="ml-11">
             <p className="text-gray-600 mb-4">
-              Sign up with your email address and choose whether you're a
+              Sign up with your email address and choose whether you&apos;re a
               customer looking for styling services or a stylist offering
               services.
             </p>
@@ -95,7 +95,7 @@ export default function GettingStartedPage() {
             </p>
             <div className="bg-gray-100 rounded-lg p-6 mb-4">
               <h4 className="font-semibold text-gray-900 mb-2">
-                What makes it "smart"?
+                What makes it &quot;smart&quot;?
               </h4>
               <ul className="space-y-2 text-gray-600">
                 <li>
@@ -126,7 +126,7 @@ export default function GettingStartedPage() {
           </div>
           <div className="ml-11">
             <p className="text-gray-600 mb-4">
-              To book services, you'll need USDC in your wallet. During the beta
+              To book services, you&apos;ll need USDC in your wallet. During the beta
               period, you can claim free test USDC from our faucet!
             </p>
             <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-4">
@@ -136,7 +136,7 @@ export default function GettingStartedPage() {
               </p>
             </div>
             <p className="text-gray-600">
-              In the future, you'll be able to add funds using your credit card
+              In the future, you&apos;ll be able to add funds using your credit card
               or bank transfer via our payment partner.
             </p>
           </div>
@@ -177,7 +177,7 @@ export default function GettingStartedPage() {
               <li className="flex gap-3">
                 <span className="font-medium text-purple-600">e.</span>
                 <span>
-                  Wait for the stylist to approve, then you're all set!
+                  Wait for the stylist to approve, then you&apos;re all set!
                 </span>
               </li>
             </ol>
@@ -229,7 +229,7 @@ export default function GettingStartedPage() {
         {/* Next Steps */}
         <div className="bg-purple-50 rounded-xl p-8">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            What's Next?
+            What&apos;s Next?
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             <Link

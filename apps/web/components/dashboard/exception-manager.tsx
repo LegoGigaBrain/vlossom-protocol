@@ -71,7 +71,7 @@ function AddExceptionDialog({ open, onOpenChange, onAdd, isLoading }: AddExcepti
         <DialogHeader>
           <DialogTitle>Block a Date</DialogTitle>
           <DialogDescription>
-            Customers won't be able to book on blocked dates.
+            Customers won&apos;t be able to book on blocked dates.
           </DialogDescription>
         </DialogHeader>
 
@@ -181,7 +181,7 @@ export function ExceptionManager({
         <div className="text-center py-8">
           <p className="text-body text-text-secondary">No blocked dates</p>
           <p className="text-caption text-text-tertiary mt-1">
-            Block specific dates when you're unavailable
+            Block specific dates when you&apos;re unavailable
           </p>
         </div>
       ) : (

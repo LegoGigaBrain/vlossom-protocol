@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -31,7 +31,6 @@ const resetPasswordSchema = z
 type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 
 function ResetPasswordContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 

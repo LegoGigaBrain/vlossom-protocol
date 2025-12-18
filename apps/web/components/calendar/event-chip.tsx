@@ -12,7 +12,7 @@
 "use client";
 
 import { cn } from "../../lib/utils";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 export type EventCategory =
   | "HAIR_RITUAL"
@@ -50,7 +50,7 @@ interface EventChipProps {
   className?: string;
 }
 
-const categoryIcons: Record<EventCategory, IconName> = {
+const categoryIcons: Record<EventCategory, string> = {
   HAIR_RITUAL: "care",
   BOOKING_SERVICE: "calendar",
   EDUCATION_PROMPT: "learning",

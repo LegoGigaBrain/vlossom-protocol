@@ -16,7 +16,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { cn } from "../../lib/utils";
 import {
   MAP_DEFAULTS,
@@ -131,7 +131,7 @@ export function StylistMap({
   const [viewMode, setViewMode] = useViewPreference(effectiveDefaultView);
 
   const [zoom, setZoom] = useState(MAP_DEFAULTS.zoom);
-  const [center, setCenter] = useState(MAP_DEFAULTS.center);
+  const [, setCenter] = useState(MAP_DEFAULTS.center);
   const [showSalons, setShowSalons] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
 
@@ -305,7 +305,7 @@ export function StylistMap({
                 No stylists nearby
               </h3>
               <p className="text-text-secondary text-sm">
-                We couldn't find any stylists in this area. Try expanding your search
+                We couldn&apos;t find any stylists in this area. Try expanding your search
                 or enabling location services.
               </p>
             </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "../../lib/utils";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+import type { IconName } from "@/components/icons";
 
 export type ReputationLevel = "new" | "rising" | "trusted" | "verified" | "elite";
 

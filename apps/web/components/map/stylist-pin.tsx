@@ -13,7 +13,9 @@
 
 import { cn } from "../../lib/utils";
 import { STYLIST_MODE_COLORS, type StylistMarker } from "../../lib/mapbox";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+
+type IconName = string;
 
 interface StylistPinProps {
   stylist: StylistMarker;

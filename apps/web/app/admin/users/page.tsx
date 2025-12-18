@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 interface UserData {
   id: string;
@@ -52,7 +52,6 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [actionUserId, setActionUserId] = useState<string | null>(null);
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {

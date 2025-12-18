@@ -15,7 +15,7 @@
 import { useMemo } from "react";
 import { cn } from "../../lib/utils";
 import { EventChip, type CalendarEvent, type LoadLevel } from "./event-chip";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 interface DayFlowProps {
   events: CalendarEvent[];
@@ -26,11 +26,11 @@ interface DayFlowProps {
 }
 
 // Time blocks for the day
-const TIME_BLOCKS: Array<{ hour: number; label: string; iconName: IconName }> = [
-  { hour: 6, label: "Morning", iconName: "energy" },
-  { hour: 12, label: "Afternoon", iconName: "energy" },
-  { hour: 17, label: "Evening", iconName: "energy" },
-  { hour: 21, label: "Night", iconName: "resting" },
+const TIME_BLOCKS = [
+  { hour: 6, label: "Morning", iconName: "energy" as const },
+  { hour: 12, label: "Afternoon", iconName: "energy" as const },
+  { hour: 17, label: "Evening", iconName: "energy" as const },
+  { hour: 21, label: "Night", iconName: "resting" as const },
 ];
 
 export function DayFlow({

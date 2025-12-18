@@ -5,8 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { api } from "../../../lib/api";
+import { useState } from "react";
 import { Button } from "../../../components/ui/button";
 import {
   Card,
@@ -133,10 +132,10 @@ const mockRefundQueue: Transaction[] = [
 ];
 
 export default function AdminFinancePage() {
-  const [stats, setStats] = useState<FinanceStats>(mockStats);
-  const [pendingSettlements, setPendingSettlements] = useState<Transaction[]>(mockPendingSettlements);
-  const [recentPayouts, setRecentPayouts] = useState<Transaction[]>(mockRecentPayouts);
-  const [refundQueue, setRefundQueue] = useState<Transaction[]>(mockRefundQueue);
+  const [stats] = useState<FinanceStats>(mockStats);
+  const [pendingSettlements] = useState<Transaction[]>(mockPendingSettlements);
+  const [recentPayouts] = useState<Transaction[]>(mockRecentPayouts);
+  const [refundQueue] = useState<Transaction[]>(mockRefundQueue);
   const [isLoading, setIsLoading] = useState(false);
   const [timeRange, setTimeRange] = useState("7d");
 
@@ -219,7 +218,7 @@ export default function AdminFinancePage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">Today's Payouts</p>
+                <p className="text-sm font-medium text-gray-500">Today&apos;s Payouts</p>
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(stats.todayPayouts)}
                 </p>

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import * as Dialog from "@radix-ui/react-dialog";
 import { format } from "date-fns";
 import { Icon } from "@/components/icons";
-import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 
 type BookingStatus =

@@ -6,14 +6,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "../../../../lib/api";
 import { Button } from "../../../../components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "../../../../components/ui/card";
@@ -31,7 +30,7 @@ import {
 import { Skeleton } from "../../../../components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../../components/ui/avatar";
 import { toast } from "../../../../hooks/use-toast";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 interface DisputeMessage {
   id: string;
@@ -113,7 +112,6 @@ const resolutionOptions = [
 
 export default function DisputeDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const disputeId = params.id as string;
 
   const [dispute, setDispute] = useState<Dispute | null>(null);
@@ -274,7 +272,7 @@ export default function DisputeDetailPage() {
     return (
       <Card className="border-red-200 bg-red-50">
         <CardContent className="py-12 text-center">
-          <AlertTriangle className="w-12 h-12 mx-auto text-red-400" />
+          <Icon name="calmError" size="2xl" className="mx-auto text-red-400" />
           <p className="mt-4 text-red-600">{error || "Dispute not found"}</p>
           <Link href="/admin/disputes">
             <Button className="mt-4" variant="outline">
@@ -290,7 +288,7 @@ export default function DisputeDetailPage() {
     <div className="space-y-6">
       {/* Back Button */}
       <Link href="/admin/disputes" className="flex items-center text-gray-500 hover:text-gray-700">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <Icon name="chevronLeft" size="sm" className="mr-2" />
         Back to Disputes
       </Link>
 
@@ -321,7 +319,7 @@ export default function DisputeDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+                <Icon name="document" size="md" />
                 Description
               </CardTitle>
             </CardHeader>
@@ -335,7 +333,7 @@ export default function DisputeDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ImageIcon className="w-5 h-5" />
+                  <Icon name="photo" size="md" />
                   Evidence ({dispute.evidenceUrls.length})
                 </CardTitle>
               </CardHeader>
@@ -365,7 +363,7 @@ export default function DisputeDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-5 h-5" />
+                <Icon name="chat" size="md" />
                 Discussion ({dispute.messages?.length || 0})
               </CardTitle>
             </CardHeader>
@@ -437,7 +435,7 @@ export default function DisputeDetailPage() {
                       disabled={!newMessage.trim() || isSendingMessage}
                       size="sm"
                     >
-                      <Send className="w-4 h-4 mr-2" />
+                      <Icon name="send" size="sm" className="mr-2" />
                       Send
                     </Button>
                   </div>
@@ -479,7 +477,7 @@ export default function DisputeDetailPage() {
                     variant="outline"
                     onClick={() => setShowResolveForm(true)}
                   >
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <Icon name="check" size="sm" className="mr-2" />
                     Resolve Dispute
                   </Button>
                   <Button
@@ -487,7 +485,7 @@ export default function DisputeDetailPage() {
                     variant="destructive-outline"
                     onClick={() => setShowEscalateForm(true)}
                   >
-                    <AlertCircle className="w-4 h-4 mr-2" />
+                    <Icon name="calmError" size="sm" className="mr-2" />
                     Escalate
                   </Button>
                 </>
@@ -683,7 +681,7 @@ export default function DisputeDetailPage() {
                   href={`/admin/bookings/${dispute.bookingId}`}
                   className="text-sm text-blue-600 hover:underline flex items-center gap-1"
                 >
-                  View Booking <ExternalLink className="w-3 h-3" />
+                  View Booking <Icon name="externalLink" size="sm" />
                 </Link>
               </CardContent>
             </Card>

@@ -136,7 +136,7 @@ export function ProfilePreview({ profile, open, onOpenChange }: ProfilePreviewPr
             <div className="p-3 bg-status-warning/10 rounded-lg">
               <p className="text-body-small text-status-warning text-center flex items-center justify-center gap-1.5">
                 <AlertIcon className="h-4 w-4 shrink-0" />
-                Your profile is hidden because you're not accepting bookings
+                Your profile is hidden because you&apos;re not accepting bookings
               </p>
             </div>
           )}

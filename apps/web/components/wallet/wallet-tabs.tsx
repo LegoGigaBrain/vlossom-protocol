@@ -9,7 +9,8 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "../../lib/utils";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+import type { IconName } from "@/components/icons/types";
 
 interface WalletTab {
   id: string;

@@ -155,7 +155,7 @@ export default function WalletHelpPage() {
         {/* Contact */}
         <div className="mt-8 p-6 bg-background-tertiary rounded-card text-center">
           <p className="text-text-secondary mb-3">
-            Didn't find what you're looking for?
+            Didn&apos;t find what you&apos;re looking for?
           </p>
           <Link
             href="/contact"

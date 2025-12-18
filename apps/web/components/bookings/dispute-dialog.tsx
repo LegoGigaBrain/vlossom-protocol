@@ -203,7 +203,7 @@ export function DisputeDialog({
                       Before you continue
                     </h3>
                     <p className="text-sm text-text-secondary mt-1">
-                      Filing a dispute is a serious action. Please ensure you've
+                      Filing a dispute is a serious action. Please ensure you&apos;ve
                       already tried to resolve the issue directly with the stylist.
                     </p>
                   </div>

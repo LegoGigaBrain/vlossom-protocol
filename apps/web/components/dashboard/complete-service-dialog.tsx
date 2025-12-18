@@ -57,7 +57,7 @@ export function CompleteServiceDialog({
 
         <div className="space-y-4">
           <p className="text-body text-text-secondary">
-            You're completing:
+            You&apos;re completing:
           </p>
 
           <div className="p-4 bg-background-secondary rounded-lg space-y-2">
@@ -110,7 +110,7 @@ export function CompleteServiceDialog({
           <div className="p-3 bg-brand-rose/5 border border-brand-rose/20 rounded-lg">
             <p className="text-body-small text-text-secondary">
               ℹ️ The customer will be asked to confirm completion. Funds will be
-              released within 24 hours if they don't respond.
+              released within 24 hours if they don&apos;t respond.
             </p>
           </div>
 

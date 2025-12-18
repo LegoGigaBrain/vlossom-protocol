@@ -12,9 +12,6 @@ import { Button } from "../../../components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Badge } from "../../../components/ui/badge";
@@ -25,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 interface Dispute {
   id: string;

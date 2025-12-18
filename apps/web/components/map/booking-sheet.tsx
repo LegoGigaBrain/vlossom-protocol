@@ -18,7 +18,9 @@ import { cn } from "../../lib/utils";
 import { type StylistMarker, formatDistance, calculateDistance } from "../../lib/mapbox";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+
+type IconName = string;
 
 interface BookingSheetProps {
   stylist: StylistMarker | null;

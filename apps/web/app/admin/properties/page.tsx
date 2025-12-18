@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 interface Property {
   id: string;
@@ -89,7 +89,7 @@ const mockStats: PropertyStats = {
 
 export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>(mockProperties);
-  const [stats, setStats] = useState<PropertyStats>(mockStats);
+  const [stats] = useState<PropertyStats>(mockStats);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [search, setSearch] = useState("");

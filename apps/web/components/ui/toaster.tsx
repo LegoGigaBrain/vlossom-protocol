@@ -14,7 +14,8 @@ import {
   ToastTitle,
   ToastViewport,
 } from "./toast";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+import type { IconName } from "@/components/icons/types";
 
 const iconNames: Record<string, IconName | null> = {
   success: "success",
