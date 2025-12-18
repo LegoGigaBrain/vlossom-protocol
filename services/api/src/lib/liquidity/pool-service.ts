@@ -375,7 +375,7 @@ export async function withdraw(
 // Helpers
 // ============================================================================
 
-function mapPoolToInfo(pool: Prisma.LiquidityPoolGetPayload<{}>): PoolInfo {
+function mapPoolToInfo(pool: Prisma.LiquidityPoolGetPayload<object>): PoolInfo {
   return {
     id: pool.id,
     address: pool.address,
@@ -395,7 +395,7 @@ function mapPoolToInfo(pool: Prisma.LiquidityPoolGetPayload<{}>): PoolInfo {
   };
 }
 
-function mapPoolToDetails(pool: Prisma.LiquidityPoolGetPayload<{}>): PoolDetails {
+function mapPoolToDetails(pool: Prisma.LiquidityPoolGetPayload<object>): PoolDetails {
   const info = mapPoolToInfo(pool);
 
   let remainingCapacity: string | null = null;

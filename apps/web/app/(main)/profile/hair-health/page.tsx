@@ -16,7 +16,6 @@ import {
   useHairProfileWithAnalysis,
   useLearningProgress,
   useUnlockLearningNode,
-  type HairProfileResponse,
   type ProfileAnalysis,
 } from "@/hooks/use-hair-health";
 import { AppHeader } from "@/components/layout/app-header";

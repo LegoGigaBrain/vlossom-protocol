@@ -65,8 +65,9 @@ export async function initRedis(): Promise<RedisClient | null> {
 
   try {
     // Dynamically import ioredis to avoid issues if not installed
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Redis = (await import("ioredis" as string)).default;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const ioredis = await import("ioredis");
+    const Redis = ioredis.default;
 
     redisClient = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,

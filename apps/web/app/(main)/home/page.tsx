@@ -42,7 +42,7 @@ export default function HomePage() {
 
   // Map state
   const [selectedStylist, setSelectedStylist] = useState<StylistMarker | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, _setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
 
   // Filter state

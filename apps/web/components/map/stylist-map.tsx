@@ -16,7 +16,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { cn } from "../../lib/utils";
 import {
   MAP_DEFAULTS,
@@ -27,8 +27,9 @@ import {
   calculateDistance,
 } from "../../lib/mapbox";
 import { StylistPin, SalonPin, ClusterPin, UserPin } from "./stylist-pin";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
+import { logger } from "@/lib/logger";
 
 // View modes for accessibility and performance
 type ViewMode = "map" | "list";
@@ -207,7 +208,7 @@ export function StylistMap({
         setIsLocating(false);
       },
       (error) => {
-        console.error("Error getting location:", error);
+        logger.error("Error getting location", { error });
         setIsLocating(false);
       },
       { enableHighAccuracy: true, timeout: 5000 }

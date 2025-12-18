@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "../../hooks/use-wallet";
 import {
   sendP2P,
@@ -40,7 +40,7 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setStep("input");
     setToAddress("");
     setAmount("");
@@ -48,12 +48,12 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
     setError(null);
     setTxHash(null);
     setCurrency("ZAR");
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     handleReset();
     onOpenChange(false);
-  };
+  }, [handleReset, onOpenChange]);
 
   const validateInputs = (): string | null => {
     if (!toAddress) return "Please enter a recipient address";
@@ -113,7 +113,7 @@ export function SendDialog({ open, onOpenChange }: SendDialogProps) {
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [step]);
+  }, [step, handleClose]);
 
   if (!wallet) return null;
 

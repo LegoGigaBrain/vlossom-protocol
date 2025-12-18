@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 interface Transaction {
   id: string;

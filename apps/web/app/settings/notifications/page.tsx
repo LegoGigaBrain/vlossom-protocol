@@ -272,7 +272,7 @@ export default function NotificationSettingsPage() {
             </span>
           </CardTitle>
           <CardDescription>
-            Schedule times when you don't want to receive notifications
+            Schedule times when you don&apos;t want to receive notifications
           </CardDescription>
         </CardHeader>
         <CardContent>

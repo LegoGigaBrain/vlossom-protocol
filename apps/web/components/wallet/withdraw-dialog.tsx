@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "../../hooks/use-wallet";
 import {
   createWithdrawalSession,
@@ -32,8 +32,8 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
   const [currency, setCurrency] = useState<"ZAR" | "USD">("ZAR");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [_sessionId, setSessionId] = useState<string | null>(null);
-  const [_mode, setMode] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [mode, setMode] = useState<string | null>(null);
 
   const maxUSDC = wallet ? wallet.balance.usdcFormatted : 0;
 
@@ -72,7 +72,7 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
 
       // Simulate delay, then auto-complete
       setTimeout(async () => {
-        await simulateMockWithdrawal(result.sessionId!, usdcAmount);
+        await simulateMockWithdrawal(sessionId!, usdcAmount);
         await refetch();
         setStep("success");
         setLoading(false);
@@ -83,14 +83,14 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setStep("amount");
     setAmount("");
     setError(null);
     setSessionId(null);
     setMode(null);
     onOpenChange(false);
-  };
+  }, [onOpenChange]);
 
   // Auto-close after 3 seconds on success
   useEffect(() => {
@@ -100,7 +100,7 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [step]);
+  }, [step, handleClose]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -166,7 +166,7 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
             </div>
 
             <p className="text-caption text-text-tertiary">
-              You'll receive approximately{" "}
+              You&apos;ll receive approximately{" "}
               {currency === "ZAR"
                 ? ((parseFloat(amount || "0") / 18.5) * 18.5).toFixed(2)
                 : parseFloat(amount || "0").toFixed(2)}{" "}
@@ -188,7 +188,7 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
               Processing withdrawal...
             </p>
             <p className="text-caption text-text-tertiary mt-2">
-              {_mode === "mock" ? "(Mock mode - simulating 3s delay)" : ""}
+              {mode === "mock" ? "(Mock mode - simulating 3s delay)" : ""}
             </p>
           </div>
         )}

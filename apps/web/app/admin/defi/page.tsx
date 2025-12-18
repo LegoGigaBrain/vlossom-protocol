@@ -12,7 +12,7 @@
  * - Smooth transition animations
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { Button } from "../../../components/ui/button";
 import { useToast } from "../../../hooks/use-toast";

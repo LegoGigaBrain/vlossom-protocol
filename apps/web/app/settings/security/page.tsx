@@ -52,7 +52,7 @@ export default function SecuritySettingsPage() {
 
   const handlePasswordChange = async () => {
     if (passwordForm.new !== passwordForm.confirm) {
-      toast.error("Passwords don't match", "Please make sure your passwords match.");
+      toast.error("Passwords don&apos;t match", "Please make sure your passwords match.");
       return;
     }
 
@@ -274,7 +274,7 @@ export default function SecuritySettingsPage() {
             Active Sessions
           </CardTitle>
           <CardDescription>
-            Devices where you're currently signed in
+            Devices where you&apos;re currently signed in
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

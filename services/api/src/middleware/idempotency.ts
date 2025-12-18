@@ -18,6 +18,7 @@ import { createError } from "./error-handler";
 
 // Extend Express Request to include idempotency key
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       idempotencyKey?: string;

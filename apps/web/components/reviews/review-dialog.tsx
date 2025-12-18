@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Icon } from "@/components/icons";
-import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { StarRating } from "./star-rating";
@@ -201,9 +200,9 @@ export function ReviewDialog({
                 Tips for a helpful review:
               </p>
               <ul className="text-xs text-text-muted space-y-1">
-                <li>• Be specific about what you liked or didn't like</li>
+                <li>• Be specific about what you liked or didn&apos;t like</li>
                 <li>• Mention the quality of service and professionalism</li>
-                <li>• Share if you'd recommend this stylist to others</li>
+                <li>• Share if you&apos;d recommend this stylist to others</li>
               </ul>
             </div>
 

@@ -44,8 +44,8 @@ export default function AdminLayout({
         }
 
         setIsAuthorized(true);
-      } catch (error) {
-        console.error("Auth check failed:", error);
+      } catch (_error) {
+        // Auth check failed, redirect to login
         router.push("/login?redirect=/admin");
       } finally {
         setIsLoading(false);

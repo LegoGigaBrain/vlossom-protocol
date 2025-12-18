@@ -38,7 +38,6 @@ const ARB_MAINNET_RPC_URL =
 
 // Legacy alias for backwards compatibility
 const TESTNET_RPC_URL = BASE_TESTNET_RPC_URL;
-const MAINNET_RPC_URL = BASE_MAINNET_RPC_URL;
 
 // WalletConnect Project ID (reserved for future use when SSR issues are resolved)
 // IMPORTANT: In production, NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID must be set
@@ -153,9 +152,9 @@ const ARB_MAINNET_CONTRACTS = {
   EntryPoint: "0x0000000071727De22E5E9d8BAf0edAc6f37da032" as Address,
 } as const;
 
-// Legacy aliases for backwards compatibility
-const TESTNET_CONTRACTS = BASE_SEPOLIA_CONTRACTS;
-const MAINNET_CONTRACTS = BASE_MAINNET_CONTRACTS;
+// Legacy alias for backwards compatibility (TESTNET_CONTRACTS not needed as export)
+// const TESTNET_CONTRACTS = BASE_SEPOLIA_CONTRACTS;
+// const MAINNET_CONTRACTS = BASE_MAINNET_CONTRACTS;
 
 /**
  * Get contract addresses based on chain selection

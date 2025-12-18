@@ -530,7 +530,7 @@ async function handleResolutionEffects(
       logger.info("[Dispute] Full refund initiated", { bookingId: booking.id });
       break;
 
-    case "PARTIAL_REFUND":
+    case "PARTIAL_REFUND": {
       // Calculate and process partial refund
       const refundAmount = Math.floor(
         Number(booking.quoteAmountCents) * ((refundPercent || 0) / 100)
@@ -541,6 +541,7 @@ async function handleResolutionEffects(
         refundAmount,
       });
       break;
+    }
 
     case "STYLIST_PENALTY":
       // Apply penalty to stylist reputation

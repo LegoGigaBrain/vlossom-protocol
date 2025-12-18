@@ -125,7 +125,7 @@ function BalanceButton({ label, colors, borderRadius, spacing }: any) {
   );
 }
 
-function QuickActionCard({ icon, label, value, colors, borderRadius, shadows, spacing }: any) {
+function QuickActionCard({ icon: _icon, label, value, colors, borderRadius, shadows, spacing }: any) {
   return (
     <Pressable
       style={[

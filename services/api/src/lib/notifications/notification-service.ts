@@ -146,7 +146,7 @@ export async function notifyBookingEvent(
   metadata: NotificationMetadata
 ): Promise<NotificationResult> {
   // Determine channels based on notification type
-  let channels: NotificationChannel[] = ["IN_APP"];
+  const channels: NotificationChannel[] = ["IN_APP"];
 
   // Add email for all booking events
   channels.push("EMAIL");

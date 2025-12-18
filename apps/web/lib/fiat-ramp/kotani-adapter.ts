@@ -12,19 +12,8 @@
 import type {
   FiatRampAdapter,
   FiatRampProvider,
-  ProviderAvailability,
-  FiatRampQuote,
-  OnRampRequest,
-  OffRampRequest,
-  FiatRampWidgetResponse,
-  FiatRampTransaction,
   FiatRampStatus,
 } from "./types";
-
-// Environment detection
-const isProduction =
-  process.env.NODE_ENV === "production" &&
-  process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet";
 
 // API configuration
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
@@ -365,7 +354,7 @@ export const kotaniAdapter: FiatRampAdapter = {
     };
   },
 
-  async handleWebhook(payload, signature) {
+  async handleWebhook(payload, _signature) {
     // Webhook handling is done on the backend
     // This is a placeholder for completeness
     const data = payload as {
