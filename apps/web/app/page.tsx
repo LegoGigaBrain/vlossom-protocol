@@ -12,7 +12,7 @@ export default function HomePage() {
           Where you blossom.
         </p>
         <p className="text-caption text-text-muted">
-          V1.0 Beta - Base Sepolia Testnet
+          V6.5.1 - Base Sepolia Testnet
         </p>
 
         <div className="flex gap-4 justify-center mt-8">
