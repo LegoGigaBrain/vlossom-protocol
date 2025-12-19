@@ -7,6 +7,231 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.7.1] - 2025-12-20
+
+### V6.7.1: Mobile Messaging API Integration - COMPLETE ✅
+
+**Goal**: Connect mobile messaging screens to backend API with proper state management.
+
+---
+
+#### ✅ Mobile API Infrastructure
+
+**New File:** `apps/mobile/src/api/client.ts` (~130 lines)
+
+Base API client with SecureStore token management:
+- `getAuthToken()` / `setAuthToken()` - Token persistence
+- `getRefreshToken()` / `setRefreshToken()` - Refresh token storage
+- `clearTokens()` - Logout cleanup
+- `apiRequest<T>()` - Generic request helper with auth
+- `APIError` class for structured error handling
+
+**New File:** `apps/mobile/src/api/messages.ts` (~170 lines)
+
+Messages API client matching web implementation:
+- `getConversations()` - List user's conversations
+- `startConversation()` - Start/get conversation
+- `getConversation()` - Get with messages
+- `sendMessage()` - Send message
+- `markConversationRead()` - Mark as read
+- `archiveConversation()` / `unarchiveConversation()`
+- `getUnreadCount()` - Total unread
+
+#### ✅ Zustand State Management
+
+**New File:** `apps/mobile/src/stores/messages.ts` (~220 lines)
+
+Messages store with:
+- Conversation list state with pagination
+- Active conversation and messages
+- Optimistic updates for sending
+- Mark as read on conversation open
+- Unread count tracking
+- Error handling per operation
+
+#### ✅ Updated Mobile Screens
+
+**Modified File:** `apps/mobile/app/messages/index.tsx`
+
+Conversations list connected to Zustand:
+- `useFocusEffect` for refresh on screen focus
+- Pull-to-refresh with store action
+- Loading/error/empty states
+- Real unread badge counts
+
+**Modified File:** `apps/mobile/app/messages/[id].tsx`
+
+Conversation thread connected to Zustand:
+- Fetch conversation on mount
+- Auto mark as read
+- Send with optimistic update
+- Loading spinner during send
+- Error display for failed sends
+
+---
+
+## [6.7.0] - 2025-12-20
+
+### V6.7.0: Direct Messaging Feature - COMPLETE ✅
+
+**Goal**: Enable in-app communication between customers and stylists without sharing personal contact information.
+
+**Design Decision**: Messaging is a supporting feature, not a primary navigation element. Users access it through contextual entry points (stylist profiles, booking pages).
+
+---
+
+#### ✅ Database Models
+
+**Modified File:** `services/api/prisma/schema.prisma`
+
+New models:
+- `Conversation` - Per-participant unread counts, archive timestamps, booking link
+- `Message` - Content, senderId, readAt, soft delete support
+- `MESSAGE_RECEIVED` added to NotificationType enum
+
+Indexes:
+- `(participant1Id, lastMessageAt)` for list queries
+- `(conversationId, createdAt)` for message pagination
+
+#### ✅ Conversations API
+
+**New File:** `services/api/src/routes/conversations.ts` (~550 lines)
+
+Full REST API with Zod validation:
+- `GET /conversations` - List with pagination, archive filter
+- `POST /conversations` - Start or get existing conversation
+- `GET /conversations/:id` - Get with messages (paginated)
+- `POST /conversations/:id/messages` - Send message
+- `POST /conversations/:id/read` - Mark all as read
+- `POST /conversations/:id/archive` - Archive
+- `DELETE /conversations/:id/archive` - Unarchive
+- `GET /conversations/unread-count` - Total unread
+
+Helper functions:
+- `getOrCreateConversation()` - Handles participant ordering
+- `getParticipantPosition()` - Returns 1 or 2 for current user
+- `getOtherParticipantId()` - Gets conversation partner
+
+#### ✅ Notification Integration
+
+**Modified Files:**
+- `services/api/src/lib/notifications/types.ts` - Added MESSAGE_RECEIVED type
+- `services/api/src/lib/notifications/templates.ts` - In-app and SMS templates
+
+Notification metadata:
+- `conversationId` - Links to conversation
+- `senderName` - For notification text
+- `messagePreview` - First 50 chars
+
+#### ✅ Web Frontend
+
+**New File:** `apps/web/lib/messages-client.ts` (~340 lines)
+
+Typed API client with all conversation operations.
+
+**New File:** `apps/web/hooks/use-messages.ts` (~200 lines)
+
+React Query hooks:
+- `useConversations()` - List with caching
+- `useConversation(id)` - Single conversation
+- `useSendMessage(conversationId)` - With optimistic update
+- `useMarkAsRead(conversationId)` - Mark read
+- `useStartConversation()` - Create/get conversation
+- `useUnreadCount()` - Badge count
+
+**New File:** `apps/web/app/(main)/messages/page.tsx`
+
+Messages list with All/Unread tabs:
+- Conversation cards with avatar, preview, time
+- Booking badge for linked conversations
+- Unread indicator styling
+- Empty states per tab
+
+**New File:** `apps/web/app/(main)/messages/[id]/page.tsx`
+
+Conversation thread:
+- Date separators (Today, Yesterday, full date)
+- Message bubbles (own = rose, other = gray)
+- Read receipts
+- Text input with send button
+- Auto-scroll on new messages
+
+#### ✅ Entry Points
+
+**Modified File:** `apps/web/components/stylists/stylist-profile.tsx`
+
+- "Message" button next to Favorite (desktop)
+- Message icon button in mobile sticky footer
+- Uses `useStartConversation()` hook
+
+**Modified File:** `apps/web/components/bookings/booking-details.tsx`
+
+- "Message Stylist" button in stylist section
+- Links conversation to booking via `bookingId`
+
+#### ✅ Mobile Screens (Mock Data)
+
+**New Files:**
+- `apps/mobile/app/messages/_layout.tsx` - Stack navigator
+- `apps/mobile/app/messages/index.tsx` - Conversations list
+- `apps/mobile/app/messages/[id].tsx` - Conversation thread
+
+Initial implementation with mock data, API integration in V6.7.1.
+
+---
+
+## [6.6.0] - 2025-12-19
+
+### V6.6.0: Special Events Booking - COMPLETE ✅
+
+**Goal**: Enable customers to request stylists for weddings, photoshoots, and group events.
+
+---
+
+#### ✅ Mobile Special Events
+
+**New File:** `apps/mobile/app/special-events/index.tsx`
+
+Landing page with:
+- Event categories (Wedding, Photoshoot, Corporate, Group, Festival)
+- Featured stylists for events
+- How It Works section
+
+**New File:** `apps/mobile/app/special-events/request.tsx`
+
+Multi-step request form:
+- Step 1: Event details (type, date, guests)
+- Step 2: Location selection
+- Step 3: Services needed
+- Step 4: Review and submit
+
+**Modified:** Home Quick Actions with Special Events entry
+
+#### ✅ Web Special Events
+
+**New File:** `apps/web/app/(main)/special-events/page.tsx`
+
+Landing page matching mobile design.
+
+**New File:** `apps/web/app/(main)/special-events/request/page.tsx`
+
+Multi-step form with same flow as mobile.
+
+**Modified:** Home greeting card with Quick Actions
+
+#### ✅ Reusable Components
+
+- `LocationSelector` - Location type picker (home, salon, venue)
+- `ChairSelector` - Chair count selector for group events
+
+#### ✅ E2E Tests
+
+**New File:** `apps/web/e2e/special-events.spec.ts`
+
+Playwright tests for Special Events flow.
+
+---
+
 ## [6.5.1] - 2025-12-19
 
 ### V6.5.1: Property Owner UI Components - COMPLETE ✅

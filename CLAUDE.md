@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V6.5.1** - Property Owner UI Components (December 19, 2025)
+**V6.7.1** - Direct Messaging with Mobile API Integration (December 20, 2025)
 
-**Major Achievement**: Complete property owner frontend with image upload, amenity picker, and chair management components. Full API client and React Query hooks.
+**Major Achievement**: In-app messaging between customers and stylists. Text-only MVP with conversations accessible from stylist profiles and booking pages (not in main navigation). Full backend API, web frontend, and mobile app with API integration.
 
-**Previous**: V6.5.0 - Phosphor Icon Migration, V6.4.0 - Local Development & Service Fixes, V6.3.0 - Phase 2 UX & Infrastructure, V6.2.0 - Security & Smart Contract Hardening, V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
+**Previous**: V6.6.0 - Special Events Booking, V6.5.1 - Property Owner UI, V6.5.0 - Phosphor Icon Migration, V6.4.0 - Local Development & Service Fixes, V6.0.0 - Mobile App + Design Handover
 
 ---
 
@@ -39,14 +39,14 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.5.1 |
-| `apps/mobile/` | React Native + Expo mobile app | ✅ V6.0.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.7.0 |
+| `apps/mobile/` | React Native + Expo mobile app | ✅ V6.7.1 |
 | `apps/admin/` | Admin dashboard | ✅ V6.4.0 |
 
 ### `services/` - Backend Services
 | Service | Purpose | Status |
 |---------|---------|--------|
-| `services/api/` | Express REST API | ✅ V6.4.0 |
+| `services/api/` | Express REST API | ✅ V6.7.0 |
 | `services/scheduler/` | Background job scheduler | ✅ V6.4.0 |
 | `services/indexer/` | Blockchain event indexer | ✅ V3.2.0 |
 
@@ -262,6 +262,39 @@
 ---
 
 ## Recent Updates
+
+### V6.7.0/V6.7.1 Changes (Direct Messaging)
+
+**Direct Messaging Feature**
+- ✅ Prisma models: `Conversation` and `Message` with per-participant unread counts
+- ✅ REST API: 8 endpoints for conversations, messages, read receipts, archive
+- ✅ Notifications: `MESSAGE_RECEIVED` type with in-app and SMS templates
+- ✅ Web frontend: Messages list page, conversation threads, React Query hooks
+- ✅ Entry points: Message buttons on stylist profiles and booking details
+- ✅ Mobile screens: Conversations list, conversation thread with Zustand store
+- ✅ Mobile API: Base client with SecureStore auth, messages API, state management
+
+**Key Files:**
+- `services/api/src/routes/conversations.ts` - Full REST API (550+ lines)
+- `apps/web/app/(main)/messages/` - Messages list and thread pages
+- `apps/web/hooks/use-messages.ts` - React Query hooks
+- `apps/mobile/src/api/` - API client with auth
+- `apps/mobile/src/stores/messages.ts` - Zustand store
+- `docs/specs/messaging/feature-spec.md` - Feature documentation
+
+**Design Decision:** Messaging is a supporting feature accessed through stylist profiles and booking pages, NOT in main navigation tabs.
+
+---
+
+### V6.6.0 Changes (Special Events Booking)
+
+**Special Events Flow**
+- ✅ Mobile: Landing page with categories, multi-step request form
+- ✅ Web: Matching flow with Quick Actions integration
+- ✅ Shared: LocationSelector, ChairSelector components
+- ✅ Testing: Playwright E2E test suite
+
+---
 
 ### V6.5.0 Changes (Phosphor Icon Migration)
 
