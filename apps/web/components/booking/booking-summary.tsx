@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { formatPrice, formatDuration, formatDate, formatTime } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,9 +47,11 @@ export function BookingSummary({
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
             {stylist.avatarUrl ? (
-              <img
+              <Image
                 src={stylist.avatarUrl}
                 alt={stylist.displayName}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
               />
             ) : (

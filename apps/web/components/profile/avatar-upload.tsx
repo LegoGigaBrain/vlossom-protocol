@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
 import { Icon } from "@/components/icons";
@@ -85,10 +86,12 @@ export function AvatarUpload({ currentUrl, displayName, onUpload }: AvatarUpload
       <div className="relative">
         <div className="w-24 h-24 rounded-full overflow-hidden bg-background-tertiary border-2 border-border-default">
           {previewUrl ? (
-            <img
+            <Image
               src={previewUrl}
               alt={displayName}
               className="w-full h-full object-cover"
+              width={96}
+              height={96}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-2xl font-semibold text-text-secondary">

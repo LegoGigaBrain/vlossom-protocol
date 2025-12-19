@@ -5,6 +5,7 @@
 
 "use client";
 
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -49,10 +50,12 @@ export function ProfilePreview({ profile, open, onOpenChange }: ProfilePreviewPr
           {/* Profile Header */}
           <div className="text-center">
             {profile.avatarUrl ? (
-              <img
+              <Image
                 src={profile.avatarUrl}
                 alt={profile.displayName}
                 className="w-24 h-24 rounded-full mx-auto object-cover"
+                width={96}
+                height={96}
               />
             ) : (
               <div className="w-24 h-24 rounded-full mx-auto bg-brand-rose/10 flex items-center justify-center">
@@ -115,10 +118,12 @@ export function ProfilePreview({ profile, open, onOpenChange }: ProfilePreviewPr
                     key={index}
                     className="aspect-square rounded-lg overflow-hidden"
                   >
-                    <img
+                    <Image
                       src={image}
                       alt={`Portfolio ${index + 1}`}
                       className="w-full h-full object-cover"
+                      width={100}
+                      height={100}
                     />
                   </div>
                 ))}
@@ -136,7 +141,7 @@ export function ProfilePreview({ profile, open, onOpenChange }: ProfilePreviewPr
             <div className="p-3 bg-status-warning/10 rounded-lg">
               <p className="text-body-small text-status-warning text-center flex items-center justify-center gap-1.5">
                 <AlertIcon className="h-4 w-4 shrink-0" />
-                Your profile is hidden because you're not accepting bookings
+                Your profile is hidden because you&apos;re not accepting bookings
               </p>
             </div>
           )}

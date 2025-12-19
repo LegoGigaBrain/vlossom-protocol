@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
@@ -133,9 +134,11 @@ export function TipDialog({
             <div className="flex flex-col items-center text-center">
               <div className="w-20 h-20 rounded-full overflow-hidden bg-background-tertiary mb-3">
                 {stylistAvatarUrl ? (
-                  <img
+                  <Image
                     src={stylistAvatarUrl}
                     alt={stylistName}
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -206,7 +209,7 @@ export function TipDialog({
             {tipAmount > 0 && (
               <div className="bg-status-success/10 rounded-lg p-4 text-center">
                 <p className="text-sm text-text-secondary">
-                  You're tipping {firstName}
+                  You&apos;re tipping {firstName}
                 </p>
                 <p className="text-2xl font-bold text-status-success">
                   ${tipAmount.toFixed(2)}

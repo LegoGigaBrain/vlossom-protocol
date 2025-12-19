@@ -43,7 +43,7 @@ export function SiweButton({
 }: SiweButtonProps) {
   const [showConnectDialog, setShowConnectDialog] = useState(false);
   const [pendingSignIn, setPendingSignIn] = useState(false);
-  const { isConnected, address } = useAccount();
+  const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { status, error, signIn, reset } = useSiwe();
   const prevConnectedRef = useRef(isConnected);

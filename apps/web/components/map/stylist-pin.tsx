@@ -11,9 +11,12 @@
 
 "use client";
 
+import Image from "next/image";
 import { cn } from "../../lib/utils";
 import { STYLIST_MODE_COLORS, type StylistMarker } from "../../lib/mapbox";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+
+type IconName = string;
 
 interface StylistPinProps {
   stylist: StylistMarker;
@@ -56,9 +59,11 @@ export function StylistPin({
       >
         {/* Avatar or Icon */}
         {stylist.avatarUrl ? (
-          <img
+          <Image
             src={stylist.avatarUrl}
             alt={stylist.name}
+            width={isSelected ? 48 : 32}
+            height={isSelected ? 48 : 32}
             className={cn(
               "rounded-full object-cover border-2 border-white",
               isSelected ? "w-12 h-12" : "w-8 h-8"
@@ -141,9 +146,11 @@ export function SalonPin({
         )}
       >
         {salon.imageUrl ? (
-          <img
+          <Image
             src={salon.imageUrl}
             alt={salon.name}
+            width={isSelected ? 48 : 32}
+            height={isSelected ? 48 : 32}
             className={cn(
               "rounded-md object-cover",
               isSelected ? "w-12 h-12" : "w-8 h-8"

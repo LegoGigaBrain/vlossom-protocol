@@ -86,7 +86,7 @@ export function DeleteServiceDialog({
 
         <div className="space-y-4">
           <p className="text-body text-text-secondary">
-            Are you sure you want to delete "{service.name}"?
+            Are you sure you want to delete &quot;{service.name}&quot;?
           </p>
           <p className="text-body-small text-text-tertiary">
             This action cannot be undone.

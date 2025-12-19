@@ -100,14 +100,14 @@ export function BookingSuccess({
 
       {/* What's Next */}
       <div className="bg-background-tertiary rounded-lg p-4 text-left">
-        <h3 className="font-medium text-text-primary mb-3">What's next?</h3>
+        <h3 className="font-medium text-text-primary mb-3">What&apos;s next?</h3>
         <ul className="space-y-2 text-sm text-text-secondary">
           <li className="flex items-start gap-2">
             <span className="w-5 h-5 rounded-full bg-brand-rose/10 flex items-center justify-center text-xs font-medium text-brand-rose shrink-0 mt-0.5">
               1
             </span>
             <span>
-              You'll receive a confirmation email with booking details
+              You&apos;ll receive a confirmation email with booking details
             </span>
           </li>
           <li className="flex items-start gap-2">
@@ -115,7 +115,7 @@ export function BookingSuccess({
               2
             </span>
             <span>
-              We'll send you a reminder 24 hours before your appointment
+              We&apos;ll send you a reminder 24 hours before your appointment
             </span>
           </li>
           <li className="flex items-start gap-2">

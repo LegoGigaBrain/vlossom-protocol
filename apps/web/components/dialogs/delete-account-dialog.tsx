@@ -118,7 +118,7 @@ export function DeleteAccountDialog({
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-status-error">•</span>
-                  Reviews you've written will be anonymized
+                  Reviews you&apos;ve written will be anonymized
                 </li>
               </ul>
             </div>

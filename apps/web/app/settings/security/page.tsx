@@ -76,7 +76,7 @@ export default function SecuritySettingsPage() {
     }
   };
 
-  const handleRevokeSession = async (sessionId: string) => {
+  const handleRevokeSession = async (_sessionId: string) => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500));

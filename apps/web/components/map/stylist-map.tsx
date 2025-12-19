@@ -16,7 +16,8 @@
 
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { cn } from "../../lib/utils";
 import {
   MAP_DEFAULTS,
@@ -131,7 +132,7 @@ export function StylistMap({
   const [viewMode, setViewMode] = useViewPreference(effectiveDefaultView);
 
   const [zoom, setZoom] = useState(MAP_DEFAULTS.zoom);
-  const [center, setCenter] = useState(MAP_DEFAULTS.center);
+  const [, setCenter] = useState(MAP_DEFAULTS.center);
   const [showSalons, setShowSalons] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
 
@@ -189,7 +190,7 @@ export function StylistMap({
     });
 
     return { displayedStylists: displayed.slice(0, 12), clusters: clustered };
-  }, [sortedStylists, zoom]);
+  }, [sortedStylists, zoom, stylists.length]);
 
   // Handle user location request
   const handleLocate = useCallback(() => {
@@ -220,7 +221,7 @@ export function StylistMap({
   const handleZoomOut = () => setZoom((z) => Math.max(z - 1, MAP_DEFAULTS.minZoom));
 
   // Toggle view mode (persists preference)
-  const toggleViewMode = () => setViewMode(viewMode === "map" ? "list" : "map");
+  const toggleViewMode = useCallback(() => setViewMode(viewMode === "map" ? "list" : "map"), [viewMode, setViewMode]);
 
   // Keyboard navigation handler
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -264,7 +265,7 @@ export function StylistMap({
         }
         break;
     }
-  }, [viewMode, displayedStylists, focusedPinIndex, onStylistSelect]);
+  }, [viewMode, displayedStylists, focusedPinIndex, onStylistSelect, toggleViewMode]);
 
   // Empty state check
   const isEmpty = stylists.length === 0 && salons.length === 0;
@@ -305,7 +306,7 @@ export function StylistMap({
                 No stylists nearby
               </h3>
               <p className="text-text-secondary text-sm">
-                We couldn't find any stylists in this area. Try expanding your search
+                We couldn&apos;t find any stylists in this area. Try expanding your search
                 or enabling location services.
               </p>
             </div>
@@ -635,9 +636,11 @@ function StylistListItem({
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         {stylist.avatarUrl ? (
-          <img
+          <Image
             src={stylist.avatarUrl}
             alt=""
+            width={48}
+            height={48}
             className="w-12 h-12 rounded-full object-cover"
           />
         ) : (

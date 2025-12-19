@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 interface PortfolioGalleryProps {
   images: string[];
@@ -27,10 +28,12 @@ export function PortfolioGallery({ images }: PortfolioGalleryProps) {
             onClick={() => setSelectedImage(image)}
             className="aspect-square rounded-lg overflow-hidden bg-secondary hover:opacity-90 transition-opacity"
           >
-            <img
+            <Image
               src={image}
               alt={`Portfolio image ${index + 1}`}
               className="w-full h-full object-cover"
+              width={300}
+              height={300}
             />
           </button>
         ))}
@@ -60,11 +63,13 @@ export function PortfolioGallery({ images }: PortfolioGalleryProps) {
               />
             </svg>
           </button>
-          <img
+          <Image
             src={selectedImage}
             alt="Portfolio full view"
             className="max-w-full max-h-[90vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
+            width={800}
+            height={800}
           />
         </div>
       )}

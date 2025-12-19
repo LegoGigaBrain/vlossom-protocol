@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 export type DisputeStatusType =
   | "PENDING"

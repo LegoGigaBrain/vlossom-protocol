@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "../../lib/utils";
 import { StarRating } from "./star-rating";
 import { Icon } from "@/components/icons";
+import Image from "next/image";
 
 export interface Review {
   id: string;
@@ -56,10 +57,12 @@ export function ReviewCard({
         {/* Avatar */}
         <div className="w-10 h-10 rounded-full overflow-hidden bg-background-tertiary shrink-0">
           {review.reviewer.avatarUrl ? (
-            <img
+            <Image
               src={review.reviewer.avatarUrl}
               alt={review.reviewer.displayName}
               className="w-full h-full object-cover"
+              width={40}
+              height={40}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-sm font-medium text-text-secondary">

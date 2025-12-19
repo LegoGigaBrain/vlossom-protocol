@@ -137,7 +137,7 @@ export function TodaysBookings() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-h4 text-text-primary">Today's Bookings</h2>
+      <h2 className="text-h4 text-text-primary">Today&apos;s Bookings</h2>
 
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

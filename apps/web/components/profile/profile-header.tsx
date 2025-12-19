@@ -14,6 +14,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -73,10 +74,12 @@ export function ProfileHeader({
           <div className="relative">
             <div className="w-24 h-24 rounded-full border-4 border-background-primary bg-background-secondary overflow-hidden">
               {user.avatarUrl ? (
-                <img
+                <Image
                   src={user.avatarUrl}
                   alt={displayName}
                   className="w-full h-full object-cover"
+                  width={96}
+                  height={96}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-brand-rose/10 text-brand-rose text-2xl font-bold">

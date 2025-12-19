@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Icon } from "@/components/icons";
-import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
 
@@ -111,10 +111,12 @@ export function ShareProfileDialog({
             <div className="flex items-center gap-3 p-3 bg-background-tertiary rounded-lg">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-background-secondary shrink-0">
                 {profileImage ? (
-                  <img
+                  <Image
                     src={profileImage}
                     alt={profileName}
                     className="w-full h-full object-cover"
+                    width={48}
+                    height={48}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-lg font-semibold text-text-secondary">

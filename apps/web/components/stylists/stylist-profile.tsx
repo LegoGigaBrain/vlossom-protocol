@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { getOperatingModeText, type Stylist } from "@/lib/stylist-client";
 import { FavoriteButton } from "./favorite-button";
+import Image from "next/image";
 
 interface StylistProfileProps {
   stylist: Stylist;
@@ -39,10 +40,12 @@ export function StylistProfile({ stylist, onBookNow, onBack }: StylistProfilePro
         {/* Avatar */}
         <div className="w-28 h-28 rounded-full bg-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
           {stylist.avatarUrl ? (
-            <img
+            <Image
               src={stylist.avatarUrl}
               alt={stylist.displayName}
               className="w-full h-full object-cover"
+              width={112}
+              height={112}
             />
           ) : (
             <span className="text-4xl text-primary font-semibold">

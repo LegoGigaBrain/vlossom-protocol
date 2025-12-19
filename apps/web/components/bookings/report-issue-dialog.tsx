@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -255,9 +256,11 @@ export function ReportIssueDialog({
                 {/* Preview images */}
                 {imagePreviews.map((preview, index) => (
                   <div key={index} className="relative w-20 h-20">
-                    <img
+                    <Image
                       src={preview}
                       alt={`Upload ${index + 1}`}
+                      width={80}
+                      height={80}
                       className="w-full h-full object-cover rounded-lg"
                     />
                     <button

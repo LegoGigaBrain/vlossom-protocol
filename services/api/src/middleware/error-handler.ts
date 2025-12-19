@@ -130,6 +130,7 @@ export const ERROR_CODES: Record<string, { status: number; message: string }> = 
   NOT_A_STYLIST: { status: 403, message: 'Only stylists can perform this action' },
   SIGNATURE_FAILED: { status: 500, message: 'Failed to generate upload signature' },
   PORTFOLIO_LIMIT: { status: 400, message: 'Portfolio image limit reached' },
+  PROPERTY_IMAGE_LIMIT: { status: 400, message: 'Property image limit reached' },
 
   // Server errors
   INTERNAL_ERROR: { status: 500, message: 'An unexpected error occurred' },

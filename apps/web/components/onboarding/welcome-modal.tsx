@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+
+type IconName = string;
 
 interface WelcomeModalProps {
   userRole: "CUSTOMER" | "STYLIST";
@@ -139,7 +141,7 @@ export function WelcomeModal({
                     Your Smart Wallet
                   </h4>
                   <p className="text-sm text-blue-700">
-                    We've created a secure wallet for you. Claim free test USDC
+                    We&apos;ve created a secure wallet for you. Claim free test USDC
                     from the faucet to try out the platform!
                   </p>
                 </div>

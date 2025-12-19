@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -203,7 +204,7 @@ export function DisputeDialog({
                       Before you continue
                     </h3>
                     <p className="text-sm text-text-secondary mt-1">
-                      Filing a dispute is a serious action. Please ensure you've
+                      Filing a dispute is a serious action. Please ensure you&apos;ve
                       already tried to resolve the issue directly with the stylist.
                     </p>
                   </div>
@@ -392,9 +393,11 @@ export function DisputeDialog({
                       className="relative w-20 h-20 rounded-lg overflow-hidden bg-background-tertiary"
                     >
                       {evidencePreviews[index] ? (
-                        <img
+                        <Image
                           src={evidencePreviews[index]}
                           alt={`Evidence ${index + 1}`}
+                          width={80}
+                          height={80}
                           className="w-full h-full object-cover"
                         />
                       ) : (

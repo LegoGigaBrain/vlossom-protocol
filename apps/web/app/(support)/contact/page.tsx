@@ -62,7 +62,7 @@ export default function ContactPage() {
 
     try {
       // In production, this would send to an API endpoint
-      const response = await fetch(
+      await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/support/contact`,
         {
           method: "POST",
@@ -140,7 +140,7 @@ export default function ContactPage() {
                 Contact Support
               </h1>
               <p className="text-text-secondary">
-                We're here to help. Send us a message.
+                We&apos;re here to help. Send us a message.
               </p>
             </div>
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { NotificationItem, type Notification } from "../../components/notifications/notification-item";
 import { Button } from "../../components/ui/button";
@@ -31,7 +31,7 @@ export default function NotificationsPage() {
   }, [user, authLoading, router]);
 
   // Fetch notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -67,11 +67,11 @@ export default function NotificationsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, page, filter]);
 
   useEffect(() => {
     fetchNotifications();
-  }, [user, page, filter]);
+  }, [user, page, filter, fetchNotifications]);
 
   // Mark all as read
   const handleMarkAllRead = async () => {

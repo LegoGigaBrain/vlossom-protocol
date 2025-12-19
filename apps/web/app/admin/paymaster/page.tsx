@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 import { StatsCards } from "../../../components/admin/paymaster/stats-cards";
 import { AlertsPanel } from "../../../components/admin/paymaster/alerts-panel";
 

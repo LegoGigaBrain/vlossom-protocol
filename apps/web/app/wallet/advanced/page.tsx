@@ -11,7 +11,7 @@ import { Button } from "../../../components/ui/button";
 import { truncateAddress } from "../../../lib/wallet-client";
 
 export default function WalletAdvancedPage() {
-  const { walletAddress, walletClient } = useVlossomWallet();
+  const { walletAddress } = useVlossomWallet();
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
 

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { NotificationItem, type Notification } from "./notification-item";
-import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../ui/empty-state";
 import { Icon } from "@/components/icons";

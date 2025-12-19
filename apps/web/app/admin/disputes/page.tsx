@@ -5,16 +5,13 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { api } from "../../../lib/api";
 import { Button } from "../../../components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Badge } from "../../../components/ui/badge";
@@ -25,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../components/ui/select";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
 
 interface Dispute {
   id: string;
@@ -103,7 +100,7 @@ export default function AdminDisputesPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchDisputes = async () => {
+  const fetchDisputes = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -126,7 +123,7 @@ export default function AdminDisputesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, statusFilter]);
 
   const fetchStats = async () => {
     try {
@@ -140,7 +137,7 @@ export default function AdminDisputesPage() {
   useEffect(() => {
     fetchDisputes();
     fetchStats();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, fetchDisputes]);
 
   // Filter disputes by search query
   const filteredDisputes = disputes.filter((d) => {

@@ -2,6 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { StarRating } from "./star-rating";
+import Image from "next/image";
 
 interface Review {
   id: string;
@@ -56,10 +57,12 @@ export function ReviewList({
               {/* Avatar */}
               <div className="w-10 h-10 bg-vlossom-neutral-200 rounded-full flex items-center justify-center text-vlossom-neutral-500 font-medium shrink-0">
                 {review.reviewerAvatar ? (
-                  <img
+                  <Image
                     src={review.reviewerAvatar}
                     alt={review.reviewerName}
                     className="w-10 h-10 rounded-full object-cover"
+                    width={40}
+                    height={40}
                   />
                 ) : (
                   review.reviewerName.charAt(0)

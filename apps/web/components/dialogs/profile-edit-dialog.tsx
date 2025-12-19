@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Icon } from "@/components/icons";
-import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -170,10 +170,12 @@ export function ProfileEditDialog({
               <div className="relative">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-background-tertiary border-2 border-border-default">
                   {avatarPreview ? (
-                    <img
+                    <Image
                       src={avatarPreview}
                       alt="Profile"
                       className="w-full h-full object-cover"
+                      width={96}
+                      height={96}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl font-semibold text-text-secondary">

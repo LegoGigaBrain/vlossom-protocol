@@ -201,7 +201,7 @@ export default function FAQPage() {
             Still have questions?
           </h3>
           <p className="text-gray-600 mb-6">
-            Can't find what you're looking for? Reach out to our support team.
+            Can&apos;t find what you&apos;re looking for? Reach out to our support team.
           </p>
           <a
             href="mailto:support@vlossom.io"

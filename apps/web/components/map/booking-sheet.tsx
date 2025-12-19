@@ -14,11 +14,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { cn } from "../../lib/utils";
 import { type StylistMarker, formatDistance, calculateDistance } from "../../lib/mapbox";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { Icon, type IconName } from "@/components/icons";
+import { Icon } from "@/components/icons";
+
+type IconName = string;
 
 interface BookingSheetProps {
   stylist: StylistMarker | null;
@@ -100,9 +103,11 @@ export function BookingSheet({
             {/* Avatar */}
             <div className="relative flex-shrink-0">
               {stylist.avatarUrl ? (
-                <img
+                <Image
                   src={stylist.avatarUrl}
                   alt={stylist.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-xl object-cover"
                 />
               ) : (

@@ -15,7 +15,6 @@ import {
 } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Switch } from "../../../components/ui/switch";
-import { Label } from "../../../components/ui/label";
 import { toast } from "../../../hooks/use-toast";
 import { Icon, type IconName } from "@/components/icons";
 

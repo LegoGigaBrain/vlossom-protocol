@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V6.5.0** - Phosphor Icon Migration (December 18, 2025)
+**V6.5.1** - Property Owner UI Components (December 19, 2025)
 
-**Major Achievement**: Complete migration from Lucide to Phosphor icons across 50+ frontend files using centralized Icon bridge system.
+**Major Achievement**: Complete property owner frontend with image upload, amenity picker, and chair management components. Full API client and React Query hooks.
 
-**Previous**: V6.4.0 - Local Development & Service Fixes, V6.3.0 - Phase 2 UX & Infrastructure, V6.2.0 - Security & Smart Contract Hardening, V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
+**Previous**: V6.5.0 - Phosphor Icon Migration, V6.4.0 - Local Development & Service Fixes, V6.3.0 - Phase 2 UX & Infrastructure, V6.2.0 - Security & Smart Contract Hardening, V6.1.0 - Orange Color Governance, V6.0.0 - Mobile App + Design Handover
 
 ---
 
@@ -39,7 +39,7 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.5.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.5.1 |
 | `apps/mobile/` | React Native + Expo mobile app | ✅ V6.0.0 |
 | `apps/admin/` | Admin dashboard | ✅ V6.4.0 |
 

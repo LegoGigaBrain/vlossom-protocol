@@ -145,7 +145,7 @@ const tiers: TierConfig[] = [
 ];
 
 export default function WalletRewardsPage() {
-  const { user } = useAuth();
+  useAuth(); // Auth check
   const [activeTab, setActiveTab] = useState<"overview" | "badges" | "history">(
     "overview"
   );

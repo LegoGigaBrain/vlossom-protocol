@@ -1,8 +1,8 @@
 # Vlossom Protocol - Implementation Status
 
-**Last Updated**: December 18, 2025
-**Current Version**: 6.5.0
-**V6.5 Progress**: Phosphor Icon Migration Complete ✅
+**Last Updated**: December 19, 2025
+**Current Version**: 6.5.1
+**V6.5.1 Progress**: Property Owner UI Components Complete ✅
 **Design System**: Botanical Icons (28 SVGs), Phosphor Icon Bridge, Animation System ✅
 **Mobile App**: React Native + Expo Foundation Ready ✅
 
@@ -10,7 +10,15 @@
 
 ## Executive Summary
 
-Vlossom Protocol has completed **V6.5.0: Phosphor Icon Migration**, achieving complete icon system consistency across all frontend components. This release delivers:
+Vlossom Protocol has completed **V6.5.1: Property Owner UI Components**, adding missing frontend components for property and chair management. This release delivers:
+
+**V6.5.1 Property Owner UI Components:**
+- **Property Image Upload** - Drag-and-drop image management with cover selection ✅
+- **Amenity Picker** - Multi-select grid for chair amenities (10 presets) ✅
+- **Chair Form Dialog** - 3-step wizard for chair configuration ✅
+- **Property Detail Page** - Full CRUD with image integration ✅
+- **Admin Properties Enhancement** - Image preview in admin table ✅
+- **API Client & Hooks** - Complete typed client with React Query ✅
 
 **V6.5.0 Phosphor Icon Migration:**
 - **Complete Lucide Removal** - All 50+ files migrated from Lucide to Phosphor icons ✅
