@@ -132,7 +132,7 @@ function EmptyState({
       {/* Title */}
       <h3
         className={cn(
-          "font-semibold text-text-primary mb-2",
+          "font-display font-semibold text-text-primary mb-2",
           styles.title
         )}
       >

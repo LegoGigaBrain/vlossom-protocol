@@ -17,39 +17,32 @@ import { Button } from "../../../components/ui/button";
 import { Switch } from "../../../components/ui/switch";
 import { toast } from "../../../hooks/use-toast";
 import { cn } from "../../../lib/utils";
-import {
-  Shield,
-  Eye,
-  EyeOff,
-  Globe,
-  Lock,
-  Users,
-  MapPin,
-  Activity,
-  Download,
-  Trash2,
-  Check,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 // Profile visibility options
-const visibilityOptions = [
+const visibilityOptions: Array<{
+  id: string;
+  name: string;
+  description: string;
+  iconName: IconName;
+}> = [
   {
     id: "public",
     name: "Public",
     description: "Anyone can see your profile",
-    icon: Globe,
+    iconName: "web",
   },
   {
     id: "contacts",
     name: "Contacts Only",
     description: "Only people you've interacted with",
-    icon: Users,
+    iconName: "profile",
   },
   {
     id: "private",
     name: "Private",
     description: "Only you can see your profile",
-    icon: Lock,
+    iconName: "locked",
   },
 ];
 
@@ -57,7 +50,7 @@ interface PrivacySetting {
   id: string;
   label: string;
   description: string;
-  icon: React.ElementType;
+  iconName: IconName;
   enabled: boolean;
 }
 
@@ -66,28 +59,28 @@ const defaultPrivacySettings: PrivacySetting[] = [
     id: "showLocation",
     label: "Show Location",
     description: "Display your city/province on your profile",
-    icon: MapPin,
+    iconName: "location",
     enabled: true,
   },
   {
     id: "showActivity",
     label: "Activity Status",
     description: "Show when you were last active",
-    icon: Activity,
+    iconName: "clock",
     enabled: true,
   },
   {
     id: "showBookingHistory",
     label: "Booking History",
     description: "Allow others to see your booking statistics",
-    icon: Eye,
+    iconName: "visible",
     enabled: false,
   },
   {
     id: "searchIndexing",
     label: "Search Indexing",
     description: "Allow your profile to appear in search results",
-    icon: Globe,
+    iconName: "web",
     enabled: true,
   },
 ];
@@ -165,7 +158,7 @@ export default function PrivacySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Eye className="w-5 h-5" />
+            <Icon name="visible" size="md" />
             Profile Visibility
           </CardTitle>
           <CardDescription>
@@ -174,30 +167,27 @@ export default function PrivacySettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-3">
-            {visibilityOptions.map((option) => {
-              const Icon = option.icon;
-              return (
-                <button
-                  key={option.id}
-                  onClick={() => setVisibility(option.id)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
-                    visibility === option.id
-                      ? "border-brand-rose bg-brand-rose/5"
-                      : "border-border-default hover:border-brand-rose/50"
-                  )}
-                >
-                  <Icon className="w-8 h-8" />
-                  <p className="font-medium">{option.name}</p>
-                  <p className="text-xs text-text-secondary text-center">
-                    {option.description}
-                  </p>
-                  {visibility === option.id && (
-                    <Check className="w-5 h-5 text-brand-rose" />
-                  )}
-                </button>
-              );
-            })}
+            {visibilityOptions.map((option) => (
+              <button
+                key={option.id}
+                onClick={() => setVisibility(option.id)}
+                className={cn(
+                  "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
+                  visibility === option.id
+                    ? "border-brand-rose bg-brand-rose/5"
+                    : "border-border-default hover:border-brand-rose/50"
+                )}
+              >
+                <Icon name={option.iconName} size="lg" />
+                <p className="font-medium">{option.name}</p>
+                <p className="text-xs text-text-secondary text-center">
+                  {option.description}
+                </p>
+                {visibility === option.id && (
+                  <Icon name="check" size="md" className="text-brand-rose" />
+                )}
+              </button>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -206,7 +196,7 @@ export default function PrivacySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Shield className="w-5 h-5" />
+            <Icon name="trusted" size="md" />
             Privacy Settings
           </CardTitle>
           <CardDescription>
@@ -214,31 +204,28 @@ export default function PrivacySettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {privacySettings.map((setting) => {
-            const Icon = setting.icon;
-            return (
-              <div
-                key={setting.id}
-                className="flex items-center justify-between py-3 border-b border-border-subtle last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-background-secondary flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-text-secondary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{setting.label}</p>
-                    <p className="text-xs text-text-muted">
-                      {setting.description}
-                    </p>
-                  </div>
+          {privacySettings.map((setting) => (
+            <div
+              key={setting.id}
+              className="flex items-center justify-between py-3 border-b border-border-subtle last:border-0"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-background-secondary flex items-center justify-center">
+                  <Icon name={setting.iconName} size="md" className="text-text-secondary" />
                 </div>
-                <Switch
-                  checked={setting.enabled}
-                  onCheckedChange={() => toggleSetting(setting.id)}
-                />
+                <div>
+                  <p className="font-medium text-sm">{setting.label}</p>
+                  <p className="text-xs text-text-muted">
+                    {setting.description}
+                  </p>
+                </div>
               </div>
-            );
-          })}
+              <Switch
+                checked={setting.enabled}
+                onCheckedChange={() => toggleSetting(setting.id)}
+              />
+            </div>
+          ))}
         </CardContent>
       </Card>
 
@@ -246,7 +233,7 @@ export default function PrivacySettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Download className="w-5 h-5" />
+            <Icon name="copy" size="md" />
             Your Data
           </CardTitle>
           <CardDescription>
@@ -267,7 +254,7 @@ export default function PrivacySettingsPage() {
               onClick={handleExportData}
               loading={isExporting}
             >
-              <Download className="w-4 h-4 mr-2" />
+              <Icon name="copy" size="sm" className="mr-2" />
               Export
             </Button>
           </div>

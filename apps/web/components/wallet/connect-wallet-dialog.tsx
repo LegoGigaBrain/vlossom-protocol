@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { useConnect, useAccount, useDisconnect, useBalance, useSwitchChain } from "wagmi";
 import {
   isTestnet,
-  getCurrentChain,
   getExplorerAddressUrl,
   CHAIN_CONFIG,
   getSupportedChains,
@@ -56,7 +55,7 @@ export function ConnectWalletDialog({ open, onOpenChange }: ConnectWalletDialogP
   const { connect, connectors, isPending, error } = useConnect();
   const { address, isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
-  const { switchChain, chains } = useSwitchChain();
+  const { switchChain } = useSwitchChain();
   const { data: balance } = useBalance({ address });
 
   const [step, setStep] = useState<Step>("select-wallet");

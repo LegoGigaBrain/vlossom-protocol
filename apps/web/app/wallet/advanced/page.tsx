@@ -5,25 +5,13 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Copy,
-  Check,
-  ExternalLink,
-  QrCode,
-  Shield,
-  Key,
-  Link2,
-  Globe,
-  Wallet,
-  Info,
-  ChevronRight,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 import { useVlossomWallet } from "../../../hooks/use-vlossom-wallet";
 import { Button } from "../../../components/ui/button";
 import { truncateAddress } from "../../../lib/wallet-client";
 
 export default function WalletAdvancedPage() {
-  const { walletAddress, walletClient } = useVlossomWallet();
+  const { walletAddress } = useVlossomWallet();
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
 
@@ -52,7 +40,7 @@ export default function WalletAdvancedPage() {
       {/* Wallet Address Section */}
       <div className="bg-background-primary rounded-card shadow-vlossom p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Wallet className="h-5 w-5 text-brand-rose" />
+          <Icon name="wallet" size="sm" className="text-brand-rose" />
           <h2 className="text-h2 text-text-primary">Wallet Address</h2>
         </div>
 
@@ -73,9 +61,9 @@ export default function WalletAdvancedPage() {
                   title="Copy address"
                 >
                   {copied ? (
-                    <Check className="h-5 w-5 text-green-500" />
+                    <Icon name="check" size="sm" className="text-green-500" />
                   ) : (
-                    <Copy className="h-5 w-5 text-text-tertiary" />
+                    <Icon name="copy" size="sm" className="text-text-tertiary" />
                   )}
                 </button>
               </div>
@@ -88,7 +76,7 @@ export default function WalletAdvancedPage() {
                 size="sm"
                 onClick={() => setShowQR(!showQR)}
               >
-                <QrCode className="h-4 w-4 mr-2" />
+                <Icon name="qrCode" size="sm" className="mr-2" />
                 {showQR ? "Hide" : "Show"} QR Code
               </Button>
               <Button
@@ -101,7 +89,7 @@ export default function WalletAdvancedPage() {
                   )
                 }
               >
-                <ExternalLink className="h-4 w-4 mr-2" />
+                <Icon name="externalLink" size="sm" className="mr-2" />
                 View on Explorer
               </Button>
             </div>
@@ -112,7 +100,7 @@ export default function WalletAdvancedPage() {
                 <div className="w-48 h-48 bg-background-tertiary rounded-lg flex items-center justify-center mb-4">
                   {/* Placeholder for QR code - would use a QR library in production */}
                   <div className="text-center">
-                    <QrCode className="h-12 w-12 text-text-tertiary mx-auto mb-2" />
+                    <Icon name="qrCode" size="xl" className="text-text-tertiary mx-auto mb-2" />
                     <p className="text-caption text-text-tertiary">
                       QR Code for
                     </p>
@@ -129,7 +117,7 @@ export default function WalletAdvancedPage() {
           </div>
         ) : (
           <div className="text-center py-8">
-            <Wallet className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+            <Icon name="wallet" size="xl" className="text-text-tertiary mx-auto mb-4" />
             <p className="text-body text-text-secondary">
               Wallet not connected
             </p>
@@ -140,7 +128,7 @@ export default function WalletAdvancedPage() {
       {/* Network Information */}
       <div className="bg-background-primary rounded-card shadow-vlossom p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Globe className="h-5 w-5 text-brand-rose" />
+          <Icon name="web" size="sm" className="text-brand-rose" />
           <h2 className="text-h2 text-text-primary">Network Information</h2>
         </div>
 
@@ -173,7 +161,7 @@ export default function WalletAdvancedPage() {
                 onClick={() => copyToClipboard(networkInfo.usdcAddress)}
                 className="p-1 hover:bg-background-tertiary rounded transition-colors"
               >
-                <Copy className="h-4 w-4 text-text-tertiary" />
+                <Icon name="copy" size="sm" className="text-text-tertiary" />
               </button>
             </div>
           </div>
@@ -186,7 +174,7 @@ export default function WalletAdvancedPage() {
               className="text-brand-rose hover:underline flex items-center gap-1"
             >
               BaseScan
-              <ExternalLink className="h-4 w-4" />
+              <Icon name="externalLink" size="sm" />
             </a>
           </div>
         </div>
@@ -195,14 +183,14 @@ export default function WalletAdvancedPage() {
       {/* Account Type */}
       <div className="bg-background-primary rounded-card shadow-vlossom p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Shield className="h-5 w-5 text-brand-rose" />
+          <Icon name="secure" size="sm" className="text-brand-rose" />
           <h2 className="text-h2 text-text-primary">Account Type</h2>
         </div>
 
         <div className="p-4 bg-background-secondary rounded-lg mb-4">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-brand-rose/10 rounded-lg">
-              <Key className="h-5 w-5 text-brand-rose" />
+              <Icon name="key" size="sm" className="text-brand-rose" />
             </div>
             <div>
               <p className="text-body font-semibold text-text-primary">
@@ -218,19 +206,19 @@ export default function WalletAdvancedPage() {
 
         <div className="space-y-3">
           <div className="flex items-center gap-3 p-3 bg-background-secondary rounded-lg">
-            <Check className="h-5 w-5 text-green-500" />
+            <Icon name="check" size="sm" className="text-green-500" />
             <span className="text-body text-text-secondary">
               Gasless transactions (sponsored by Vlossom)
             </span>
           </div>
           <div className="flex items-center gap-3 p-3 bg-background-secondary rounded-lg">
-            <Check className="h-5 w-5 text-green-500" />
+            <Icon name="check" size="sm" className="text-green-500" />
             <span className="text-body text-text-secondary">
               Social recovery available
             </span>
           </div>
           <div className="flex items-center gap-3 p-3 bg-background-secondary rounded-lg">
-            <Check className="h-5 w-5 text-green-500" />
+            <Icon name="check" size="sm" className="text-green-500" />
             <span className="text-body text-text-secondary">
               Email-based authentication
             </span>
@@ -241,12 +229,12 @@ export default function WalletAdvancedPage() {
       {/* Connected Apps (Placeholder) */}
       <div className="bg-background-primary rounded-card shadow-vlossom p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Link2 className="h-5 w-5 text-brand-rose" />
+          <Icon name="link" size="sm" className="text-brand-rose" />
           <h2 className="text-h2 text-text-primary">Connected Apps</h2>
         </div>
 
         <div className="text-center py-8">
-          <Link2 className="h-12 w-12 text-text-tertiary mx-auto mb-4" />
+          <Icon name="link" size="xl" className="text-text-tertiary mx-auto mb-4" />
           <p className="text-body text-text-secondary mb-2">
             No external apps connected
           </p>
@@ -259,7 +247,7 @@ export default function WalletAdvancedPage() {
       {/* Developer Options */}
       <div className="bg-background-primary rounded-card shadow-vlossom p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Info className="h-5 w-5 text-brand-rose" />
+          <Icon name="info" size="sm" className="text-brand-rose" />
           <h2 className="text-h2 text-text-primary">Developer Options</h2>
         </div>
 
@@ -274,7 +262,7 @@ export default function WalletAdvancedPage() {
                 Coming Soon
               </span>
             </div>
-            <ChevronRight className="h-5 w-5 text-text-tertiary" />
+            <Icon name="chevronRight" size="sm" className="text-text-tertiary" />
           </button>
 
           <button
@@ -289,7 +277,7 @@ export default function WalletAdvancedPage() {
                 Coming Soon
               </span>
             </div>
-            <ChevronRight className="h-5 w-5 text-text-tertiary" />
+            <Icon name="chevronRight" size="sm" className="text-text-tertiary" />
           </button>
 
           <button
@@ -304,7 +292,7 @@ export default function WalletAdvancedPage() {
                 Coming Soon
               </span>
             </div>
-            <ChevronRight className="h-5 w-5 text-text-tertiary" />
+            <Icon name="chevronRight" size="sm" className="text-text-tertiary" />
           </button>
         </div>
       </div>
@@ -312,7 +300,7 @@ export default function WalletAdvancedPage() {
       {/* Warning */}
       <div className="p-4 bg-status-warning/10 border border-status-warning/20 rounded-lg">
         <div className="flex items-start gap-3">
-          <Info className="h-5 w-5 text-status-warning shrink-0 mt-0.5" />
+          <Icon name="info" size="sm" className="text-status-warning shrink-0 mt-0.5" />
           <div>
             <p className="text-body font-medium text-text-primary">
               Testnet Notice

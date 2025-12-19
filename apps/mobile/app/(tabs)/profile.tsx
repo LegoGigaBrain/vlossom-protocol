@@ -5,7 +5,7 @@
  * Dynamic tabs based on user roles
  */
 
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {

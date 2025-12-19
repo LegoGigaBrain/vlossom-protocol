@@ -657,7 +657,7 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
     }
 
     // Check if external provider already exists
-    let externalProvider = await prisma.externalAuthProvider.findUnique({
+    const externalProvider = await prisma.externalAuthProvider.findUnique({
       where: { address },
       include: { user: true },
     });

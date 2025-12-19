@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Copy, Share2, Check, Twitter, Facebook, MessageCircle } from "lucide-react";
-import { cn } from "../../lib/utils";
+import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
 
@@ -100,7 +100,7 @@ export function ShareProfileDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -111,10 +111,12 @@ export function ShareProfileDialog({
             <div className="flex items-center gap-3 p-3 bg-background-tertiary rounded-lg">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-background-secondary shrink-0">
                 {profileImage ? (
-                  <img
+                  <Image
                     src={profileImage}
                     alt={profileName}
                     className="w-full h-full object-cover"
+                    width={48}
+                    height={48}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-lg font-semibold text-text-secondary">
@@ -146,9 +148,9 @@ export function ShareProfileDialog({
                   className="shrink-0"
                 >
                   {copied ? (
-                    <Check className="w-4 h-4 text-status-success" />
+                    <Icon name="success" size="sm" className="text-status-success" />
                   ) : (
-                    <Copy className="w-4 h-4" />
+                    <Icon name="copy" size="sm" />
                   )}
                 </Button>
               </div>
@@ -167,7 +169,7 @@ export function ShareProfileDialog({
                     className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"
                   >
                     <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                      <Share2 className="w-5 h-5 text-brand-rose" />
+                      <Icon name="share" size="sm" className="text-brand-rose" />
                     </div>
                     <span className="text-xs text-text-secondary">Share</span>
                   </button>
@@ -179,7 +181,7 @@ export function ShareProfileDialog({
                   className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#1DA1F2]/10 flex items-center justify-center">
-                    <Twitter className="w-5 h-5 text-[#1DA1F2]" />
+                    <Icon name="twitterLogo" size="sm" className="text-[#1DA1F2]" />
                   </div>
                   <span className="text-xs text-text-secondary">Twitter</span>
                 </button>
@@ -190,7 +192,7 @@ export function ShareProfileDialog({
                   className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#1877F2]/10 flex items-center justify-center">
-                    <Facebook className="w-5 h-5 text-[#1877F2]" />
+                    <Icon name="facebookLogo" size="sm" className="text-[#1877F2]" />
                   </div>
                   <span className="text-xs text-text-secondary">Facebook</span>
                 </button>
@@ -201,7 +203,7 @@ export function ShareProfileDialog({
                   className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5 text-[#25D366]" />
+                    <Icon name="whatsappLogo" size="sm" className="text-[#25D366]" />
                   </div>
                   <span className="text-xs text-text-secondary">WhatsApp</span>
                 </button>

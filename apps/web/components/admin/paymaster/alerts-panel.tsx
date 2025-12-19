@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Settings } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface AlertConfig {
   type: "LOW_BALANCE" | "HIGH_USAGE" | "ERROR_RATE";
@@ -82,7 +82,7 @@ export function AlertsPanel({
     <div className="bg-white shadow rounded-lg">
       <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Bell className="h-5 w-5 text-gray-400" />
+          <Icon name="notifications" size="sm" className="text-gray-400" />
           <h3 className="text-lg font-medium text-gray-900">Alert Settings</h3>
         </div>
       </div>
@@ -237,7 +237,7 @@ export function AlertsPanel({
                   onClick={() => setEditingAlert({ ...alert })}
                   className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
                 >
-                  <Settings className="h-4 w-4" />
+                  <Icon name="settings" size="sm" />
                 </button>
               </div>
             )}

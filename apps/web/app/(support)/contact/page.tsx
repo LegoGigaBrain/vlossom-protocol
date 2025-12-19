@@ -10,14 +10,7 @@ import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { Label } from "../../../components/ui/label";
 import { toast } from "../../../hooks/use-toast";
-import {
-  MessageCircle,
-  Mail,
-  Send,
-  CheckCircle,
-  ChevronLeft,
-  HelpCircle,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -69,7 +62,7 @@ export default function ContactPage() {
 
     try {
       // In production, this would send to an API endpoint
-      const response = await fetch(
+      await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/support/contact`,
         {
           method: "POST",
@@ -99,7 +92,7 @@ export default function ContactPage() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center space-y-6">
           <div className="w-20 h-20 mx-auto rounded-full bg-status-success/10 flex items-center justify-center">
-            <CheckCircle className="w-10 h-10 text-status-success" />
+            <Icon name="success" size="xl" className="text-status-success" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">
@@ -113,7 +106,7 @@ export default function ContactPage() {
           <div className="space-y-3">
             <Link href="/help">
               <Button variant="outline" className="w-full">
-                <HelpCircle className="w-4 h-4 mr-2" />
+                <Icon name="info" size="sm" className="mr-2" />
                 Browse Help Center
               </Button>
             </Link>
@@ -135,19 +128,19 @@ export default function ContactPage() {
             href="/help"
             className="inline-flex items-center gap-1 text-sm text-brand-rose hover:text-brand-clay transition-gentle mb-4"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <Icon name="chevronLeft" size="sm" />
             Back to Help Center
           </Link>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-brand-rose/10 flex items-center justify-center">
-              <MessageCircle className="w-6 h-6 text-brand-rose" />
+              <Icon name="chat" size="lg" className="text-brand-rose" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-text-primary">
                 Contact Support
               </h1>
               <p className="text-text-secondary">
-                We're here to help. Send us a message.
+                We&apos;re here to help. Send us a message.
               </p>
             </div>
           </div>
@@ -250,7 +243,7 @@ export default function ContactPage() {
 
           {/* Submit */}
           <Button type="submit" loading={isSubmitting} className="w-full">
-            <Send className="w-4 h-4 mr-2" />
+            <Icon name="send" size="sm" className="mr-2" />
             Send Message
           </Button>
 
@@ -271,7 +264,7 @@ export default function ContactPage() {
               className="flex items-center gap-3 p-4 bg-background-secondary rounded-card hover:bg-background-tertiary transition-gentle"
             >
               <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                <Mail className="w-5 h-5 text-brand-rose" />
+                <Icon name="email" size="md" className="text-brand-rose" />
               </div>
               <div>
                 <p className="font-medium text-text-primary">Email Us</p>
@@ -285,7 +278,7 @@ export default function ContactPage() {
               className="flex items-center gap-3 p-4 bg-background-secondary rounded-card hover:bg-background-tertiary transition-gentle"
             >
               <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                <HelpCircle className="w-5 h-5 text-brand-rose" />
+                <Icon name="info" size="md" className="text-brand-rose" />
               </div>
               <div>
                 <p className="font-medium text-text-primary">Help Center</p>

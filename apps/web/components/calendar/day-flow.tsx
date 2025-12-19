@@ -15,7 +15,7 @@
 import { useMemo } from "react";
 import { cn } from "../../lib/utils";
 import { EventChip, type CalendarEvent, type LoadLevel } from "./event-chip";
-import { ChevronLeft, ChevronRight, Sun, Moon, Sunrise, Sunset } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface DayFlowProps {
   events: CalendarEvent[];
@@ -27,10 +27,10 @@ interface DayFlowProps {
 
 // Time blocks for the day
 const TIME_BLOCKS = [
-  { hour: 6, label: "Morning", icon: Sunrise },
-  { hour: 12, label: "Afternoon", icon: Sun },
-  { hour: 17, label: "Evening", icon: Sunset },
-  { hour: 21, label: "Night", icon: Moon },
+  { hour: 6, label: "Morning", iconName: "energy" as const },
+  { hour: 12, label: "Afternoon", iconName: "energy" as const },
+  { hour: 17, label: "Evening", iconName: "energy" as const },
+  { hour: 21, label: "Night", iconName: "resting" as const },
 ];
 
 export function DayFlow({
@@ -147,14 +147,14 @@ export function DayFlow({
             className="p-2 rounded-full hover:bg-background-tertiary transition-colors"
             aria-label="Previous day"
           >
-            <ChevronLeft className="w-5 h-5 text-text-secondary" />
+            <Icon name="chevronLeft" size="md" className="text-text-secondary" />
           </button>
           <button
             onClick={() => navigateDay(1)}
             className="p-2 rounded-full hover:bg-background-tertiary transition-colors"
             aria-label="Next day"
           >
-            <ChevronRight className="w-5 h-5 text-text-secondary" />
+            <Icon name="chevronRight" size="md" className="text-text-secondary" />
           </button>
         </div>
       </div>
@@ -179,14 +179,13 @@ export function DayFlow({
       <div className="space-y-6">
         {TIME_BLOCKS.map((block, blockIndex) => {
           const blockEvents = eventsByBlock[block.label];
-          const Icon = block.icon;
 
           return (
             <div key={block.label} className="relative">
               {/* Time Block Header */}
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-background-tertiary flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-text-secondary" />
+                  <Icon name={block.iconName} size="sm" className="text-text-secondary" />
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-text-primary">
@@ -242,7 +241,7 @@ export function DayFlow({
       {/* Empty State */}
       {dayEvents.length === 0 && (
         <div className="text-center py-12 bg-background-primary rounded-xl border border-border-default">
-          <Moon className="w-12 h-12 mx-auto text-text-muted mb-3" />
+          <Icon name="resting" size="2xl" className="mx-auto text-text-muted mb-3" />
           <h4 className="font-medium text-text-primary mb-1">
             A day to breathe
           </h4>

@@ -10,12 +10,6 @@
 import type {
   FiatRampAdapter,
   FiatRampProvider,
-  ProviderAvailability,
-  FiatRampQuote,
-  OnRampRequest,
-  OffRampRequest,
-  FiatRampWidgetResponse,
-  FiatRampTransaction,
   FiatRampStatus,
 } from "./types";
 
@@ -263,7 +257,7 @@ export const transakAdapter: FiatRampAdapter = {
     };
   },
 
-  async handleWebhook(payload, signature) {
+  async handleWebhook(payload, _signature) {
     // Verify webhook signature in production
     // Parse Transak webhook payload
     const data = payload as {

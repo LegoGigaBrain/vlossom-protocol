@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, LogOut } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
 
@@ -54,7 +54,7 @@ export function LogoutConfirmDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -64,7 +64,7 @@ export function LogoutConfirmDialog({
             {/* Icon */}
             <div className="flex justify-center">
               <div className="w-16 h-16 rounded-full bg-background-tertiary flex items-center justify-center">
-                <LogOut className="w-8 h-8 text-text-secondary" />
+                <Icon name="signOut" size="lg" className="text-text-secondary" />
               </div>
             </div>
 
@@ -74,7 +74,7 @@ export function LogoutConfirmDialog({
                 Are you sure you want to log out?
               </p>
               <p className="text-sm text-text-secondary mt-1">
-                You'll need to sign in again to access your account.
+                You&apos;ll need to sign in again to access your account.
               </p>
             </div>
 
@@ -92,7 +92,7 @@ export function LogoutConfirmDialog({
                 loading={isLoggingOut}
                 className="flex-1"
               >
-                <LogOut className="w-4 h-4 mr-2" />
+                <Icon name="signOut" size="sm" className="mr-2" />
                 Log Out
               </Button>
             </div>

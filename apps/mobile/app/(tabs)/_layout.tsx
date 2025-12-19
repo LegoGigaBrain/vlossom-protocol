@@ -100,7 +100,7 @@ export default function TabLayout() {
 
 // Center wallet tab with elevated styling
 function WalletTabIcon({ color, focused }: { color: string; focused: boolean }) {
-  const { colors, spacing, borderRadius, shadows } = useTheme();
+  const { colors, borderRadius, shadows } = useTheme();
 
   return (
     <View

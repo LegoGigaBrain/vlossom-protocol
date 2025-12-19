@@ -37,7 +37,7 @@ const defaultProps = {
  * Usage: NavBar, HomeTab
  */
 export const VlossomHome = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, accent, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"

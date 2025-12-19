@@ -9,19 +9,14 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "../../lib/utils";
-import {
-  Wallet,
-  TrendingUp,
-  Gift,
-  History,
-  Settings2,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
+import type { IconName } from "@/components/icons/types";
 
 interface WalletTab {
   id: string;
   label: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: IconName;
   description?: string;
 }
 
@@ -30,35 +25,35 @@ const walletTabs: WalletTab[] = [
     id: "overview",
     label: "Overview",
     href: "/wallet",
-    icon: Wallet,
+    icon: "wallet",
     description: "Balance and quick actions",
   },
   {
     id: "defi",
     label: "DeFi",
     href: "/wallet/defi",
-    icon: TrendingUp,
+    icon: "growing",
     description: "Stake and earn yield",
   },
   {
     id: "rewards",
     label: "Rewards",
     href: "/wallet/rewards",
-    icon: Gift,
+    icon: "star",
     description: "XP, badges, and achievements",
   },
   {
     id: "history",
     label: "History",
     href: "/wallet/history",
-    icon: History,
+    icon: "clock",
     description: "Transaction history",
   },
   {
     id: "advanced",
     label: "Advanced",
     href: "/wallet/advanced",
-    icon: Settings2,
+    icon: "settings",
     description: "Web3 settings",
   },
 ];
@@ -89,7 +84,6 @@ export function WalletTabs({ className }: WalletTabsProps) {
     >
       {walletTabs.map((tab) => {
         const isActive = activeTab === tab.id;
-        const Icon = tab.icon;
 
         return (
           <Link
@@ -104,7 +98,7 @@ export function WalletTabs({ className }: WalletTabsProps) {
             )}
             aria-current={isActive ? "page" : undefined}
           >
-            <Icon className="h-4 w-4" aria-hidden="true" />
+            <Icon name={tab.icon} size="sm" aria-hidden="true" />
             <span>{tab.label}</span>
           </Link>
         );

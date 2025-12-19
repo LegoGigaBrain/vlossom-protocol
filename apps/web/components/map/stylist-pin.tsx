@@ -11,9 +11,12 @@
 
 "use client";
 
+import Image from "next/image";
 import { cn } from "../../lib/utils";
 import { STYLIST_MODE_COLORS, type StylistMarker } from "../../lib/mapbox";
-import { Scissors, MapPin, Car, Home, Star } from "lucide-react";
+import { Icon } from "@/components/icons";
+
+type IconName = string;
 
 interface StylistPinProps {
   stylist: StylistMarker;
@@ -30,11 +33,11 @@ export function StylistPin({
 }: StylistPinProps) {
   const modeColor = STYLIST_MODE_COLORS[stylist.operatingMode] || STYLIST_MODE_COLORS.FIXED;
 
-  const ModeIcon = {
-    FIXED: MapPin,
-    MOBILE: Car,
-    HYBRID: Scissors,
-  }[stylist.operatingMode] || MapPin;
+  const modeIconName: IconName = {
+    FIXED: "location",
+    MOBILE: "location",
+    HYBRID: "scissors",
+  }[stylist.operatingMode] || "location";
 
   return (
     <button
@@ -56,17 +59,22 @@ export function StylistPin({
       >
         {/* Avatar or Icon */}
         {stylist.avatarUrl ? (
-          <img
+          <Image
             src={stylist.avatarUrl}
             alt={stylist.name}
+            width={isSelected ? 48 : 32}
+            height={isSelected ? 48 : 32}
             className={cn(
               "rounded-full object-cover border-2 border-white",
               isSelected ? "w-12 h-12" : "w-8 h-8"
             )}
           />
         ) : (
-          <ModeIcon
-            className={cn("text-white", isSelected ? "w-6 h-6" : "w-4 h-4")}
+          <Icon
+            name={modeIconName}
+            size={isSelected ? "lg" : "sm"}
+            className="text-white"
+            aria-hidden="true"
           />
         )}
 
@@ -88,7 +96,7 @@ export function StylistPin({
       {/* Rating Badge (shown when selected) */}
       {isSelected && (
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-full px-2 py-0.5 shadow-md flex items-center gap-1">
-          <Star className="w-3 h-3 text-accent-gold fill-accent-gold" />
+          <Icon name="star" size="xs" weight="fill" className="text-accent-gold fill-accent-gold" aria-hidden="true" />
           <span className="text-xs font-medium text-text-primary">
             {stylist.rating.toFixed(1)}
           </span>
@@ -138,17 +146,22 @@ export function SalonPin({
         )}
       >
         {salon.imageUrl ? (
-          <img
+          <Image
             src={salon.imageUrl}
             alt={salon.name}
+            width={isSelected ? 48 : 32}
+            height={isSelected ? 48 : 32}
             className={cn(
               "rounded-md object-cover",
               isSelected ? "w-12 h-12" : "w-8 h-8"
             )}
           />
         ) : (
-          <Home
-            className={cn("text-white", isSelected ? "w-6 h-6" : "w-4 h-4")}
+          <Icon
+            name="location"
+            size={isSelected ? "lg" : "sm"}
+            className="text-white"
+            aria-hidden="true"
           />
         )}
 

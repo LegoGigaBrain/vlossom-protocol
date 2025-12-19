@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, MapPin, Navigation, Shield } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
 
@@ -101,7 +101,7 @@ export function LocationPermissionDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -112,10 +112,10 @@ export function LocationPermissionDialog({
             <div className="flex justify-center">
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                  <MapPin className="w-12 h-12 text-brand-rose" />
+                  <Icon name="pin" size="2xl" className="text-brand-rose" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-status-success flex items-center justify-center">
-                  <Navigation className="w-5 h-5 text-white" />
+                  <Icon name="navigation" size="sm" className="text-white" />
                 </div>
               </div>
             </div>
@@ -134,7 +134,7 @@ export function LocationPermissionDialog({
             {/* Benefits */}
             <div className="bg-background-tertiary rounded-lg p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-brand-rose shrink-0 mt-0.5" />
+                <Icon name="pin" size="sm" className="text-brand-rose shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-text-primary">
                     Nearby stylists
@@ -145,7 +145,7 @@ export function LocationPermissionDialog({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Navigation className="w-5 h-5 text-brand-rose shrink-0 mt-0.5" />
+                <Icon name="navigation" size="sm" className="text-brand-rose shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-text-primary">
                     Accurate directions
@@ -159,7 +159,7 @@ export function LocationPermissionDialog({
 
             {/* Privacy Note */}
             <div className="flex items-start gap-2 text-xs text-text-muted">
-              <Shield className="w-4 h-4 shrink-0 mt-0.5" />
+              <Icon name="shield" size="sm" className="shrink-0 mt-0.5" />
               <p>
                 Your location is only used to find nearby stylists and is never
                 shared with third parties.

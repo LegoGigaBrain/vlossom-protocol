@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Wallet, Calendar, Shield } from "lucide-react";
+import { Icon } from "@/components/icons";
+
+type IconName = string;
 
 interface WelcomeModalProps {
   userRole: "CUSTOMER" | "STYLIST";
@@ -33,38 +35,38 @@ export function WelcomeModal({
     setTimeout(onClose, 300);
   };
 
-  const features =
+  const features: Array<{ iconName: IconName; title: string; description: string }> =
     userRole === "CUSTOMER"
       ? [
           {
-            icon: Calendar,
+            iconName: "calendar",
             title: "Easy Booking",
             description: "Browse stylists and book appointments in seconds",
           },
           {
-            icon: Wallet,
+            iconName: "wallet",
             title: "Secure Payments",
             description: "Your funds are held in escrow until service completion",
           },
           {
-            icon: Shield,
+            iconName: "secure",
             title: "Protected Transactions",
             description: "Smart contracts ensure fair payments for everyone",
           },
         ]
       : [
           {
-            icon: Calendar,
+            iconName: "calendar",
             title: "Manage Bookings",
             description: "Accept, schedule, and complete appointments easily",
           },
           {
-            icon: Wallet,
+            iconName: "wallet",
             title: "Guaranteed Payments",
             description: "Get paid automatically when you complete services",
           },
           {
-            icon: Shield,
+            iconName: "secure",
             title: "Build Your Business",
             description: "Showcase your work and grow your client base",
           },
@@ -95,7 +97,7 @@ export function WelcomeModal({
             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
             aria-label="Close welcome modal"
           >
-            <X className="h-5 w-5" aria-hidden="true" />
+            <Icon name="close" size="sm" aria-hidden="true" />
           </button>
 
           {/* Content */}
@@ -120,7 +122,7 @@ export function WelcomeModal({
               {features.map((feature, index) => (
                 <div key={index} className="flex items-start gap-4">
                   <div className="flex-shrink-0 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <feature.icon className="h-5 w-5 text-purple-600" />
+                    <Icon name={feature.iconName} size="sm" className="text-purple-600" />
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">{feature.title}</h3>
@@ -133,13 +135,13 @@ export function WelcomeModal({
             {/* Wallet info */}
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
-                <Wallet className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <Icon name="wallet" size="sm" className="text-blue-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-blue-900">
                     Your Smart Wallet
                   </h4>
                   <p className="text-sm text-blue-700">
-                    We've created a secure wallet for you. Claim free test USDC
+                    We&apos;ve created a secure wallet for you. Claim free test USDC
                     from the faucet to try out the platform!
                   </p>
                 </div>

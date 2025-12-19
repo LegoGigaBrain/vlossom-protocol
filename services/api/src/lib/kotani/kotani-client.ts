@@ -267,6 +267,7 @@ export function verifyWebhookSignature(
   }
 
   // In production, verify HMAC signature
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const crypto = require("crypto");
   const expectedSignature = crypto
     .createHmac("sha256", KOTANI_CONFIG.webhookSecret)

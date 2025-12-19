@@ -261,7 +261,7 @@ export function AddMoneyDialog({ open, onOpenChange }: AddMoneyDialogProps) {
             </div>
 
             <p className="text-sm text-text-secondary text-center">
-              You'll receive approximately{" "}
+              You&apos;ll receive approximately{" "}
               <span className="font-medium text-text-primary">
                 {formatPrice(Math.round(getApproxUSDC()))} USDC
               </span>
@@ -376,7 +376,7 @@ export function AddMoneyDialog({ open, onOpenChange }: AddMoneyDialogProps) {
               </div>
               <h3 className="text-lg font-semibold mb-2">Ready to Purchase</h3>
               <p className="text-text-secondary text-sm">
-                You'll be redirected to {selectedProvider} to complete your purchase.
+                You&apos;ll be redirected to {selectedProvider} to complete your purchase.
               </p>
             </div>
 
@@ -388,7 +388,7 @@ export function AddMoneyDialog({ open, onOpenChange }: AddMoneyDialogProps) {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-text-secondary">You'll receive</span>
+                <span className="text-text-secondary">You&apos;ll receive</span>
                 <span className="font-medium">~{formatPrice(Math.round(getApproxUSDC()))} USDC</span>
               </div>
               <div className="flex justify-between">

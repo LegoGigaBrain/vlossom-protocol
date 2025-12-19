@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { useToggleFavorite, useFavoriteStatus } from "@/hooks/use-favorites";
 
@@ -42,10 +42,10 @@ export function FavoriteButton({
     lg: "w-10 h-10 p-2",
   };
 
-  const iconSizes = {
-    sm: 14,
-    md: 18,
-    lg: 22,
+  const iconSizeMap = {
+    sm: "xs" as const,
+    md: "sm" as const,
+    lg: "md" as const,
   };
 
   return (
@@ -66,8 +66,9 @@ export function FavoriteButton({
       )}
       aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
     >
-      <Heart
-        size={iconSizes[size]}
+      <Icon
+        name="favorite"
+        size={iconSizeMap[size]}
         className={cn(
           "transition-all duration-200",
           isFavorited && "fill-current"

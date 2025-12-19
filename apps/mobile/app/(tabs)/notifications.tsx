@@ -12,7 +12,7 @@ import { VlossomNotificationsIcon, VlossomSettingsIcon } from '../../src/compone
 
 export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, spacing, borderRadius, shadows } = useTheme();
+  const { colors, spacing, borderRadius } = useTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
@@ -86,7 +86,7 @@ export default function NotificationsScreen() {
               { color: colors.text.tertiary, marginTop: spacing.sm, textAlign: 'center' },
             ]}
           >
-            You'll see booking confirmations, updates, and important alerts here
+            You&apos;ll see booking confirmations, updates, and important alerts here
           </Text>
         </View>
       </ScrollView>

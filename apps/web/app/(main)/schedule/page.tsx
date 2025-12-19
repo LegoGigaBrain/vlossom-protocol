@@ -28,14 +28,7 @@ import {
   type CalendarEvent,
   type Ritual,
 } from "@/components/calendar";
-import {
-  CalendarDays,
-  CalendarRange,
-  Clock,
-  Plus,
-  Sparkles,
-  AlertCircle,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 type CalendarView = "rhythm" | "month" | "day";
 
@@ -230,7 +223,7 @@ export default function SchedulePage() {
             onClick={() => router.push("/profile/hair-health")}
             aria-label="Hair Health"
           >
-            <Sparkles className="w-5 h-5" />
+            <Icon name="sparkle" size="md" />
           </Button>
         }
       />
@@ -239,7 +232,7 @@ export default function SchedulePage() {
         {/* Error State */}
         {bookingsError && (
           <div className="flex items-center gap-2 p-3 bg-status-error/10 text-status-error rounded-lg">
-            <AlertCircle className="w-5 h-5" />
+            <Icon name="calmError" size="md" />
             <p className="text-sm">Unable to load bookings. Showing ritual events only.</p>
           </div>
         )}
@@ -247,19 +240,19 @@ export default function SchedulePage() {
         {/* View Switcher */}
         <div className="flex items-center gap-2 bg-background-primary p-1 rounded-xl">
           <ViewButton
-            icon={CalendarRange}
+            icon="calendar"
             label="Week"
             isActive={view === "rhythm"}
             onClick={() => setView("rhythm")}
           />
           <ViewButton
-            icon={CalendarDays}
+            icon="calendar"
             label="Month"
             isActive={view === "month"}
             onClick={() => setView("month")}
           />
           <ViewButton
-            icon={Clock}
+            icon="clock"
             label="Day"
             isActive={view === "day"}
             onClick={() => setView("day")}
@@ -301,7 +294,7 @@ export default function SchedulePage() {
             className="flex-1"
             onClick={() => router.push("/profile/hair-health")}
           >
-            <Sparkles className="w-4 h-4 mr-2" />
+            <Icon name="sparkle" size="sm" className="mr-2" />
             Hair Profile
           </Button>
           <Button
@@ -311,7 +304,7 @@ export default function SchedulePage() {
               // TODO: Add event creation flow
             }}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Icon name="add" size="sm" className="mr-2" />
             Add Event
           </Button>
         </div>
@@ -340,12 +333,12 @@ export default function SchedulePage() {
 
 // View Button Component
 function ViewButton({
-  icon: Icon,
+  icon,
   label,
   isActive,
   onClick,
 }: {
-  icon: typeof CalendarDays;
+  icon: import("@/components/icons").IconName;
   label: string;
   isActive: boolean;
   onClick: () => void;
@@ -359,7 +352,7 @@ function ViewButton({
           : "text-text-secondary hover:bg-background-tertiary"
       }`}
     >
-      <Icon className="w-4 h-4" />
+      <Icon name={icon} size="sm" />
       <span className="text-sm font-medium">{label}</span>
     </button>
   );

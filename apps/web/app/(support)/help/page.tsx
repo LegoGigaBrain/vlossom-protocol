@@ -4,22 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input } from "../../../components/ui/input";
-import {
-  Search,
-  Calendar,
-  Wallet,
-  User,
-  Shield,
-  MessageCircle,
-  ChevronRight,
-  HelpCircle,
-} from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 
 interface HelpCategory {
   id: string;
   title: string;
   description: string;
-  icon: typeof Calendar;
+  icon: IconName;
   href: string;
   articles: number;
 }
@@ -29,7 +20,7 @@ const categories: HelpCategory[] = [
     id: "bookings",
     title: "Bookings & Appointments",
     description: "How to book, reschedule, or cancel appointments",
-    icon: Calendar,
+    icon: "calendar",
     href: "/help/bookings",
     articles: 8,
   },
@@ -37,7 +28,7 @@ const categories: HelpCategory[] = [
     id: "wallet",
     title: "Wallet & Payments",
     description: "Managing your wallet, payments, and refunds",
-    icon: Wallet,
+    icon: "wallet",
     href: "/help/wallet",
     articles: 6,
   },
@@ -45,7 +36,7 @@ const categories: HelpCategory[] = [
     id: "stylists",
     title: "Finding Stylists",
     description: "Discovering and choosing the right stylist",
-    icon: User,
+    icon: "profile",
     href: "/help/stylists",
     articles: 5,
   },
@@ -53,7 +44,7 @@ const categories: HelpCategory[] = [
     id: "security",
     title: "Account & Security",
     description: "Login, passwords, and account settings",
-    icon: Shield,
+    icon: "shield",
     href: "/help/security",
     articles: 7,
   },
@@ -99,7 +90,7 @@ export default function HelpCenterPage() {
       <div className="bg-brand-rose/5 border-b border-border-default">
         <div className="max-w-4xl mx-auto px-4 py-12 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-rose/10 flex items-center justify-center">
-            <HelpCircle className="w-8 h-8 text-brand-rose" />
+            <Icon name="info" size="lg" className="text-brand-rose" />
           </div>
           <h1 className="text-3xl font-bold text-text-primary mb-2">
             How can we help you?
@@ -111,7 +102,7 @@ export default function HelpCenterPage() {
           {/* Search */}
           <form onSubmit={handleSearch} className="max-w-xl mx-auto">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
+              <Icon name="search" size="md" className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
               <Input
                 type="text"
                 value={searchQuery}
@@ -133,7 +124,6 @@ export default function HelpCenterPage() {
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
             {categories.map((category) => {
-              const Icon = category.icon;
               return (
                 <Link
                   key={category.id}
@@ -141,7 +131,7 @@ export default function HelpCenterPage() {
                   className="flex items-start gap-4 p-4 bg-background-secondary rounded-card hover:bg-background-tertiary transition-gentle group"
                 >
                   <div className="w-12 h-12 rounded-full bg-brand-rose/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-6 h-6 text-brand-rose" />
+                    <Icon name={category.icon} size="lg" className="text-brand-rose" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-text-primary group-hover:text-brand-rose transition-gentle">
@@ -154,7 +144,7 @@ export default function HelpCenterPage() {
                       {category.articles} articles
                     </p>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-brand-rose transition-gentle" />
+                  <Icon name="chevronRight" size="md" className="text-text-muted group-hover:text-brand-rose transition-gentle" />
                 </Link>
               );
             })}
@@ -176,7 +166,7 @@ export default function HelpCenterPage() {
                 <span className="text-text-primary group-hover:text-brand-rose transition-gentle">
                   {article.title}
                 </span>
-                <ChevronRight className="w-5 h-5 text-text-muted group-hover:text-brand-rose transition-gentle" />
+                <Icon name="chevronRight" size="md" className="text-text-muted group-hover:text-brand-rose transition-gentle" />
               </Link>
             ))}
           </div>
@@ -184,7 +174,7 @@ export default function HelpCenterPage() {
 
         {/* Contact Support */}
         <section className="text-center bg-background-tertiary rounded-card p-8">
-          <MessageCircle className="w-10 h-10 text-brand-rose mx-auto mb-4" />
+          <Icon name="chat" size="xl" className="text-brand-rose mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-text-primary mb-2">
             Still need help?
           </h2>
@@ -196,7 +186,7 @@ export default function HelpCenterPage() {
             className="inline-flex items-center gap-2 px-6 py-2 bg-brand-rose text-white rounded-lg hover:bg-brand-clay transition-gentle"
           >
             Contact Support
-            <ChevronRight className="w-4 h-4" />
+            <Icon name="chevronRight" size="sm" />
           </Link>
         </section>
       </div>

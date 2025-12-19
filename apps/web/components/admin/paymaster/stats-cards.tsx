@@ -1,6 +1,7 @@
 "use client";
 
-import { Activity, DollarSign, Users, Zap } from "lucide-react";
+import { Icon } from "@/components/icons";
+import type { IconName } from "@/components/icons/types";
 
 interface PaymasterStats {
   currentBalance: { wei: string; eth: number };
@@ -60,12 +61,19 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
     );
   }
 
-  const cards = [
+  const cards: Array<{
+    name: string;
+    value: string;
+    subtext: string;
+    iconName: IconName;
+    color: string;
+    bgColor: string;
+  }> = [
     {
       name: "Paymaster Balance",
       value: `${stats.currentBalance.eth.toFixed(4)} ETH`,
       subtext: "Available for sponsorship",
-      icon: DollarSign,
+      iconName: "wallet",
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
@@ -73,7 +81,7 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       name: "Total Transactions",
       value: stats.transactions.total.toLocaleString(),
       subtext: `${stats.transactions.successRate.toFixed(1)}% success rate`,
-      icon: Activity,
+      iconName: "growing",
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
@@ -81,7 +89,7 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       name: "Gas Cost (24h)",
       value: `${stats.last24h.costEth.toFixed(4)} ETH`,
       subtext: `${stats.last24h.transactions} transactions`,
-      icon: Zap,
+      iconName: "energy",
       color: "text-orange-600",
       bgColor: "bg-orange-100",
     },
@@ -89,7 +97,7 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
       name: "Unique Users",
       value: stats.users.total.toLocaleString(),
       subtext: `${stats.users.last24h} new in 24h`,
-      icon: Users,
+      iconName: "profile",
       color: "text-purple-600",
       bgColor: "bg-purple-100",
     },
@@ -105,7 +113,7 @@ export function StatsCards({ stats, isLoading }: StatsCardsProps) {
           <div className="p-5">
             <div className="flex items-center">
               <div className={`flex-shrink-0 ${card.bgColor} rounded-md p-3`}>
-                <card.icon className={`h-6 w-6 ${card.color}`} />
+                <Icon name={card.iconName} size="md" className={card.color} />
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>

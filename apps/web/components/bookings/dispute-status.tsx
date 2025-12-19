@@ -3,15 +3,7 @@
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
-import {
-  Shield,
-  Clock,
-  CheckCircle,
-  XCircle,
-  MessageSquare,
-  AlertCircle,
-  ArrowRight,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
 
 export type DisputeStatusType =
   | "PENDING"
@@ -56,7 +48,7 @@ const statusConfig: Record<
   {
     label: string;
     description: string;
-    icon: typeof Clock;
+    iconName: IconName;
     color: string;
     bgColor: string;
   }
@@ -64,49 +56,49 @@ const statusConfig: Record<
   PENDING: {
     label: "Pending Review",
     description: "Your dispute has been submitted and is awaiting review",
-    icon: Clock,
+    iconName: "clock",
     color: "text-status-warning",
     bgColor: "bg-status-warning/10",
   },
   IN_REVIEW: {
     label: "Under Review",
     description: "Our team is actively reviewing your case",
-    icon: Shield,
+    iconName: "secure",
     color: "text-status-info",
     bgColor: "bg-status-info/10",
   },
   AWAITING_RESPONSE: {
     label: "Awaiting Response",
     description: "Waiting for a response from the other party",
-    icon: MessageSquare,
+    iconName: "chat",
     color: "text-brand-rose",
     bgColor: "bg-brand-rose/10",
   },
   RESOLVED_CUSTOMER: {
     label: "Resolved - Full Refund",
     description: "The dispute was resolved in your favor",
-    icon: CheckCircle,
+    iconName: "check",
     color: "text-status-success",
     bgColor: "bg-status-success/10",
   },
   RESOLVED_STYLIST: {
     label: "Resolved - No Refund",
     description: "The dispute was resolved in favor of the stylist",
-    icon: XCircle,
+    iconName: "close",
     color: "text-status-error",
     bgColor: "bg-status-error/10",
   },
   RESOLVED_PARTIAL: {
     label: "Resolved - Partial Refund",
     description: "The dispute was resolved with a partial refund",
-    icon: CheckCircle,
+    iconName: "check",
     color: "text-status-info",
     bgColor: "bg-status-info/10",
   },
   WITHDRAWN: {
     label: "Withdrawn",
     description: "You withdrew this dispute",
-    icon: XCircle,
+    iconName: "close",
     color: "text-text-secondary",
     bgColor: "bg-background-tertiary",
   },
@@ -120,7 +112,6 @@ export function DisputeStatus({
   className,
 }: DisputeStatusProps) {
   const config = statusConfig[dispute.status];
-  const Icon = config.icon;
 
   const isResolved = dispute.status.startsWith("RESOLVED") || dispute.status === "WITHDRAWN";
   const canWithdraw = ["PENDING", "IN_REVIEW", "AWAITING_RESPONSE"].includes(dispute.status);
@@ -136,7 +127,7 @@ export function DisputeStatus({
               config.bgColor
             )}
           >
-            <Icon className={cn("w-5 h-5", config.color)} />
+            <Icon name={config.iconName} size="sm" className={config.color} />
           </div>
           <div className="flex-1">
             <div className="flex items-center justify-between">
@@ -276,7 +267,7 @@ export function DisputeStatus({
         <div className="flex gap-3">
           {onAddMessage && (
             <Button onClick={onAddMessage} className="flex-1">
-              <MessageSquare className="w-4 h-4 mr-2" />
+              <Icon name="chat" size="sm" className="mr-2" />
               Add Message
             </Button>
           )}
@@ -291,14 +282,14 @@ export function DisputeStatus({
       {/* Help */}
       <div className="bg-background-tertiary rounded-lg p-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-text-muted" />
+          <Icon name="error" size="sm" className="text-text-muted" />
           <span className="text-sm text-text-secondary">
             Need more help?
           </span>
         </div>
         <button className="text-sm text-brand-rose hover:text-brand-clay transition-gentle flex items-center gap-1">
           Contact Support
-          <ArrowRight className="w-4 h-4" />
+          <Icon name="chevronRight" size="sm" />
         </button>
       </div>
     </div>

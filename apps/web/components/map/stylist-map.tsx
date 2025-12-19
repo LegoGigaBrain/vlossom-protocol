@@ -1,29 +1,23 @@
 /**
- * Stylist Map - Full-Screen Map Component (V6.5)
+ * Stylist Map - Full-Screen Map Component (V5.2)
  *
  * Main map component for discovering stylists and salons.
  * Features:
- * - Google Maps integration with custom Uber-style dark theme
- * - Vlossom brand colors for roads and highlights
+ * - Static tile rendering for performance
  * - List view fallback for accessibility
+ * - Clustering for dense areas
  * - Empty state handling
  * - Low-end device optimizations (reduced motion, lazy loading)
  * - Keyboard navigation support
  * - User preference persistence
- *
- * How Uber achieves their custom map look:
- * 1. Google Maps Styling API with JSON configuration
- * 2. Custom feature colors (roads, water, land, etc.)
- * 3. Hiding unnecessary POIs and labels
- * 4. High contrast for roads against dark background
  *
  * Reference: docs/vlossom/16-ui-components-and-design-system.md Section 11
  */
 
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
-import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from "@react-google-maps/api";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { cn } from "../../lib/utils";
 import {
   MAP_DEFAULTS,
@@ -33,89 +27,16 @@ import {
   formatDistance,
   calculateDistance,
 } from "../../lib/mapbox";
-import {
-  MapPin,
-  Locate,
-  List,
-  Map as MapIcon,
-  MapPinOff,
-  Star,
-  Layers,
-  Sun,
-  Moon,
-} from "lucide-react";
+import { StylistPin, SalonPin, ClusterPin, UserPin } from "./stylist-pin";
+import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
+import { logger } from "@/lib/logger";
 
 // View modes for accessibility and performance
 type ViewMode = "map" | "list";
-type MapTheme = "dark" | "light";
 
-// Storage keys for user preferences
+// Storage key for user view preference
 const VIEW_PREFERENCE_KEY = "vlossom-map-view-preference";
-const THEME_PREFERENCE_KEY = "vlossom-map-theme-preference";
-
-/**
- * Custom Vlossom Map Styles - Uber-inspired dark theme with brand purple
- *
- * Vlossom uses brand purple (#311E6B) as the accent color on a dark base.
- * Reference: https://mapstyle.withgoogle.com/ for creating custom styles
- * Inspired by: https://snazzymaps.com/style/45212/uber-blue-map
- */
-const vlossomDarkMapStyle: google.maps.MapTypeStyle[] = [
-  // Hide all labels by default for cleaner look
-  { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
-  // White text on dark backgrounds where labels are needed
-  { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#ffffff" }] },
-  { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#000000" }, { lightness: 13 }] },
-  // Administrative (borders)
-  { featureType: "administrative", elementType: "geometry.fill", stylers: [{ color: "#000000" }] },
-  { featureType: "administrative", elementType: "geometry.stroke", stylers: [{ color: "#311E6B" }, { lightness: 14 }, { weight: 1.4 }] },
-  // Landscape - dark background
-  { featureType: "landscape", elementType: "all", stylers: [{ color: "#0f171c" }] },
-  { featureType: "landscape.man_made", elementType: "geometry.fill", stylers: [{ color: "#1a1a2e" }] },
-  { featureType: "landscape.natural", elementType: "geometry.fill", stylers: [{ color: "#0f0f1a" }] },
-  // Hide points of interest
-  { featureType: "poi", elementType: "all", stylers: [{ visibility: "off" }] },
-  { featureType: "poi", elementType: "geometry", stylers: [{ color: "#000000" }, { lightness: 5 }, { visibility: "off" }] },
-  // Highways - Vlossom purple highlight
-  { featureType: "road.highway", elementType: "all", stylers: [{ visibility: "simplified" }] },
-  { featureType: "road.highway", elementType: "geometry.fill", stylers: [{ color: "#ADA5C4" }, { visibility: "on" }] },
-  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#311E6B" }, { lightness: 25 }, { visibility: "off" }] },
-  { featureType: "road.highway", elementType: "labels", stylers: [{ visibility: "off" }] },
-  // Arterial roads - lighter purple
-  { featureType: "road.arterial", elementType: "geometry.fill", stylers: [{ color: "#6B5B95" }] },
-  { featureType: "road.arterial", elementType: "geometry.stroke", stylers: [{ color: "#311E6B" }, { lightness: 16 }, { visibility: "off" }] },
-  // Local roads - dark
-  { featureType: "road.local", elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
-  { featureType: "road.local", elementType: "geometry.stroke", stylers: [{ visibility: "simplified" }] },
-  // Transit - hidden
-  { featureType: "transit", elementType: "all", stylers: [{ color: "#311E6B" }, { visibility: "off" }] },
-  { featureType: "transit.line", elementType: "all", stylers: [{ visibility: "off" }] },
-  // Water - deep dark blue-purple
-  { featureType: "water", elementType: "all", stylers: [{ color: "#021019" }] },
-];
-
-// Light mode alternative - clean minimal look with brand colors
-const vlossomLightMapStyle: google.maps.MapTypeStyle[] = [
-  { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] },
-  { featureType: "transit", elementType: "labels", stylers: [{ visibility: "off" }] },
-  // Subtle brand color on water
-  { featureType: "water", elementType: "geometry.fill", stylers: [{ color: "#d4e4f7" }] },
-  // Subtle brand color on parks
-  { featureType: "poi.park", elementType: "geometry.fill", stylers: [{ color: "#e8f0e3" }] },
-  // Light cream for landscape
-  { featureType: "landscape", elementType: "geometry.fill", stylers: [{ color: "#f9f6f1" }] },
-  // Purple-tinted roads
-  { featureType: "road.highway", elementType: "geometry.fill", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#ADA5C4" }, { weight: 1 }] },
-  { featureType: "road.arterial", elementType: "geometry.fill", stylers: [{ color: "#ffffff" }] },
-  { featureType: "road.arterial", elementType: "geometry.stroke", stylers: [{ color: "#EFE3D0" }, { weight: 0.5 }] },
-];
-
-const mapContainerStyle = {
-  width: "100%",
-  height: "100%",
-};
 
 /**
  * Hook to detect if user prefers reduced motion
@@ -177,27 +98,6 @@ function useViewPreference(defaultView: ViewMode): [ViewMode, (view: ViewMode) =
   return [viewMode, setViewMode];
 }
 
-/**
- * Hook to persist and retrieve user's map theme preference
- */
-function useMapTheme(): [MapTheme, (theme: MapTheme) => void] {
-  const [theme, setThemeState] = useState<MapTheme>("dark");
-
-  useEffect(() => {
-    const stored = localStorage.getItem(THEME_PREFERENCE_KEY);
-    if (stored === "dark" || stored === "light") {
-      setThemeState(stored);
-    }
-  }, []);
-
-  const setTheme = useCallback((newTheme: MapTheme) => {
-    setThemeState(newTheme);
-    localStorage.setItem(THEME_PREFERENCE_KEY, newTheme);
-  }, []);
-
-  return [theme, setTheme];
-}
-
 interface StylistMapProps {
   stylists: StylistMarker[];
   salons?: SalonMarker[];
@@ -223,11 +123,6 @@ export function StylistMap({
   defaultView = "map",
   isLoading = false,
 }: StylistMapProps) {
-  // Load Google Maps
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-  });
-
   // Performance & accessibility hooks
   const prefersReducedMotion = usePrefersReducedMotion();
   const isLowEndDevice = useIsLowEndDevice();
@@ -235,23 +130,15 @@ export function StylistMap({
   // Use list view by default on low-end devices for better performance
   const effectiveDefaultView = isLowEndDevice ? "list" : defaultView;
   const [viewMode, setViewMode] = useViewPreference(effectiveDefaultView);
-  const [mapTheme, setMapTheme] = useMapTheme();
 
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [center, setCenter] = useState(userLocation || MAP_DEFAULTS.center);
+  const [zoom, setZoom] = useState(MAP_DEFAULTS.zoom);
+  const [, setCenter] = useState(MAP_DEFAULTS.center);
   const [showSalons, setShowSalons] = useState(true);
   const [isLocating, setIsLocating] = useState(false);
-  const [selectedMarker, setSelectedMarker] = useState<StylistMarker | null>(null);
 
   // Ref for keyboard navigation
   const mapContainerRef = useRef<HTMLDivElement>(null);
-
-  // Update center when user location changes
-  useEffect(() => {
-    if (userLocation) {
-      setCenter(userLocation);
-    }
-  }, [userLocation]);
+  const [focusedPinIndex, setFocusedPinIndex] = useState(-1);
 
   // Sort stylists by distance if user location is available
   const sortedStylists = useMemo(() => {
@@ -263,6 +150,48 @@ export function StylistMap({
     });
   }, [stylists, userLocation]);
 
+  // Cluster nearby stylists for better performance
+  const { displayedStylists, clusters } = useMemo(() => {
+    if (zoom >= 14 || stylists.length <= 10) {
+      // Show all pins at high zoom or with few stylists
+      return { displayedStylists: sortedStylists.slice(0, 20), clusters: [] };
+    }
+
+    // Simple clustering: group by grid cells
+    const clusterMap: Map<string, StylistMarker[]> = new Map();
+    const gridSize = 0.01 * (18 - zoom); // Larger cells at lower zoom
+
+    sortedStylists.forEach((stylist) => {
+      const cellX = Math.floor(stylist.lng / gridSize);
+      const cellY = Math.floor(stylist.lat / gridSize);
+      const key = `${cellX},${cellY}`;
+
+      if (!clusterMap.has(key)) {
+        clusterMap.set(key, []);
+      }
+      clusterMap.get(key)!.push(stylist);
+    });
+
+    const displayed: StylistMarker[] = [];
+    const clustered: { lat: number; lng: number; count: number }[] = [];
+
+    clusterMap.forEach((group: StylistMarker[]) => {
+      if (group.length === 1) {
+        displayed.push(group[0]);
+      } else {
+        // Show first stylist as representative, rest as cluster
+        displayed.push(group[0]);
+        if (group.length > 2) {
+          const avgLat = group.reduce((sum: number, s: StylistMarker) => sum + s.lat, 0) / group.length;
+          const avgLng = group.reduce((sum: number, s: StylistMarker) => sum + s.lng, 0) / group.length;
+          clustered.push({ lat: avgLat, lng: avgLng, count: group.length - 1 });
+        }
+      }
+    });
+
+    return { displayedStylists: displayed.slice(0, 12), clusters: clustered };
+  }, [sortedStylists, zoom, stylists.length]);
+
   // Handle user location request
   const handleLocate = useCallback(() => {
     if (!navigator.geolocation) {
@@ -273,62 +202,76 @@ export function StylistMap({
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const newCenter = {
+        setCenter({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-        };
-        setCenter(newCenter);
-        if (map) {
-          map.panTo(newCenter);
-        }
+        });
         setIsLocating(false);
       },
       (error) => {
-        console.error("Error getting location:", error);
+        logger.error("Error getting location", { error });
         setIsLocating(false);
       },
       { enableHighAccuracy: true, timeout: 5000 }
     );
-  }, [map]);
+  }, []);
+
+  // Zoom controls
+  const handleZoomIn = () => setZoom((z) => Math.min(z + 1, MAP_DEFAULTS.maxZoom));
+  const handleZoomOut = () => setZoom((z) => Math.max(z - 1, MAP_DEFAULTS.minZoom));
 
   // Toggle view mode (persists preference)
-  const toggleViewMode = () => setViewMode(viewMode === "map" ? "list" : "map");
+  const toggleViewMode = useCallback(() => setViewMode(viewMode === "map" ? "list" : "map"), [viewMode, setViewMode]);
 
-  // Toggle map theme
-  const toggleMapTheme = () => setMapTheme(mapTheme === "dark" ? "light" : "dark");
+  // Keyboard navigation handler
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (viewMode !== "map") return;
 
-  // Map callbacks
-  const onLoad = useCallback((mapInstance: google.maps.Map) => {
-    setMap(mapInstance);
-  }, []);
+    const pinCount = displayedStylists.length;
+    if (pinCount === 0) return;
 
-  const onUnmount = useCallback(() => {
-    setMap(null);
-  }, []);
-
-  // Get marker icon based on stylist mode
-  const getMarkerIcon = (operatingMode: string, isSelected: boolean) => {
-    const color = STYLIST_MODE_COLORS[operatingMode as keyof typeof STYLIST_MODE_COLORS] || STYLIST_MODE_COLORS.FIXED;
-    const scale = isSelected ? 1.3 : 1;
-
-    return {
-      path: google.maps.SymbolPath.CIRCLE,
-      fillColor: color,
-      fillOpacity: 1,
-      strokeColor: mapTheme === "dark" ? "#ffffff" : "#311E6B",
-      strokeWeight: 2,
-      scale: 12 * scale,
-    };
-  };
-
-  // Get current map styles based on theme
-  const currentMapStyles = mapTheme === "dark" ? vlossomDarkMapStyle : vlossomLightMapStyle;
+    switch (e.key) {
+      case "ArrowRight":
+      case "ArrowDown":
+        e.preventDefault();
+        setFocusedPinIndex((prev) => (prev + 1) % pinCount);
+        break;
+      case "ArrowLeft":
+      case "ArrowUp":
+        e.preventDefault();
+        setFocusedPinIndex((prev) => (prev - 1 + pinCount) % pinCount);
+        break;
+      case "Enter":
+      case " ":
+        e.preventDefault();
+        if (focusedPinIndex >= 0 && focusedPinIndex < pinCount) {
+          onStylistSelect?.(displayedStylists[focusedPinIndex]);
+        }
+        break;
+      case "+":
+      case "=":
+        e.preventDefault();
+        handleZoomIn();
+        break;
+      case "-":
+        e.preventDefault();
+        handleZoomOut();
+        break;
+      case "l":
+      case "L":
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          toggleViewMode();
+        }
+        break;
+    }
+  }, [viewMode, displayedStylists, focusedPinIndex, onStylistSelect, toggleViewMode]);
 
   // Empty state check
   const isEmpty = stylists.length === 0 && salons.length === 0;
 
-  // Loading state (either component loading or Google Maps loading)
-  if (isLoading || !isLoaded) {
+  // Loading state
+  if (isLoading) {
     return (
       <div
         className={cn("relative w-full h-full bg-background-tertiary", className)}
@@ -338,40 +281,7 @@ export function StylistMap({
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 mx-auto border-4 border-brand-rose/20 border-t-brand-rose rounded-full animate-spin" />
-            <p className="text-text-secondary text-sm">
-              {isLoading ? "Finding stylists near you..." : "Loading map..."}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (loadError) {
-    return (
-      <div
-        className={cn("relative w-full h-full bg-background-tertiary", className)}
-        role="alert"
-        aria-label="Map error"
-      >
-        <div className="absolute inset-0 flex items-center justify-center p-6">
-          <div className="text-center space-y-4 max-w-sm">
-            <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center">
-              <MapPinOff className="w-8 h-8 text-red-500" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-text-primary mb-1">
-                Map unavailable
-              </h3>
-              <p className="text-text-secondary text-sm">
-                We couldn't load the map. Please try again later or use the list view.
-              </p>
-            </div>
-            <Button onClick={toggleViewMode} className="mx-auto">
-              <List className="w-4 h-4 mr-2" />
-              Switch to list view
-            </Button>
+            <p className="text-text-secondary text-sm">Finding stylists near you...</p>
           </div>
         </div>
       </div>
@@ -389,14 +299,14 @@ export function StylistMap({
         <div className="absolute inset-0 flex items-center justify-center p-6">
           <div className="text-center space-y-4 max-w-sm">
             <div className="w-16 h-16 mx-auto bg-background-secondary rounded-full flex items-center justify-center">
-              <MapPinOff className="w-8 h-8 text-text-tertiary" />
+              <Icon name="location" size="xl" className="text-text-tertiary" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-text-primary mb-1">
                 No stylists nearby
               </h3>
               <p className="text-text-secondary text-sm">
-                We couldn't find any stylists in this area. Try expanding your search
+                We couldn&apos;t find any stylists in this area. Try expanding your search
                 or enabling location services.
               </p>
             </div>
@@ -406,7 +316,7 @@ export function StylistMap({
               className="mx-auto"
               aria-label="Enable location to find stylists"
             >
-              <Locate className={cn("w-4 h-4 mr-2", isLocating && "animate-pulse")} />
+              <Icon name="location" size="sm" className={cn("mr-2", isLocating && "animate-pulse")} aria-hidden="true" />
               {isLocating ? "Finding location..." : "Use my location"}
             </Button>
           </div>
@@ -420,11 +330,14 @@ export function StylistMap({
       ref={mapContainerRef}
       className={cn(
         "relative w-full h-full bg-background-tertiary",
+        // Disable animations on reduced motion preference
         prefersReducedMotion && "[&_*]:!transition-none [&_*]:!animate-none",
         className
       )}
       role="region"
-      aria-label={`Stylist map showing ${stylists.length} stylists.`}
+      aria-label={`Stylist map showing ${stylists.length} stylists. Use arrow keys to navigate pins, Enter to select.`}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
     >
       {/* Low-end device indicator (dev only) */}
       {process.env.NODE_ENV === "development" && isLowEndDevice && (
@@ -445,10 +358,11 @@ export function StylistMap({
           size="sm"
           onClick={toggleViewMode}
           className="w-10 h-10 p-0 bg-background-primary shadow-md"
-          aria-label={viewMode === "map" ? "Switch to list view" : "Switch to map view"}
+          aria-label={viewMode === "map" ? "Switch to list view (Ctrl+L)" : "Switch to map view (Ctrl+L)"}
           aria-pressed={viewMode === "list"}
+          title={viewMode === "map" ? "Switch to list view (Ctrl+L)" : "Switch to map view (Ctrl+L)"}
         >
-          {viewMode === "map" ? <List className="w-5 h-5" /> : <MapIcon className="w-5 h-5" />}
+          {viewMode === "map" ? <Icon name="menu" size="md" aria-hidden="true" /> : <Icon name="location" size="md" aria-hidden="true" />}
         </Button>
       </div>
 
@@ -478,120 +392,129 @@ export function StylistMap({
           </ul>
         </div>
       ) : (
-        /* Google Maps View */
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={center}
-          zoom={MAP_DEFAULTS.zoom}
-          onLoad={onLoad}
-          onUnmount={onUnmount}
-          options={{
-            styles: currentMapStyles,
-            disableDefaultUI: true,
-            zoomControl: true,
-            zoomControlOptions: {
-              position: typeof google !== "undefined" ? google.maps.ControlPosition.RIGHT_TOP : 3,
-            },
-            gestureHandling: "greedy",
-          }}
-        >
-          {/* User location marker */}
-          {userLocation && (
-            <MarkerF
-              position={userLocation}
-              icon={{
-                path: google.maps.SymbolPath.CIRCLE,
-                fillColor: "#4285F4",
-                fillOpacity: 1,
-                strokeColor: "#ffffff",
-                strokeWeight: 3,
-                scale: 8,
-              }}
-              title="Your location"
-            />
-          )}
+        /* Map View */
+        <div className="absolute inset-0 bg-gradient-to-br from-background-secondary to-background-tertiary">
+          {/* Grid pattern to simulate map */}
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `
+                linear-gradient(to right, var(--border-default) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--border-default) 1px, transparent 1px)
+              `,
+              backgroundSize: `${40 * (zoom / 12)}px ${40 * (zoom / 12)}px`,
+            }}
+            aria-hidden="true"
+          />
 
-          {/* Stylist markers */}
-          {sortedStylists.map((stylist) => (
-            <MarkerF
-              key={stylist.id}
-              position={{ lat: stylist.lat, lng: stylist.lng }}
-              icon={getMarkerIcon(stylist.operatingMode, selectedStylistId === stylist.id)}
-              onClick={() => {
-                setSelectedMarker(stylist);
-                onStylistSelect?.(stylist);
-              }}
-              title={stylist.name}
-            />
-          ))}
-
-          {/* Salon markers */}
-          {showSalons && salons.map((salon) => (
-            <MarkerF
-              key={salon.id}
-              position={{ lat: salon.lat, lng: salon.lng }}
-              icon={{
-                path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-                fillColor: "#E91E63",
-                fillOpacity: 1,
-                strokeColor: mapTheme === "dark" ? "#ffffff" : "#311E6B",
-                strokeWeight: 2,
-                scale: 6,
-              }}
-              onClick={() => onSalonSelect?.(salon)}
-              title={salon.name}
-            />
-          ))}
-
-          {/* Info window for selected stylist */}
-          {selectedMarker && (
-            <InfoWindowF
-              position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
-              onCloseClick={() => setSelectedMarker(null)}
-            >
-              <div className="p-2 min-w-[200px]">
-                <div className="flex items-center gap-2 mb-2">
-                  {selectedMarker.avatarUrl ? (
-                    <img
-                      src={selectedMarker.avatarUrl}
-                      alt=""
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-gray-600">
-                        {selectedMarker.name.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-semibold text-gray-900">{selectedMarker.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {selectedMarker.operatingMode === "FIXED" ? "Fixed Location" :
-                       selectedMarker.operatingMode === "MOBILE" ? "Mobile" : "Hybrid"}
-                    </p>
-                  </div>
+          {/* Simulated map content area */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative w-full h-full max-w-2xl max-h-2xl p-8">
+              {/* User location */}
+              {userLocation && (
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
+                  role="img"
+                  aria-label="Your location"
+                >
+                  <UserPin />
                 </div>
-                {selectedMarker.rating && (
-                  <div className="flex items-center gap-1 text-amber-500 mb-2">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span className="text-sm font-medium">{selectedMarker.rating.toFixed(1)}</span>
+              )}
+
+              {/* Stylist pins - arranged in a pattern */}
+              {displayedStylists.map((stylist, index) => {
+                const angle = (index / Math.max(displayedStylists.length, 8)) * 2 * Math.PI;
+                const radius = 25 + (index % 3) * 12;
+                const x = 50 + Math.cos(angle) * radius;
+                const y = 50 + Math.sin(angle) * radius;
+                const isFocused = focusedPinIndex === index;
+
+                return (
+                  <div
+                    key={stylist.id}
+                    className={cn(
+                      "absolute transform -translate-x-1/2 -translate-y-full z-10",
+                      // Keyboard focus ring
+                      isFocused && "ring-2 ring-brand-rose ring-offset-2 rounded-full"
+                    )}
+                    style={{
+                      left: `${x}%`,
+                      top: `${y}%`,
+                    }}
+                    role="button"
+                    tabIndex={-1}
+                    aria-label={`${stylist.name}, ${stylist.operatingMode.toLowerCase()} stylist`}
+                  >
+                    <StylistPin
+                      stylist={stylist}
+                      isSelected={selectedStylistId === stylist.id || isFocused}
+                      onClick={() => onStylistSelect?.(stylist)}
+                    />
                   </div>
-                )}
-                {selectedMarker.specialties && selectedMarker.specialties.length > 0 && (
-                  <p className="text-xs text-gray-600">
-                    {selectedMarker.specialties.slice(0, 3).join(" • ")}
-                  </p>
-                )}
-              </div>
-            </InfoWindowF>
-          )}
-        </GoogleMap>
+                );
+              })}
+
+              {/* Salon pins */}
+              {showSalons &&
+                salons.slice(0, 3).map((salon, index) => {
+                  const angle = ((index + displayedStylists.length) / (displayedStylists.length + 4)) * 2 * Math.PI;
+                  const radius = 35;
+                  const x = 50 + Math.cos(angle) * radius;
+                  const y = 50 + Math.sin(angle) * radius;
+
+                  return (
+                    <div
+                      key={salon.id}
+                      className="absolute transform -translate-x-1/2 -translate-y-full z-10"
+                      style={{
+                        left: `${x}%`,
+                        top: `${y}%`,
+                      }}
+                    >
+                      <SalonPin
+                        salon={salon}
+                        onClick={() => onSalonSelect?.(salon)}
+                      />
+                    </div>
+                  );
+                })}
+
+              {/* Cluster indicators */}
+              {clusters.map((cluster, index) => (
+                <div
+                  key={`cluster-${index}`}
+                  className="absolute bottom-[20%] right-[20%] z-10"
+                  style={{
+                    right: `${15 + index * 10}%`,
+                    bottom: `${20 + index * 5}%`,
+                  }}
+                >
+                  <ClusterPin count={cluster.count} />
+                </div>
+              ))}
+
+              {/* Additional cluster if more stylists exist */}
+              {stylists.length > displayedStylists.length + clusters.reduce((sum, c) => sum + c.count, 0) && (
+                <div className="absolute bottom-[15%] right-[15%] z-10">
+                  <ClusterPin count={stylists.length - displayedStylists.length} />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Map unavailable notice */}
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-background-primary/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md">
+            <p className="text-xs text-text-secondary flex items-center gap-2">
+              <Icon name="location" size="xs" aria-hidden="true" />
+              Interactive map coming soon
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Map Controls (only show in map view) */}
       {viewMode === "map" && (
-        <div className="absolute top-4 right-4 flex flex-col gap-2 z-30" style={{ marginTop: "60px" }}>
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-30">
           {/* Locate Me */}
           <Button
             variant="outline"
@@ -601,23 +524,34 @@ export function StylistMap({
             className="w-10 h-10 p-0 bg-background-primary shadow-md"
             aria-label="Find my location"
           >
-            <Locate className={cn("w-5 h-5", isLocating && "animate-pulse")} aria-hidden="true" />
+            <Icon name="location" size="md" className={cn(isLocating && "animate-pulse")} aria-hidden="true" />
           </Button>
 
-          {/* Theme Toggle (Dark/Light) */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleMapTheme}
-            className="w-10 h-10 p-0 bg-background-primary shadow-md"
-            aria-label={mapTheme === "dark" ? "Switch to light map" : "Switch to dark map"}
+          {/* Zoom Controls */}
+          <div
+            className="flex flex-col bg-background-primary rounded-lg shadow-md overflow-hidden"
+            role="group"
+            aria-label="Zoom controls"
           >
-            {mapTheme === "dark" ? (
-              <Sun className="w-5 h-5" aria-hidden="true" />
-            ) : (
-              <Moon className="w-5 h-5" aria-hidden="true" />
-            )}
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleZoomIn}
+              className="w-10 h-10 p-0 rounded-none border-b border-border-default"
+              aria-label="Zoom in"
+            >
+              <Icon name="add" size="md" aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleZoomOut}
+              className="w-10 h-10 p-0 rounded-none"
+              aria-label="Zoom out"
+            >
+              <Icon name="close" size="md" aria-hidden="true" />
+            </Button>
+          </div>
 
           {/* Layer Toggle */}
           <Button
@@ -628,7 +562,7 @@ export function StylistMap({
             aria-label={showSalons ? "Hide salons" : "Show salons"}
             aria-pressed={showSalons}
           >
-            <Layers className="w-5 h-5" aria-hidden="true" />
+            <Icon name="settings" size="md" aria-hidden="true" />
           </Button>
         </div>
       )}
@@ -636,21 +570,15 @@ export function StylistMap({
       {/* Legend (only show in map view) */}
       {viewMode === "map" && (
         <div
-          className={cn(
-            "absolute bottom-4 left-4 backdrop-blur-sm rounded-lg p-3 shadow-md z-30",
-            mapTheme === "dark" ? "bg-gray-900/90 text-white" : "bg-background-primary/90"
-          )}
+          className="absolute bottom-4 left-4 bg-background-primary/90 backdrop-blur-sm rounded-lg p-3 shadow-md z-30"
           role="region"
           aria-label="Map legend"
         >
-          <p className={cn(
-            "text-xs font-medium mb-2",
-            mapTheme === "dark" ? "text-white" : "text-text-primary"
-          )}>Stylist Type</p>
+          <p className="text-xs font-medium text-text-primary mb-2">Stylist Type</p>
           <div className="space-y-1.5">
-            <LegendItem color={STYLIST_MODE_COLORS.FIXED} label="Fixed Location" isDark={mapTheme === "dark"} />
-            <LegendItem color={STYLIST_MODE_COLORS.MOBILE} label="Mobile" isDark={mapTheme === "dark"} />
-            <LegendItem color={STYLIST_MODE_COLORS.HYBRID} label="Both" isDark={mapTheme === "dark"} />
+            <LegendItem color={STYLIST_MODE_COLORS.FIXED} label="Fixed Location" />
+            <LegendItem color={STYLIST_MODE_COLORS.MOBILE} label="Mobile" />
+            <LegendItem color={STYLIST_MODE_COLORS.HYBRID} label="Both" />
           </div>
         </div>
       )}
@@ -659,7 +587,7 @@ export function StylistMap({
 }
 
 // Legend Item Component
-function LegendItem({ color, label, isDark }: { color: string; label: string; isDark?: boolean }) {
+function LegendItem({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-2">
       <span
@@ -667,7 +595,7 @@ function LegendItem({ color, label, isDark }: { color: string; label: string; is
         style={{ backgroundColor: color }}
         aria-hidden="true"
       />
-      <span className={cn("text-xs", isDark ? "text-gray-300" : "text-text-secondary")}>{label}</span>
+      <span className="text-xs text-text-secondary">{label}</span>
     </div>
   );
 }
@@ -708,9 +636,11 @@ function StylistListItem({
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         {stylist.avatarUrl ? (
-          <img
+          <Image
             src={stylist.avatarUrl}
             alt=""
+            width={48}
+            height={48}
             className="w-12 h-12 rounded-full object-cover"
           />
         ) : (
@@ -736,7 +666,7 @@ function StylistListItem({
           </p>
           {stylist.rating && (
             <div className="flex items-center gap-0.5 text-amber-500">
-              <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
+              <Icon name="star" size="xs" weight="fill" className="fill-current" aria-hidden="true" />
               <span className="text-xs font-medium">{stylist.rating.toFixed(1)}</span>
             </div>
           )}
@@ -784,7 +714,7 @@ function SalonListItem({
     >
       {/* Icon */}
       <div className="w-12 h-12 rounded-lg bg-brand-rose/10 flex items-center justify-center flex-shrink-0">
-        <MapPin className="w-6 h-6 text-brand-rose" aria-hidden="true" />
+        <Icon name="location" size="lg" className="text-brand-rose" aria-hidden="true" />
       </div>
 
       {/* Info */}
@@ -795,7 +725,7 @@ function SalonListItem({
           </p>
           {salon.rating && (
             <div className="flex items-center gap-0.5 text-amber-500">
-              <Star className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
+              <Icon name="star" size="xs" weight="fill" className="fill-current" aria-hidden="true" />
               <span className="text-xs font-medium">{salon.rating.toFixed(1)}</span>
             </div>
           )}

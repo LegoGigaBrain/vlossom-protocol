@@ -8,8 +8,7 @@ import Link from "next/link";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
-import { toast } from "../../../hooks/use-toast";
-import { ArrowLeft, Mail, CheckCircle } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -67,7 +66,7 @@ export default function ForgotPasswordPage() {
           <div className="bg-background-primary rounded-card shadow-card p-8 text-center space-y-6">
             {/* Success Icon */}
             <div className="w-16 h-16 mx-auto bg-status-success/10 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-8 h-8 text-status-success" />
+              <Icon name="success" size="lg" className="text-status-success" />
             </div>
 
             {/* Message */}
@@ -107,7 +106,7 @@ export default function ForgotPasswordPage() {
               </Button>
               <Link href="/login" className="block">
                 <Button variant="ghost" className="w-full">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <Icon name="chevronLeft" size="sm" className="mr-2" />
                   Back to login
                 </Button>
               </Link>
@@ -137,7 +136,7 @@ export default function ForgotPasswordPage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email address</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
+                <Icon name="email" size="md" className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <Input
                   id="email"
                   type="email"
@@ -164,7 +163,7 @@ export default function ForgotPasswordPage() {
               href="/login"
               className="text-sm text-brand-rose hover:text-brand-clay transition-gentle inline-flex items-center gap-1"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <Icon name="chevronLeft" size="sm" />
               Back to login
             </Link>
           </div>

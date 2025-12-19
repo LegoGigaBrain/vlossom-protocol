@@ -4,9 +4,17 @@
 
 ## Current Implementation Status
 
-**V6.4.0 Brand Logo & Map UX** (Dec 18, 2025)
+**V6.5.1 Property Owner UI Components** (Dec 19, 2025)
 
-Custom Uber-style Google Maps with dark/light themes, brand logo components integrated across app, production Vercel deployment.
+Complete property owner frontend with image upload, amenity picker, and chair management components.
+
+**V6.5.0 Phosphor Icon Migration** (Dec 18, 2025)
+
+Complete migration from Lucide to Phosphor icons across 50+ files using centralized Icon bridge system for consistent botanical iconography.
+
+**V6.4.0 Local Development & Service Fixes** (Dec 18, 2025)
+
+Redis Cloud integration, scheduler endpoint routing fix, admin panel scaffold.
 
 **V6.3.0 Phase 2 UX & Infrastructure** (Dec 17, 2025)
 
@@ -26,30 +34,32 @@ Complete design system with botanical icons (28 SVGs), animation system (unfold/
 
 ---
 
-### V6.4.0 Changes
+### V6.5.1 Changes
 
-**Google Maps Integration**
-- `components/map/stylist-map.tsx` - Complete rewrite with real Google Maps
-- Custom Vlossom dark/light map themes inspired by Uber
-- Theme toggle (sun/moon icons) with localStorage persistence
-- `@react-google-maps/api` integration with MarkerF, InfoWindowF
-- Brand purple (#311E6B) integrated into map styling
+**Property Owner UI Components**
+- `lib/property-client.ts` - Complete typed API client for properties and chairs
+- `hooks/use-properties.ts` - React Query hooks with mutations and cache invalidation
+- `components/property-owner/property-image-upload.tsx` - Drag-and-drop image upload with cover selection
+- `components/property-owner/amenity-picker.tsx` - Multi-select grid for 10 chair amenities
+- `components/property-owner/chair-form-dialog.tsx` - 3-step wizard for chair configuration
+- `components/property-owner/index.ts` - Component exports
+- `src/app/property-owner/properties/[id]/page.tsx` - Property detail page with full CRUD
+- `app/admin/properties/page.tsx` - Enhanced with image preview in table
 
-**Brand Logo Components**
-- `components/ui/vlossom-logo.tsx` - New brand logo component library
-- `VlossomIcon` - Flower symbol SVG
-- `VlossomWordmark` - Text logo SVG with height-based sizing
-- `VlossomLogo` - Combined icon + wordmark
-- Variants: purple, cream, auto (auto adapts to light/dark mode)
+**New Routes:**
+- `/property-owner/properties/[id]` - Property detail with image management
 
-**Logo Integration**
-- `components/layout/desktop-nav.tsx` - Brand logo in header
-- `app/(auth)/login/page.tsx` - Logo on login page
-- `app/(auth)/onboarding/page.tsx` - Logo on signup page
+---
 
-**Production Deployment**
-- Deployed to Vercel (https://vlossom-protocol.vercel.app)
-- Build configuration verified and working
+### V6.5.0 Changes
+
+**Phosphor Icon Migration (50+ Files)**
+- All frontend components now use `Icon` component from `@/components/icons`
+- Complete migration: notification, booking, wallet, profile, dialog, review, calendar, map, admin components
+- Pages migrated: settings (5), help (8), auth (2), main app (7), admin (3)
+- Icon mapping: Lucide → Phosphor with semantic names (e.g., `Sparkles` → `sparkle`)
+- Size standardization: sm, md, lg, xl, 2xl tokens
+- Zero Lucide imports remain in `apps/web`
 
 ---
 

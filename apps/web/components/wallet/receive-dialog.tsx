@@ -12,6 +12,7 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { logger } from "@/lib/logger";
 
 interface ReceiveDialogProps {
   open: boolean;
@@ -77,7 +78,7 @@ export function ReceiveDialog({ open, onOpenChange, walletAddress }: ReceiveDial
         });
       } catch (error) {
         // User cancelled share or share failed
-        console.log("Share cancelled or failed:", error);
+        logger.debug("Share cancelled or failed", { error });
       }
     } else {
       // Fallback to copy

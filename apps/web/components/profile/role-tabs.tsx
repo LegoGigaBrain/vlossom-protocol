@@ -12,17 +12,8 @@
 "use client";
 
 import { cn } from "../../lib/utils";
-import {
-  User,
-  Scissors,
-  Building2,
-  Sparkles,
-  Calendar,
-  Star,
-  TrendingUp,
-  Database,
-  AlertCircle,
-} from "lucide-react";
+import { Icon } from "@/components/icons";
+import type { IconName } from "@/components/icons";
 import { Badge } from "../ui/badge";
 import { Skeleton } from "../ui/skeleton";
 import {
@@ -37,14 +28,14 @@ export type ProfileTabId = "overview" | "stylist" | "salon";
 interface ProfileTab {
   id: ProfileTabId;
   label: string;
-  icon: typeof User;
+  iconName: IconName;
   requiredRole?: string;
 }
 
 const allTabs: ProfileTab[] = [
-  { id: "overview", label: "Overview", icon: User },
-  { id: "stylist", label: "Stylist", icon: Scissors, requiredRole: "STYLIST" },
-  { id: "salon", label: "Salon", icon: Building2, requiredRole: "PROPERTY_OWNER" },
+  { id: "overview", label: "Overview", iconName: "profile" },
+  { id: "stylist", label: "Stylist", iconName: "care", requiredRole: "STYLIST" },
+  { id: "salon", label: "Salon", iconName: "pin", requiredRole: "PROPERTY_OWNER" },
 ];
 
 interface RoleTabsProps {
@@ -71,7 +62,6 @@ export function RoleTabs({
     <div className={cn("border-b border-border-default bg-background-primary", className)}>
       <div className="flex">
         {availableTabs.map((tab) => {
-          const Icon = tab.icon;
           const isActive = activeTab === tab.id;
 
           return (
@@ -87,7 +77,7 @@ export function RoleTabs({
               aria-selected={isActive}
               role="tab"
             >
-              <Icon className="w-4 h-4" />
+              <Icon name={tab.iconName} size="sm" />
               <span className="hidden sm:inline">{tab.label}</span>
             </button>
           );
@@ -141,7 +131,7 @@ export function StylistTab({ className }: StylistTabProps) {
     return (
       <div className={cn("space-y-6", className)}>
         <div className="flex items-center justify-center gap-2 py-12 text-status-error">
-          <AlertCircle className="w-5 h-5" />
+          <Icon name="error" size="sm" />
           <p>Unable to load dashboard stats</p>
         </div>
       </div>
@@ -153,7 +143,7 @@ export function StylistTab({ className }: StylistTabProps) {
       {/* Mock Data Indicator */}
       {isUsingMockData && process.env.NODE_ENV === "development" && (
         <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
-          <Database className="w-3 h-3 mr-1" />
+          <Icon name="info" size="xs" className="mr-1" />
           Demo Data
         </Badge>
       )}
@@ -161,26 +151,26 @@ export function StylistTab({ className }: StylistTabProps) {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          icon={Calendar}
+          iconName="calendar"
           label="Total Bookings"
           value={stats.totalBookings.toString()}
           color="text-brand-rose"
         />
         <StatCard
-          icon={TrendingUp}
+          iconName="growing"
           label="Completed"
           value={stats.completedBookings.toString()}
           color="text-status-success"
         />
         <StatCard
-          icon={Star}
+          iconName="star"
           label="Rating"
           value={stats.averageRating.toFixed(1)}
           subtext={`${stats.totalReviews} reviews`}
           color="text-accent-gold"
         />
         <StatCard
-          icon={Sparkles}
+          iconName="sparkle"
           label="This Month"
           value={formatCurrency(stats.thisMonthEarnings)}
           color="text-brand-purple"
@@ -243,7 +233,7 @@ export function SalonTab({ className }: SalonTabProps) {
     return (
       <div className={cn("space-y-6", className)}>
         <div className="flex items-center justify-center gap-2 py-12 text-status-error">
-          <AlertCircle className="w-5 h-5" />
+          <Icon name="error" size="sm" />
           <p>Unable to load dashboard stats</p>
         </div>
       </div>
@@ -255,7 +245,7 @@ export function SalonTab({ className }: SalonTabProps) {
       {/* Mock Data Indicator */}
       {isUsingMockData && process.env.NODE_ENV === "development" && (
         <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300 text-xs">
-          <Database className="w-3 h-3 mr-1" />
+          <Icon name="info" size="xs" className="mr-1" />
           Demo Data
         </Badge>
       )}
@@ -263,26 +253,26 @@ export function SalonTab({ className }: SalonTabProps) {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          icon={Building2}
+          iconName="pin"
           label="Properties"
           value={stats.totalProperties.toString()}
           color="text-brand-purple"
         />
         <StatCard
-          icon={Calendar}
+          iconName="calendar"
           label="Total Chairs"
           value={stats.totalChairs.toString()}
           subtext={`${stats.occupiedChairs} occupied`}
           color="text-brand-rose"
         />
         <StatCard
-          icon={TrendingUp}
+          iconName="growing"
           label="Occupancy"
           value={formatPercentage(stats.averageOccupancy)}
           color="text-status-success"
         />
         <StatCard
-          icon={Sparkles}
+          iconName="sparkle"
           label="Monthly Revenue"
           value={formatCurrency(stats.monthlyRevenue)}
           color="text-accent-gold"
@@ -315,17 +305,17 @@ export function SalonTab({ className }: SalonTabProps) {
  * Stat Card Component
  */
 interface StatCardProps {
-  icon: typeof Calendar;
+  iconName: IconName;
   label: string;
   value: string;
   subtext?: string;
   color?: string;
 }
 
-function StatCard({ icon: Icon, label, value, subtext, color = "text-brand-rose" }: StatCardProps) {
+function StatCard({ iconName, label, value, subtext, color = "text-brand-rose" }: StatCardProps) {
   return (
     <div className="bg-background-primary border border-border-default rounded-xl p-4">
-      <Icon className={cn("w-5 h-5 mb-2", color)} />
+      <Icon name={iconName} size="sm" className={cn("mb-2", color)} />
       <p className="text-2xl font-bold text-text-primary">{value}</p>
       <p className="text-xs text-text-secondary">{label}</p>
       {subtext && <p className="text-xs text-text-muted mt-1">{subtext}</p>}

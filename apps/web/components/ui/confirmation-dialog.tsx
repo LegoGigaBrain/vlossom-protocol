@@ -14,7 +14,7 @@
  */
 
 import * as React from "react";
-import { AlertTriangle, AlertCircle, Info } from "lucide-react";
+import { Icon, type IconName } from "@/components/icons";
 import {
   Dialog,
   DialogHeader,
@@ -39,19 +39,19 @@ export interface ConfirmationDialogProps {
 
 const variantConfig = {
   default: {
-    icon: Info,
+    iconName: "info" as IconName,
     iconColor: "text-brand-purple",
     iconBg: "bg-brand-purple/10",
     confirmVariant: "primary" as const,
   },
   danger: {
-    icon: AlertTriangle,
+    iconName: "calmError" as IconName,
     iconColor: "text-status-error",
     iconBg: "bg-status-error/10",
     confirmVariant: "destructive" as const,
   },
   warning: {
-    icon: AlertCircle,
+    iconName: "error" as IconName,
     iconColor: "text-status-warning",
     iconBg: "bg-status-warning/10",
     confirmVariant: "primary" as const,
@@ -71,7 +71,6 @@ export function ConfirmationDialog({
   isLoading = false,
 }: ConfirmationDialogProps) {
   const config = variantConfig[variant];
-  const Icon = config.icon;
 
   const handleConfirm = async () => {
     await onConfirm();
@@ -98,7 +97,7 @@ export function ConfirmationDialog({
         <div
           className={`w-12 h-12 rounded-full ${config.iconBg} flex items-center justify-center mb-4`}
         >
-          <Icon className={`h-6 w-6 ${config.iconColor}`} />
+          <Icon name={config.iconName} size="lg" className={config.iconColor} />
         </div>
 
         <DialogHeader>

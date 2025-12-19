@@ -41,7 +41,7 @@ export function StartServiceDialog({
 
         <div className="space-y-4">
           <p className="text-body text-text-secondary">
-            You're about to start:
+            You&apos;re about to start:
           </p>
 
           <div className="p-4 bg-background-secondary rounded-lg space-y-2">
@@ -62,7 +62,7 @@ export function StartServiceDialog({
 
           <div className="p-3 bg-brand-rose/5 border border-brand-rose/20 rounded-lg">
             <p className="text-body-small text-text-secondary">
-              ℹ️ Starting the service confirms you've met the customer and are
+              ℹ️ Starting the service confirms you&apos;ve met the customer and are
               beginning work.
             </p>
           </div>

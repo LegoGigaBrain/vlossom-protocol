@@ -36,11 +36,6 @@ export function FaucetButton({ onSuccess, className = "" }: FaucetButtonProps) {
   const [nextClaimAt, setNextClaimAt] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState<string | null>(null);
 
-  // Only render on testnet
-  if (!isTestnet()) {
-    return null;
-  }
-
   // Countdown timer effect
   useEffect(() => {
     if (!nextClaimAt) {
@@ -76,6 +71,11 @@ export function FaucetButton({ onSuccess, className = "" }: FaucetButtonProps) {
 
     return () => clearInterval(interval);
   }, [nextClaimAt]);
+
+  // Only render on testnet
+  if (!isTestnet()) {
+    return null;
+  }
 
   const handleClaim = async () => {
     setClaiming(true);

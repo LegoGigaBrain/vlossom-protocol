@@ -3,7 +3,7 @@
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { format, addDays, isSameDay, isBefore, startOfToday } from "date-fns";
-import { X, Calendar, Clock, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
@@ -149,7 +149,7 @@ export function RescheduleDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -158,7 +158,7 @@ export function RescheduleDialog({
           <div className="p-4 space-y-6">
             {/* Current Booking Info */}
             <div className="bg-background-tertiary rounded-lg p-3 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-status-warning shrink-0" />
+              <Icon name="error" size="sm" className="text-status-warning shrink-0" />
               <p className="text-sm text-text-secondary">
                 Current: {format(currentBookingDate, "EEE, MMM d")} at{" "}
                 {format(currentBookingDate, "h:mm a")}
@@ -169,7 +169,7 @@ export function RescheduleDialog({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium text-text-primary flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
+                  <Icon name="calendar" size="sm" />
                   Select New Date
                 </h3>
                 <div className="flex items-center gap-1">
@@ -179,14 +179,14 @@ export function RescheduleDialog({
                     className="p-1 rounded hover:bg-background-tertiary disabled:opacity-50 transition-gentle"
                     aria-label="Previous week"
                   >
-                    <ChevronLeft className="w-5 h-5 text-text-secondary" />
+                    <Icon name="chevronLeft" size="sm" className="text-text-secondary" />
                   </button>
                   <button
                     onClick={handleNextWeek}
                     className="p-1 rounded hover:bg-background-tertiary transition-gentle"
                     aria-label="Next week"
                   >
-                    <ChevronRight className="w-5 h-5 text-text-secondary" />
+                    <Icon name="chevronRight" size="sm" className="text-text-secondary" />
                   </button>
                 </div>
               </div>
@@ -237,7 +237,7 @@ export function RescheduleDialog({
             {selectedDate && (
               <div className="space-y-3">
                 <h3 className="font-medium text-text-primary flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
+                  <Icon name="clock" size="sm" />
                   Select Time
                 </h3>
 

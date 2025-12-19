@@ -4,7 +4,7 @@
  * Authentication functions for Vlossom SDK.
  */
 
-import { VlossomClient, type ApiResponse } from './client';
+import { VlossomClient } from './client';
 
 export interface User {
   id: string;

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { formatPrice, formatDuration, formatDate, formatTimeFromDate } from "@/lib/utils";
 import { StatusBadge } from "./status-badge";
 import { Button } from "@/components/ui/button";
@@ -59,9 +60,11 @@ export function BookingDetails({ booking, onCancel, onBack }: BookingDetailsProp
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
             {booking.stylist.avatarUrl ? (
-              <img
+              <Image
                 src={booking.stylist.avatarUrl}
                 alt={booking.stylist.displayName}
+                width={56}
+                height={56}
                 className="w-full h-full object-cover"
               />
             ) : (

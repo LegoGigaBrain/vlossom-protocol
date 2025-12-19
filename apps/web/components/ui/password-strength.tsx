@@ -63,7 +63,7 @@ function calculatePasswordStrength(password: string): StrengthResult {
   }
 
   // Special character check
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
     score += 0.5;
   } else {
     feedback.push("Add special characters");

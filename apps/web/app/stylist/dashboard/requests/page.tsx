@@ -173,7 +173,7 @@ export default function RequestsPage() {
           <InboxIcon className="h-12 w-12 mx-auto text-text-tertiary mb-4" />
           <h3 className="text-h4 text-text-primary mb-2">No pending requests</h3>
           <p className="text-body text-text-secondary">
-            When customers request bookings, they'll appear here for you to review.
+            When customers request bookings, they&apos;ll appear here for you to review.
           </p>
         </div>
       ) : (

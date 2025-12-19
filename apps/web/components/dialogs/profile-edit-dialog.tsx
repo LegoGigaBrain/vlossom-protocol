@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { X, Camera, User, Loader2 } from "lucide-react";
-import { cn } from "../../lib/utils";
+import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -158,7 +158,7 @@ export function ProfileEditDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -170,19 +170,21 @@ export function ProfileEditDialog({
               <div className="relative">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-background-tertiary border-2 border-border-default">
                   {avatarPreview ? (
-                    <img
+                    <Image
                       src={avatarPreview}
                       alt="Profile"
                       className="w-full h-full object-cover"
+                      width={96}
+                      height={96}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-2xl font-semibold text-text-secondary">
-                      {initials || <User className="w-10 h-10" />}
+                      {initials || <Icon name="profile" size="lg" />}
                     </div>
                   )}
                   {isUploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
-                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                      <Icon name="loading" size="md" className="text-white" />
                     </div>
                   )}
                 </div>
@@ -193,7 +195,7 @@ export function ProfileEditDialog({
                   className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-rose text-white flex items-center justify-center hover:bg-brand-clay transition-gentle disabled:opacity-50"
                   aria-label="Change photo"
                 >
-                  <Camera className="w-4 h-4" />
+                  <Icon name="camera" size="sm" />
                 </button>
                 <input
                   ref={fileInputRef}

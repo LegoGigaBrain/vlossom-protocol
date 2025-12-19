@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { NotificationItem, type Notification } from "../../components/notifications/notification-item";
 import { Button } from "../../components/ui/button";
@@ -8,7 +8,7 @@ import { Skeleton } from "../../components/ui/skeleton";
 import { EmptyState } from "../../components/ui/empty-state";
 import { ErrorState } from "../../components/ui/error-state";
 import { useAuth } from "../../hooks/use-auth";
-import { Bell, CheckCheck, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -31,7 +31,7 @@ export default function NotificationsPage() {
   }, [user, authLoading, router]);
 
   // Fetch notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
 
     setIsLoading(true);
@@ -67,11 +67,11 @@ export default function NotificationsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, page, filter]);
 
   useEffect(() => {
     fetchNotifications();
-  }, [user, page, filter]);
+  }, [user, page, filter, fetchNotifications]);
 
   // Mark all as read
   const handleMarkAllRead = async () => {
@@ -148,7 +148,7 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
-            <Bell className="w-5 h-5 text-brand-rose" />
+            <Icon name="notifications" size="sm" className="text-brand-rose" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-text-primary">Notifications</h1>
@@ -168,7 +168,7 @@ export default function NotificationsPage() {
               disabled={isMarkingAll}
               className="text-brand-rose"
             >
-              <CheckCheck className="w-4 h-4 mr-1" />
+              <Icon name="check" size="sm" className="mr-1" />
               Mark all read
             </Button>
           )}
@@ -177,7 +177,7 @@ export default function NotificationsPage() {
             size="sm"
             onClick={() => router.push("/settings/notifications")}
           >
-            <Settings className="w-4 h-4" />
+            <Icon name="settings" size="sm" />
           </Button>
         </div>
       </div>
@@ -278,7 +278,7 @@ export default function NotificationsPage() {
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
                 >
-                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  <Icon name="chevronLeft" size="sm" className="mr-1" />
                   Previous
                 </Button>
                 <Button
@@ -288,7 +288,7 @@ export default function NotificationsPage() {
                   disabled={page === totalPages}
                 >
                   Next
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                  <Icon name="chevronRight" size="sm" className="ml-1" />
                 </Button>
               </div>
             </div>

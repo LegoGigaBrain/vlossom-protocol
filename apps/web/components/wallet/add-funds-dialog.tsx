@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { fiatRampRegistry, type FiatRampProvider, type ProviderAvailability } from "@/lib/fiat-ramp";
-import { isTestnet, CONTRACTS } from "@/lib/wagmi-config";
+import { isTestnet } from "@/lib/wagmi-config";
 import { useAccount } from "wagmi";
 import { formatPrice } from "@/lib/utils";
 

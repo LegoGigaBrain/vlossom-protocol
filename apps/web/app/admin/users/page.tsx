@@ -2,19 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import {
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  RefreshCw,
-  MoreVertical,
-  UserX,
-  UserCheck,
-  AlertTriangle,
-  Eye,
-  Shield,
-} from "lucide-react";
+import Image from "next/image";
+import { Icon } from "@/components/icons";
 
 interface UserData {
   id: string;
@@ -64,7 +53,6 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [actionUserId, setActionUserId] = useState<string | null>(null);
   const [showActionMenu, setShowActionMenu] = useState<string | null>(null);
 
   const fetchUsers = useCallback(async () => {
@@ -254,7 +242,7 @@ export default function AdminUsersPage() {
           disabled={isRefreshing}
           className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
         >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
+          <Icon name="settings" size="sm" className={isRefreshing ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
@@ -285,7 +273,7 @@ export default function AdminUsersPage() {
       <div className="bg-white rounded-lg shadow p-4">
         <form onSubmit={handleSearch} className="flex gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Icon name="search" size="sm" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search by email or name..."
@@ -354,14 +342,16 @@ export default function AdminUsersPage() {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
                         {user.avatarUrl ? (
-                          <img
+                          <Image
                             className="h-10 w-10 rounded-full"
                             src={user.avatarUrl}
                             alt=""
+                            width={40}
+                            height={40}
                           />
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                            <User className="h-5 w-5 text-gray-400" />
+                            <Icon name="profile" size="md" className="text-gray-400" />
                           </div>
                         )}
                       </div>
@@ -406,7 +396,7 @@ export default function AdminUsersPage() {
                         }
                         className="p-2 hover:bg-gray-100 rounded-full"
                       >
-                        <MoreVertical className="h-4 w-4 text-gray-500" />
+                        <Icon name="more" size="sm" className="text-gray-500" />
                       </button>
                       {showActionMenu === user.id && (
                         <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
@@ -415,7 +405,7 @@ export default function AdminUsersPage() {
                               href={`/admin/users/${user.id}`}
                               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             >
-                              <Eye className="h-4 w-4 mr-2" />
+                              <Icon name="visible" size="sm" className="mr-2" />
                               View Details
                             </Link>
                             {user.isFrozen ? (
@@ -423,7 +413,7 @@ export default function AdminUsersPage() {
                                 onClick={() => handleUnfreezeUser(user.id)}
                                 className="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-gray-100"
                               >
-                                <UserCheck className="h-4 w-4 mr-2" />
+                                <Icon name="check" size="sm" className="mr-2" />
                                 Unfreeze Account
                               </button>
                             ) : (
@@ -431,7 +421,7 @@ export default function AdminUsersPage() {
                                 onClick={() => handleFreezeUser(user.id)}
                                 className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
                               >
-                                <UserX className="h-4 w-4 mr-2" />
+                                <Icon name="close" size="sm" className="mr-2" />
                                 Freeze Account
                               </button>
                             )}
@@ -439,7 +429,7 @@ export default function AdminUsersPage() {
                               onClick={() => handleWarnUser(user.id)}
                               className="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-gray-100"
                             >
-                              <AlertTriangle className="h-4 w-4 mr-2" />
+                              <Icon name="calmError" size="sm" className="mr-2" />
                               Send Warning
                             </button>
                           </div>
@@ -493,14 +483,14 @@ export default function AdminUsersPage() {
                     disabled={currentPage === 1}
                     className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                   >
-                    <ChevronLeft className="h-5 w-5" />
+                    <Icon name="chevronLeft" size="md" />
                   </button>
                   <button
                     onClick={() => setCurrentPage((p) => Math.min(pagination.totalPages, p + 1))}
                     disabled={currentPage === pagination.totalPages}
                     className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    <Icon name="chevronRight" size="md" />
                   </button>
                 </nav>
               </div>

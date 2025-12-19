@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, CheckCircle, DollarSign, Star } from "lucide-react";
+import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
@@ -117,7 +117,7 @@ export function ConfirmServiceDialog({
                 className="p-1 rounded-full hover:bg-background-tertiary transition-gentle"
                 aria-label="Close"
               >
-                <X className="w-5 h-5 text-text-secondary" />
+                <Icon name="close" size="sm" className="text-text-secondary" />
               </button>
             </Dialog.Close>
           </div>
@@ -127,7 +127,7 @@ export function ConfirmServiceDialog({
             {/* Success Icon */}
             <div className="flex justify-center">
               <div className="w-16 h-16 rounded-full bg-status-success/10 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-status-success" />
+                <Icon name="check" size="lg" className="text-status-success" />
               </div>
             </div>
 
@@ -171,7 +171,7 @@ export function ConfirmServiceDialog({
             {/* Tip Selection */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-text-secondary" />
+                <Icon name="currency" size="sm" className="text-text-secondary" />
                 <span className="text-sm font-medium text-text-primary">
                   Add a tip for {stylistName.split(" ")[0]}?
                 </span>

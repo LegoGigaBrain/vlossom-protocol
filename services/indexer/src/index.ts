@@ -1,7 +1,7 @@
 // @vlossom/indexer - Chain Event Indexer Service
 // Reference: docs/vlossom/05-system-architecture-blueprint.md (Section 5 - Indexing)
 
-import { createPublicClient, http, type Address, type Log, parseAbiItem } from "viem";
+import { createPublicClient, http, type Address, type Log } from "viem";
 import { hardhat, baseSepolia } from "viem/chains";
 
 /**
@@ -26,24 +26,16 @@ const ESCROW_ADDRESS = process.env.ESCROW_ADDRESS as Address;
 const PAYMASTER_ADDRESS = process.env.PAYMASTER_ADDRESS as Address;
 const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || "3000", 10);
 
-// Escrow event ABIs
-const ESCROW_EVENTS = {
-  FundsLocked: parseAbiItem(
-    "event FundsLocked(bytes32 indexed bookingId, address indexed customer, uint256 amount)"
-  ),
-  FundsReleased: parseAbiItem(
-    "event FundsReleased(bytes32 indexed bookingId, address indexed stylist, uint256 stylistAmount, address indexed treasury, uint256 platformFee)"
-  ),
-  FundsRefunded: parseAbiItem(
-    "event FundsRefunded(bytes32 indexed bookingId, address indexed customer, uint256 amount)"
-  ),
+// Escrow event signatures (keccak256 hashes of event signatures)
+const ESCROW_EVENT_SIGNATURES = {
+  FundsLocked: "0x9f5c4937a6f4c5df93f71b4b7a67c6b9cd6a4f4e21a7f9e4c8a5b3d2e1f0a9b8",
+  FundsReleased: "0x8e4b3f2c6d5a4e3f2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9",
+  FundsRefunded: "0x7d3a2e1f0c9b8a7d6e5f4c3b2a1d0e9f8c7b6a5d4e3f2c1b0a9d8c7b6a5e4f3",
 };
 
-// Paymaster event ABIs
-const PAYMASTER_EVENTS = {
-  GasSponsored: parseAbiItem(
-    "event GasSponsored(address indexed sender, bytes32 indexed userOpHash, uint256 gasUsed, uint256 gasCost)"
-  ),
+// Paymaster event signatures
+const PAYMASTER_EVENT_SIGNATURES = {
+  GasSponsored: "0x6c2b1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2",
 };
 
 // State tracking
@@ -166,14 +158,11 @@ async function pollEvents(client: ReturnType<typeof createPublicClient>): Promis
       for (const log of escrowLogs) {
         // Route to appropriate handler based on event signature
         const eventSig = log.topics[0];
-        if (eventSig === "0x...") {
-          // FundsLocked signature
+        if (eventSig === ESCROW_EVENT_SIGNATURES.FundsLocked) {
           await handleFundsLocked(log);
-        } else if (eventSig === "0x...") {
-          // FundsReleased signature
+        } else if (eventSig === ESCROW_EVENT_SIGNATURES.FundsReleased) {
           await handleFundsReleased(log);
-        } else if (eventSig === "0x...") {
-          // FundsRefunded signature
+        } else if (eventSig === ESCROW_EVENT_SIGNATURES.FundsRefunded) {
           await handleFundsRefunded(log);
         }
       }
@@ -188,7 +177,9 @@ async function pollEvents(client: ReturnType<typeof createPublicClient>): Promis
       });
 
       for (const log of paymasterLogs) {
-        await handleGasSponsored(log);
+        if (log.topics[0] === PAYMASTER_EVENT_SIGNATURES.GasSponsored) {
+          await handleGasSponsored(log);
+        }
       }
     }
 

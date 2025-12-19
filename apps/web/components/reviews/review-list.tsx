@@ -6,7 +6,7 @@ import { ReviewCard, ReviewCardSkeleton, type Review } from "./review-card";
 import { RatingDisplay } from "./star-rating";
 import { EmptyState } from "../ui/empty-state";
 import { Button } from "../ui/button";
-import { ChevronDown, Filter, Star } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface ReviewListProps {
   reviews: Review[];
@@ -101,11 +101,13 @@ export function ReviewList({
             onClick={() => setShowFilters(!showFilters)}
             className="text-text-secondary"
           >
-            <Filter className="w-4 h-4 mr-1" />
+            <Icon name="filter" size="sm" className="mr-1" />
             Filter
-            <ChevronDown
+            <Icon
+              name="chevronDown"
+              size="sm"
               className={cn(
-                "w-4 h-4 ml-1 transition-transform",
+                "ml-1 transition-transform",
                 showFilters && "rotate-180"
               )}
             />
@@ -138,7 +140,7 @@ export function ReviewList({
                   ) : (
                     <>
                       {option}
-                      <Star className="w-3 h-3" fill="currentColor" />
+                      <Icon name="star" size="xs" />
                       {ratingCounts[parseInt(option)] && (
                         <span className="text-xs opacity-70">
                           ({ratingCounts[parseInt(option)]})

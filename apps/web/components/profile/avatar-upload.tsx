@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
-import { Camera, User, Loader2 } from "lucide-react";
+import { Icon } from "@/components/icons";
 
 interface AvatarUploadProps {
   currentUrl?: string | null;
@@ -85,21 +86,23 @@ export function AvatarUpload({ currentUrl, displayName, onUpload }: AvatarUpload
       <div className="relative">
         <div className="w-24 h-24 rounded-full overflow-hidden bg-background-tertiary border-2 border-border-default">
           {previewUrl ? (
-            <img
+            <Image
               src={previewUrl}
               alt={displayName}
               className="w-full h-full object-cover"
+              width={96}
+              height={96}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-2xl font-semibold text-text-secondary">
-              {initials || <User className="w-10 h-10" />}
+              {initials || <Icon name="profile" size="xl" />}
             </div>
           )}
 
           {/* Upload Overlay */}
           {isUploading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
-              <Loader2 className="w-6 h-6 text-white animate-spin" />
+              <Icon name="loading" size="md" className="text-white animate-spin" />
             </div>
           )}
         </div>
@@ -112,7 +115,7 @@ export function AvatarUpload({ currentUrl, displayName, onUpload }: AvatarUpload
           className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-brand-rose text-white flex items-center justify-center hover:bg-brand-clay transition-gentle disabled:opacity-50"
           aria-label="Change photo"
         >
-          <Camera className="w-4 h-4" />
+          <Icon name="camera" size="sm" />
         </button>
       </div>
 

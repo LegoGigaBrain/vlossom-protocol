@@ -91,7 +91,7 @@ export function VlossomHomeIcon({
 export function VlossomSearchIcon({
   size = 24,
   color = colors.primary,
-  focused,
+  focused: _focused,
   accent,
 }: VlossomIconProps) {
   const fillColor = accent ? colors.accent : color;

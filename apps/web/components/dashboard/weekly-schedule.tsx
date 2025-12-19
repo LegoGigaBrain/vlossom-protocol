@@ -26,8 +26,8 @@ interface WeeklyScheduleProps {
 }
 
 function DayCard({
-  day,
-  label,
+  day: _day,
+  label: _label,
   short,
   slots,
   onEdit,

@@ -20,7 +20,7 @@ export const displayNameSchema = z.string()
   .min(1, 'Display name is required')
   .max(100, 'Display name must be 100 characters or less')
   .regex(
-    /^[a-zA-Z0-9\s\-'\.]+$/,
+    /^[a-zA-Z0-9\s\-'.]+$/,
     'Display name can only contain letters, numbers, spaces, hyphens, apostrophes, and periods'
   )
   .transform(s => s.trim());

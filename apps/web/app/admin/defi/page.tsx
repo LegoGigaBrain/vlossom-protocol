@@ -12,20 +12,8 @@
  * - Smooth transition animations
  */
 
-import { useState, useEffect, useCallback } from "react";
-import {
-  RefreshCw,
-  Settings,
-  TrendingUp,
-  AlertTriangle,
-  PauseCircle,
-  PlayCircle,
-  DollarSign,
-  Users,
-  Percent,
-  Activity,
-  Loader2,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Icon, type IconName } from "@/components/icons";
 import { Button } from "../../../components/ui/button";
 import { useToast } from "../../../hooks/use-toast";
 import {
@@ -126,12 +114,12 @@ function PoolRowSkeleton() {
 function StatCard({
   title,
   value,
-  icon: Icon,
+  icon,
   isLoading,
 }: {
   title: string;
   value: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: IconName;
   isLoading: boolean;
 }) {
   if (isLoading) {
@@ -146,7 +134,7 @@ function StatCard({
           <p className="text-2xl font-bold text-text-primary mt-1">{value}</p>
         </div>
         <div className="p-2 bg-brand-purple/10 rounded-lg">
-          <Icon className="h-6 w-6 text-brand-purple" />
+          <Icon name={icon} size="lg" className="text-brand-purple" />
         </div>
       </div>
     </div>
@@ -508,8 +496,10 @@ export default function AdminDefiPage() {
           onClick={handleRefresh}
           disabled={isRefreshing}
         >
-          <RefreshCw
-            className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+          <Icon
+            name="settings"
+            size="sm"
+            className={`mr-2 ${isRefreshing ? "animate-spin" : ""}`}
           />
           Refresh
         </Button>
@@ -519,10 +509,10 @@ export default function AdminDefiPage() {
       <div className="border-b border-border-default">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: "overview", label: "Overview", icon: Activity },
-            { id: "pools", label: "Pools", icon: Users },
-            { id: "config", label: "Configuration", icon: Settings },
-            { id: "emergency", label: "Emergency", icon: AlertTriangle },
+            { id: "overview", label: "Overview", icon: "chart" as IconName },
+            { id: "pools", label: "Pools", icon: "profile" as IconName },
+            { id: "config", label: "Configuration", icon: "settings" as IconName },
+            { id: "emergency", label: "Emergency", icon: "calmError" as IconName },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -533,7 +523,7 @@ export default function AdminDefiPage() {
                   : "border-transparent text-text-tertiary hover:text-text-primary hover:border-border-default"
               }`}
             >
-              <tab.icon className="h-4 w-4" />
+              <Icon name={tab.icon} size="sm" />
               {tab.label}
             </button>
           ))}
@@ -550,19 +540,19 @@ export default function AdminDefiPage() {
               value={
                 stats ? `$${parseFloat(stats.totalTVL).toLocaleString()}` : "-"
               }
-              icon={DollarSign}
+              icon="currency"
               isLoading={isLoading}
             />
             <StatCard
               title="Total Pools"
               value={stats?.totalPools?.toString() || "0"}
-              icon={Users}
+              icon="profile"
               isLoading={isLoading}
             />
             <StatCard
               title="Depositors"
               value={stats?.totalDepositors?.toString() || "0"}
-              icon={Users}
+              icon="profile"
               isLoading={isLoading}
             />
             <StatCard
@@ -572,7 +562,7 @@ export default function AdminDefiPage() {
                   ? `$${parseFloat(stats.totalYieldPaid).toLocaleString()}`
                   : "-"
               }
-              icon={TrendingUp}
+              icon="growing"
               isLoading={isLoading}
             />
             <StatCard
@@ -582,7 +572,7 @@ export default function AdminDefiPage() {
                   ? `${(parseFloat(stats.avgAPY) / 100).toFixed(2)}%`
                   : "-"
               }
-              icon={Percent}
+              icon="chart"
               isLoading={isLoading}
             />
           </div>
@@ -733,12 +723,12 @@ export default function AdminDefiPage() {
                         >
                           {pool.isActive ? (
                             <>
-                              <PauseCircle className="h-4 w-4 mr-1" />
+                              <Icon name="clock" size="sm" className="mr-1" />
                               Pause
                             </>
                           ) : (
                             <>
-                              <PlayCircle className="h-4 w-4 mr-1" />
+                              <Icon name="play" size="sm" className="mr-1" />
                               Unpause
                             </>
                           )}
@@ -868,7 +858,7 @@ export default function AdminDefiPage() {
                 disabled={isSaving}
                 className="w-full"
               >
-                {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {isSaving && <Icon name="timer" size="sm" className="mr-2 animate-spin" />}
                 Save APY Parameters
               </Button>
             </div>
@@ -974,7 +964,7 @@ export default function AdminDefiPage() {
                 }
                 className="w-full"
               >
-                {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {isSaving && <Icon name="timer" size="sm" className="mr-2 animate-spin" />}
                 Save Fee Split
               </Button>
             </div>
@@ -1036,7 +1026,7 @@ export default function AdminDefiPage() {
         <div className="space-y-6">
           <div className="bg-status-error/5 border border-status-error/20 rounded-card p-6">
             <div className="flex items-center gap-2 text-status-error mb-4">
-              <AlertTriangle className="h-5 w-5" />
+              <Icon name="calmError" size="md" />
               <h2 className="text-body font-semibold">Emergency Controls</h2>
             </div>
             <p className="text-caption text-status-error/80 mb-6">
@@ -1051,7 +1041,7 @@ export default function AdminDefiPage() {
                 onClick={handleEmergencyPauseAll}
                 className="flex items-center justify-center gap-2"
               >
-                <PauseCircle className="h-5 w-5" />
+                <Icon name="clock" size="md" />
                 Pause All Pools
               </Button>
 
@@ -1061,7 +1051,7 @@ export default function AdminDefiPage() {
                 onClick={handleEmergencyUnpauseAll}
                 className="flex items-center justify-center gap-2 bg-status-success hover:bg-status-success/90"
               >
-                <PlayCircle className="h-5 w-5" />
+                <Icon name="play" size="md" />
                 Unpause All Pools
               </Button>
             </div>
