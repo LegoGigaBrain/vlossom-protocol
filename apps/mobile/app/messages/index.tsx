@@ -2,9 +2,10 @@
  * Messages List Screen (V6.7.0)
  *
  * Shows list of user's conversations with unread indicators.
+ * Connected to Zustand store for API integration.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,76 +14,36 @@ import {
   TouchableOpacity,
   RefreshControl,
   Image,
+  ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
 import { VlossomNotificationsIcon, VlossomChevronRightIcon } from '../../src/components/icons/VlossomIcons';
-
-// Mock data - in production, this would come from API
-const MOCK_CONVERSATIONS = [
-  {
-    id: '1',
-    lastMessageAt: new Date().toISOString(),
-    lastMessagePreview: 'Hi! I wanted to confirm our appointment for tomorrow...',
-    unreadCount: 2,
-    bookingId: 'booking-1',
-    participant: {
-      id: 'stylist-1',
-      displayName: 'Thandi Mbeki',
-      avatarUrl: null,
-      specialties: ['Braids', 'Locs'],
-    },
-  },
-  {
-    id: '2',
-    lastMessageAt: new Date(Date.now() - 86400000).toISOString(),
-    lastMessagePreview: 'Thank you for the wonderful styling! Will definitely book again.',
-    unreadCount: 0,
-    bookingId: null,
-    participant: {
-      id: 'stylist-2',
-      displayName: 'Precious Dlamini',
-      avatarUrl: null,
-      specialties: ['Natural Hair', 'Treatments'],
-    },
-  },
-  {
-    id: '3',
-    lastMessageAt: new Date(Date.now() - 172800000).toISOString(),
-    lastMessagePreview: 'See you on Friday!',
-    unreadCount: 0,
-    bookingId: 'booking-3',
-    participant: {
-      id: 'stylist-3',
-      displayName: 'Zanele Nkosi',
-      avatarUrl: null,
-      specialties: ['Styling', 'Color'],
-    },
-  },
-];
+import { useMessagesStore } from '../../src/stores/messages';
+import type { ConversationSummary } from '../../src/api/messages';
 
 type FilterTab = 'all' | 'unread';
-
-interface ConversationItem {
-  id: string;
-  lastMessageAt: string;
-  lastMessagePreview: string;
-  unreadCount: number;
-  bookingId: string | null;
-  participant: {
-    id: string;
-    displayName: string;
-    avatarUrl: string | null;
-    specialties: string[];
-  };
-}
 
 export default function MessagesScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [conversations] = useState<ConversationItem[]>(MOCK_CONVERSATIONS);
+
+  const {
+    conversations,
+    conversationsLoading,
+    conversationsError,
+    fetchConversations,
+    refreshUnreadCount,
+  } = useMessagesStore();
+
+  // Fetch conversations on mount and focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchConversations(true);
+      refreshUnreadCount();
+    }, [fetchConversations, refreshUnreadCount])
+  );
 
   // Filter conversations
   const filteredConversations = conversations.filter((conv) => {
@@ -92,13 +53,13 @@ export default function MessagesScreen() {
     return true;
   });
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    // In production: refetch conversations
-    setTimeout(() => setRefreshing(false), 1000);
-  };
+  const handleRefresh = useCallback(() => {
+    fetchConversations(true);
+    refreshUnreadCount();
+  }, [fetchConversations, refreshUnreadCount]);
 
-  const formatTimeAgo = (dateString: string) => {
+  const formatTimeAgo = (dateString: string | null) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -113,98 +74,133 @@ export default function MessagesScreen() {
     return date.toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' });
   };
 
-  const renderConversation = ({ item }: { item: ConversationItem }) => (
-    <TouchableOpacity
-      style={[
-        styles.conversationItem,
-        item.unreadCount > 0 && styles.unreadConversation,
-      ]}
-      onPress={() => router.push(`/messages/${item.id}`)}
-      activeOpacity={0.7}
-    >
-      {/* Avatar */}
-      <View style={styles.avatarContainer}>
-        {item.participant.avatarUrl ? (
-          <Image
-            source={{ uri: item.participant.avatarUrl }}
-            style={styles.avatar}
-          />
-        ) : (
-          <View style={styles.avatarPlaceholder}>
-            <Text style={styles.avatarInitial}>
-              {item.participant.displayName.charAt(0)}
-            </Text>
-          </View>
-        )}
-        {item.unreadCount > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadBadgeText}>
-              {item.unreadCount > 9 ? '9+' : item.unreadCount}
-            </Text>
-          </View>
-        )}
-      </View>
+  const renderConversation = ({ item }: { item: ConversationSummary }) => {
+    if (!item.participant) return null;
 
-      {/* Content */}
-      <View style={styles.conversationContent}>
-        <View style={styles.nameRow}>
-          <Text
-            style={[
-              styles.participantName,
-              item.unreadCount > 0 && styles.unreadName,
-            ]}
-            numberOfLines={1}
-          >
-            {item.participant.displayName}
-          </Text>
-          {item.bookingId && (
-            <View style={styles.bookingBadge}>
-              <Text style={styles.bookingBadgeText}>Booking</Text>
+    return (
+      <TouchableOpacity
+        style={[
+          styles.conversationItem,
+          item.unreadCount > 0 && styles.unreadConversation,
+        ]}
+        onPress={() => router.push(`/messages/${item.id}`)}
+        activeOpacity={0.7}
+      >
+        {/* Avatar */}
+        <View style={styles.avatarContainer}>
+          {item.participant.avatarUrl ? (
+            <Image
+              source={{ uri: item.participant.avatarUrl }}
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarInitial}>
+                {item.participant.displayName.charAt(0)}
+              </Text>
+            </View>
+          )}
+          {item.unreadCount > 0 && (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadBadgeText}>
+                {item.unreadCount > 9 ? '9+' : item.unreadCount}
+              </Text>
             </View>
           )}
         </View>
-        <Text
-          style={[
-            styles.messagePreview,
-            item.unreadCount > 0 && styles.unreadPreview,
-          ]}
-          numberOfLines={1}
-        >
-          {item.lastMessagePreview}
+
+        {/* Content */}
+        <View style={styles.conversationContent}>
+          <View style={styles.nameRow}>
+            <Text
+              style={[
+                styles.participantName,
+                item.unreadCount > 0 && styles.unreadName,
+              ]}
+              numberOfLines={1}
+            >
+              {item.participant.displayName}
+            </Text>
+            {item.bookingId && (
+              <View style={styles.bookingBadge}>
+                <Text style={styles.bookingBadgeText}>Booking</Text>
+              </View>
+            )}
+          </View>
+          <Text
+            style={[
+              styles.messagePreview,
+              item.unreadCount > 0 && styles.unreadPreview,
+            ]}
+            numberOfLines={1}
+          >
+            {item.lastMessagePreview || 'No messages yet'}
+          </Text>
+        </View>
+
+        {/* Time & Arrow */}
+        <View style={styles.conversationMeta}>
+          <Text style={styles.timeText}>{formatTimeAgo(item.lastMessageAt)}</Text>
+          <VlossomChevronRightIcon size={16} color={colors.text.muted} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmptyState = () => {
+    if (conversationsLoading && conversations.length === 0) {
+      return (
+        <View style={styles.loadingState}>
+          <ActivityIndicator size="large" color={colors.brand.rose} />
+          <Text style={styles.loadingText}>Loading conversations...</Text>
+        </View>
+      );
+    }
+
+    if (conversationsError) {
+      return (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconContainer}>
+            <VlossomNotificationsIcon size={32} color={colors.status.error} />
+          </View>
+          <Text style={styles.emptyTitle}>Something went wrong</Text>
+          <Text style={styles.emptySubtitle}>{conversationsError}</Text>
+          <TouchableOpacity
+            style={styles.findStylistsButton}
+            onPress={() => fetchConversations(true)}
+          >
+            <Text style={styles.findStylistsText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyState}>
+        <View style={styles.emptyIconContainer}>
+          <VlossomNotificationsIcon size={32} color={colors.brand.rose} />
+        </View>
+        <Text style={styles.emptyTitle}>
+          {activeTab === 'unread' ? 'All caught up!' : 'No messages yet'}
         </Text>
+        <Text style={styles.emptySubtitle}>
+          {activeTab === 'unread'
+            ? 'You have no unread messages.'
+            : 'Start a conversation by messaging a stylist.'}
+        </Text>
+        {activeTab === 'all' && (
+          <TouchableOpacity
+            style={styles.findStylistsButton}
+            onPress={() => router.push('/(tabs)/search')}
+          >
+            <Text style={styles.findStylistsText}>Find Stylists</Text>
+          </TouchableOpacity>
+        )}
       </View>
+    );
+  };
 
-      {/* Time & Arrow */}
-      <View style={styles.conversationMeta}>
-        <Text style={styles.timeText}>{formatTimeAgo(item.lastMessageAt)}</Text>
-        <VlossomChevronRightIcon size={16} color={colors.text.muted} />
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <View style={styles.emptyIconContainer}>
-        <VlossomNotificationsIcon size={32} color={colors.brand.rose} />
-      </View>
-      <Text style={styles.emptyTitle}>
-        {activeTab === 'unread' ? 'All caught up!' : 'No messages yet'}
-      </Text>
-      <Text style={styles.emptySubtitle}>
-        {activeTab === 'unread'
-          ? 'You have no unread messages.'
-          : 'Start a conversation by messaging a stylist.'}
-      </Text>
-      {activeTab === 'all' && (
-        <TouchableOpacity
-          style={styles.findStylistsButton}
-          onPress={() => router.push('/(tabs)/search')}
-        >
-          <Text style={styles.findStylistsText}>Find Stylists</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
+  const unreadConversationsCount = conversations.filter((c) => c.unreadCount > 0).length;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -221,14 +217,13 @@ export default function MessagesScreen() {
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </Text>
-            {tab === 'unread' &&
-              conversations.filter((c) => c.unreadCount > 0).length > 0 && (
-                <View style={styles.tabBadge}>
-                  <Text style={styles.tabBadgeText}>
-                    {conversations.filter((c) => c.unreadCount > 0).length}
-                  </Text>
-                </View>
-              )}
+            {tab === 'unread' && unreadConversationsCount > 0 && (
+              <View style={styles.tabBadge}>
+                <Text style={styles.tabBadgeText}>
+                  {unreadConversationsCount}
+                </Text>
+              </View>
+            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -242,7 +237,7 @@ export default function MessagesScreen() {
         ListEmptyComponent={renderEmptyState}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={conversationsLoading && conversations.length > 0}
             onRefresh={handleRefresh}
             tintColor={colors.brand.rose}
           />
@@ -400,6 +395,18 @@ const styles = StyleSheet.create({
     color: colors.text.muted,
     marginBottom: spacing.xs,
   },
+  loadingState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  loadingText: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    marginTop: spacing.md,
+  },
   emptyState: {
     flex: 1,
     alignItems: 'center',
@@ -427,6 +434,7 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
   findStylistsButton: {
     backgroundColor: colors.brand.rose,

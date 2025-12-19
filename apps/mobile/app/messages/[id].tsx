@@ -2,9 +2,10 @@
  * Conversation Thread Screen (V6.7.0)
  *
  * View and send messages in a conversation.
+ * Connected to Zustand store for API integration.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,112 +16,69 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
 import { VlossomChevronRightIcon, VlossomCalendarIcon } from '../../src/components/icons/VlossomIcons';
-
-// Mock data - in production, this would come from API
-const MOCK_CONVERSATION = {
-  id: '1',
-  participant: {
-    id: 'stylist-1',
-    displayName: 'Thandi Mbeki',
-    avatarUrl: null,
-    specialties: ['Braids', 'Locs'],
-    bio: 'Specializing in protective styles and natural hair care.',
-  },
-  bookingId: 'booking-1',
-  messages: [
-    {
-      id: 'm1',
-      content: 'Hi! I saw your profile and would love to book an appointment.',
-      senderId: 'me',
-      isOwn: true,
-      readAt: new Date(Date.now() - 3600000).toISOString(),
-      createdAt: new Date(Date.now() - 7200000).toISOString(),
-    },
-    {
-      id: 'm2',
-      content: 'Hello! Thank you for reaching out. I would be happy to help you with your hair. What style are you interested in?',
-      senderId: 'stylist-1',
-      isOwn: false,
-      readAt: new Date(Date.now() - 3500000).toISOString(),
-      createdAt: new Date(Date.now() - 3600000).toISOString(),
-    },
-    {
-      id: 'm3',
-      content: "I'm thinking about getting box braids for my upcoming vacation. How long would that take?",
-      senderId: 'me',
-      isOwn: true,
-      readAt: new Date(Date.now() - 1800000).toISOString(),
-      createdAt: new Date(Date.now() - 1900000).toISOString(),
-    },
-    {
-      id: 'm4',
-      content: 'Box braids usually take between 4-6 hours depending on the length and thickness you want. Would you like me to send you some options?',
-      senderId: 'stylist-1',
-      isOwn: false,
-      readAt: null,
-      createdAt: new Date(Date.now() - 1800000).toISOString(),
-    },
-  ],
-};
-
-interface Message {
-  id: string;
-  content: string;
-  senderId: string;
-  isOwn: boolean;
-  readAt: string | null;
-  createdAt: string;
-}
+import { useMessagesStore } from '../../src/stores/messages';
+import type { Message } from '../../src/api/messages';
 
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
+  const conversationId = id as string;
 
-  const [messages, setMessages] = useState<Message[]>(MOCK_CONVERSATION.messages);
   const [newMessage, setNewMessage] = useState('');
-  const [sending, setSending] = useState(false);
 
-  const participant = MOCK_CONVERSATION.participant;
-  const bookingId = MOCK_CONVERSATION.bookingId;
+  const {
+    activeConversation,
+    messages,
+    messagesLoading,
+    messagesError,
+    sendingMessage,
+    sendError,
+    fetchConversation,
+    sendMessage,
+    markAsRead,
+    clearActiveConversation,
+  } = useMessagesStore();
 
-  // Scroll to bottom on mount
+  // Fetch conversation on mount
   useEffect(() => {
-    setTimeout(() => {
-      flatListRef.current?.scrollToEnd({ animated: false });
-    }, 100);
-  }, []);
-
-  const handleSend = async () => {
-    const content = newMessage.trim();
-    if (!content || sending) return;
-
-    setSending(true);
-    setNewMessage('');
-
-    // Optimistically add message
-    const tempMessage: Message = {
-      id: `temp-${Date.now()}`,
-      content,
-      senderId: 'me',
-      isOwn: true,
-      readAt: null,
-      createdAt: new Date().toISOString(),
+    if (conversationId) {
+      fetchConversation(conversationId);
+    }
+    return () => {
+      clearActiveConversation();
     };
+  }, [conversationId, fetchConversation, clearActiveConversation]);
 
-    setMessages((prev) => [...prev, tempMessage]);
+  // Mark as read when messages load
+  useEffect(() => {
+    if (messages.length > 0 && messages.some((m) => !m.isOwn && !m.readAt)) {
+      markAsRead();
+    }
+  }, [messages, markAsRead]);
 
-    // In production: send via API
-    setTimeout(() => {
-      setSending(false);
-      flatListRef.current?.scrollToEnd({ animated: true });
-    }, 500);
-  };
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages.length]);
+
+  const handleSend = useCallback(async () => {
+    const content = newMessage.trim();
+    if (!content || sendingMessage) return;
+
+    setNewMessage('');
+    await sendMessage(content);
+  }, [newMessage, sendingMessage, sendMessage]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -148,6 +106,9 @@ export default function ConversationScreen() {
       day: 'numeric',
     });
   };
+
+  const participant = activeConversation?.participant;
+  const bookingId = activeConversation?.bookingId;
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const showDateHeader =
@@ -178,7 +139,7 @@ export default function ConversationScreen() {
           {/* Avatar for received messages */}
           {!item.isOwn && (
             <View style={styles.avatarSpace}>
-              {showAvatar && (
+              {showAvatar && participant && (
                 participant.avatarUrl ? (
                   <Image
                     source={{ uri: participant.avatarUrl }}
@@ -229,6 +190,50 @@ export default function ConversationScreen() {
     );
   };
 
+  // Loading state
+  if (messagesLoading && messages.length === 0) {
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            headerTitle: 'Loading...',
+          }}
+        />
+        <SafeAreaView style={styles.container} edges={['bottom']}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.brand.rose} />
+            <Text style={styles.loadingText}>Loading conversation...</Text>
+          </View>
+        </SafeAreaView>
+      </>
+    );
+  }
+
+  // Error state
+  if (messagesError) {
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            headerTitle: 'Error',
+          }}
+        />
+        <SafeAreaView style={styles.container} edges={['bottom']}>
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorTitle}>Something went wrong</Text>
+            <Text style={styles.errorText}>{messagesError}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => fetchConversation(conversationId)}
+            >
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </>
+    );
+  }
+
   return (
     <>
       <Stack.Screen
@@ -236,25 +241,25 @@ export default function ConversationScreen() {
           headerTitle: () => (
             <TouchableOpacity
               style={styles.headerTitleContainer}
-              onPress={() => router.push(`/stylists/${participant.id}`)}
+              onPress={() => participant && router.push(`/stylists/${participant.id}`)}
             >
-              {participant.avatarUrl ? (
+              {participant?.avatarUrl ? (
                 <Image
                   source={{ uri: participant.avatarUrl }}
                   style={styles.headerAvatar}
                 />
-              ) : (
+              ) : participant ? (
                 <View style={styles.headerAvatarPlaceholder}>
                   <Text style={styles.headerAvatarInitial}>
                     {participant.displayName.charAt(0)}
                   </Text>
                 </View>
-              )}
+              ) : null}
               <View>
                 <Text style={styles.headerName} numberOfLines={1}>
-                  {participant.displayName}
+                  {participant?.displayName || 'Unknown'}
                 </Text>
-                {participant.specialties.length > 0 && (
+                {participant?.specialties && participant.specialties.length > 0 && (
                   <Text style={styles.headerSpecialties} numberOfLines={1}>
                     {participant.specialties.slice(0, 2).join(', ')}
                   </Text>
@@ -291,7 +296,21 @@ export default function ConversationScreen() {
             onContentSizeChange={() =>
               flatListRef.current?.scrollToEnd({ animated: false })
             }
+            ListEmptyComponent={
+              <View style={styles.emptyMessages}>
+                <Text style={styles.emptyMessagesText}>
+                  No messages yet. Start the conversation!
+                </Text>
+              </View>
+            }
           />
+
+          {/* Send Error */}
+          {sendError && (
+            <View style={styles.sendErrorContainer}>
+              <Text style={styles.sendErrorText}>{sendError}</Text>
+            </View>
+          )}
 
           {/* Input Area */}
           <View style={styles.inputContainer}>
@@ -310,15 +329,19 @@ export default function ConversationScreen() {
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                (!newMessage.trim() || sending) && styles.sendButtonDisabled,
+                (!newMessage.trim() || sendingMessage) && styles.sendButtonDisabled,
               ]}
               onPress={handleSend}
-              disabled={!newMessage.trim() || sending}
+              disabled={!newMessage.trim() || sendingMessage}
             >
-              <VlossomChevronRightIcon
-                size={24}
-                color={newMessage.trim() && !sending ? '#FFFFFF' : colors.text.muted}
-              />
+              {sendingMessage ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <VlossomChevronRightIcon
+                  size={24}
+                  color={newMessage.trim() ? '#FFFFFF' : colors.text.muted}
+                />
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -334,6 +357,47 @@ const styles = StyleSheet.create({
   },
   keyboardAvoid: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    marginTop: spacing.md,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  errorTitle: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: typography.fontSize.lg,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  errorText: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    backgroundColor: colors.brand.rose,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+  },
+  retryButtonText: {
+    fontFamily: typography.fontFamily.semibold,
+    fontSize: typography.fontSize.base,
+    color: '#FFFFFF',
   },
   headerTitleContainer: {
     flexDirection: 'row',
@@ -376,6 +440,19 @@ const styles = StyleSheet.create({
   messagesList: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
+    flexGrow: 1,
+  },
+  emptyMessages: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  emptyMessagesText: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    textAlign: 'center',
   },
   dateHeader: {
     alignItems: 'center',
@@ -467,6 +544,17 @@ const styles = StyleSheet.create({
     fontFamily: typography.fontFamily.regular,
     fontSize: typography.fontSize.xs,
     color: 'rgba(255, 255, 255, 0.7)',
+  },
+  sendErrorContainer: {
+    backgroundColor: colors.status.error,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  sendErrorText: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.fontSize.sm,
+    color: '#FFFFFF',
+    textAlign: 'center',
   },
   inputContainer: {
     flexDirection: 'row',
