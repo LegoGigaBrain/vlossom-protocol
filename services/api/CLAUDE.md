@@ -10,6 +10,10 @@
 
 ## Current Implementation Status
 
+**V6.7.0 Direct Messaging** (Dec 20, 2025)
+
+Complete conversations API for in-app messaging between customers and stylists. Integrates with notification system.
+
 **V6.4.0 Local Development & Service Fixes** (Dec 18, 2025)
 
 Redis Cloud connected for production rate limiting. Added `ioredis` dependency.
@@ -23,6 +27,32 @@ Redis-based distributed rate limiting and centralized secrets management for pro
 TypeScript type safety improvements, OpenAPI/Swagger documentation endpoint.
 
 **V5.2.0 UX Excellence & Favorites Integration** (Dec 17, 2025)
+
+---
+
+### V6.7.0 Changes
+
+**Direct Messaging API**
+- `routes/conversations.ts` - Complete REST API (550+ lines)
+- `Conversation` and `Message` models in Prisma schema
+- Per-participant unread counts and archive status
+- `MESSAGE_RECEIVED` notification type with templates
+
+**Conversations Endpoints:**
+```
+GET    /api/v1/conversations              - List conversations
+POST   /api/v1/conversations              - Start/get conversation
+GET    /api/v1/conversations/:id          - Get with messages
+POST   /api/v1/conversations/:id/messages - Send message
+POST   /api/v1/conversations/:id/read     - Mark as read
+POST   /api/v1/conversations/:id/archive  - Archive
+DELETE /api/v1/conversations/:id/archive  - Unarchive
+GET    /api/v1/conversations/unread-count - Total unread
+```
+
+**Database Models:**
+- `Conversation` - Participant pairs with optional booking link
+- `Message` - Content with read status and soft delete
 
 ---
 

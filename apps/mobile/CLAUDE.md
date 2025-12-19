@@ -4,9 +4,60 @@
 
 ## Current Implementation Status
 
+**V6.7.1 Messaging API Integration** (December 20, 2025)
+
+Mobile messaging screens connected to backend API with Zustand state management and SecureStore authentication.
+
+**V6.7.0 Direct Messaging UI** (December 20, 2025)
+
+In-app messaging between customers and stylists with conversation list and thread views.
+
+**V6.6.0 Special Events Booking** (December 19, 2025)
+
+Complete Special Events flow for weddings, photoshoots, and group styling with multi-step request form.
+
 **V6.0.0 Foundation Complete** (December 17, 2025)
 
 Complete React Native + Expo app structure with 5-tab navigation, botanical icons, biometric auth, and design tokens matching web app.
+
+---
+
+### V6.7.1 Changes
+
+**API Infrastructure**
+- `src/api/client.ts` - Base API client with SecureStore token management
+- `src/api/messages.ts` - Messages API client (8 endpoints)
+- `src/api/index.ts` - Barrel exports
+
+**State Management**
+- `src/stores/messages.ts` - Zustand store with optimistic updates
+- `src/stores/index.ts` - Store exports
+
+**Screens Updated:**
+- `app/messages/index.tsx` - Connected to Zustand store with loading/error states
+- `app/messages/[id].tsx` - Connected to Zustand with send/mark read
+
+---
+
+### V6.7.0 Changes
+
+**Messaging Screens**
+- `app/messages/_layout.tsx` - Stack navigator for messages
+- `app/messages/index.tsx` - Conversations list with All/Unread tabs
+- `app/messages/[id].tsx` - Conversation thread with message bubbles
+
+---
+
+### V6.6.0 Changes
+
+**Special Events**
+- `app/special-events/_layout.tsx` - Stack navigator
+- `app/special-events/index.tsx` - Landing page with event categories
+- `app/special-events/request.tsx` - Multi-step request form
+
+**Reusable Components:**
+- LocationSelector - Location type picker
+- ChairSelector - Chair booking widget
 
 ---
 
@@ -16,7 +67,7 @@ Complete React Native + Expo app structure with 5-tab navigation, botanical icon
 - **Framework**: React Native 0.74.5, Expo SDK 51
 - **Navigation**: Expo Router (file-based routing)
 - **State Management**: Zustand 4.5.2
-- **Package Version**: `6.0.0`
+- **Package Version**: `6.7.1`
 
 ### Tab Navigation (5 Tabs)
 | Tab | Route | Icon | Purpose |
