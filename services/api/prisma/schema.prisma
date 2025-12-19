@@ -513,6 +513,8 @@ enum NotificationType {
   SESSION_PROGRESS
   STYLIST_ARRIVED
   CUSTOMER_ARRIVED
+  // V6.7.0: Direct Messaging
+  MESSAGE_RECEIVED
 }
 
 enum NotificationChannel {
@@ -558,6 +560,75 @@ model Notification {
   @@index([userId, status])
   @@index([type])
   @@map("notifications")
+}
+
+// ============================================================================
+// MESSAGING MODELS (V6.7.0: Direct Messaging)
+// Reference: docs/vlossom/messaging-feature.md
+// ============================================================================
+
+/// Conversation between two users (stylist-customer, etc.)
+/// V6.7.0: Enables direct messaging without leaving the app
+model Conversation {
+  id             String    @id @default(uuid())
+  participant1Id String    // First user ID
+  participant2Id String    // Second user ID
+  bookingId      String?   // Optional: Link to booking context
+
+  // Conversation metadata
+  lastMessageAt  DateTime?
+  lastMessagePreview String? @db.VarChar(100) // Preview of last message
+
+  // Participant-specific state (JSON for flexibility)
+  participant1UnreadCount Int @default(0)
+  participant2UnreadCount Int @default(0)
+  participant1ArchivedAt  DateTime?
+  participant2ArchivedAt  DateTime?
+
+  // Status
+  isActive       Boolean   @default(true)
+
+  // Timestamps
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  messages       Message[]
+
+  // Ensure unique conversation between two users (order-independent via app logic)
+  @@unique([participant1Id, participant2Id])
+  @@index([participant1Id, lastMessageAt])
+  @@index([participant2Id, lastMessageAt])
+  @@index([bookingId])
+  @@map("conversations")
+}
+
+/// Individual message within a conversation
+/// V6.7.0: Text-only messages for MVP
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String    // User who sent the message
+
+  // Content
+  content        String    @db.Text
+
+  // Read status
+  readAt         DateTime?
+
+  // Soft delete
+  deletedAt      DateTime?
+  deletedBy      String?   // User who deleted (for audit)
+
+  // Timestamps
+  createdAt      DateTime  @default(now())
+
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
 }
 
 // ============================================================================

@@ -1,7 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/icons";
 import { getOperatingModeText, type Stylist } from "@/lib/stylist-client";
+import { useStartConversation } from "@/hooks/use-messages";
 import { FavoriteButton } from "./favorite-button";
 import Image from "next/image";
 
@@ -12,6 +15,20 @@ interface StylistProfileProps {
 }
 
 export function StylistProfile({ stylist, onBookNow, onBack }: StylistProfileProps) {
+  const router = useRouter();
+  const startConversation = useStartConversation();
+
+  const handleMessage = async () => {
+    try {
+      const result = await startConversation.mutateAsync({
+        recipientId: stylist.id,
+      });
+      router.push(`/messages/${result.conversation.id}`);
+    } catch (error) {
+      console.error("Failed to start conversation:", error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Back Button */}
@@ -129,6 +146,15 @@ export function StylistProfile({ stylist, onBookNow, onBack }: StylistProfilePro
         <div className="hidden sm:flex items-center gap-3">
           <FavoriteButton stylistId={stylist.id} size="lg" />
           <Button
+            variant="outline"
+            onClick={handleMessage}
+            disabled={startConversation.isPending}
+            size="lg"
+          >
+            <Icon name="notifications" size="sm" className="mr-2" />
+            {startConversation.isPending ? "..." : "Message"}
+          </Button>
+          <Button
             onClick={onBookNow}
             disabled={!stylist.isAcceptingBookings}
             size="lg"
@@ -167,6 +193,15 @@ export function StylistProfile({ stylist, onBookNow, onBack }: StylistProfilePro
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-surface border-t border-border sm:hidden">
         <div className="flex items-center gap-3">
           <FavoriteButton stylistId={stylist.id} size="md" />
+          <Button
+            variant="outline"
+            onClick={handleMessage}
+            disabled={startConversation.isPending}
+            size="icon"
+            className="flex-shrink-0"
+          >
+            <Icon name="notifications" size="md" />
+          </Button>
           <Button
             onClick={onBookNow}
             disabled={!stylist.isAcceptingBookings}

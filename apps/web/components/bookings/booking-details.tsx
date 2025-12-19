@@ -1,10 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { formatPrice, formatDuration, formatDate, formatTimeFromDate } from "@/lib/utils";
 import { StatusBadge } from "./status-badge";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/icons";
 import { canCancelBooking, type Booking } from "@/lib/booking-client";
+import { useStartConversation } from "@/hooks/use-messages";
 
 interface BookingDetailsProps {
   booking: Booking;
@@ -13,7 +16,21 @@ interface BookingDetailsProps {
 }
 
 export function BookingDetails({ booking, onCancel, onBack }: BookingDetailsProps) {
+  const router = useRouter();
   const canCancel = canCancelBooking(booking);
+  const startConversation = useStartConversation();
+
+  const handleMessageStylist = async () => {
+    try {
+      const result = await startConversation.mutateAsync({
+        recipientId: booking.stylist.id,
+        bookingId: booking.id,
+      });
+      router.push(`/messages/${result.conversation.id}`);
+    } catch (error) {
+      console.error("Failed to start conversation:", error);
+    }
+  };
 
   // Generate booking reference
   const bookingRef = `VLS-${new Date(booking.createdAt).getFullYear()}-${booking.id
@@ -57,43 +74,54 @@ export function BookingDetails({ booking, onCancel, onBack }: BookingDetailsProp
 
       {/* Stylist Section */}
       <DetailSection title="Stylist">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
-            {booking.stylist.avatarUrl ? (
-              <Image
-                src={booking.stylist.avatarUrl}
-                alt={booking.stylist.displayName}
-                width={56}
-                height={56}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-xl font-semibold text-primary">
-                {booking.stylist.displayName.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
-          <div>
-            <p className="font-semibold text-text-primary">
-              {booking.stylist.displayName}
-            </p>
-            {booking.stylist.verificationStatus === "VERIFIED" && (
-              <p className="text-sm text-tertiary flex items-center gap-1">
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                Verified
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
+              {booking.stylist.avatarUrl ? (
+                <Image
+                  src={booking.stylist.avatarUrl}
+                  alt={booking.stylist.displayName}
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-xl font-semibold text-primary">
+                  {booking.stylist.displayName.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <div>
+              <p className="font-semibold text-text-primary">
+                {booking.stylist.displayName}
               </p>
-            )}
+              {booking.stylist.verificationStatus === "VERIFIED" && (
+                <p className="text-sm text-tertiary flex items-center gap-1">
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Verified
+                </p>
+              )}
+            </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleMessageStylist}
+            disabled={startConversation.isPending}
+          >
+            <Icon name="notifications" size="sm" className="mr-1.5" />
+            {startConversation.isPending ? "..." : "Message"}
+          </Button>
         </div>
       </DetailSection>
 
