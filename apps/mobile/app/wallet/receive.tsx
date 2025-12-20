@@ -1,14 +1,16 @@
 /**
- * Receive Screen - QR Code Display (V6.8.0)
+ * Receive Screen - QR Code Display (V6.10.0)
  *
  * Purpose: Display QR code for receiving payments
  * - Show wallet address as QR code
  * - Optional: Create payment request with specific amount
  * - Copy address to clipboard
  * - Share address/QR
+ *
+ * V6.10: Added real QR code generation with react-native-qrcode-svg
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -30,6 +32,7 @@ import {
 } from '../../src/components/icons/VlossomIcons';
 import { useWalletStore } from '../../src/stores/wallet';
 import * as Clipboard from 'expo-clipboard';
+import QRCode from 'react-native-qrcode-svg';
 
 export default function ReceiveScreen() {
   const insets = useSafeAreaInsets();
@@ -142,6 +145,19 @@ export default function ReceiveScreen() {
     ? `${wallet.address.slice(0, 10)}...${wallet.address.slice(-8)}`
     : '';
 
+  // Generate QR code value
+  const qrCodeValue = useMemo(() => {
+    if (!wallet?.address) return '';
+
+    // If payment request exists, include amount
+    if (paymentRequest && amount) {
+      return `vlossom://pay?to=${wallet.address}&amount=${amount}${memo ? `&memo=${encodeURIComponent(memo)}` : ''}`;
+    }
+
+    // Basic ethereum URI format
+    return `ethereum:${wallet.address}`;
+  }, [wallet?.address, paymentRequest, amount, memo]);
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -166,31 +182,26 @@ export default function ReceiveScreen() {
           >
             {wallet?.address ? (
               <>
-                {/* QR Code Placeholder - In production, use react-native-qrcode-svg */}
+                {/* QR Code with react-native-qrcode-svg */}
                 <View
                   style={[
                     styles.qrCode,
                     {
-                      backgroundColor: colors.background.secondary,
+                      backgroundColor: colors.white,
                       borderRadius: borderRadius.lg,
                     },
                   ]}
                 >
-                  {paymentRequest ? (
-                    <View style={styles.qrPlaceholder}>
-                      <VlossomAddIcon size={48} color={colors.primary} />
-                      <Text style={[textStyles.caption, { color: colors.text.secondary, marginTop: 8 }]}>
-                        Payment Request
-                      </Text>
-                      <Text style={[textStyles.h3, { color: colors.primary, marginTop: 4 }]}>
-                        ${parseFloat(amount).toFixed(2)}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View style={styles.qrPlaceholder}>
-                      <VlossomWalletIcon size={48} color={colors.primary} />
-                      <Text style={[textStyles.caption, { color: colors.text.secondary, marginTop: 8 }]}>
-                        Scan to pay
+                  <QRCode
+                    value={qrCodeValue}
+                    size={180}
+                    color={colors.text.primary}
+                    backgroundColor={colors.white}
+                  />
+                  {paymentRequest && (
+                    <View style={styles.paymentBadge}>
+                      <Text style={[textStyles.caption, { color: colors.primary, fontWeight: '600' }]}>
+                        ${parseFloat(amount).toFixed(2)} USDC
                       </Text>
                     </View>
                   )}
@@ -425,10 +436,7 @@ const styles = StyleSheet.create({
     height: 200,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  qrPlaceholder: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 10,
   },
   addressSection: {
     marginTop: 20,
@@ -511,5 +519,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+  },
+  paymentBadge: {
+    position: 'absolute',
+    bottom: 8,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
 });

@@ -1,8 +1,9 @@
 /**
- * Hair Health Dashboard Screen (V6.8.0)
+ * Hair Health Dashboard Screen (V6.9.0)
  *
  * Main hair health profile view with:
  * - Profile summary card
+ * - V6.9 Smart Calendar widget
  * - Learning progress
  * - Quick actions
  */
@@ -40,6 +41,7 @@ import {
   getTextureColor,
   LEARNING_NODES,
 } from '../../src/api/hair-health';
+import { CalendarWidget } from '../../src/components/hair-health';
 
 export default function HairHealthDashboard() {
   const insets = useSafeAreaInsets();
@@ -56,6 +58,9 @@ export default function HairHealthDashboard() {
     fetchProfile,
     fetchLearningProgress,
     totalNodes,
+    // V6.9 Calendar
+    fetchCalendarSummary,
+    fetchUpcomingRituals,
   } = useHairHealthStore();
 
   // Local state
@@ -65,13 +70,21 @@ export default function HairHealthDashboard() {
   useEffect(() => {
     fetchProfile();
     fetchLearningProgress();
-  }, [fetchProfile, fetchLearningProgress]);
+    // V6.9 Calendar data
+    fetchCalendarSummary();
+    fetchUpcomingRituals();
+  }, [fetchProfile, fetchLearningProgress, fetchCalendarSummary, fetchUpcomingRituals]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await Promise.all([fetchProfile(), fetchLearningProgress()]);
+    await Promise.all([
+      fetchProfile(),
+      fetchLearningProgress(),
+      fetchCalendarSummary(),
+      fetchUpcomingRituals(),
+    ]);
     setIsRefreshing(false);
-  }, [fetchProfile, fetchLearningProgress]);
+  }, [fetchProfile, fetchLearningProgress, fetchCalendarSummary, fetchUpcomingRituals]);
 
   const handleBack = () => {
     router.back();
@@ -258,6 +271,9 @@ export default function HairHealthDashboard() {
             />
           </View>
         </View>
+
+        {/* V6.9 Smart Calendar Widget */}
+        <CalendarWidget />
 
         {/* Learning Progress Section */}
         <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600', marginTop: spacing.xl }]}>

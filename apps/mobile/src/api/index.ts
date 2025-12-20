@@ -1,5 +1,5 @@
 /**
- * API Exports (V6.8.0)
+ * API Exports (V6.10.0)
  */
 
 // Base client
@@ -31,3 +31,9 @@ export * from './notifications';
 
 // Hair Health API
 export * from './hair-health';
+
+// Bookings API
+export * from './bookings';
+
+// Property Owner API
+export * from './property-owner';

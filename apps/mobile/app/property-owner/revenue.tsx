@@ -1,68 +1,20 @@
 /**
- * Property Owner Revenue Screen (V6.5.2)
+ * Property Owner Revenue Screen (V6.10.0)
  *
- * Track earnings from chair rentals
+ * Track earnings from chair rentals.
+ * V6.10: Wired to real API with period toggle.
  */
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {
   VlossomWalletIcon,
   VlossomGrowingIcon,
 } from '../../src/components/icons/VlossomIcons';
+import { usePropertyOwnerStore } from '../../src/stores/property-owner';
 
-// Mock data
-const mockStats = {
-  totalEarnings: 4500000, // R45,000.00 in cents
-  thisMonthEarnings: 850000, // R8,500.00
-  lastMonthEarnings: 720000, // R7,200.00
-  pendingPayouts: 125000, // R1,250.00
-};
-
-const mockTransactions = [
-  {
-    id: '1',
-    type: 'RENTAL_FEE' as const,
-    amount: 15000,
-    chairName: 'Station #1',
-    stylistName: 'Thandi Mbeki',
-    propertyName: 'Glamour Studios',
-    status: 'COMPLETED',
-    createdAt: '2025-12-18T14:30:00Z',
-  },
-  {
-    id: '2',
-    type: 'RENTAL_FEE' as const,
-    amount: 25000,
-    chairName: 'Luxury Suite 1',
-    stylistName: 'Precious Dlamini',
-    propertyName: 'Style Haven',
-    status: 'COMPLETED',
-    createdAt: '2025-12-17T10:00:00Z',
-  },
-  {
-    id: '3',
-    type: 'PAYOUT' as const,
-    amount: 50000,
-    chairName: '',
-    stylistName: '',
-    propertyName: '',
-    status: 'COMPLETED',
-    createdAt: '2025-12-15T12:00:00Z',
-  },
-  {
-    id: '4',
-    type: 'RENTAL_FEE' as const,
-    amount: 12000,
-    chairName: 'Braid Station',
-    stylistName: 'Zanele Nkosi',
-    propertyName: 'Glamour Studios',
-    status: 'PENDING',
-    createdAt: '2025-12-14T16:45:00Z',
-  },
-];
 
 // Format price
 const formatPrice = (cents: number) => {
@@ -83,22 +35,65 @@ const formatDate = (dateString: string) => {
 export default function RevenueScreen() {
   const insets = useSafeAreaInsets();
   const { colors, spacing, borderRadius, shadows } = useTheme();
-  const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const {
+    revenueStats,
+    revenueLoading,
+    revenuePeriod,
+    transactions,
+    fetchRevenue,
+    setRevenuePeriod,
+  } = usePropertyOwnerStore();
+
+  // Fetch revenue on mount
+  useEffect(() => {
+    fetchRevenue();
+  }, [fetchRevenue]);
+
+  // Pull to refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchRevenue(revenuePeriod);
+    setRefreshing(false);
+  }, [fetchRevenue, revenuePeriod]);
+
+  // Handle period change
+  const handlePeriodChange = useCallback((newPeriod: 'week' | 'month' | 'year') => {
+    setRevenuePeriod(newPeriod);
+    fetchRevenue(newPeriod);
+  }, [setRevenuePeriod, fetchRevenue]);
 
   // Calculate month-over-month change
-  const monthChange =
-    mockStats.lastMonthEarnings > 0
+  const monthChange = revenueStats
+    ? revenueStats.lastPeriodEarningsCents > 0
       ? Math.round(
-          ((mockStats.thisMonthEarnings - mockStats.lastMonthEarnings) /
-            mockStats.lastMonthEarnings) *
+          ((revenueStats.thisPeriodEarningsCents - revenueStats.lastPeriodEarningsCents) /
+            revenueStats.lastPeriodEarningsCents) *
             100
         )
-      : 0;
+      : 0
+    : 0;
+
+  // Loading state
+  if (revenueLoading && !revenueStats) {
+    return (
+      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]}>
+          Loading revenue...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background.secondary }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+      }
     >
       {/* Stats Cards */}
       <View style={[styles.statsSection, { padding: spacing.lg }]}>
@@ -118,7 +113,7 @@ export default function RevenueScreen() {
             Total Earnings
           </Text>
           <Text style={[textStyles.h1, { color: colors.white }]}>
-            {formatPrice(mockStats.totalEarnings)}
+            {formatPrice(revenueStats?.totalEarningsCents || 0)}
           </Text>
         </View>
 
@@ -134,9 +129,9 @@ export default function RevenueScreen() {
               },
             ]}
           >
-            <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>This Month</Text>
+            <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>This {revenuePeriod}</Text>
             <Text style={[textStyles.h3, { color: colors.text.primary }]}>
-              {formatPrice(mockStats.thisMonthEarnings)}
+              {formatPrice(revenueStats?.thisPeriodEarningsCents || 0)}
             </Text>
             {monthChange !== 0 && (
               <View style={styles.changeRow}>
@@ -170,7 +165,7 @@ export default function RevenueScreen() {
           >
             <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Pending</Text>
             <Text style={[textStyles.h3, { color: colors.text.primary }]}>
-              {formatPrice(mockStats.pendingPayouts)}
+              {formatPrice(revenueStats?.pendingPayoutCents || 0)}
             </Text>
             <Text style={[textStyles.caption, { color: colors.text.muted }]}>payout</Text>
           </View>
@@ -184,11 +179,11 @@ export default function RevenueScreen() {
           { value: 'month', label: 'Month' },
           { value: 'year', label: 'Year' },
         ].map((p) => {
-          const isActive = period === p.value;
+          const isActive = revenuePeriod === p.value;
           return (
             <Pressable
               key={p.value}
-              onPress={() => setPeriod(p.value as typeof period)}
+              onPress={() => handlePeriodChange(p.value as typeof revenuePeriod)}
               style={[
                 styles.periodChip,
                 {
@@ -223,16 +218,16 @@ export default function RevenueScreen() {
             },
           ]}
         >
-          {mockTransactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={[textStyles.body, { color: colors.text.secondary }]}>
                 No transactions yet
               </Text>
             </View>
           ) : (
-            mockTransactions.map((tx, index) => {
+            transactions.map((tx, index) => {
               const isIncome = tx.type !== 'PAYOUT';
-              const isLast = index === mockTransactions.length - 1;
+              const isLast = index === transactions.length - 1;
 
               return (
                 <View
@@ -268,7 +263,7 @@ export default function RevenueScreen() {
                     >
                       {tx.type === 'PAYOUT'
                         ? 'Payout to Bank'
-                        : `${tx.chairName} - ${tx.stylistName}`}
+                        : `${tx.chairName || 'Chair'} - ${tx.stylistName || 'Stylist'}`}
                     </Text>
                     <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
                       {tx.propertyName || 'Completed'} • {formatDate(tx.createdAt)}
@@ -286,7 +281,7 @@ export default function RevenueScreen() {
                       ]}
                     >
                       {isIncome ? '+' : '-'}
-                      {formatPrice(tx.amount)}
+                      {formatPrice(tx.amountCents || 0)}
                     </Text>
                     <Text
                       style={[
@@ -310,7 +305,7 @@ export default function RevenueScreen() {
       </View>
 
       {/* Payout Info */}
-      {mockStats.pendingPayouts > 0 && (
+      {revenueStats && revenueStats.pendingPayoutCents > 0 && (
         <View
           style={[
             styles.payoutBanner,
@@ -326,7 +321,7 @@ export default function RevenueScreen() {
           <VlossomWalletIcon size={20} color={colors.primary} />
           <View style={{ flex: 1, marginLeft: spacing.sm }}>
             <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
-              Pending: {formatPrice(mockStats.pendingPayouts)}
+              Pending: {formatPrice(revenueStats?.pendingPayoutCents || 0)}
             </Text>
             <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
               Payouts are processed every Friday
@@ -341,6 +336,10 @@ export default function RevenueScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statsSection: {},
   mainStatCard: {

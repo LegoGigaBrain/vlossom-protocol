@@ -1,61 +1,91 @@
 /**
- * Property Owner Dashboard Screen (V6.5.2)
+ * Property Owner Dashboard Screen (V6.10.0)
  *
- * Overview of properties, chairs, and pending requests
+ * Overview of properties, chairs, and pending requests.
+ * V6.10: Wired to real API via Zustand store.
  */
 
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, RefreshControl, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useEffect, useCallback, useState } from 'react';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {
   VlossomHomeIcon,
   VlossomCalendarIcon,
   VlossomGrowingIcon,
 } from '../../src/components/icons/VlossomIcons';
-
-// Mock data - in production this would come from API
-const mockProperties = [
-  {
-    id: '1',
-    name: 'Glamour Studios',
-    category: 'BOUTIQUE',
-    city: 'Johannesburg',
-    coverImage: null,
-    chairCount: 4,
-    availableChairs: 2,
-    occupiedChairs: 1,
-    pendingRequests: 2,
-  },
-  {
-    id: '2',
-    name: 'Style Haven',
-    category: 'LUXURY',
-    city: 'Cape Town',
-    coverImage: null,
-    chairCount: 8,
-    availableChairs: 5,
-    occupiedChairs: 3,
-    pendingRequests: 0,
-  },
-];
+import { usePropertyOwnerStore } from '../../src/stores/property-owner';
 
 export default function PropertyOwnerDashboard() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors, spacing, borderRadius, shadows } = useTheme();
 
-  // Calculate stats
-  const totalProperties = mockProperties.length;
-  const totalChairs = mockProperties.reduce((sum, p) => sum + p.chairCount, 0);
-  const totalOccupied = mockProperties.reduce((sum, p) => sum + p.occupiedChairs, 0);
-  const totalPending = mockProperties.reduce((sum, p) => sum + p.pendingRequests, 0);
-  const occupancyRate = totalChairs > 0 ? Math.round((totalOccupied / totalChairs) * 100) : 0;
+  const {
+    properties,
+    propertiesLoading,
+    stats,
+    fetchProperties,
+  } = usePropertyOwnerStore();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch properties on mount
+  useEffect(() => {
+    fetchProperties();
+  }, [fetchProperties]);
+
+  // Pull to refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchProperties();
+    setRefreshing(false);
+  }, [fetchProperties]);
+
+  // Calculate display stats
+  const totalProperties = stats?.totalProperties || 0;
+  const totalChairs = stats?.totalChairs || 0;
+  const occupancyRate = stats?.occupancyRate || 0;
+  const totalPending = stats?.pendingRequests || 0;
+
+  // Transform properties for display
+  const displayProperties = properties.map((property) => {
+    const chairs = property.chairs || [];
+    const availableChairs = chairs.filter((c) => c.status === 'AVAILABLE').length;
+    const occupiedChairs = chairs.filter((c) => c.status === 'OCCUPIED').length;
+    return {
+      id: property.id,
+      name: property.name,
+      category: property.category,
+      city: property.city,
+      coverImage: property.coverImage,
+      chairCount: chairs.length,
+      availableChairs,
+      occupiedChairs,
+      pendingRequests: property.pendingRentalCount || 0,
+    };
+  });
+
+  // Loading state
+  if (propertiesLoading && properties.length === 0) {
+    return (
+      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]}>
+          Loading properties...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background.secondary }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+      }
     >
       {/* Stats Cards */}
       <View style={[styles.statsGrid, { padding: spacing.lg }]}>
@@ -179,7 +209,7 @@ export default function PropertyOwnerDashboard() {
           Your Properties
         </Text>
 
-        {mockProperties.length === 0 ? (
+        {displayProperties.length === 0 ? (
           <View
             style={[
               styles.emptyState,
@@ -204,7 +234,7 @@ export default function PropertyOwnerDashboard() {
             </Text>
           </View>
         ) : (
-          mockProperties.map((property) => (
+          displayProperties.map((property) => (
             <Pressable
               key={property.id}
               onPress={() => router.push(`/property-owner/chairs?property=${property.id}`)}
@@ -295,6 +325,10 @@ export default function PropertyOwnerDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   statsGrid: {
     flexDirection: 'row',

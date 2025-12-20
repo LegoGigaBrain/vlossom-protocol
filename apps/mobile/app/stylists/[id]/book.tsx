@@ -1,8 +1,10 @@
 /**
- * Booking Flow Screen (V6.8.0)
+ * Booking Flow Screen (V6.10.0)
  *
  * Multi-step booking flow for scheduling a service with a stylist
  * Steps: Service Selection → Date/Time → Location → Confirmation
+ *
+ * Wired to real API with wallet balance check and error handling.
  */
 
 import {
@@ -12,6 +14,7 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,10 +23,25 @@ import {
   VlossomBackIcon,
   VlossomCalendarIcon,
   VlossomLocationIcon,
+  VlossomWalletIcon,
 } from '../../../src/components/icons/VlossomIcons';
-import { useState, useEffect } from 'react';
-import { useStylistsStore, selectSelectedStylist } from '../../../src/stores';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  useStylistsStore,
+  selectSelectedStylist,
+  useBookingsStore,
+  selectCreateLoading,
+  selectCreateError,
+  selectAvailability,
+  useWalletStore,
+  selectBalance,
+} from '../../../src/stores';
 import { formatPrice, type StylistService } from '../../../src/api/stylists';
+import {
+  type LocationType,
+  calculatePriceBreakdown,
+  generateTimeSlots,
+} from '../../../src/api/bookings';
 
 type BookingStep = 'service' | 'datetime' | 'location' | 'confirm';
 
@@ -33,9 +51,19 @@ export default function BookingScreen() {
   const insets = useSafeAreaInsets();
   const { colors, spacing, borderRadius, shadows } = useTheme();
 
-  // Store state
+  // Stylists store
   const stylist = useStylistsStore(selectSelectedStylist);
   const { selectedStylistLoading, selectStylist } = useStylistsStore();
+
+  // Bookings store
+  const createLoading = useBookingsStore(selectCreateLoading);
+  const createError = useBookingsStore(selectCreateError);
+  const availability = useBookingsStore(selectAvailability);
+  const { createBooking, fetchAvailability, clearErrors } = useBookingsStore();
+
+  // Wallet store for balance check
+  const balance = useWalletStore(selectBalance);
+  const { fetchBalance } = useWalletStore();
 
   // Booking state
   const [currentStep, setCurrentStep] = useState<BookingStep>('service');
@@ -43,13 +71,31 @@ export default function BookingScreen() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [locationChoice, setLocationChoice] = useState<'stylist' | 'customer' | null>(null);
+  const [locationAddress, setLocationAddress] = useState<string>('');
 
-  // Fetch stylist if not loaded
+  // Fetch stylist and balance if not loaded
   useEffect(() => {
     if (id && !stylist) {
       selectStylist(id);
     }
-  }, [id, stylist, selectStylist]);
+    if (!balance) {
+      fetchBalance();
+    }
+  }, [id, stylist, selectStylist, balance, fetchBalance]);
+
+  // Clear errors on unmount
+  useEffect(() => {
+    return () => clearErrors();
+  }, [clearErrors]);
+
+  // Show error alert if booking fails
+  useEffect(() => {
+    if (createError) {
+      Alert.alert('Booking Failed', createError, [
+        { text: 'OK', onPress: clearErrors },
+      ]);
+    }
+  }, [createError, clearErrors]);
 
   const handleBack = () => {
     if (currentStep === 'service') {
@@ -76,14 +122,82 @@ export default function BookingScreen() {
 
   const handleSelectLocation = (choice: 'stylist' | 'customer') => {
     setLocationChoice(choice);
+    // Set default address based on choice
+    if (choice === 'stylist' && stylist?.baseLocation?.address) {
+      setLocationAddress(stylist.baseLocation.address);
+    } else {
+      setLocationAddress(''); // User will need to provide
+    }
     setCurrentStep('confirm');
   };
 
-  const handleConfirmBooking = () => {
-    // TODO: Submit booking to API
-    // For now, navigate back with success message
-    router.replace(`/stylists/${id}`);
-  };
+  const handleConfirmBooking = useCallback(async () => {
+    if (!stylist || !selectedService || !selectedDate || !selectedTime || !locationChoice) {
+      return;
+    }
+
+    // Check wallet balance
+    const servicePriceCents = parseInt(selectedService.priceAmountCents, 10);
+    const priceBreakdown = calculatePriceBreakdown(servicePriceCents, locationChoice === 'customer');
+    const balanceUsdcCents = balance ? Math.floor(parseFloat(balance.usdc) * 100) : 0;
+
+    if (balanceUsdcCents < priceBreakdown.totalAmount) {
+      Alert.alert(
+        'Insufficient Balance',
+        `You need ${formatPrice(priceBreakdown.totalAmount)} but only have ${formatPrice(balanceUsdcCents)}. Please fund your wallet first.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Fund Wallet', onPress: () => router.push('/wallet/fund') },
+        ]
+      );
+      return;
+    }
+
+    // Build scheduled time
+    const [hours, minutes] = selectedTime.split(':').map(Number);
+    const scheduledStartTime = new Date(selectedDate);
+    scheduledStartTime.setHours(hours, minutes, 0, 0);
+
+    // Determine location type and address
+    const locationType: LocationType = locationChoice === 'stylist' ? 'STYLIST_BASE' : 'CUSTOMER_HOME';
+    const address = locationChoice === 'stylist'
+      ? stylist.baseLocation?.address || 'Stylist location'
+      : locationAddress || 'Customer location';
+
+    const booking = await createBooking({
+      stylistId: stylist.id,
+      serviceId: selectedService.id,
+      scheduledStartTime: scheduledStartTime.toISOString(),
+      locationType,
+      locationAddress: address,
+      locationLat: locationChoice === 'stylist' ? stylist.baseLocation?.lat : undefined,
+      locationLng: locationChoice === 'stylist' ? stylist.baseLocation?.lng : undefined,
+    });
+
+    if (booking) {
+      // Success! Navigate to booking details or confirmation
+      Alert.alert(
+        'Booking Confirmed!',
+        `Your appointment with ${stylist.displayName} is confirmed for ${selectedDate.toLocaleDateString()} at ${selectedTime}.`,
+        [
+          {
+            text: 'View Booking',
+            onPress: () => router.replace(`/bookings/${booking.id}`),
+          },
+        ]
+      );
+    }
+  }, [
+    stylist,
+    selectedService,
+    selectedDate,
+    selectedTime,
+    locationChoice,
+    locationAddress,
+    balance,
+    createBooking,
+    router,
+  ]);
 
   const getStepNumber = () => {
     switch (currentStep) {
@@ -189,6 +303,8 @@ export default function BookingScreen() {
             date={selectedDate!}
             time={selectedTime!}
             locationChoice={locationChoice!}
+            balance={balance}
+            isLoading={createLoading}
             onConfirm={handleConfirmBooking}
             colors={colors}
             spacing={spacing}
@@ -464,6 +580,8 @@ interface ConfirmStepProps {
   date: Date;
   time: string;
   locationChoice: 'stylist' | 'customer';
+  balance: { usdc: string; zar: string } | null;
+  isLoading: boolean;
   onConfirm: () => void;
   colors: ReturnType<typeof useTheme>['colors'];
   spacing: ReturnType<typeof useTheme>['spacing'];
@@ -477,6 +595,8 @@ function ConfirmStep({
   date,
   time,
   locationChoice,
+  balance,
+  isLoading,
   onConfirm,
   colors,
   spacing,
@@ -488,6 +608,13 @@ function ConfirmStep({
     month: 'long',
     day: 'numeric',
   });
+
+  // Calculate price breakdown
+  const servicePriceCents = parseInt(service.priceAmountCents, 10);
+  const hasTravelFee = locationChoice === 'customer';
+  const priceBreakdown = calculatePriceBreakdown(servicePriceCents, hasTravelFee);
+  const balanceUsdcCents = balance ? Math.floor(parseFloat(balance.usdc) * 100) : 0;
+  const hasInsufficientBalance = balanceUsdcCents < priceBreakdown.totalAmount;
 
   return (
     <View>
@@ -538,14 +665,70 @@ function ConfirmStep({
 
         <View style={[styles.confirmDivider, { backgroundColor: colors.border.default }]} />
 
+        {/* Price Breakdown */}
+        <View style={styles.confirmRow}>
+          <Text style={[textStyles.bodySmall, { color: colors.text.tertiary }]}>Service</Text>
+          <Text style={[textStyles.body, { color: colors.text.primary }]}>
+            {formatPrice(priceBreakdown.serviceAmount)}
+          </Text>
+        </View>
+
+        {hasTravelFee && (
+          <View style={styles.confirmRow}>
+            <Text style={[textStyles.bodySmall, { color: colors.text.tertiary }]}>Travel Fee</Text>
+            <Text style={[textStyles.body, { color: colors.text.primary }]}>
+              {formatPrice(priceBreakdown.travelFee)}
+            </Text>
+          </View>
+        )}
+
+        <View style={[styles.confirmDivider, { backgroundColor: colors.border.default }]} />
+
         <View style={styles.confirmRow}>
           <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
             Total
           </Text>
           <Text style={[textStyles.h3, { color: colors.primary }]}>
-            {formatPrice(service.priceAmountCents)}
+            {formatPrice(priceBreakdown.totalAmount)}
           </Text>
         </View>
+      </View>
+
+      {/* Wallet Balance */}
+      <View
+        style={[
+          styles.balanceCard,
+          {
+            backgroundColor: hasInsufficientBalance ? colors.status.error + '10' : colors.surface.light,
+            borderRadius: borderRadius.lg,
+            marginTop: spacing.md,
+            borderWidth: hasInsufficientBalance ? 1 : 0,
+            borderColor: hasInsufficientBalance ? colors.status.error + '30' : 'transparent',
+          },
+        ]}
+      >
+        <View style={styles.balanceRow}>
+          <VlossomWalletIcon size={20} color={hasInsufficientBalance ? colors.status.error : colors.text.secondary} />
+          <Text style={[textStyles.bodySmall, { color: colors.text.secondary, marginLeft: spacing.xs }]}>
+            Wallet Balance
+          </Text>
+        </View>
+        <Text
+          style={[
+            textStyles.body,
+            {
+              color: hasInsufficientBalance ? colors.status.error : colors.text.primary,
+              fontWeight: '600',
+            },
+          ]}
+        >
+          {balance ? formatPrice(balanceUsdcCents) : 'Loading...'}
+        </Text>
+        {hasInsufficientBalance && (
+          <Text style={[textStyles.caption, { color: colors.status.error, marginTop: spacing.xs }]}>
+            Insufficient balance - fund your wallet to proceed
+          </Text>
+        )}
       </View>
 
       <Text
@@ -559,18 +742,23 @@ function ConfirmStep({
 
       <Pressable
         onPress={onConfirm}
+        disabled={isLoading}
         style={[
           styles.confirmButton,
           {
-            backgroundColor: colors.primary,
+            backgroundColor: isLoading ? colors.text.muted : colors.primary,
             borderRadius: borderRadius.lg,
             marginTop: spacing.xl,
           },
         ]}
       >
-        <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
-          Confirm Booking
-        </Text>
+        {isLoading ? (
+          <ActivityIndicator size="small" color={colors.white} />
+        ) : (
+          <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
+            Confirm Booking
+          </Text>
+        )}
       </Pressable>
     </View>
   );
@@ -671,5 +859,13 @@ const styles = StyleSheet.create({
   confirmButton: {
     paddingVertical: 16,
     alignItems: 'center',
+  },
+  balanceCard: {
+    padding: 12,
+  },
+  balanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
   },
 });

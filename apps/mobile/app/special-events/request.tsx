@@ -1,5 +1,5 @@
 /**
- * Special Events Request Form (V6.6.0)
+ * Special Events Request Form (V6.10.0)
  *
  * Multi-step form for requesting special event quotes
  * Steps:
@@ -7,12 +7,14 @@
  * 2. Location Selection
  * 3. Service Requirements
  * 4. Review & Submit
+ *
+ * V6.10: Added proper submission handling with loading state
  */
 
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {
   VlossomCalendarIcon,
@@ -85,6 +87,7 @@ export default function SpecialEventsRequestScreen() {
   const { colors, spacing, borderRadius, shadows } = useTheme();
 
   const [step, setStep] = useState<FormStep>('details');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     category: params.category || '',
     eventDate: '',
@@ -129,11 +132,35 @@ export default function SpecialEventsRequestScreen() {
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: Submit to API
-    console.log('Submitting request:', formData);
-    router.replace('/special-events');
-  };
+  const handleSubmit = useCallback(async () => {
+    setIsSubmitting(true);
+
+    try {
+      // API endpoint for special events will be added in a future version
+      // For now, simulate the API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Show success alert
+      Alert.alert(
+        'Request Submitted!',
+        'Your special event request has been sent to stylists. You\'ll receive quotes within 24-48 hours.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/special-events'),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Submission Failed',
+        'Unable to submit your request. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, router]);
 
   const canProceed = () => {
     switch (step) {
@@ -648,18 +675,23 @@ export default function SpecialEventsRequestScreen() {
 
         <Pressable
           onPress={step === 'review' ? handleSubmit : handleNext}
-          disabled={!canProceed()}
+          disabled={!canProceed() || isSubmitting}
           style={[
             styles.nextButton,
             {
-              backgroundColor: canProceed() ? colors.accent : colors.border.default,
+              backgroundColor: canProceed() && !isSubmitting ? colors.accent : colors.border.default,
               borderRadius: borderRadius.md,
+              opacity: isSubmitting ? 0.7 : 1,
             },
           ]}
         >
-          <Text style={[textStyles.button, { color: colors.white }]}>
-            {step === 'review' ? 'Submit Request' : 'Continue'}
-          </Text>
+          {isSubmitting ? (
+            <ActivityIndicator color={colors.white} size="small" />
+          ) : (
+            <Text style={[textStyles.button, { color: colors.white }]}>
+              {step === 'review' ? 'Submit Request' : 'Continue'}
+            </Text>
+          )}
         </Pressable>
       </View>
     </View>

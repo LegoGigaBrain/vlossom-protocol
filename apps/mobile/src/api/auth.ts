@@ -1,7 +1,8 @@
 /**
- * Auth API Client (V6.8.0)
+ * Auth API Client (V6.10.0)
  *
- * Authentication endpoints: login, signup, logout, getMe, updateProfile.
+ * Authentication endpoints: login, signup, logout, getMe, updateProfile,
+ * forgotPassword, resetPassword.
  * Uses SecureStore for token management.
  */
 
@@ -163,6 +164,45 @@ export function isRateLimitError(error: unknown): boolean {
     return error.status === 429;
   }
   return false;
+}
+
+// ============================================================================
+// Password Recovery
+// ============================================================================
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+/**
+ * Request password reset email
+ *
+ * @throws {APIError} On invalid email or rate limit
+ */
+export async function forgotPassword(request: ForgotPasswordRequest): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(request),
+    requiresAuth: false,
+  });
+}
+
+/**
+ * Reset password with token from email
+ *
+ * @throws {APIError} On invalid/expired token or weak password
+ */
+export async function resetPassword(request: ResetPasswordRequest): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify(request),
+    requiresAuth: false,
+  });
 }
 
 // Re-export APIError for convenience

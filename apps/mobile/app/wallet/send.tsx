@@ -1,5 +1,5 @@
 /**
- * Send Screen - P2P Transfer (V6.8.0)
+ * Send Screen - P2P Transfer (V6.10.0)
  *
  * Purpose: Send USDC to another wallet address
  * - Enter recipient address or scan QR code
@@ -7,6 +7,8 @@
  * - Optional memo/note
  * - Biometric auth required before proceeding
  * - Execute transfer via API
+ *
+ * V6.10: Added QR scanner for scanning wallet addresses
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -32,6 +34,7 @@ import {
 import { useWalletStore } from '../../src/stores/wallet';
 import { useBiometricAuth, getBiometricTypeName } from '../../src/hooks/useBiometricAuth';
 import { colors as tokenColors } from '../../src/styles/tokens';
+import { QRScanner } from '../../src/components/wallet';
 
 // Transfer limits
 const MIN_AMOUNT_USDC = 0.01;
@@ -62,6 +65,12 @@ export default function SendScreen() {
   const [amount, setAmount] = useState('');
   const [memo, setMemo] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+
+  // Handle QR code scan result
+  const handleScanResult = useCallback((address: string) => {
+    setRecipient(address);
+  }, []);
 
   // Refresh balance on mount
   useEffect(() => {
@@ -240,7 +249,7 @@ export default function SendScreen() {
               autoCapitalize="none"
               autoCorrect={false}
             />
-            <Pressable style={styles.scanButton}>
+            <Pressable style={styles.scanButton} onPress={() => setShowScanner(true)}>
               <VlossomSearchIcon size={20} color={colors.text.secondary} />
             </Pressable>
           </View>
@@ -445,6 +454,13 @@ export default function SendScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* QR Scanner Modal */}
+      <QRScanner
+        visible={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleScanResult}
+      />
     </KeyboardAvoidingView>
   );
 }
