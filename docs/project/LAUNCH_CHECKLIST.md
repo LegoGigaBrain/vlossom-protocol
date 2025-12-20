@@ -119,22 +119,34 @@
 |-----------|--------|-------|
 | API Unit Tests | ✅ | auth.test.ts, csrf.test.ts, rate-limiter.test.ts |
 | API Integration Tests | ✅ | auth.integration.test.ts |
-| E2E Tests (Playwright) | ✅ | auth-v7.spec.ts, property-creation.spec.ts |
+| E2E Tests (Playwright) | 🟡 | auth-v7.spec.ts, property-creation.spec.ts |
 
 ### How to Run Tests
 
 ```bash
-# API Tests
+# API Tests (requires PostgreSQL)
 cd services/api
 npm test
 
-# E2E Tests
+# E2E Tests (requires PostgreSQL + API server)
 cd apps/web
 npx playwright install  # First time only
 npx playwright test     # Run all E2E tests
 npx playwright test --headed  # See browser
 npx playwright test --ui      # Interactive mode
+npx playwright test --project="Mobile Chrome"  # Mobile viewport only
 ```
+
+### E2E Test Requirements
+
+| Requirement | Notes |
+|-------------|-------|
+| PostgreSQL | Database at `localhost:5432/vlossom` |
+| API Server | Auto-started by Playwright on port 3002 |
+| Web Server | Auto-started by Playwright on port 3000 |
+| Playwright browsers | Install once with `npx playwright install` |
+
+**Note:** E2E tests require a running PostgreSQL database. Without it, signup/login API calls fail with 500 Internal Error. The Playwright config automatically starts both the API and Web servers.
 
 ---
 
