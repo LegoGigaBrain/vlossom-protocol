@@ -3,6 +3,8 @@
  *
  * Email/password login with error handling.
  * Uses Vlossom design tokens and botanical iconography.
+ *
+ * V7.0.0 (M-4): Added input length limits for security
  */
 
 import React, { useState } from 'react';
@@ -21,6 +23,7 @@ import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
 import { useAuthStore } from '../../src/stores/auth';
+import { INPUT_LIMITS } from '../../src/utils/input-validation';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -74,7 +77,7 @@ export default function LoginScreen() {
                 style={styles.input}
                 value={email}
                 onChangeText={(text) => {
-                  setEmail(text);
+                  setEmail(text.slice(0, INPUT_LIMITS.EMAIL));
                   if (loginError) clearErrors();
                 }}
                 placeholder="you@example.com"
@@ -85,6 +88,7 @@ export default function LoginScreen() {
                 autoCorrect={false}
                 returnKeyType="next"
                 editable={!loginLoading}
+                maxLength={INPUT_LIMITS.EMAIL}
               />
             </View>
 
@@ -96,7 +100,7 @@ export default function LoginScreen() {
                   style={styles.passwordInput}
                   value={password}
                   onChangeText={(text) => {
-                    setPassword(text);
+                    setPassword(text.slice(0, INPUT_LIMITS.PASSWORD));
                     if (loginError) clearErrors();
                   }}
                   placeholder="Enter your password"
@@ -107,6 +111,7 @@ export default function LoginScreen() {
                   returnKeyType="done"
                   onSubmitEditing={handleLogin}
                   editable={!loginLoading}
+                  maxLength={INPUT_LIMITS.PASSWORD}
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}

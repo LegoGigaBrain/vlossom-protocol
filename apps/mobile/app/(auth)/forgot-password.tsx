@@ -3,6 +3,8 @@
  *
  * Email entry for password reset flow.
  * Always shows success message to prevent email enumeration.
+ *
+ * V7.0.0 (M-4): Added input length limits for security
  */
 
 import React, { useState, useCallback } from 'react';
@@ -17,7 +19,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
 import { forgotPassword } from '../../src/api/auth';
@@ -25,6 +27,7 @@ import {
   VlossomCheckIcon,
   VlossomBackIcon,
 } from '../../src/components/icons/VlossomIcons';
+import { INPUT_LIMITS } from '../../src/utils/input-validation';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -141,7 +144,7 @@ export default function ForgotPasswordScreen() {
               <TextInput
                 style={styles.input}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => setEmail(text.slice(0, INPUT_LIMITS.EMAIL))}
                 placeholder="you@example.com"
                 placeholderTextColor={colors.text.muted}
                 keyboardType="email-address"
@@ -151,6 +154,7 @@ export default function ForgotPasswordScreen() {
                 returnKeyType="done"
                 onSubmitEditing={handleSubmit}
                 editable={!isLoading}
+                maxLength={INPUT_LIMITS.EMAIL}
               />
             </View>
 

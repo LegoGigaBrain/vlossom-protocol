@@ -1,15 +1,21 @@
 /**
- * JWT Bearer token authentication middleware
+ * JWT Authentication Middleware
  *
  * SECURITY AUDIT (V1.9.0):
  * - H-1: JWT secret strength validation at startup
  * - M-4: Security event logging for authentication failures
  * - L-1: Configurable bcrypt rounds
+ *
+ * V7.0.0 Security Updates (H-1):
+ * - Primary: httpOnly signed cookies (XSS protection)
+ * - Fallback: Bearer header (for mobile apps)
+ * - Reduced token expiry (15min access + 7d refresh)
  */
 
 import { type Request, type Response, type NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { logger } from "../lib/logger";
+import { COOKIE_NAMES, TOKEN_EXPIRY } from "../lib/cookie-config";
 
 /**
  * H-1: Validate JWT secret strength at startup
@@ -74,29 +80,45 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
- * Bearer token authentication middleware
- * Expects Authorization header: Bearer <token>
+ * Extract JWT token from request
+ * V7.0.0: Priority order:
+ * 1. Signed httpOnly cookie (web clients - most secure)
+ * 2. Bearer header (mobile clients - uses SecureStore)
+ */
+function extractToken(req: AuthenticatedRequest): string | null {
+  // V7.0.0: Try signed cookie first (web clients)
+  const cookieToken = req.signedCookies?.[COOKIE_NAMES.ACCESS_TOKEN];
+  if (cookieToken && typeof cookieToken === 'string') {
+    return cookieToken;
+  }
+
+  // Fallback: Bearer header (mobile clients)
+  const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const parts = authHeader.split(' ');
+    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+      return parts[1];
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Authentication middleware
+ * V7.0.0: Reads from httpOnly cookies (web) or Bearer header (mobile)
  */
 export function authenticate(
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): void {
-  const authHeader = req.headers.authorization;
+  const token = extractToken(req);
 
-  if (!authHeader) {
-    res.status(401).json({ error: "Authorization header required" });
+  if (!token) {
+    res.status(401).json({ error: "Authentication required" });
     return;
   }
-
-  const parts = authHeader.split(" ");
-
-  if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
-    res.status(401).json({ error: "Invalid authorization format. Use: Bearer <token>" });
-    return;
-  }
-
-  const token = parts[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
@@ -123,7 +145,12 @@ export function authenticate(
 
     if (error instanceof jwt.TokenExpiredError) {
       logSecurityEvent('token_expired');
-      res.status(401).json({ error: "Token expired" });
+      // V7.0.0: Include refresh hint for expired tokens
+      res.status(401).json({
+        error: "Token expired",
+        code: "TOKEN_EXPIRED",
+        refreshUrl: "/api/v1/auth/refresh"
+      });
       return;
     }
 
@@ -141,27 +168,19 @@ export function authenticate(
 /**
  * Optional authentication middleware
  * Attaches user if token present, but doesn't require it
+ * V7.0.0: Uses same token extraction as authenticate()
  */
 export function optionalAuth(
   req: AuthenticatedRequest,
   _res: Response,
   next: NextFunction
 ): void {
-  const authHeader = req.headers.authorization;
+  const token = extractToken(req);
 
-  if (!authHeader) {
+  if (!token) {
     next();
     return;
   }
-
-  const parts = authHeader.split(" ");
-
-  if (parts.length !== 2 || parts[0].toLowerCase() !== "bearer") {
-    next();
-    return;
-  }
-
-  const token = parts[1];
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
@@ -175,7 +194,13 @@ export function optionalAuth(
 }
 
 /**
+ * Token type for V7.0.0 dual-token system
+ */
+export type TokenType = 'access' | 'refresh';
+
+/**
  * Generate a JWT token for a user
+ * V7.0.0: Default to short-lived access tokens (15min)
  */
 export function generateToken(
   userId: string,
@@ -184,6 +209,7 @@ export function generateToken(
     walletAddress?: string;
     roles?: string[];
     expiresIn?: string;
+    tokenType?: TokenType;
   } = {}
 ): string {
   const payload: JWTPayload = {
@@ -193,9 +219,33 @@ export function generateToken(
     roles: options.roles,
   };
 
+  // V7.0.0: Use appropriate expiry based on token type
+  let expiry = options.expiresIn;
+  if (!expiry) {
+    expiry = options.tokenType === 'refresh' ? TOKEN_EXPIRY.REFRESH : TOKEN_EXPIRY.ACCESS;
+  }
+
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: options.expiresIn ?? "24h",
+    expiresIn: expiry,
   } as jwt.SignOptions);
+}
+
+/**
+ * Generate access and refresh token pair
+ * V7.0.0: Used for login/signup responses
+ */
+export function generateTokenPair(
+  userId: string,
+  options: {
+    email?: string;
+    walletAddress?: string;
+    roles?: string[];
+  } = {}
+): { accessToken: string; refreshToken: string } {
+  return {
+    accessToken: generateToken(userId, { ...options, tokenType: 'access' }),
+    refreshToken: generateToken(userId, { ...options, tokenType: 'refresh' }),
+  };
 }
 
 /**

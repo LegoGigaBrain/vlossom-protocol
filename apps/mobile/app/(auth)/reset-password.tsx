@@ -4,6 +4,8 @@
  * Password reset form with token from deep link or email.
  * Includes password validation and strength indicator.
  * Deep link: vlossom://reset-password?token=...
+ *
+ * V7.0.0: Added token format validation (H-6 security fix)
  */
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
@@ -21,12 +23,24 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
-import { resetPassword } from '../../src/api/auth';
+import { resetPassword, validateResetToken } from '../../src/api/auth';
 import {
   VlossomCheckIcon,
   VlossomBackIcon,
   VlossomCloseIcon,
 } from '../../src/components/icons/VlossomIcons';
+import { INPUT_LIMITS } from '../../src/utils/input-validation';
+
+/**
+ * V7.0.0 (H-6): Validate reset token format
+ * Token must be exactly 64 hex characters (32 bytes as hex)
+ */
+function isValidTokenFormat(token: string): boolean {
+  return /^[0-9a-fA-F]{64}$/.test(token);
+}
+
+// Token validation states
+type TokenValidationState = 'validating' | 'valid' | 'invalid' | 'expired';
 
 // Password strength levels
 type PasswordStrengthLevel = 'weak' | 'fair' | 'good' | 'strong';
@@ -69,11 +83,46 @@ export default function ResetPasswordScreen() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check for token on mount
+  // V7.0.0 (H-6): Token validation state
+  const [tokenState, setTokenState] = useState<TokenValidationState>('validating');
+
+  // V7.0.0 (H-6): Validate token format and server-side validity on mount
   useEffect(() => {
-    if (!token) {
-      setError('Invalid reset link. Please request a new password reset.');
+    async function validateToken() {
+      // Check if token exists
+      if (!token) {
+        setTokenState('invalid');
+        setError('Invalid reset link. Please request a new password reset.');
+        return;
+      }
+
+      // V7.0.0 (H-6): Client-side format validation first
+      if (!isValidTokenFormat(token)) {
+        setTokenState('invalid');
+        setError('Invalid reset link format. Please request a new password reset.');
+        return;
+      }
+
+      // V7.0.0 (H-6): Server-side token validation
+      try {
+        const result = await validateResetToken(token);
+        if (result.valid) {
+          setTokenState('valid');
+        } else if (result.expired) {
+          setTokenState('expired');
+          setError('This reset link has expired. Please request a new one.');
+        } else {
+          setTokenState('invalid');
+          setError('Invalid reset link. Please request a new password reset.');
+        }
+      } catch (err) {
+        // If server validation fails, still allow form if format is valid
+        // The actual reset will fail with appropriate error
+        setTokenState('valid');
+      }
     }
+
+    validateToken();
   }, [token]);
 
   // Password validation
@@ -95,7 +144,8 @@ export default function ResetPasswordScreen() {
   );
 
   const passwordsMatch = password === confirmPassword && confirmPassword.length > 0;
-  const isFormValid = passwordValidation.isValid && passwordsMatch && !!token;
+  // V7.0.0 (H-6): Form valid only if token validated successfully
+  const isFormValid = passwordValidation.isValid && passwordsMatch && tokenState === 'valid';
 
   const handleSubmit = useCallback(async () => {
     if (!isFormValid || !token) return;
@@ -147,8 +197,22 @@ export default function ResetPasswordScreen() {
     );
   }
 
-  // Invalid token state
-  if (!token || error?.includes('Invalid reset link')) {
+  // V7.0.0 (H-6): Loading state while validating token
+  if (tokenState === 'validating') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.stateContent}>
+          <ActivityIndicator size="large" color={colors.brand.rose} />
+          <Text style={[styles.stateMessage, { marginTop: spacing.lg }]}>
+            Validating reset link...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // V7.0.0 (H-6): Invalid or expired token state
+  if (tokenState === 'invalid' || tokenState === 'expired') {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <ScrollView
@@ -161,10 +225,13 @@ export default function ResetPasswordScreen() {
           </View>
 
           {/* Message */}
-          <Text style={styles.stateTitle}>Invalid or expired link</Text>
+          <Text style={styles.stateTitle}>
+            {tokenState === 'expired' ? 'Link expired' : 'Invalid or expired link'}
+          </Text>
           <Text style={styles.stateMessage}>
-            This password reset link is invalid or has expired. Please request a
-            new one.
+            {tokenState === 'expired'
+              ? 'This password reset link has expired. Please request a new one.'
+              : 'This password reset link is invalid or has expired. Please request a new one.'}
           </Text>
 
           {/* Actions */}
@@ -225,7 +292,7 @@ export default function ResetPasswordScreen() {
                   style={styles.passwordInput}
                   value={password}
                   onChangeText={(text) => {
-                    setPassword(text);
+                    setPassword(text.slice(0, INPUT_LIMITS.PASSWORD));
                     if (error) setError(null);
                   }}
                   placeholder="Enter new password"
@@ -235,6 +302,7 @@ export default function ResetPasswordScreen() {
                   autoComplete="new-password"
                   returnKeyType="next"
                   editable={!isLoading}
+                  maxLength={INPUT_LIMITS.PASSWORD}
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}
@@ -296,7 +364,7 @@ export default function ResetPasswordScreen() {
                   style={styles.passwordInput}
                   value={confirmPassword}
                   onChangeText={(text) => {
-                    setConfirmPassword(text);
+                    setConfirmPassword(text.slice(0, INPUT_LIMITS.PASSWORD));
                     if (error) setError(null);
                   }}
                   placeholder="Confirm new password"
@@ -307,6 +375,7 @@ export default function ResetPasswordScreen() {
                   returnKeyType="done"
                   onSubmitEditing={handleSubmit}
                   editable={!isLoading}
+                  maxLength={INPUT_LIMITS.PASSWORD}
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}

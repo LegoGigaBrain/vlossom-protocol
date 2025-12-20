@@ -4,6 +4,29 @@
 
 ## Current Implementation Status
 
+**V7.0.0 Security Hardening & UX Improvements** (December 20, 2025)
+
+Security hardening and enhanced UX across authentication, booking flow, and QR features:
+- **Input Validation** - Length limits on auth screens (EMAIL: 254, PASSWORD: 128, DISPLAY_NAME: 100)
+- **Deep Link Security** - Whitelist validation for password reset deep links
+- **Token Validation** - Reset token format validation before API submission
+- **QR Address Validation** - EIP-55 checksum validation for wallet addresses
+- **Booking UX** - Balance warning banner when insufficient funds for booking
+- **UI Components** - New EmptyState, Skeleton components, and illustration assets
+
+**V6.10.0 Mobile Parity & 100% Feature Coverage** (December 20, 2025)
+
+Complete mobile feature coverage with real API integration:
+- **Booking Flow** - 4-step wizard (service → datetime → location → payment) with Zustand store
+- **Wallet QR Features** - QR scanner for send (expo-camera), QR generation for receive (react-native-qrcode-svg)
+- **Auth Screens** - Forgot/reset password with deep linking and password strength indicator
+- **Property Owner Dashboard** - 4 screens wired to API (overview, properties, chairs, revenue)
+- **Special Events** - Request submission with real API integration
+
+**V6.9.0 Calendar Intelligence API** (December 20, 2025)
+
+Calendar intelligence API integration with ritual plan generation, upcoming rituals, and Zustand store.
+
 **V6.8.0 Authentication & Profile Integration** (December 20, 2025)
 
 Complete auth flow with login/signup screens, auth state management, and profile tab connected to real user data.
@@ -23,6 +46,75 @@ Complete Special Events flow for weddings, photoshoots, and group styling with m
 **V6.0.0 Foundation Complete** (December 17, 2025)
 
 Complete React Native + Expo app structure with 5-tab navigation, botanical icons, biometric auth, and design tokens matching web app.
+
+---
+
+### V7.0.0 Changes
+
+**Input Validation (Auth Screens)**
+- `app/(auth)/login.tsx` - Email (254 chars max), password (128 chars max)
+- `app/(auth)/signup.tsx` - Display name (100 chars max), email/password limits
+- `app/(auth)/forgot-password.tsx` - Email validation and length limit
+- `app/(auth)/reset-password.tsx` - Password length limit with strength indicator
+- Prevents DoS attacks and buffer overflow attempts
+
+**Deep Link Security**
+- `app/(auth)/reset-password.tsx` - Whitelist validation for password reset tokens
+- Only accepts tokens from trusted domains (api.vlossom.io, localhost:4000)
+- Rejects malicious deep links from unknown sources
+- Validates token format (UUID v4) before API submission
+
+**QR Address Validation**
+- `src/components/wallet/QRScanner.tsx` - EIP-55 checksum validation
+- Validates Ethereum address format (0x + 40 hex chars)
+- Prevents sending to invalid/malformed addresses
+- User-friendly error messages for invalid QR codes
+
+**Booking Flow UX**
+- `app/stylists/[id]/book.tsx` - Balance warning banner in payment step
+- Checks wallet balance before allowing booking submission
+- Clear messaging: "Insufficient balance. You need X more USDC"
+- Prevents failed transactions and improves user experience
+
+**New UI Components**
+- `src/components/ui/EmptyState.tsx` - Reusable empty state component with icon, title, description, CTA
+- `src/components/ui/Skeleton.tsx` - Loading skeleton component for better perceived performance
+- `src/assets/illustrations/` - Illustration assets for empty states
+
+**Security Improvements:**
+- Input sanitization prevents injection attacks
+- Deep link validation prevents phishing
+- Address validation prevents fund loss
+- Balance checks prevent failed transactions
+
+---
+
+### V6.10.0 Changes
+
+**Booking Flow**
+- `src/api/bookings.ts` - Bookings API client (create, get, cancel, confirm)
+- `src/stores/bookings.ts` - Booking Zustand store with step navigation
+- `app/stylists/[id]/book.tsx` - 4-step booking wizard with real API
+
+**Wallet QR Features**
+- `src/components/wallet/QRScanner.tsx` - QR scanner with expo-camera
+- `app/wallet/send.tsx` - Send screen with QR scanner integration
+- `app/wallet/receive.tsx` - Receive screen with QR code generation (react-native-qrcode-svg)
+
+**Auth Screens**
+- `app/(auth)/forgot-password.tsx` - Forgot password with email submission
+- `app/(auth)/reset-password.tsx` - Reset password with token validation and strength indicator
+
+**Property Owner Dashboard**
+- `src/api/property-owner.ts` - Property owner API client (properties, chairs, revenue, requests)
+- `src/stores/property-owner.ts` - Property owner Zustand store
+- `app/property-owner/index.tsx` - Dashboard overview with stats
+- `app/property-owner/chairs.tsx` - Chair management with status updates
+- `app/property-owner/revenue.tsx` - Revenue tracking with period toggle
+- `app/property-owner/requests.tsx` - Chair rental request management
+
+**Special Events**
+- `app/special-events/request.tsx` - Updated with real API submission
 
 ---
 
@@ -94,7 +186,7 @@ Complete React Native + Expo app structure with 5-tab navigation, botanical icon
 - **Framework**: React Native 0.74.5, Expo SDK 51
 - **Navigation**: Expo Router (file-based routing)
 - **State Management**: Zustand 4.5.2
-- **Package Version**: `6.7.1`
+- **Package Version**: `6.10.0`
 
 ### Tab Navigation (5 Tabs)
 | Tab | Route | Icon | Purpose |

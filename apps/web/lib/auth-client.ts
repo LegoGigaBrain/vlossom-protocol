@@ -1,9 +1,18 @@
 /**
  * Authentication API client
  * Reference: docs/specs/auth/feature-spec.md
+ *
+ * V7.0.0 Security Updates (H-1):
+ * - Removed localStorage token storage (XSS vulnerability)
+ * - Uses httpOnly cookies via credentials: 'include'
+ * - Adds CSRF token handling for state-changing requests
+ * - Auto-refresh on 401 TOKEN_EXPIRED responses
  */
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002"}/api/v1`;
+
+// CSRF token cookie name (must match server)
+const CSRF_COOKIE_NAME = "vlossom_csrf";
 
 export interface AuthUser {
   id: string;
@@ -30,18 +39,109 @@ export interface LoginRequest {
 
 export interface AuthResponse {
   user: AuthUser;
-  token: string;
+  token?: string; // Still returned for mobile clients
+}
+
+/**
+ * V7.0.0: Read CSRF token from cookie
+ */
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+
+  const cookies = document.cookie.split(";");
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split("=");
+    if (name === CSRF_COOKIE_NAME) {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
+
+/**
+ * V7.0.0: Create headers with CSRF token for state-changing requests
+ */
+function createHeaders(includeContent = true): HeadersInit {
+  const headers: HeadersInit = {};
+
+  if (includeContent) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  // Add CSRF token for state-changing requests
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    headers["X-CSRF-Token"] = csrfToken;
+  }
+
+  return headers;
+}
+
+/**
+ * V7.0.0: Authenticated fetch with cookie credentials
+ * Automatically handles CSRF tokens and 401 refresh
+ */
+async function authFetch(
+  url: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const response = await fetch(url, {
+    ...options,
+    credentials: "include", // Include cookies
+    headers: {
+      ...createHeaders(options.body !== undefined),
+      ...options.headers,
+    },
+  });
+
+  // V7.0.0: Handle token expiry with auto-refresh
+  if (response.status === 401) {
+    const data = await response.clone().json().catch(() => ({}));
+    if (data.code === "TOKEN_EXPIRED") {
+      // Try to refresh token
+      const refreshed = await refreshToken();
+      if (refreshed) {
+        // Retry original request
+        return fetch(url, {
+          ...options,
+          credentials: "include",
+          headers: {
+            ...createHeaders(options.body !== undefined),
+            ...options.headers,
+          },
+        });
+      }
+    }
+  }
+
+  return response;
+}
+
+/**
+ * V7.0.0: Refresh access token using refresh token cookie
+ */
+async function refreshToken(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+      headers: createHeaders(false),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Sign up a new user
+ * V7.0.0: Token is set via httpOnly cookie automatically
  */
 export async function signup(data: SignupRequest): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
@@ -50,25 +150,18 @@ export async function signup(data: SignupRequest): Promise<AuthResponse> {
     throw new Error(error.error || "Signup failed");
   }
 
-  const result = await response.json();
-
-  // Store token in localStorage
-  if (result.token) {
-    localStorage.setItem("vlossomToken", result.token);
-  }
-
-  return result;
+  return response.json();
 }
 
 /**
  * Log in an existing user
+ * V7.0.0: Token is set via httpOnly cookie automatically
  */
 export async function login(data: LoginRequest): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
@@ -77,85 +170,60 @@ export async function login(data: LoginRequest): Promise<AuthResponse> {
     throw new Error(error.error || "Login failed");
   }
 
-  const result = await response.json();
-
-  // Store token in localStorage
-  if (result.token) {
-    localStorage.setItem("vlossomToken", result.token);
-  }
-
-  return result;
+  return response.json();
 }
 
 /**
  * Log out the current user
+ * V7.0.0: Clears httpOnly cookies on server
  */
 export async function logout(): Promise<void> {
-  const token = localStorage.getItem("vlossomToken");
-
-  if (token) {
-    try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    } catch {
-      // Ignore logout errors
-    }
+  try {
+    await authFetch(`${API_BASE_URL}/auth/logout`, {
+      method: "POST",
+    });
+  } catch {
+    // Ignore logout errors
   }
-
-  // Always remove token from localStorage
-  localStorage.removeItem("vlossomToken");
 }
 
 /**
  * Get the current authenticated user
+ * V7.0.0: Uses cookies for authentication
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  const token = localStorage.getItem("vlossomToken");
-
-  if (!token) {
-    return null;
-  }
-
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await authFetch(`${API_BASE_URL}/auth/me`);
 
     if (!response.ok) {
-      // Token is invalid or expired
-      localStorage.removeItem("vlossomToken");
       return null;
     }
 
     const result = await response.json();
     return result.user;
   } catch {
-    // Network error or other issue
     return null;
   }
 }
 
 /**
- * Get the stored auth token
- */
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  return localStorage.getItem("vlossomToken");
-}
-
-/**
- * Check if user is authenticated
+ * V7.0.0: Check if user is authenticated
+ * Note: This only checks for CSRF cookie presence as a hint.
+ * The actual auth state should be determined by getCurrentUser().
  */
 export function isAuthenticated(): boolean {
-  return !!getAuthToken();
+  return !!getCsrfToken();
+}
+
+/**
+ * @deprecated V7.0.0: Tokens are now stored in httpOnly cookies.
+ * This function is kept for backwards compatibility but always returns null.
+ */
+export function getAuthToken(): string | null {
+  console.warn(
+    "[V7.0.0] getAuthToken() is deprecated. Auth tokens are now stored in httpOnly cookies."
+  );
+  return null;
 }
 
 // ============================================================================
@@ -198,9 +266,8 @@ export async function requestSiweChallenge(
 ): Promise<SiweChallenge> {
   const response = await fetch(`${API_BASE_URL}/auth/siwe/challenge`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ address, chainId }),
   });
 
@@ -214,16 +281,15 @@ export async function requestSiweChallenge(
 
 /**
  * Authenticate with SIWE signature
- * V3.2: Creates account if new user, returns JWT token
+ * V7.0.0: Token is set via httpOnly cookie automatically
  */
 export async function authenticateWithSiwe(
   data: SiweAuthRequest
 ): Promise<SiweAuthResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/siwe`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
@@ -232,31 +298,15 @@ export async function authenticateWithSiwe(
     throw new Error(error.error?.message || "SIWE authentication failed");
   }
 
-  const result = await response.json();
-
-  // Store token in localStorage
-  if (result.token) {
-    localStorage.setItem("vlossomToken", result.token);
-  }
-
-  return result;
+  return response.json();
 }
 
 /**
  * Get all linked authentication methods
- * V3.2: Returns list of linked accounts (email, wallets)
+ * V7.0.0: Uses cookies for authentication
  */
 export async function getLinkedAccounts(): Promise<LinkedAccount[]> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_BASE_URL}/auth/linked-accounts`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await authFetch(`${API_BASE_URL}/auth/linked-accounts`);
 
   if (!response.ok) {
     const error = await response.json();
@@ -269,23 +319,14 @@ export async function getLinkedAccounts(): Promise<LinkedAccount[]> {
 
 /**
  * Link an external wallet to the current account
- * V3.2: Requires SIWE signature to prove wallet ownership
+ * V7.0.0: Uses cookies for authentication, CSRF token in header
  */
 export async function linkWallet(
   message: string,
   signature: string
 ): Promise<LinkedAccount> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_BASE_URL}/auth/link-wallet`, {
+  const response = await authFetch(`${API_BASE_URL}/auth/link-wallet`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify({ message, signature }),
   });
 
@@ -300,20 +341,13 @@ export async function linkWallet(
 
 /**
  * Unlink an authentication method from the current account
- * V3.2: Cannot unlink if it's the only auth method
+ * V7.0.0: Uses cookies for authentication, CSRF token in header
  */
 export async function unlinkAccount(accountId: string): Promise<void> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_BASE_URL}/auth/unlink-account/${accountId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await authFetch(
+    `${API_BASE_URL}/auth/unlink-account/${accountId}`,
+    { method: "DELETE" }
+  );
 
   if (!response.ok) {
     const error = await response.json();

@@ -2,6 +2,7 @@
  * Authentication routes - JWT-based auth with email/password + SIWE
  * Reference: docs/specs/auth/feature-spec.md
  * V3.2: Added SIWE (Sign-In with Ethereum) authentication
+ * V7.0.0: httpOnly cookies for JWT tokens (H-1 security fix)
  */
 
 import { Router, type Request, type Response, type NextFunction } from "express";
@@ -9,7 +10,7 @@ import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import { PrismaClient, AuthProvider } from "@prisma/client";
 import { getAddress, isAddress, recoverMessageAddress, type Hex } from "viem";
-import { generateToken, authenticate, type AuthenticatedRequest, BCRYPT_ROUNDS } from "../middleware/auth";
+import { generateTokenPair, authenticate, type AuthenticatedRequest, BCRYPT_ROUNDS } from "../middleware/auth";
 import { logger } from "../lib/logger";
 import { createWallet } from "../lib/wallet/wallet-service";
 import {
@@ -19,6 +20,13 @@ import {
   isAccountLocked,
 } from "../middleware/rate-limiter";
 import { createError } from "../middleware/error-handler";
+import {
+  COOKIE_NAMES,
+  ACCESS_TOKEN_OPTIONS,
+  REFRESH_TOKEN_OPTIONS,
+  CLEAR_COOKIE_OPTIONS,
+} from "../lib/cookie-config";
+import { setCsrfCookie, clearCsrfCookie } from "../middleware/csrf";
 
 const router: ReturnType<typeof Router> = Router();
 const prisma = new PrismaClient();
@@ -214,13 +222,20 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
       data: { walletAddress: walletInfo.address },
     });
 
-    // Generate JWT token
-    const token = generateToken(user.id, {
+    // V7.0.0: Generate token pair and set httpOnly cookies
+    const roles = user.roles as string[];
+    const { accessToken, refreshToken } = generateTokenPair(user.id, {
       email: user.email ?? undefined,
       walletAddress: walletInfo.address,
-      roles: user.roles as string[],
-      expiresIn: "30d",
+      roles,
     });
+
+    // Set httpOnly cookies
+    res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, ACCESS_TOKEN_OPTIONS);
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, REFRESH_TOKEN_OPTIONS);
+
+    // Set CSRF token cookie (readable by JS)
+    setCsrfCookie(res);
 
     logger.info("User signed up", {
       userId: user.id,
@@ -230,6 +245,7 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
       isDeployed: walletInfo.isDeployed,
     });
 
+    // V7.0.0: Still return token for mobile clients (they use Bearer header)
     res.status(201).json({
       user: {
         id: user.id,
@@ -239,7 +255,7 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
         role,
         walletAddress: walletInfo.address,
       },
-      token,
+      token: accessToken, // For mobile compatibility
     });
   } catch (error) {
     logger.error("Signup error", { error });
@@ -337,20 +353,27 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response, ne
     // F4.7: Clear failed login attempts on successful login
     clearLoginAttempts(email);
 
-    // Generate JWT token
+    // V7.0.0: Generate token pair and set httpOnly cookies
     const roles = user.roles as string[];
-    const token = generateToken(user.id, {
+    const { accessToken, refreshToken } = generateTokenPair(user.id, {
       email: user.email ?? undefined,
       walletAddress: user.walletAddress,
       roles,
-      expiresIn: "30d",
     });
+
+    // Set httpOnly cookies
+    res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, ACCESS_TOKEN_OPTIONS);
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, REFRESH_TOKEN_OPTIONS);
+
+    // Set CSRF token cookie (readable by JS)
+    setCsrfCookie(res);
 
     logger.info("User logged in", {
       userId: user.id,
       email: user.email,
     });
 
+    // V7.0.0: Still return token for mobile clients
     res.json({
       user: {
         id: user.id,
@@ -360,7 +383,7 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response, ne
         role: roles[0] || "CUSTOMER",
         walletAddress: user.walletAddress,
       },
-      token,
+      token: accessToken, // For mobile compatibility
     });
   } catch (error) {
     logger.error("Login error", { error });
@@ -370,9 +393,14 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response, ne
 
 /**
  * POST /api/v1/auth/logout
- * Clear JWT token (frontend will handle token removal)
+ * V7.0.0: Clear httpOnly cookies on logout
  */
 router.post("/logout", authenticate, (req: AuthenticatedRequest, res: Response): void => {
+  // V7.0.0: Clear all auth cookies
+  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, CLEAR_COOKIE_OPTIONS);
+  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, { ...CLEAR_COOKIE_OPTIONS, path: '/api/v1/auth/refresh' });
+  clearCsrfCookie(res);
+
   logger.info("User logged out", { userId: req.userId });
   res.json({ message: "Logged out successfully" });
 });
@@ -731,14 +759,20 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
       return next(createError("INTERNAL_ERROR"));
     }
 
-    // Generate JWT token
+    // V7.0.0: Generate token pair and set httpOnly cookies
     const roles = user.roles as string[];
-    const token = generateToken(user.id, {
+    const { accessToken, refreshToken } = generateTokenPair(user.id, {
       email: user.email ?? undefined,
       walletAddress: user.walletAddress,
       roles,
-      expiresIn: "30d",
     });
+
+    // Set httpOnly cookies
+    res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, ACCESS_TOKEN_OPTIONS);
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, REFRESH_TOKEN_OPTIONS);
+
+    // Set CSRF token cookie (readable by JS)
+    setCsrfCookie(res);
 
     logger.info("SIWE authentication successful", {
       userId: user.id,
@@ -747,6 +781,7 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
       isNewUser,
     });
 
+    // V7.0.0: Still return token for mobile clients
     res.status(isNewUser ? 201 : 200).json({
       user: {
         id: user.id,
@@ -756,7 +791,7 @@ router.post("/siwe", rateLimiters.login, async (req: Request, res: Response, nex
         role: roles[0] || "CUSTOMER",
         walletAddress: user.walletAddress,
       },
-      token,
+      token: accessToken, // For mobile compatibility
       isNewUser,
     });
   } catch (error) {
@@ -840,16 +875,8 @@ router.post("/link-wallet", authenticate, async (req: AuthenticatedRequest, res:
       return next(createError("SIWE_MESSAGE_EXPIRED"));
     }
 
-    // Verify nonce
-    const storedNonce = await prisma.siweNonce.findUnique({
-      where: { nonce },
-    });
-
-    if (!storedNonce || storedNonce.isUsed || new Date() > storedNonce.expiresAt) {
-      return next(createError("SIWE_NONCE_INVALID"));
-    }
-
-    // Verify signature using viem's recoverMessageAddress
+    // Verify signature using viem's recoverMessageAddress BEFORE consuming nonce
+    // This prevents wasting nonces on invalid signatures
     let recoveredAddress: string;
     try {
       recoveredAddress = await recoverMessageAddress({
@@ -864,11 +891,44 @@ router.post("/link-wallet", authenticate, async (req: AuthenticatedRequest, res:
       return next(createError("INVALID_SIWE_SIGNATURE"));
     }
 
-    // Mark nonce as used
-    await prisma.siweNonce.update({
-      where: { nonce },
-      data: { isUsed: true },
-    });
+    // SECURITY FIX (H-3): Atomically verify AND consume nonce in a single transaction
+    // This prevents race condition where multiple requests could use the same nonce
+    // Reference: V7.0.0 Security Review H-3
+    try {
+      await prisma.$transaction(async (tx) => {
+        const nonceRecord = await tx.siweNonce.findUnique({
+          where: { nonce },
+        });
+
+        if (!nonceRecord) {
+          throw new Error("SIWE_NONCE_INVALID");
+        }
+
+        if (nonceRecord.isUsed) {
+          throw new Error("SIWE_NONCE_USED");
+        }
+
+        if (new Date() > nonceRecord.expiresAt) {
+          throw new Error("SIWE_NONCE_EXPIRED");
+        }
+
+        // Atomically mark nonce as used within the same transaction
+        await tx.siweNonce.update({
+          where: { nonce },
+          data: { isUsed: true },
+        });
+      });
+    } catch (nonceError) {
+      // Map transaction errors to proper API errors
+      const errorMessage = nonceError instanceof Error ? nonceError.message : "SIWE_NONCE_INVALID";
+      if (errorMessage === "SIWE_NONCE_USED") {
+        return next(createError("SIWE_NONCE_USED"));
+      }
+      if (errorMessage === "SIWE_NONCE_EXPIRED") {
+        return next(createError("SIWE_NONCE_INVALID"));
+      }
+      return next(createError("SIWE_NONCE_INVALID"));
+    }
 
     // Check if wallet is already linked to another account
     const existingProvider = await prisma.externalAuthProvider.findUnique({
@@ -1006,8 +1066,9 @@ const PASSWORD_RESET_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
 /**
  * POST /api/v1/auth/forgot-password
  * Request a password reset email
+ * V7.0.0 (M-2): Added proper rate limiting (3/hour with 60-min block)
  */
-router.post("/forgot-password", rateLimiters.signup, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.post("/forgot-password", rateLimiters.passwordReset, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { email } = req.body;
 
@@ -1072,6 +1133,53 @@ router.post("/forgot-password", rateLimiters.signup, async (req: Request, res: R
 });
 
 /**
+ * GET /api/v1/auth/reset-password/validate
+ * V7.0.0 (H-6): Validate reset token before showing form
+ * Checks token format, existence, and expiration
+ */
+router.get("/reset-password/validate", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { token } = req.query;
+
+    if (!token || typeof token !== 'string') {
+      res.json({ valid: false });
+      return;
+    }
+
+    // V7.0.0 (H-6): Validate token format - must be 64 hex characters
+    if (!/^[0-9a-fA-F]{64}$/.test(token)) {
+      res.json({ valid: false });
+      return;
+    }
+
+    // Check token exists and is valid
+    const resetToken = await prisma.passwordResetToken.findUnique({
+      where: { token },
+    });
+
+    if (!resetToken) {
+      res.json({ valid: false });
+      return;
+    }
+
+    if (resetToken.usedAt) {
+      res.json({ valid: false, expired: false });
+      return;
+    }
+
+    if (new Date() > resetToken.expiresAt) {
+      res.json({ valid: false, expired: true });
+      return;
+    }
+
+    res.json({ valid: true });
+  } catch (error) {
+    logger.error("Reset token validation error", { error });
+    res.json({ valid: false });
+  }
+});
+
+/**
  * POST /api/v1/auth/reset-password
  * Reset password using token
  */
@@ -1081,6 +1189,11 @@ router.post("/reset-password", async (req: Request, res: Response, next: NextFun
 
     if (!token || !password) {
       return next(createError("MISSING_FIELD", { fields: ["token", "password"] }));
+    }
+
+    // V7.0.0 (H-6): Validate token format - must be 64 hex characters
+    if (typeof token !== 'string' || !/^[0-9a-fA-F]{64}$/.test(token)) {
+      return next(createError("INVALID_RESET_TOKEN"));
     }
 
     // Validate password strength
@@ -1184,6 +1297,84 @@ router.post("/change-password", authenticate, async (req: AuthenticatedRequest, 
     res.json({ message: "Password changed successfully." });
   } catch (error) {
     logger.error("Change password error", { error });
+    return next(createError("INTERNAL_ERROR"));
+  }
+});
+
+// ============================================================================
+// Token Refresh Routes - V7.0.0
+// ============================================================================
+
+/**
+ * POST /api/v1/auth/refresh
+ * V7.0.0: Refresh access token using refresh token cookie
+ * Returns new access token in httpOnly cookie
+ */
+router.post("/refresh", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // Get refresh token from signed cookie
+    const refreshToken = req.signedCookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+
+    if (!refreshToken) {
+      return next(createError("UNAUTHORIZED", { message: "Refresh token required" }));
+    }
+
+    // Verify refresh token
+    let decoded;
+    try {
+      // Import verifyToken from auth middleware
+      const jwt = await import("jsonwebtoken");
+      const jwtSecret = process.env.JWT_SECRET;
+      if (!jwtSecret) {
+        return next(createError("INTERNAL_ERROR"));
+      }
+      decoded = jwt.default.verify(refreshToken, jwtSecret) as { sub: string; email?: string; walletAddress?: string; roles?: string[] };
+    } catch (error) {
+      logger.warn("Invalid refresh token", { error });
+      // Clear invalid cookies
+      res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, CLEAR_COOKIE_OPTIONS);
+      res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, { ...CLEAR_COOKIE_OPTIONS, path: '/api/v1/auth/refresh' });
+      return next(createError("UNAUTHORIZED", { message: "Invalid refresh token" }));
+    }
+
+    if (!decoded.sub) {
+      return next(createError("UNAUTHORIZED", { message: "Invalid token payload" }));
+    }
+
+    // Get user to ensure they still exist
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.sub },
+      select: { id: true, email: true, walletAddress: true, roles: true },
+    });
+
+    if (!user) {
+      return next(createError("USER_NOT_FOUND"));
+    }
+
+    // Generate new token pair (refresh token rotation for security)
+    const roles = user.roles as string[];
+    const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user.id, {
+      email: user.email ?? undefined,
+      walletAddress: user.walletAddress,
+      roles,
+    });
+
+    // Set new cookies
+    res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, ACCESS_TOKEN_OPTIONS);
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, newRefreshToken, REFRESH_TOKEN_OPTIONS);
+
+    // Ensure CSRF token exists
+    setCsrfCookie(res);
+
+    logger.info("Token refreshed", { userId: user.id });
+
+    res.json({
+      message: "Token refreshed successfully",
+      // Return access token for mobile clients
+      token: accessToken,
+    });
+  } catch (error) {
+    logger.error("Token refresh error", { error });
     return next(createError("INTERNAL_ERROR"));
   }
 });

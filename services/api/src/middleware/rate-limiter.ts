@@ -5,15 +5,21 @@
  * SECURITY FIX (C-2): Production-ready rate limiting with Redis
  * Reference: Security Review - In-memory rate limiting not suitable for horizontal scaling
  *
+ * V7.0.0 SECURITY FIX (H-4): Fail-closed mode for production
+ * When REQUIRE_REDIS=true:
+ * - Returns 503 Service Unavailable if Redis is not available
+ * - Prevents bypass of rate limiting in production
+ *
  * Architecture:
  * - Uses Redis (via redis-client.ts) when REDIS_URL is configured
- * - Falls back to in-memory Map when Redis is unavailable
- * - Automatic failover: if Redis fails mid-operation, falls back to in-memory
+ * - Falls back to in-memory Map when Redis is unavailable (dev only)
+ * - In production with REQUIRE_REDIS=true, returns 503 without Redis
  *
  * For production deployments:
  * 1. Set REDIS_URL environment variable
- * 2. Redis provides atomic INCR/EXPIRE for thread-safe counting
- * 3. All instances share the same rate limit counters
+ * 2. Set REQUIRE_REDIS=true for fail-closed behavior
+ * 3. Redis provides atomic INCR/EXPIRE for thread-safe counting
+ * 4. All instances share the same rate limit counters
  *
  * @see https://redis.io/commands/incr for atomic counter pattern
  */
@@ -31,6 +37,10 @@ import {
 // Track whether we've logged the storage mode
 let storageModeLoogged = false;
 
+// V7.0.0 (H-4): Check if Redis is required in production
+const REQUIRE_REDIS = process.env.REQUIRE_REDIS === 'true' ||
+  (process.env.NODE_ENV === 'production' && process.env.REDIS_URL);
+
 // Initialize Redis on module load (async, non-blocking)
 initRedis().then(() => {
   if (!storageModeLoogged) {
@@ -40,11 +50,18 @@ initRedis().then(() => {
         event: "rate_limiter_init",
         mode: "redis",
       });
+    } else if (REQUIRE_REDIS) {
+      // V7.0.0 (H-4): Critical error if Redis required but not available
+      logger.error("Rate limiter Redis required but not available", {
+        event: "rate_limiter_init",
+        mode: "fail-closed",
+        error: "REQUIRE_REDIS is true but Redis is not available",
+      });
     } else if (process.env.NODE_ENV === "production") {
       logger.warn("Rate limiter using in-memory storage", {
         event: "rate_limiter_init",
         warning: "Redis not available - not suitable for horizontal scaling",
-        recommendation: "Set REDIS_URL for multi-instance deployments",
+        recommendation: "Set REDIS_URL and REQUIRE_REDIS=true for production",
       });
     } else {
       logger.info("Rate limiter using in-memory storage", {
@@ -105,6 +122,7 @@ export const RATE_LIMIT_PRESETS = {
   passwordReset: {
     windowMs: 60 * 60 * 1000, // 1 hour
     maxRequests: 3,
+    blockDurationMs: 60 * 60 * 1000, // 1 hour block after limit
   },
   // Booking creation
   createBooking: {
@@ -171,6 +189,23 @@ export function createRateLimiter(config: RateLimitConfig) {
     const key = keyGenerator ? keyGenerator(req) : getClientKey(req);
     const now = Date.now();
 
+    // V7.0.0 (H-4): Fail-closed if Redis required but not available
+    if (REQUIRE_REDIS && !isRedisAvailable()) {
+      logger.error("Rate limiter fail-closed: Redis unavailable", {
+        event: "rate_limiter_fail_closed",
+        path: req.path,
+        method: req.method,
+        ip: req.ip,
+      });
+
+      return res.status(503).json({
+        error: {
+          code: "SERVICE_UNAVAILABLE",
+          message: "Service temporarily unavailable. Please try again later.",
+        },
+      });
+    }
+
     // Try Redis first if available
     if (isRedisAvailable()) {
       try {
@@ -223,7 +258,23 @@ export function createRateLimiter(config: RateLimitConfig) {
         }
         // If result is null, fall through to in-memory
       } catch (error) {
-        // Redis error - fall through to in-memory
+        // V7.0.0 (H-4): If Redis required, fail-closed on errors too
+        if (REQUIRE_REDIS) {
+          logger.error("Rate limiter fail-closed: Redis error", {
+            event: "rate_limiter_fail_closed",
+            path: req.path,
+            error: error instanceof Error ? error.message : "Unknown error",
+          });
+
+          return res.status(503).json({
+            error: {
+              code: "SERVICE_UNAVAILABLE",
+              message: "Service temporarily unavailable. Please try again later.",
+            },
+          });
+        }
+
+        // Development only: fall through to in-memory
         logger.warn("Redis rate limit error, falling back to in-memory", {
           event: "rate_limiter_redis_fallback",
           error: error instanceof Error ? error.message : "Unknown error",
@@ -231,7 +282,7 @@ export function createRateLimiter(config: RateLimitConfig) {
       }
     }
 
-    // In-memory fallback
+    // In-memory fallback (development only when REQUIRE_REDIS is false)
     let entry = rateLimitStore.get(key);
 
     // Check if blocked

@@ -7,6 +7,191 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.0.0] - 2025-12-20
+
+### V7.0.0: Security, Admin Panel & UX Hardening
+
+**Goal**: Address all security findings from V6.10.0 comprehensive review, complete admin panel, and improve UX.
+
+---
+
+#### ✅ Phase 1: Critical Auth Security (P0)
+
+**H-1: JWT httpOnly Cookie Migration**
+- Migrated JWT tokens from localStorage to httpOnly cookies (XSS protection)
+- Added `cookie-config.ts` with secure cookie options
+- Added CSRF middleware with double-submit token pattern
+- Updated auth middleware to read from cookies with Bearer header fallback
+- Web auth-client now uses `credentials: 'include'`
+
+**H-2: Refresh Token Rotation**
+- Added `/auth/refresh` endpoint with token rotation
+- Reduced access token expiry to 15 minutes
+- Refresh tokens valid for 7 days
+- Auto-refresh on 401 TOKEN_EXPIRED responses
+
+**H-3: SIWE Nonce Race Condition Fix**
+- Fixed `/auth/link-wallet` to use atomic Prisma transaction
+- Prevents nonce reuse attacks with concurrent requests
+
+**H-4: Rate Limit Fail-Closed**
+- Added `REQUIRE_REDIS` environment variable
+- Returns 503 Service Unavailable when Redis required but not available
+- Prevents rate limit bypass in production
+
+---
+
+#### ✅ Phase 2: Input Validation & Mobile Security (P1)
+
+**H-5: QR Address Validation with EIP-55**
+- Created `address-validation.ts` utility for mobile
+- Validates Ethereum addresses with EIP-55 checksum
+- Handles EIP-681 payment URIs
+- Updated QRScanner to use proper validation
+
+**H-6: Reset Token Format Validation**
+- Added `/auth/reset-password/validate` endpoint
+- Client-side validation: 64 hex characters
+- Server-side validation before showing form
+- Shows loading → valid/invalid/expired states
+
+**M-2: Password Reset Rate Limiting**
+- Updated forgot-password route to use `passwordReset` rate limiter
+- 3 requests/hour with 60-minute block after limit
+
+**M-4: Input Length Limits (Mobile)**
+- Created `input-validation.ts` utility with limits
+- Email: 254 chars, Password: 128 chars, Display Name: 100 chars
+- Applied to login, signup, forgot-password, reset-password screens
+
+**M-11: Deep Link Scheme Validation**
+- Created `deep-link-validator.ts` utility
+- Whitelist approach for allowed paths
+- Parameter sanitization
+- Integrated in root layout
+
+---
+
+#### ✅ Phase 3: UX Improvements (P2)
+
+**UX-1: Balance Check at Step 1**
+- Added `BalanceWarningBanner` component to booking flow
+- Shows warning at service selection if balance is low
+- Direct "Fund Wallet" action button
+
+**UX-2: Mobile Empty State Component**
+- Created `EmptyState` component with 14 presets
+- Created 9 SVG illustrations (calendar, search, wallet, scissors, inbox, reviews, message, property, completed)
+- Matches web empty state patterns for consistency
+
+**UX-3: Add Property Route**
+- Created `/property-owner/add-property` page
+- Multi-step form: Details → Location → Settings
+- Category selection, approval mode, coordinate entry
+
+**UX-4: Mobile Skeleton Components**
+- Created `Skeleton` base component with shimmer animation
+- Created specialized skeletons: SkeletonText, SkeletonAvatar, SkeletonCard, SkeletonListItem, SkeletonButton
+- Created presets: StylistCardSkeleton, BookingCardSkeleton, TransactionSkeleton
+
+---
+
+#### ✅ Phase 4: Security & E2E Tests
+
+**API Security Tests (Unit/Integration)**
+- `services/api/src/middleware/__tests__/auth.test.ts` - Cookie auth, Bearer fallback, token expiry
+- `services/api/src/middleware/__tests__/csrf.test.ts` - Token generation, validation, cross-origin blocking
+- `services/api/src/middleware/__tests__/rate-limiter.test.ts` - Fail-closed mode, REQUIRE_REDIS
+- `services/api/src/routes/__tests__/auth.integration.test.ts` - Login/refresh/logout cycle
+
+**E2E Tests (Playwright)**
+- `apps/web/e2e/auth-v7.spec.ts` - Cookie auth flow, auto-refresh, CSRF validation
+- `apps/web/e2e/property-creation.spec.ts` - Multi-step property creation
+
+---
+
+#### ✅ Phase 6: Complete Admin Panel
+
+**Core Infrastructure**
+- `apps/admin/src/lib/admin-client.ts` - Base API client with httpOnly cookie auth + CSRF
+- `apps/admin/src/hooks/use-admin-auth.ts` - Admin auth hook with role verification
+- `apps/admin/src/providers/query-provider.tsx` - React Query setup
+- `apps/admin/src/providers/auth-provider.tsx` - Admin auth context
+- `apps/admin/src/app/login/page.tsx` - Admin login page
+- `apps/admin/src/components/layout/admin-layout.tsx` - Main layout with sidebar
+- `apps/admin/src/components/layout/admin-sidebar.tsx` - Navigation (8 items)
+- `apps/admin/src/components/layout/admin-header.tsx` - Top header with user menu
+
+**Reusable UI Components**
+- `apps/admin/src/components/ui/data-table.tsx` - Generic sortable table
+- `apps/admin/src/components/ui/pagination.tsx` - Pagination controls
+- `apps/admin/src/components/ui/filter-bar.tsx` - Search + dropdown filters
+- `apps/admin/src/components/ui/stat-card.tsx` - Metric cards with icons
+- `apps/admin/src/components/ui/status-badge.tsx` - Status indicators
+- `apps/admin/src/components/ui/confirm-dialog.tsx` - Confirmation modal
+
+**Admin Pages (8 total)**
+| Page | Route | Features |
+|------|-------|----------|
+| Dashboard | `/` | Key metrics, quick actions overview |
+| Users | `/users` | List, search, freeze/unfreeze/verify, detail panel |
+| Bookings | `/bookings` | List, status filters, status change, detail panel |
+| Sessions | `/sessions` | Real-time IN_PROGRESS bookings with progress tracking |
+| Disputes | `/disputes`, `/disputes/[id]` | Full resolution workflow with 8 resolution types |
+| Audit Logs | `/logs` | Searchable logs with action/target filters |
+| DeFi Config | `/defi` | APY params, fee split, emergency controls |
+| Paymaster | `/paymaster` | Balance monitoring, gas tracking, alerts |
+
+**API Client Files**
+- `apps/admin/src/lib/users-client.ts` - Users CRUD operations
+- `apps/admin/src/lib/bookings-client.ts` - Bookings management
+- `apps/admin/src/lib/disputes-client.ts` - Dispute workflow (8 resolution types)
+- `apps/admin/src/lib/sessions-client.ts` - Active session monitoring
+- `apps/admin/src/lib/logs-client.ts` - Audit log queries
+- `apps/admin/src/lib/defi-client.ts` - DeFi configuration
+- `apps/admin/src/lib/paymaster-client.ts` - Paymaster monitoring
+
+**React Query Hooks**
+- `apps/admin/src/hooks/use-users.ts` - User management hooks
+- `apps/admin/src/hooks/use-bookings.ts` - Booking management hooks
+- `apps/admin/src/hooks/use-disputes.ts` - Dispute workflow hooks
+- `apps/admin/src/hooks/use-active-sessions.ts` - Real-time session hooks (30s polling)
+- `apps/admin/src/hooks/use-logs.ts` - Audit log hooks
+- `apps/admin/src/hooks/use-defi.ts` - DeFi config hooks
+- `apps/admin/src/hooks/use-paymaster.ts` - Paymaster monitoring hooks
+
+---
+
+#### Files Created (Phase 1-3)
+
+- `services/api/src/lib/cookie-config.ts`
+- `services/api/src/middleware/csrf.ts`
+- `apps/mobile/src/utils/address-validation.ts`
+- `apps/mobile/src/utils/input-validation.ts`
+- `apps/mobile/src/utils/deep-link-validator.ts`
+- `apps/mobile/src/components/ui/EmptyState.tsx`
+- `apps/mobile/src/components/ui/Skeleton.tsx`
+- `apps/mobile/src/components/ui/illustrations.tsx`
+- `apps/mobile/src/components/ui/index.ts`
+- `apps/web/app/property-owner/add-property/page.tsx`
+
+#### Files Modified (Phase 1-3)
+
+- `services/api/src/middleware/auth.ts` - Cookie reading, token pair generation
+- `services/api/src/middleware/rate-limiter.ts` - Fail-closed mode
+- `services/api/src/routes/auth.ts` - Cookie auth, refresh, SIWE fix, validation
+- `services/api/src/index.ts` - Cookie-parser middleware
+- `apps/web/lib/auth-client.ts` - CSRF, credentials, no localStorage
+- `apps/mobile/app/(auth)/login.tsx` - Input limits
+- `apps/mobile/app/(auth)/signup.tsx` - Input limits
+- `apps/mobile/app/(auth)/forgot-password.tsx` - Input limits
+- `apps/mobile/app/(auth)/reset-password.tsx` - Token validation, input limits
+- `apps/mobile/app/_layout.tsx` - Deep link validation
+- `apps/mobile/src/components/wallet/QRScanner.tsx` - Address validation
+- `apps/mobile/app/stylists/[id]/book.tsx` - Balance warning banner
+
+---
+
 ## [6.9.0] - 2025-12-20
 
 ### V6.9.0: Calendar Intelligence & Hair Discovery - COMPLETE ✅

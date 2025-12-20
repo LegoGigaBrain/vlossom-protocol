@@ -3,6 +3,8 @@
  *
  * Create account with email, password, and role selection.
  * Uses Vlossom design tokens and botanical iconography.
+ *
+ * V7.0.0 (M-4): Added input length limits for security
  */
 
 import React, { useState } from 'react';
@@ -21,6 +23,7 @@ import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
 import { useAuthStore } from '../../src/stores/auth';
+import { INPUT_LIMITS } from '../../src/utils/input-validation';
 
 type RoleType = 'CUSTOMER' | 'STYLIST';
 
@@ -145,13 +148,14 @@ export default function SignupScreen() {
               <TextInput
                 style={styles.input}
                 value={displayName}
-                onChangeText={setDisplayName}
+                onChangeText={(text) => setDisplayName(text.slice(0, INPUT_LIMITS.DISPLAY_NAME))}
                 placeholder="How should we call you?"
                 placeholderTextColor={colors.text.muted}
                 autoCapitalize="words"
                 autoComplete="name"
                 returnKeyType="next"
                 editable={!signupLoading}
+                maxLength={INPUT_LIMITS.DISPLAY_NAME}
               />
             </View>
 
@@ -162,7 +166,7 @@ export default function SignupScreen() {
                 style={styles.input}
                 value={email}
                 onChangeText={(text) => {
-                  setEmail(text);
+                  setEmail(text.slice(0, INPUT_LIMITS.EMAIL));
                   if (displayError) {
                     setLocalError(null);
                     clearErrors();
@@ -176,6 +180,7 @@ export default function SignupScreen() {
                 autoCorrect={false}
                 returnKeyType="next"
                 editable={!signupLoading}
+                maxLength={INPUT_LIMITS.EMAIL}
               />
             </View>
 
@@ -187,7 +192,7 @@ export default function SignupScreen() {
                   style={styles.passwordInput}
                   value={password}
                   onChangeText={(text) => {
-                    setPassword(text);
+                    setPassword(text.slice(0, INPUT_LIMITS.PASSWORD));
                     if (displayError) {
                       setLocalError(null);
                       clearErrors();
@@ -200,6 +205,7 @@ export default function SignupScreen() {
                   autoComplete="password-new"
                   returnKeyType="next"
                   editable={!signupLoading}
+                  maxLength={INPUT_LIMITS.PASSWORD}
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}
@@ -219,7 +225,7 @@ export default function SignupScreen() {
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={(text) => {
-                  setConfirmPassword(text);
+                  setConfirmPassword(text.slice(0, INPUT_LIMITS.PASSWORD));
                   if (displayError) {
                     setLocalError(null);
                     clearErrors();
@@ -233,6 +239,7 @@ export default function SignupScreen() {
                 returnKeyType="done"
                 onSubmitEditing={handleSignup}
                 editable={!signupLoading}
+                maxLength={INPUT_LIMITS.PASSWORD}
               />
             </View>
 

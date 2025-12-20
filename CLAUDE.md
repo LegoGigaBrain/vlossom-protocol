@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V6.9.0** - Calendar Intelligence & Hair Discovery (December 20, 2025)
+**V7.0.0** - Security, Admin Panel & UX Hardening (December 20, 2025)
 
-**Major Achievement**: Personalized ritual plans based on hair profiles with smart calendar scheduling and load balancing. Ritual generator with 8 archetypes, calendar widget with upcoming rituals and streak tracking, full mobile API integration.
+**Major Achievement**: Comprehensive security hardening and complete admin panel. JWT migration to httpOnly cookies (XSS protection), refresh token rotation, SIWE nonce fix, rate limit fail-closed mode, and full admin dashboard with 8 pages (users, bookings, sessions, disputes, logs, DeFi, paymaster).
 
-**Previous**: V6.8.0 - Mobile Foundation & Full Parity, V6.7.1 - Direct Messaging, V6.6.0 - Special Events Booking, V6.5.1 - Property Owner UI, V6.5.0 - Phosphor Icon Migration, V6.4.0 - Local Development & Service Fixes
+**Previous**: V6.10.0 - Mobile Parity, V6.9.0 - Calendar Intelligence, V6.8.0 - Mobile Foundation, V6.7.1 - Direct Messaging
 
 ---
 
@@ -39,14 +39,14 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.9.0 |
-| `apps/mobile/` | React Native + Expo mobile app | ✅ V6.9.0 |
-| `apps/admin/` | Admin dashboard | ✅ V6.4.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V7.0.0 |
+| `apps/mobile/` | React Native + Expo mobile app | ✅ V7.0.0 |
+| `apps/admin/` | Admin dashboard (8 pages) | ✅ V7.0.0 |
 
 ### `services/` - Backend Services
 | Service | Purpose | Status |
 |---------|---------|--------|
-| `services/api/` | Express REST API | ✅ V6.9.0 |
+| `services/api/` | Express REST API | ✅ V7.0.0 |
 | `services/scheduler/` | Background job scheduler | ✅ V6.4.0 |
 | `services/indexer/` | Blockchain event indexer | ✅ V3.2.0 |
 
@@ -262,6 +262,49 @@
 ---
 
 ## Recent Updates
+
+### V7.0.0 Changes (Security Hardening & UX Improvements)
+
+**Phase 1: Critical Auth Security (P0)**
+- ✅ H-1: Migrated JWT from localStorage to httpOnly cookies (XSS protection)
+- ✅ H-2: Implemented refresh token rotation with 15-min access tokens
+- ✅ H-3: Fixed SIWE nonce race condition with atomic transaction
+- ✅ H-4: Rate limiting now fails closed in production (503 without Redis)
+
+**Phase 2: Input Validation & Mobile Security (P1)**
+- ✅ H-5: QR address validation with EIP-55 checksum via viem
+- ✅ H-6: Reset token format validation (64 hex chars) with server-side check
+- ✅ M-2: Password reset rate limited (3 req/hour/email, 1-hour block)
+- ✅ M-4: Input length limits on mobile auth screens (EMAIL: 254, PASSWORD: 128, DISPLAY_NAME: 100)
+- ✅ M-11: Deep link scheme validation with whitelist approach
+
+**Phase 3: UX Improvements (P2)**
+- ✅ UX-1: Balance check at booking step 1 with warning banner and "Fund Wallet" CTA
+- ✅ UX-2: Mobile EmptyState component with 14 presets and 9 SVG illustrations
+- ✅ UX-3: Add Property route (`/property-owner/add-property`) with multi-step form
+- ✅ UX-4: Mobile Skeleton components with shimmer animation
+
+**Key Files Created:**
+- `services/api/src/lib/cookie-config.ts` - Secure cookie configuration
+- `services/api/src/middleware/csrf.ts` - CSRF protection middleware
+- `apps/mobile/src/utils/address-validation.ts` - EIP-55 address validation
+- `apps/mobile/src/utils/input-validation.ts` - Input length limits
+- `apps/mobile/src/utils/deep-link-validator.ts` - Deep link security
+- `apps/mobile/src/components/ui/EmptyState.tsx` - Empty state with presets
+- `apps/mobile/src/components/ui/Skeleton.tsx` - Shimmer skeleton components
+- `apps/mobile/src/components/ui/illustrations.tsx` - 9 SVG illustrations
+- `apps/web/app/property-owner/add-property/page.tsx` - Multi-step property form
+
+**Key Files Modified:**
+- `services/api/src/routes/auth.ts` - Cookie auth, refresh endpoint, token validation
+- `services/api/src/middleware/auth.ts` - Cookie reading with header fallback
+- `services/api/src/middleware/rate-limiter.ts` - Fail-closed mode, password reset preset
+- `apps/web/lib/auth-client.ts` - Removed localStorage, added credentials
+- `apps/mobile/app/(auth)/*.tsx` - Input length limits on all auth screens
+- `apps/mobile/app/_layout.tsx` - Deep link validation in AuthGuard
+- `apps/mobile/app/stylists/[id]/book.tsx` - Balance warning banner at step 1
+
+---
 
 ### V6.7.0/V6.7.1 Changes (Direct Messaging)
 

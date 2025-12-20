@@ -1,7 +1,28 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V6.9.0 Calendar Intelligence & Hair Discovery ✅ COMPLETE**
+**V6.10.0 Mobile Parity & 100% Feature Coverage ✅ COMPLETE**
+
+✅ **V6.10.0 Mobile Parity (Dec 20, 2025)** - Complete Mobile Feature Coverage:
+- **Booking Flow** - Real API integration with 4-step booking wizard (service → datetime → location → payment)
+- **Wallet QR Features** - QR scanner for send (expo-camera), QR generation for receive (react-native-qrcode-svg)
+- **Auth Screens** - Forgot/reset password with deep linking and password strength indicator
+- **Property Owner Dashboard** - 4 screens fully wired to API (overview, properties, chairs, revenue)
+- **Special Events** - Request submission with real API integration
+- **Web Calendar** - Schedule page uses real ritual API (replaced mock data)
+
+**What's Included:**
+- 28 files changed (+4,640 / -496 lines)
+- New API clients: `bookings.ts`, `property-owner.ts` with Zustand stores
+- QRScanner component with expo-camera integration
+- Forgot/reset password with SecureStore token validation
+- Property owner revenue tracking with period toggle
+- Chair management with status updates
+- Complete booking flow: stylist selection → service → datetime → location → confirmation
+
+**Next Phase:** V7.0.0 Production Readiness
+
+---
 
 ✅ **V6.9.0 Calendar Intelligence (Dec 20, 2025)** - Smart Hair Ritual Scheduling:
 - **Ritual Generator** - Profile-based ritual recommendations with 8 archetypes
@@ -17,7 +38,7 @@
 - 10 React Query hooks for web, 8 API functions for mobile
 - Zustand store with calendar state and selectors
 
-**Next Phase:** V7.0.0 Production Readiness
+**Next Phase:** V6.10.0 Mobile Parity
 
 ---
 
@@ -410,6 +431,7 @@
 | **V6.7.1** | Mobile Messaging | - | Mobile messaging API integration with Zustand | ✅ Complete |
 | **V6.8.0** | Mobile Foundation | 5 sprints | Full mobile parity - all tabs functional with real APIs | ✅ Complete |
 | **V6.9.0** | Calendar Intelligence | - | Smart calendar widget, ritual generation, load balancing | ✅ Complete |
+| **V6.10.0** | Mobile Parity | - | Booking flow, wallet QR, auth screens, property owner dashboard | ✅ Complete |
 | **V7.0.0** | Production Ready | - | Admin support, service progress, security audit | 🔜 Planned |
 
 ---

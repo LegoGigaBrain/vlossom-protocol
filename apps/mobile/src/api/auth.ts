@@ -2,8 +2,10 @@
  * Auth API Client (V6.10.0)
  *
  * Authentication endpoints: login, signup, logout, getMe, updateProfile,
- * forgotPassword, resetPassword.
+ * forgotPassword, resetPassword, validateResetToken.
  * Uses SecureStore for token management.
+ *
+ * V7.0.0: Added validateResetToken for H-6 security fix
  */
 
 import { apiRequest, setAuthToken, clearTokens, APIError } from './client';
@@ -179,6 +181,12 @@ export interface ResetPasswordRequest {
   password: string;
 }
 
+// V7.0.0 (H-6): Token validation response
+export interface ValidateResetTokenResponse {
+  valid: boolean;
+  expired?: boolean;
+}
+
 /**
  * Request password reset email
  *
@@ -201,6 +209,19 @@ export async function resetPassword(request: ResetPasswordRequest): Promise<{ me
   return apiRequest<{ message: string }>('/auth/reset-password', {
     method: 'POST',
     body: JSON.stringify(request),
+    requiresAuth: false,
+  });
+}
+
+/**
+ * V7.0.0 (H-6): Validate reset token before showing form
+ * Checks if token exists, is not used, and not expired
+ *
+ * @throws {APIError} On network/server error
+ */
+export async function validateResetToken(token: string): Promise<ValidateResetTokenResponse> {
+  return apiRequest<ValidateResetTokenResponse>(`/auth/reset-password/validate?token=${encodeURIComponent(token)}`, {
+    method: 'GET',
     requiresAuth: false,
   });
 }

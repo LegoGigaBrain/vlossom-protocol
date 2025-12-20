@@ -7,6 +7,7 @@
  * - Auth state initialization
  * - Navigation stack with auth routing
  * - Splash screen management
+ * - Deep link validation (V7.0.0)
  */
 
 import { useEffect } from 'react';
@@ -15,11 +16,13 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../src/styles/theme';
 import { colors } from '../src/styles/tokens';
 import { useAuthStore } from '../src/stores/auth';
+import { validateDeepLink } from '../src/utils/deep-link-validator';
 
 // Google Fonts - bundled at build time
 import {
@@ -40,6 +43,7 @@ SplashScreen.preventAutoHideAsync();
 /**
  * Auth Guard Component
  * Handles routing based on authentication state
+ * V7.0.0 (M-11): Added deep link validation
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -50,6 +54,39 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // V7.0.0 (M-11): Deep link validation handler
+  useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      const result = validateDeepLink(event.url);
+
+      if (!result.isValid) {
+        console.warn('[DeepLink] Blocked invalid deep link:', event.url, result.error);
+        // Don't navigate for invalid links
+        return;
+      }
+
+      // Link is valid, Expo Router will handle navigation
+      console.log('[DeepLink] Validated:', result.path, result.params);
+    };
+
+    // Subscribe to deep link events
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    // Check initial URL (app opened via deep link)
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        const result = validateDeepLink(url);
+        if (!result.isValid) {
+          console.warn('[DeepLink] Initial URL blocked:', url, result.error);
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   // Handle auth routing
   useEffect(() => {

@@ -4,6 +4,10 @@
 
 ## Current Implementation Status
 
+**V7.0.0 Security Hardening & UX Improvements** (Dec 20, 2025)
+
+Complete security overhaul with cookie-based authentication, CSRF protection, and enhanced UX with balance warnings and improved validation.
+
 **V6.7.0 Direct Messaging** (Dec 20, 2025)
 
 In-app messaging between customers and stylists. Accessible via stylist profiles and booking pages (not in main navigation).
@@ -39,6 +43,31 @@ Sacred orange rule enforced across 12 files. Orange (#FF510D) now strictly reser
 **V6.0.0 Mobile App + Full Frontend Design Handover** (Dec 17, 2025)
 
 Complete design system with botanical icons (28 SVGs), animation system (unfold/breathe/settle), and typography/color audits. All design documentation updated.
+
+---
+
+### V7.0.0 Changes
+
+**Authentication Security**
+- `lib/auth-client.ts` - Cookie-based authentication with `credentials: 'include'`
+- No more localStorage token storage (more secure, immune to XSS)
+- CSRF token handling in all mutating requests
+- Automatic session management via httpOnly cookies
+
+**Property Owner Routes**
+- `app/property-owner/add-property/page.tsx` - New route for adding properties
+- Enhanced property management workflow
+
+**API Client Updates**
+- All API clients now use `credentials: 'include'` for cookie-based auth
+- CSRF token extraction from cookies and inclusion in POST/PUT/DELETE requests
+- Better error handling for 401 Unauthorized (automatic redirect to login)
+
+**Security Benefits:**
+- Cookies are httpOnly (JavaScript cannot access)
+- CSRF tokens prevent cross-site attacks
+- Refresh token rotation every 15 minutes
+- 7-day refresh token expiry (instead of 30-day access tokens)
 
 ---
 

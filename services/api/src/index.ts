@@ -3,8 +3,15 @@
 //
 // SECURITY AUDIT (V1.9.0):
 // - M-7: Production secret validation at startup
+//
+// V7.0.0 Security Updates:
+// - H-1: httpOnly cookies for JWT (XSS protection)
+// - Cookie-parser with signed cookies
+// - CSRF protection middleware
 
 import express from "express";
+import cookieParser from "cookie-parser";
+import { COOKIE_SECRET } from "./lib/cookie-config";
 
 /**
  * M-7: Validate required secrets in production
@@ -21,6 +28,8 @@ function validateProductionSecrets(): void {
     'TREASURY_ADDRESS',
     'ESCROW_ADDRESS',
     'RPC_URL',
+    // V7.0.0: Cookie secret required for signed cookies
+    // Can use JWT_SECRET as fallback (handled in cookie-config.ts)
   ];
 
   const missing = required.filter(key => !process.env[key]);
@@ -87,6 +96,9 @@ app.use(corsHeaders(allowedOrigins));
 
 // F4.7: Global rate limiting (100 requests per minute per IP)
 app.use(rateLimiters.global);
+
+// V7.0.0: Cookie parser with signed cookies (before body parser)
+app.use(cookieParser(COOKIE_SECRET));
 
 // Body parser middleware
 app.use(express.json({ limit: "10mb" })); // Limit payload size

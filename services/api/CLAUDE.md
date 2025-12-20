@@ -10,6 +10,10 @@
 
 ## Current Implementation Status
 
+**V7.0.0 Security Hardening & Authentication Overhaul** (Dec 20, 2025)
+
+Complete authentication security overhaul with cookie-based sessions, CSRF protection, refresh token rotation, and enhanced validation across all endpoints.
+
 **V6.7.0 Direct Messaging** (Dec 20, 2025)
 
 Complete conversations API for in-app messaging between customers and stylists. Integrates with notification system.
@@ -27,6 +31,67 @@ Redis-based distributed rate limiting and centralized secrets management for pro
 TypeScript type safety improvements, OpenAPI/Swagger documentation endpoint.
 
 **V5.2.0 UX Excellence & Favorites Integration** (Dec 17, 2025)
+
+---
+
+### V7.0.0 Changes
+
+**Cookie-Based Authentication**
+- `routes/auth.ts` - Complete rewrite for cookie-based sessions
+- httpOnly cookies for access tokens (15-min expiry) and refresh tokens (7-day expiry)
+- `credentials: 'include'` required on all API requests
+- No more localStorage token storage (immune to XSS attacks)
+- Automatic token refresh on `/api/v1/auth/refresh` endpoint
+
+**CSRF Protection**
+- `middleware/csrf.ts` - CSRF token middleware
+- CSRF tokens generated and stored in cookies
+- All POST/PUT/DELETE requests must include CSRF token in header or body
+- Double-submit cookie pattern for CSRF prevention
+- Exempt public endpoints (login, signup, password reset)
+
+**Refresh Token Rotation**
+- Refresh tokens rotate on every use (one-time use tokens)
+- Old refresh token invalidated immediately after new one issued
+- Prevents token replay attacks
+- 7-day refresh token expiry (instead of 30-day access tokens)
+- Automatic cleanup of expired tokens via cron job
+
+**SIWE Nonce Atomic Transaction Fix**
+- `routes/auth.ts` - Fixed race condition in SIWE nonce generation
+- Nonce creation and verification now in single atomic transaction
+- Prevents nonce reuse attacks
+- Proper cleanup of expired nonces
+
+**Rate Limit Fail-Closed Mode**
+- `middleware/rate-limiter.ts` - Fail-closed mode for Redis failures
+- If Redis is down, rate limiting rejects requests (secure default)
+- Prevents bypass of rate limits during Redis outages
+- Health check endpoint monitors Redis connectivity
+- Circuit breaker pattern for Redis reconnection
+
+**Password Reset Security**
+- `routes/auth.ts` - Enhanced password reset flow
+- Rate limiting on password reset requests (3 per hour per email)
+- Password reset tokens expire after 1 hour (reduced from 24 hours)
+- Token format validation (UUID v4 only)
+- `/api/v1/auth/reset-password/validate` - New endpoint to validate reset token before showing form
+
+**Enhanced Validation**
+- Input length limits enforced server-side:
+  - Email: 254 characters (RFC 5321 compliant)
+  - Password: 128 characters (bcrypt limit)
+  - Display name: 100 characters
+- Prevents DoS attacks via oversized inputs
+- Consistent validation across all endpoints
+
+**Security Improvements Summary:**
+- httpOnly cookies prevent XSS token theft
+- CSRF tokens prevent cross-site attacks
+- Refresh token rotation prevents token replay
+- Fail-closed rate limiting prevents bypass
+- Input validation prevents DoS attacks
+- Atomic SIWE transactions prevent race conditions
 
 ---
 

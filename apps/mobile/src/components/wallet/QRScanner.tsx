@@ -3,6 +3,8 @@
  *
  * Modal component for scanning QR codes containing wallet addresses.
  * Uses expo-camera with barcode scanning.
+ *
+ * V7.0.0: Added EIP-55 address validation (H-5 security fix)
  */
 
 import { useState, useEffect } from 'react';
@@ -18,6 +20,7 @@ import {
 import { CameraView, useCameraPermissions, BarcodeScanningResult } from 'expo-camera';
 import { useTheme, textStyles } from '../../styles/theme';
 import { VlossomCloseIcon } from '../icons/VlossomIcons';
+import { extractAddressFromQR } from '../../utils/address-validation';
 
 interface QRScannerProps {
   visible: boolean;
@@ -41,31 +44,21 @@ export function QRScanner({ visible, onClose, onScan }: QRScannerProps) {
   }, [visible]);
 
   // Handle barcode scanned
+  // V7.0.0: Uses proper EIP-55 address validation (H-5)
   const handleBarcodeScanned = (result: BarcodeScanningResult) => {
     if (scanned) return;
 
     const { data } = result;
 
-    // Check if it's a valid Ethereum address or payment request URL
-    let address = data;
+    // V7.0.0: Use secure address extraction with EIP-55 validation
+    const validAddress = extractAddressFromQR(data);
 
-    // Handle ethereum: URI scheme
-    if (data.startsWith('ethereum:')) {
-      address = data.replace('ethereum:', '').split('@')[0].split('?')[0];
-    }
-
-    // Handle vlossom: URI scheme
-    if (data.startsWith('vlossom://pay?')) {
-      const url = new URL(data);
-      address = url.searchParams.get('to') || '';
-    }
-
-    // Validate address format
-    if (address.startsWith('0x') && address.length === 42) {
+    if (validAddress) {
       setScanned(true);
-      onScan(address);
+      onScan(validAddress);
       onClose();
     }
+    // Invalid addresses are silently ignored - scanner continues
   };
 
   // Permission not determined yet

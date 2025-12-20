@@ -5,6 +5,8 @@
  * Steps: Service Selection → Date/Time → Location → Confirmation
  *
  * Wired to real API with wallet balance check and error handling.
+ *
+ * V7.0.0 (UX-1): Balance check at step 1 with warning banner
  */
 
 import {
@@ -44,6 +46,75 @@ import {
 } from '../../../src/api/bookings';
 
 type BookingStep = 'service' | 'datetime' | 'location' | 'confirm';
+
+/**
+ * V7.0.0 (UX-1): Balance warning banner shown at step 1
+ * Warns user if their balance is insufficient for any service
+ */
+interface BalanceWarningBannerProps {
+  balance: { usdc: string; zar: string } | null;
+  minServicePrice: number;
+  colors: ReturnType<typeof useTheme>['colors'];
+  spacing: ReturnType<typeof useTheme>['spacing'];
+  borderRadius: ReturnType<typeof useTheme>['borderRadius'];
+  onFundWallet: () => void;
+}
+
+function BalanceWarningBanner({
+  balance,
+  minServicePrice,
+  colors,
+  spacing,
+  borderRadius,
+  onFundWallet,
+}: BalanceWarningBannerProps) {
+  const balanceUsdcCents = balance ? Math.floor(parseFloat(balance.usdc) * 100) : 0;
+  const hasInsufficientBalance = balanceUsdcCents < minServicePrice;
+
+  if (!hasInsufficientBalance) return null;
+
+  return (
+    <View
+      style={[
+        styles.balanceWarningBanner,
+        {
+          backgroundColor: colors.status.warning + '15',
+          borderColor: colors.status.warning + '40',
+          borderRadius: borderRadius.lg,
+          marginBottom: spacing.md,
+          padding: spacing.md,
+        },
+      ]}
+    >
+      <View style={styles.balanceWarningContent}>
+        <VlossomWalletIcon size={20} color={colors.status.warning} />
+        <View style={{ flex: 1, marginLeft: spacing.sm }}>
+          <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
+            Low wallet balance
+          </Text>
+          <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+            Your balance ({formatPrice(balanceUsdcCents)}) may not cover all services. Fund your wallet to book.
+          </Text>
+        </View>
+      </View>
+      <Pressable
+        onPress={onFundWallet}
+        style={[
+          styles.fundButton,
+          {
+            backgroundColor: colors.status.warning,
+            borderRadius: borderRadius.md,
+            marginTop: spacing.sm,
+          },
+        ]}
+      >
+        <Text style={[textStyles.bodySmall, { color: colors.white, fontWeight: '600' }]}>
+          Fund Wallet
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function BookingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -269,6 +340,8 @@ export default function BookingScreen() {
           <ServiceStep
             services={stylist.services}
             onSelect={handleSelectService}
+            balance={balance}
+            onFundWallet={() => router.push('/wallet/fund')}
             colors={colors}
             spacing={spacing}
             borderRadius={borderRadius}
@@ -321,15 +394,32 @@ export default function BookingScreen() {
 interface ServiceStepProps {
   services: StylistService[];
   onSelect: (service: StylistService) => void;
+  balance: { usdc: string; zar: string } | null;
+  onFundWallet: () => void;
   colors: ReturnType<typeof useTheme>['colors'];
   spacing: ReturnType<typeof useTheme>['spacing'];
   borderRadius: ReturnType<typeof useTheme>['borderRadius'];
   shadows: ReturnType<typeof useTheme>['shadows'];
 }
 
-function ServiceStep({ services, onSelect, colors, spacing, borderRadius, shadows }: ServiceStepProps) {
+function ServiceStep({ services, onSelect, balance, onFundWallet, colors, spacing, borderRadius, shadows }: ServiceStepProps) {
+  // V7.0.0 (UX-1): Calculate min service price to check balance
+  const minServicePrice = services.length > 0
+    ? Math.min(...services.map(s => parseInt(s.priceAmountCents, 10)))
+    : 0;
+
   return (
     <View>
+      {/* V7.0.0 (UX-1): Balance warning at step 1 */}
+      <BalanceWarningBanner
+        balance={balance}
+        minServicePrice={minServicePrice}
+        colors={colors}
+        spacing={spacing}
+        borderRadius={borderRadius}
+        onFundWallet={onFundWallet}
+      />
+
       <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
         Select a Service
       </Text>
@@ -867,5 +957,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
+  },
+  // V7.0.0 (UX-1): Balance warning banner styles
+  balanceWarningBanner: {
+    borderWidth: 1,
+  },
+  balanceWarningContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  fundButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
   },
 });
