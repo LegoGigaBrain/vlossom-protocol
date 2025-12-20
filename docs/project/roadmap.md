@@ -1,26 +1,33 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V6.10.0 Mobile Parity & 100% Feature Coverage ✅ COMPLETE**
+**V7.0.0 Security, Admin Panel & UX Hardening ✅ COMPLETE**
 
-✅ **V6.10.0 Mobile Parity (Dec 20, 2025)** - Complete Mobile Feature Coverage:
-- **Booking Flow** - Real API integration with 4-step booking wizard (service → datetime → location → payment)
-- **Wallet QR Features** - QR scanner for send (expo-camera), QR generation for receive (react-native-qrcode-svg)
-- **Auth Screens** - Forgot/reset password with deep linking and password strength indicator
-- **Property Owner Dashboard** - 4 screens fully wired to API (overview, properties, chairs, revenue)
-- **Special Events** - Request submission with real API integration
-- **Web Calendar** - Schedule page uses real ritual API (replaced mock data)
+✅ **V7.0.0 Security & Admin Panel (Dec 20, 2025)** - Production Security & Full Admin:
+- **Cookie Auth Migration** - JWT moved from localStorage to httpOnly cookies (XSS protection)
+- **Refresh Token Rotation** - 15-min access tokens with secure refresh flow
+- **CSRF Protection** - Double-submit cookie pattern for all mutating requests
+- **Rate Limit Fail-Closed** - Returns 503 when Redis unavailable in production
+- **Complete Admin Panel** - 8 pages (Dashboard, Users, Bookings, Sessions, Disputes, Logs, DeFi, Paymaster)
+- **Security Tests** - Unit tests for auth, CSRF, rate-limiter; E2E tests for auth flow
 
 **What's Included:**
-- 28 files changed (+4,640 / -496 lines)
-- New API clients: `bookings.ts`, `property-owner.ts` with Zustand stores
-- QRScanner component with expo-camera integration
-- Forgot/reset password with SecureStore token validation
-- Property owner revenue tracking with period toggle
-- Chair management with status updates
-- Complete booking flow: stylist selection → service → datetime → location → confirmation
+- 88 files changed (+14,527 / -324 lines)
+- Admin panel with cookie auth, React Query, 8 functional pages
+- Security middleware: CSRF, fail-closed rate limiting
+- API tests: auth.test.ts, csrf.test.ts, rate-limiter.test.ts
+- E2E tests: auth-v7.spec.ts, property-creation.spec.ts
+- Mobile input validation: EIP-55 addresses, reset tokens, deep links
 
-**Next Phase:** V7.0.0 Production Readiness
+**Next Phase:** V8.0.0 Production Launch
+
+---
+
+✅ **V6.10.0 Mobile Parity (Dec 20, 2025)** - Complete Mobile Feature Coverage:
+- **Booking Flow** - Real API integration with 4-step booking wizard
+- **Wallet QR Features** - QR scanner + QR generation
+- **Auth Screens** - Forgot/reset password with deep linking
+- **Property Owner Dashboard** - 4 screens fully wired to API
 
 ---
 
