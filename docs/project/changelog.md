@@ -7,6 +7,154 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.9.0] - 2025-12-20
+
+### V6.9.0: Calendar Intelligence & Hair Discovery - COMPLETE ✅
+
+**Goal**: Implement personalized ritual plans based on hair profiles with smart calendar scheduling and load balancing.
+
+---
+
+#### ✅ Backend: Ritual Generator & Calendar Scheduler
+
+**New File:** `services/api/src/lib/hair-health/ritual-generator.ts` (~450 lines)
+
+Ritual plan generation with archetype matching:
+- `generateRitualPlan()` - Creates personalized ritual recommendations
+- 8 hair archetypes with tailored ritual templates
+- Weekly schedule builder with load balancing
+- Frequency calculations based on profile attributes
+- Priority system: ESSENTIAL, RECOMMENDED, OPTIONAL
+
+**New File:** `services/api/src/lib/hair-health/calendar-scheduler.ts` (~350 lines)
+
+Calendar event scheduling:
+- `generateCalendarEvents()` - Creates HairCalendarEvent records
+- Load factor scoring (LIGHT=15, STANDARD=35, HEAVY=60)
+- Weekly load capacity calculations
+- Conflict detection and resolution
+- Event lifecycle: PLANNED → COMPLETED/SKIPPED/RESCHEDULED
+
+**Ritual Templates:**
+- DEEP_CONDITION - Weekly deep conditioning treatment
+- WASH_DAY - Complete wash day ritual
+- PROTECTIVE_STYLE_INSTALL - Protective styling setup
+- SCALP_TREATMENT - Scalp care routine
+- PROTEIN_TREATMENT - Protein-moisture balance
+- CLARIFYING_WASH - Product buildup removal
+- TRIM_MAINTENANCE - Regular trim schedule
+- DETANGLE_SESSION - Gentle detangling routine
+
+---
+
+#### ✅ Web Frontend: Calendar Widget
+
+**New File:** `apps/web/components/hair-health/calendar-widget.tsx` (~400 lines)
+
+Smart calendar widget with:
+- Calendar summary (next ritual, streak, overdue count)
+- Weekly load progress bar with capacity
+- Upcoming rituals list (next 14 days)
+- GenerateCalendarDialog for event creation
+- CompleteRitualDialog with quality ratings
+- Skip functionality with optional reason
+- Empty state for new users
+
+**New File:** `apps/web/components/hair-health/index.ts`
+
+Barrel export for hair health components.
+
+**Modified File:** `apps/web/app/(main)/profile/hair-health/page.tsx`
+
+- Integrated CalendarWidget after Hair Snapshot section
+- Updated version comment to V6.9
+
+---
+
+#### ✅ React Query Hooks (Web)
+
+**Modified File:** `apps/web/hooks/use-hair-health.ts` (~200 lines added)
+
+New V6.9 Calendar Intelligence hooks:
+- `useRitualPlan()` - Fetch personalized ritual plan
+- `useUpcomingRituals(days)` - Get upcoming rituals
+- `useCalendarSummary()` - Widget summary data
+- `useGenerateCalendar()` - Generate events mutation
+- `useCompleteCalendarEvent()` - Mark event completed
+- `useSkipCalendarEvent()` - Skip event mutation
+- `useRescheduleCalendarEvent()` - Reschedule mutation
+- `useHasCalendarEvents()` - Check if events exist
+- `useNextWashDay()` - Get next wash day date
+- `useWeeklyLoadStatus()` - Weekly load percentage
+
+Query key additions:
+- `ritualPlan`, `ritualTemplates`, `upcomingRituals`, `calendarSummary`
+
+---
+
+#### ✅ Mobile API Integration
+
+**Modified File:** `apps/mobile/src/api/hair-health.ts` (~200 lines added)
+
+V6.9 Calendar Intelligence types:
+- `RitualStep`, `RitualRecommendation`, `WeeklyRitualSlot`
+- `UpcomingRitual`, `CalendarSummaryResponse`, `CalendarGenerateResult`
+
+V6.9 API functions:
+- `getRitualPlan()` - Fetch personalized ritual plan
+- `getRitualTemplates()` - Get all available templates
+- `generateCalendar(options)` - Generate calendar events
+- `getUpcomingRituals(days)` - Get upcoming rituals
+- `getCalendarSummary()` - Widget summary data
+- `completeCalendarEvent(eventId, quality)` - Mark completed
+- `skipCalendarEvent(eventId, reason)` - Skip with reason
+- `rescheduleCalendarEvent(eventId, newDate)` - Reschedule
+
+Utility function:
+- `formatRitualDate()` - Format dates for display (Today, Tomorrow, weekday)
+
+---
+
+#### ✅ Mobile Zustand Store
+
+**Modified File:** `apps/mobile/src/stores/hair-health.ts` (~150 lines added)
+
+V6.9 Calendar state:
+- `calendarSummary` - Widget summary state
+- `upcomingRituals` - Upcoming rituals array
+- `calendarLoading` - Loading state
+- `calendarError` - Error state
+- `hasCalendarEvents` - Boolean for empty state
+
+V6.9 Calendar actions:
+- `fetchCalendarSummary()` - Fetch summary
+- `fetchUpcomingRituals(days)` - Fetch rituals
+- `generateCalendarEvents(weeks)` - Generate events
+- `completeRitual(eventId, quality)` - Complete event
+- `skipRitual(eventId, reason)` - Skip event
+
+V6.9 Calendar selectors:
+- `selectCalendarSummary`, `selectUpcomingRituals`
+- `selectCalendarLoading`, `selectHasCalendarEvents`
+- `selectNextRitual`, `selectOverdueCount`, `selectStreakDays`
+
+---
+
+#### Files Summary (V6.9.0)
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| Backend | 2 | Ritual generator, calendar scheduler |
+| Web Components | 2 | Calendar widget, index barrel |
+| Web Hooks | 1 | V6.9 calendar hooks |
+| Web Pages | 1 | Hair health page integration |
+| Mobile API | 1 | Calendar API functions |
+| Mobile Store | 1 | Calendar state management |
+
+**Total:** ~1,200 lines of new code
+
+---
+
 ## [6.8.0] - 2025-12-20
 
 ### V6.8.0: Mobile Foundation & Full Parity - COMPLETE ✅

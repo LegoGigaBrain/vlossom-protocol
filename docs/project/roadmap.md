@@ -1,7 +1,25 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V6.8.0 Mobile Foundation & Full Parity ✅ COMPLETE**
+**V6.9.0 Calendar Intelligence & Hair Discovery ✅ COMPLETE**
+
+✅ **V6.9.0 Calendar Intelligence (Dec 20, 2025)** - Smart Hair Ritual Scheduling:
+- **Ritual Generator** - Profile-based ritual recommendations with 8 archetypes
+- **Calendar Scheduler** - Automatic event generation with load balancing
+- **Smart Calendar Widget** - Web component with rituals, completion, skipping
+- **Mobile Integration** - Full API and Zustand store for calendar intelligence
+
+**What's Included:**
+- Ritual plan generation based on hair profile attributes
+- Weekly schedule builder with load capacity (LIGHT/STANDARD/HEAVY)
+- Event lifecycle management (PLANNED → COMPLETED/SKIPPED/RESCHEDULED)
+- Calendar widget with streak tracking and overdue detection
+- 10 React Query hooks for web, 8 API functions for mobile
+- Zustand store with calendar state and selectors
+
+**Next Phase:** V7.0.0 Production Readiness
+
+---
 
 ✅ **V6.8.0 Mobile Foundation (Dec 20, 2025)** - Mobile App Fully Functional:
 - **Sprint 1: Auth & Profile** - Login/signup with SecureStore, protected routes
@@ -391,7 +409,7 @@
 | **V6.7.0** | Direct Messaging | - | In-app messaging between customers and stylists | ✅ Complete |
 | **V6.7.1** | Mobile Messaging | - | Mobile messaging API integration with Zustand | ✅ Complete |
 | **V6.8.0** | Mobile Foundation | 5 sprints | Full mobile parity - all tabs functional with real APIs | ✅ Complete |
-| **V6.9.0** | Calendar Intelligence | - | Smart calendar, hair discovery quiz, ritual generation | 🔜 Planned |
+| **V6.9.0** | Calendar Intelligence | - | Smart calendar widget, ritual generation, load balancing | ✅ Complete |
 | **V7.0.0** | Production Ready | - | Admin support, service progress, security audit | 🔜 Planned |
 
 ---

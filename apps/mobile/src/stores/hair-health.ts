@@ -1,8 +1,8 @@
 /**
- * Hair Health Store (V6.8.0)
+ * Hair Health Store (V6.9.0)
  *
  * Zustand store for managing hair health profile state.
- * Handles profile CRUD and learning progress.
+ * Handles profile CRUD, learning progress, and V6.9 calendar intelligence.
  */
 
 import { create } from 'zustand';
@@ -12,15 +12,33 @@ import {
   updateHairProfile,
   getLearningProgress,
   unlockLearningNode,
+  // V6.9 Calendar Intelligence
+  getRitualPlan,
+  getUpcomingRituals,
+  getCalendarSummary,
+  generateCalendar,
+  completeCalendarEvent,
+  skipCalendarEvent,
   type HairProfile,
   type HairProfileCreateInput,
   type HairProfileUpdateInput,
   type LearningNodeId,
+  type UpcomingRitual,
+  type CalendarGenerateResult,
 } from '../api/hair-health';
 
 // ============================================================================
 // Types
 // ============================================================================
+
+interface CalendarSummary {
+  nextRitual: UpcomingRitual | null;
+  thisWeekLoad: number;
+  maxWeekLoad: number;
+  overdueCount: number;
+  completedThisWeek: number;
+  streakDays: number;
+}
 
 interface HairHealthState {
   // Profile
@@ -38,6 +56,13 @@ interface HairHealthState {
   onboardingStep: number;
   onboardingData: Partial<HairProfileCreateInput>;
 
+  // V6.9 Calendar Intelligence
+  calendarSummary: CalendarSummary | null;
+  upcomingRituals: UpcomingRitual[];
+  calendarLoading: boolean;
+  calendarError: string | null;
+  hasCalendarEvents: boolean;
+
   // Actions - Profile
   fetchProfile: () => Promise<void>;
   createProfile: (input: HairProfileCreateInput) => Promise<HairProfile | null>;
@@ -52,6 +77,13 @@ interface HairHealthState {
   setOnboardingData: (data: Partial<HairProfileCreateInput>) => void;
   resetOnboarding: () => void;
   completeOnboarding: () => Promise<HairProfile | null>;
+
+  // V6.9 Actions - Calendar
+  fetchCalendarSummary: () => Promise<void>;
+  fetchUpcomingRituals: (days?: number) => Promise<void>;
+  generateCalendarEvents: (weeks?: number) => Promise<CalendarGenerateResult | null>;
+  completeRitual: (eventId: string, quality?: 'EXCELLENT' | 'GOOD' | 'ADEQUATE' | 'POOR') => Promise<void>;
+  skipRitual: (eventId: string, reason?: string) => Promise<void>;
 
   // Reset
   reset: () => void;
@@ -73,6 +105,13 @@ const initialState = {
 
   onboardingStep: 0,
   onboardingData: {} as Partial<HairProfileCreateInput>,
+
+  // V6.9 Calendar Intelligence
+  calendarSummary: null as CalendarSummary | null,
+  upcomingRituals: [] as UpcomingRitual[],
+  calendarLoading: false,
+  calendarError: null as string | null,
+  hasCalendarEvents: false,
 };
 
 // ============================================================================
@@ -229,6 +268,103 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
     return profile;
   },
 
+  // ==========================================================================
+  // V6.9 Calendar Intelligence Actions
+  // ==========================================================================
+
+  /**
+   * Fetch calendar summary for widget display
+   */
+  fetchCalendarSummary: async () => {
+    set({ calendarLoading: true, calendarError: null });
+
+    try {
+      const summary = await getCalendarSummary();
+      set({
+        calendarSummary: summary,
+        calendarLoading: false,
+        hasCalendarEvents: summary.nextRitual !== null || summary.completedThisWeek > 0,
+      });
+    } catch (error) {
+      set({
+        calendarLoading: false,
+        calendarError: error instanceof Error ? error.message : 'Failed to fetch calendar',
+      });
+    }
+  },
+
+  /**
+   * Fetch upcoming rituals for the next N days
+   */
+  fetchUpcomingRituals: async (days: number = 14) => {
+    set({ calendarLoading: true });
+
+    try {
+      const data = await getUpcomingRituals(days);
+      set({
+        upcomingRituals: data.rituals,
+        calendarLoading: false,
+        hasCalendarEvents: data.totalUpcoming > 0,
+      });
+    } catch (error) {
+      set({ calendarLoading: false });
+    }
+  },
+
+  /**
+   * Generate calendar events from ritual plan
+   */
+  generateCalendarEvents: async (weeks: number = 2) => {
+    set({ calendarLoading: true, calendarError: null });
+
+    try {
+      const result = await generateCalendar({ weeksToGenerate: weeks });
+
+      // Refetch calendar data after generation
+      const { fetchCalendarSummary, fetchUpcomingRituals } = get();
+      await Promise.all([fetchCalendarSummary(), fetchUpcomingRituals()]);
+
+      set({ calendarLoading: false });
+      return result;
+    } catch (error) {
+      set({
+        calendarLoading: false,
+        calendarError: error instanceof Error ? error.message : 'Failed to generate calendar',
+      });
+      return null;
+    }
+  },
+
+  /**
+   * Mark a ritual as completed
+   */
+  completeRitual: async (eventId: string, quality: 'EXCELLENT' | 'GOOD' | 'ADEQUATE' | 'POOR' = 'GOOD') => {
+    try {
+      await completeCalendarEvent(eventId, quality);
+
+      // Refetch to update state
+      const { fetchCalendarSummary, fetchUpcomingRituals } = get();
+      await Promise.all([fetchCalendarSummary(), fetchUpcomingRituals()]);
+    } catch (error) {
+      // Silent failure, user can retry
+    }
+  },
+
+  /**
+   * Skip a ritual
+   */
+  skipRitual: async (eventId: string, reason?: string) => {
+    try {
+      await skipCalendarEvent(eventId, reason);
+
+      // Refetch to update state
+      const { fetchCalendarSummary, fetchUpcomingRituals } = get();
+      await Promise.all([fetchCalendarSummary(), fetchUpcomingRituals()]);
+    } catch (error) {
+      // Silent failure, user can retry
+    }
+  },
+
   /**
    * Reset store
    */
@@ -246,3 +382,12 @@ export const selectHasProfile = (state: HairHealthState) => state.hasProfile;
 export const selectUnlockedNodes = (state: HairHealthState) => state.unlockedNodes;
 export const selectOnboardingStep = (state: HairHealthState) => state.onboardingStep;
 export const selectOnboardingData = (state: HairHealthState) => state.onboardingData;
+
+// V6.9 Calendar Selectors
+export const selectCalendarSummary = (state: HairHealthState) => state.calendarSummary;
+export const selectUpcomingRituals = (state: HairHealthState) => state.upcomingRituals;
+export const selectCalendarLoading = (state: HairHealthState) => state.calendarLoading;
+export const selectHasCalendarEvents = (state: HairHealthState) => state.hasCalendarEvents;
+export const selectNextRitual = (state: HairHealthState) => state.calendarSummary?.nextRitual ?? null;
+export const selectOverdueCount = (state: HairHealthState) => state.calendarSummary?.overdueCount ?? 0;
+export const selectStreakDays = (state: HairHealthState) => state.calendarSummary?.streakDays ?? 0;

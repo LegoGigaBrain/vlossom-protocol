@@ -1,8 +1,9 @@
 /**
- * Hair Health Profile Page (V5.1)
+ * Hair Health Profile Page (V6.9)
  *
  * Sections:
  * - Hair Snapshot (archetype, porosity, sensitivity)
+ * - Smart Calendar (V6.9 - upcoming rituals, weekly load)
  * - Current Routine (type, weekly load)
  * - Care Insights (personalized guidance)
  * - Learning Progress (unlocked concepts)
@@ -19,6 +20,7 @@ import {
   type ProfileAnalysis,
 } from "@/hooks/use-hair-health";
 import { AppHeader } from "@/components/layout/app-header";
+import { CalendarWidget } from "@/components/hair-health/calendar-widget";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -244,55 +246,58 @@ export default function HairHealthPage() {
           </CardContent>
         </Card>
 
+        {/* V6.9 Smart Calendar Widget */}
+        <CalendarWidget />
+
         {/* Current Routine */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Icon name="calendar" size="md" className="text-brand-purple" />
-              Current Routine
+              <Icon name="sparkle" size="md" className="text-brand-purple" />
+              Routine Profile
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between p-3 bg-background-secondary rounded-lg mb-3">
-              <div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-background-secondary rounded-lg">
+                <p className="text-xs text-text-secondary mb-1">Routine Type</p>
                 <p className="text-sm font-medium text-text-primary">
-                  Wash Day Load
-                </p>
-                <p className="text-xs text-text-secondary">
-                  {profile.washDayLoadFactor?.toLowerCase() ?? "standard"} intensity
-                </p>
-              </div>
-              <Badge
-                variant={
-                  profile.washDayLoadFactor === "EXTREME" || profile.washDayLoadFactor === "HEAVY"
-                    ? "warning"
-                    : profile.washDayLoadFactor === "LIGHT"
-                    ? "success"
-                    : "default"
-                }
-              >
-                {profile.estimatedWashDayMinutes ?? 60} min
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-background-secondary rounded-lg mb-3">
-              <div>
-                <p className="text-sm font-medium text-text-primary">
-                  Routine Type
-                </p>
-                <p className="text-xs text-text-secondary">
                   {formatRoutineType(profile.routineType)}
                 </p>
               </div>
+              <div className="p-3 bg-background-secondary rounded-lg">
+                <p className="text-xs text-text-secondary mb-1">Wash Day Load</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-text-primary">
+                    {profile.washDayLoadFactor?.toLowerCase() ?? "Standard"}
+                  </p>
+                  <Badge
+                    variant={
+                      profile.washDayLoadFactor === "EXTREME" || profile.washDayLoadFactor === "HEAVY"
+                        ? "warning"
+                        : profile.washDayLoadFactor === "LIGHT"
+                        ? "success"
+                        : "default"
+                    }
+                    className="text-xs"
+                  >
+                    {profile.estimatedWashDayMinutes ?? 60}m
+                  </Badge>
+                </div>
+              </div>
+              <div className="p-3 bg-background-secondary rounded-lg">
+                <p className="text-xs text-text-secondary mb-1">Detangle</p>
+                <p className="text-sm font-medium text-text-primary">
+                  {profile.detangleTolerance?.toLowerCase() ?? "Medium"} tolerance
+                </p>
+              </div>
+              <div className="p-3 bg-background-secondary rounded-lg">
+                <p className="text-xs text-text-secondary mb-1">Manipulation</p>
+                <p className="text-sm font-medium text-text-primary">
+                  {profile.manipulationTolerance?.toLowerCase() ?? "Medium"} tolerance
+                </p>
+              </div>
             </div>
-            <Button
-              variant="primary"
-              size="sm"
-              className="w-full"
-              onClick={() => router.push("/schedule")}
-            >
-              View Care Calendar
-              <Icon name="chevronRight" size="sm" className="ml-1" />
-            </Button>
           </CardContent>
         </Card>
 

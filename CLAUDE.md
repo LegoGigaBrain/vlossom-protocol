@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V6.8.0** - Mobile Foundation & Full Parity (December 20, 2025)
+**V6.9.0** - Calendar Intelligence & Hair Discovery (December 20, 2025)
 
-**Major Achievement**: Complete mobile app functionality with real API integration across all 5 tabs. Auth with SecureStore, wallet with Fund/Withdraw via Kotani Pay, Uber-like home tab with bottom sheet booking, stylist discovery with 4-step booking flow, notifications with filtering, and 6-step hair health onboarding wizard.
+**Major Achievement**: Personalized ritual plans based on hair profiles with smart calendar scheduling and load balancing. Ritual generator with 8 archetypes, calendar widget with upcoming rituals and streak tracking, full mobile API integration.
 
-**Previous**: V6.7.1 - Direct Messaging, V6.6.0 - Special Events Booking, V6.5.1 - Property Owner UI, V6.5.0 - Phosphor Icon Migration, V6.4.0 - Local Development & Service Fixes, V6.0.0 - Mobile App + Design Handover
+**Previous**: V6.8.0 - Mobile Foundation & Full Parity, V6.7.1 - Direct Messaging, V6.6.0 - Special Events Booking, V6.5.1 - Property Owner UI, V6.5.0 - Phosphor Icon Migration, V6.4.0 - Local Development & Service Fixes
 
 ---
 
@@ -39,14 +39,14 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.8.0 |
-| `apps/mobile/` | React Native + Expo mobile app | ✅ V6.8.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V6.9.0 |
+| `apps/mobile/` | React Native + Expo mobile app | ✅ V6.9.0 |
 | `apps/admin/` | Admin dashboard | ✅ V6.4.0 |
 
 ### `services/` - Backend Services
 | Service | Purpose | Status |
 |---------|---------|--------|
-| `services/api/` | Express REST API | ✅ V6.8.0 |
+| `services/api/` | Express REST API | ✅ V6.9.0 |
 | `services/scheduler/` | Background job scheduler | ✅ V6.4.0 |
 | `services/indexer/` | Blockchain event indexer | ✅ V3.2.0 |
 

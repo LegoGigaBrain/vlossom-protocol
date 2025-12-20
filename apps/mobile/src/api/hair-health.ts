@@ -1,9 +1,10 @@
 /**
- * Hair Health API Client (V6.8.0)
+ * Hair Health API Client (V6.9.0)
  *
  * Handles all hair health-related API calls:
  * - Hair profile CRUD
  * - Learning progress
+ * - V6.9 Calendar Intelligence
  */
 
 import { apiRequest } from './client';
@@ -275,4 +276,226 @@ export function getTextureColor(texture: TextureClass | null): string {
     case 'TYPE_4':
       return '#311E6B';
   }
+}
+
+// ============================================================================
+// V6.9 Calendar Intelligence Types
+// ============================================================================
+
+export interface RitualStep {
+  stepType: string;
+  name: string;
+  estimatedMinutes: number;
+  optional: boolean;
+  notes?: string;
+}
+
+export interface RitualRecommendation {
+  templateId: string;
+  name: string;
+  description: string;
+  ritualType: string;
+  loadLevel: 'LIGHT' | 'STANDARD' | 'HEAVY';
+  durationMinutes: number;
+  frequency: string;
+  priority: 'ESSENTIAL' | 'RECOMMENDED' | 'OPTIONAL';
+  reasoning: string;
+  steps: RitualStep[];
+}
+
+export interface WeeklyRitualSlot {
+  dayOfWeek: number;
+  dayName: string;
+  rituals: {
+    templateId: string;
+    name: string;
+    loadLevel: string;
+    estimatedMinutes: number;
+    timeOfDay: 'MORNING' | 'AFTERNOON' | 'EVENING';
+  }[];
+  totalLoad: number;
+  isRestDay: boolean;
+}
+
+export interface RitualPlanResponse {
+  data: {
+    recommendations: RitualRecommendation[];
+    weeklySchedule: WeeklyRitualSlot[];
+    loadSummary: {
+      totalWeeklyLoad: number;
+      maxCapacity: number;
+      balance: 'UNDER' | 'OPTIMAL' | 'OVER';
+    };
+    reasoning: string[];
+  };
+}
+
+export interface UpcomingRitual {
+  id: string;
+  name: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  loadLevel: string;
+  eventType: string;
+  status: string;
+  isOverdue: boolean;
+  daysUntil: number;
+}
+
+export interface UpcomingRitualsResponse {
+  data: {
+    rituals: UpcomingRitual[];
+    totalUpcoming: number;
+    nextWashDay: string | null;
+    weeklyLoadStatus: {
+      current: number;
+      max: number;
+      percentage: number;
+    };
+  };
+}
+
+export interface CalendarSummaryResponse {
+  data: {
+    nextRitual: UpcomingRitual | null;
+    thisWeekLoad: number;
+    maxWeekLoad: number;
+    overdueCount: number;
+    completedThisWeek: number;
+    streakDays: number;
+  };
+}
+
+export interface CalendarGenerateResult {
+  success: boolean;
+  eventsCreated: number;
+  eventsSkipped: number;
+  conflicts: {
+    date: string;
+    proposedEvent: string;
+    existingEvent: string;
+    resolution: string;
+  }[];
+  nextScheduledDate: string | null;
+  weeklyLoadScore: number;
+}
+
+export interface GenerateCalendarResponse {
+  data: CalendarGenerateResult;
+}
+
+// ============================================================================
+// V6.9 Calendar Intelligence API Functions
+// ============================================================================
+
+/**
+ * Get personalized ritual plan based on profile
+ */
+export async function getRitualPlan(): Promise<RitualPlanResponse['data']> {
+  const response = await apiRequest<RitualPlanResponse>('/hair-health/ritual-plan');
+  return response.data;
+}
+
+/**
+ * Get all available ritual templates
+ */
+export async function getRitualTemplates(): Promise<RitualRecommendation[]> {
+  const response = await apiRequest<{ data: RitualRecommendation[] }>('/hair-health/ritual-templates');
+  return response.data;
+}
+
+/**
+ * Generate calendar events from ritual plan
+ */
+export async function generateCalendar(options?: {
+  weeksToGenerate?: number;
+  replaceExisting?: boolean;
+}): Promise<CalendarGenerateResult> {
+  const response = await apiRequest<GenerateCalendarResponse>('/hair-health/calendar/generate', {
+    method: 'POST',
+    body: JSON.stringify(options || {}),
+  });
+  return response.data;
+}
+
+/**
+ * Get upcoming rituals for the next N days
+ */
+export async function getUpcomingRituals(days: number = 14): Promise<UpcomingRitualsResponse['data']> {
+  const response = await apiRequest<UpcomingRitualsResponse>(`/hair-health/calendar/upcoming?days=${days}`);
+  return response.data;
+}
+
+/**
+ * Get calendar summary for widget display
+ */
+export async function getCalendarSummary(): Promise<CalendarSummaryResponse['data']> {
+  const response = await apiRequest<CalendarSummaryResponse>('/hair-health/calendar/summary');
+  return response.data;
+}
+
+/**
+ * Mark a calendar event as completed
+ */
+export async function completeCalendarEvent(
+  eventId: string,
+  quality: 'EXCELLENT' | 'GOOD' | 'ADEQUATE' | 'POOR' = 'GOOD'
+): Promise<void> {
+  await apiRequest(`/hair-health/calendar/${eventId}/complete`, {
+    method: 'POST',
+    body: JSON.stringify({ quality }),
+  });
+}
+
+/**
+ * Skip a calendar event
+ */
+export async function skipCalendarEvent(
+  eventId: string,
+  reason?: string
+): Promise<{ suggestedMakeup: string | null }> {
+  const response = await apiRequest<{ data: { suggestedMakeup: string | null } }>(
+    `/hair-health/calendar/${eventId}/skip`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }
+  );
+  return response.data;
+}
+
+/**
+ * Reschedule a calendar event
+ */
+export async function rescheduleCalendarEvent(
+  eventId: string,
+  newDate: Date
+): Promise<{ success: boolean; warnings: string[] }> {
+  const response = await apiRequest<{ data: { success: boolean; warnings: string[] } }>(
+    `/hair-health/calendar/${eventId}/reschedule`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ newDate: newDate.toISOString() }),
+    }
+  );
+  return response.data;
+}
+
+/**
+ * Format ritual date for display
+ */
+export function formatRitualDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffDays = Math.floor(
+    (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diffDays < 0) return 'Overdue';
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Tomorrow';
+  if (diffDays < 7) {
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  }
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
