@@ -27,7 +27,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       // Wait for successful login
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
@@ -61,7 +61,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -98,7 +98,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -135,7 +135,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -183,7 +183,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -234,7 +234,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -282,7 +282,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -322,7 +322,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -363,7 +363,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       await page.goto("/login");
       await page.getByLabel(/email/i).fill(email);
       await page.getByLabel(/password/i).fill(password);
-      await page.getByRole("button", { name: /log in|sign in/i }).click();
+      await page.getByRole("button", { name: "Log In" }).click();
 
       await expect(page).toHaveURL(/\/(home|stylists|dashboard)/, {
         timeout: 10000,
@@ -390,7 +390,7 @@ test.describe("V7.0.0 Cookie Authentication", () => {
       const password = "TestPassword123!";
 
       // Create user
-      await page.request.post("/api/v1/auth/signup", {
+      const signupResponse = await page.request.post("/api/v1/auth/signup", {
         data: {
           email,
           password,
@@ -398,12 +398,21 @@ test.describe("V7.0.0 Cookie Authentication", () => {
           role: "CUSTOMER",
         },
       });
+      if (!signupResponse.ok()) {
+        const signupError = await signupResponse.text();
+        console.log(`Signup failed with status ${signupResponse.status()}: ${signupError}`);
+      }
+      expect(signupResponse.ok()).toBeTruthy();
 
       // Login via API (like mobile would)
       const loginResponse = await page.request.post("/api/v1/auth/login", {
         data: { email, password },
       });
 
+      if (!loginResponse.ok()) {
+        const errorText = await loginResponse.text();
+        console.log(`Login failed with status ${loginResponse.status()}: ${errorText}`);
+      }
       expect(loginResponse.ok()).toBeTruthy();
 
       const data = await loginResponse.json();
