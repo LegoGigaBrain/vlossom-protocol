@@ -478,6 +478,26 @@ export function VlossomCloseIcon({
   );
 }
 
+/**
+ * Back Icon - Arrow pointing left for navigation
+ */
+export function VlossomBackIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M15 18l-6-6 6-6"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function VlossomFavoriteIcon({
   size = 24,
   color = colors.primary,
@@ -508,6 +528,27 @@ export function VlossomSettingsIcon({
         strokeWidth="1.5"
         strokeLinecap="round"
       />
+    </Svg>
+  );
+}
+
+/**
+ * Location Icon - Pin marker representing place
+ */
+export function VlossomLocationIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Circle cx="12" cy="9" r="2.5" stroke={color} strokeWidth="1.5" />
     </Svg>
   );
 }

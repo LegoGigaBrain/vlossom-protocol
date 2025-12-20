@@ -1,5 +1,5 @@
 /**
- * API Exports (V6.7.0)
+ * API Exports (V6.8.0)
  */
 
 // Base client
@@ -14,5 +14,20 @@ export {
   API_URL,
 } from './client';
 
+// Auth API
+export * from './auth';
+
+// Wallet API
+export * from './wallet';
+
 // Messages API
 export * from './messages';
+
+// Stylists API
+export * from './stylists';
+
+// Notifications API
+export * from './notifications';
+
+// Hair Health API
+export * from './hair-health';

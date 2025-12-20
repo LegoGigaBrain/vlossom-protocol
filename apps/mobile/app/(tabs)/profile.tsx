@@ -1,12 +1,14 @@
 /**
- * Profile Tab - Identity + Dashboards (V6.0)
+ * Profile Tab - Identity + Dashboards (V6.8.0)
  *
  * Purpose: User identity, hair health, schedule, role-based dashboards
  * Dynamic tabs based on user roles
+ * Connected to auth store for real user data
  */
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {
   VlossomSettingsIcon,
@@ -15,22 +17,55 @@ import {
   VlossomFavoriteIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { useState } from 'react';
+import { useAuthStore } from '../../src/stores/auth';
 
 type ProfileTab = 'overview' | 'stylist' | 'salon';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { colors, spacing, borderRadius, shadows } = useTheme();
   const [activeTab, setActiveTab] = useState<ProfileTab>('overview');
 
-  // Mock user data
-  const userRoles = ['CUSTOMER']; // Add 'STYLIST' or 'SALON_OWNER' to see role tabs
+  const { user, logout, logoutLoading } = useAuthStore();
+
+  // Get user roles from auth store
+  const userRole = user?.role || 'CUSTOMER';
+  const userRoles = [userRole];
 
   const tabs = [
     { id: 'overview' as ProfileTab, label: 'Overview' },
     ...(userRoles.includes('STYLIST') ? [{ id: 'stylist' as ProfileTab, label: 'Stylist' }] : []),
-    ...(userRoles.includes('SALON_OWNER') ? [{ id: 'salon' as ProfileTab, label: 'Salon' }] : []),
+    ...(userRoles.includes('PROPERTY_OWNER') ? [{ id: 'salon' as ProfileTab, label: 'Properties' }] : []),
   ];
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSettings = () => {
+    // Navigate to settings
+    // TODO: Implement settings screen
+  };
+
+  // Get display name and initial
+  const displayName = user?.displayName || 'User';
+  const initial = displayName.charAt(0).toUpperCase();
+  const email = user?.email || '';
+  const username = email ? `@${email.split('@')[0]}` : '';
 
   return (
     <ScrollView
@@ -49,28 +84,56 @@ export default function ProfileScreen() {
       >
         {/* Settings button */}
         <View style={styles.headerActions}>
-          <Pressable>
+          <Pressable onPress={handleSettings}>
             <VlossomSettingsIcon size={24} color={colors.text.secondary} />
           </Pressable>
         </View>
 
         {/* Avatar */}
         <View style={styles.avatarSection}>
+          {user?.avatarUrl ? (
+            <Image
+              source={{ uri: user.avatarUrl }}
+              style={[
+                styles.avatarImage,
+                { borderRadius: borderRadius.circle },
+              ]}
+            />
+          ) : (
+            <View
+              style={[
+                styles.avatar,
+                {
+                  backgroundColor: colors.primary,
+                  borderRadius: borderRadius.circle,
+                },
+              ]}
+            >
+              <Text style={[styles.avatarText, { color: colors.white }]}>{initial}</Text>
+            </View>
+          )}
+          <Text style={[textStyles.h2, { color: colors.text.primary, marginTop: spacing.md }]}>
+            {displayName}
+          </Text>
+          {username && (
+            <Text style={[textStyles.body, { color: colors.text.secondary }]}>{username}</Text>
+          )}
+
+          {/* Role badge */}
           <View
             style={[
-              styles.avatar,
+              styles.roleBadge,
               {
-                backgroundColor: colors.primary,
-                borderRadius: borderRadius.circle,
+                backgroundColor: colors.primary + '15',
+                borderRadius: borderRadius.pill,
+                marginTop: spacing.sm,
               },
             ]}
           >
-            <Text style={[styles.avatarText, { color: colors.white }]}>V</Text>
+            <Text style={[textStyles.caption, { color: colors.primary }]}>
+              {userRole === 'STYLIST' ? 'Stylist' : userRole === 'PROPERTY_OWNER' ? 'Property Owner' : 'Customer'}
+            </Text>
           </View>
-          <Text style={[textStyles.h2, { color: colors.text.primary, marginTop: spacing.md }]}>
-            Vlossom User
-          </Text>
-          <Text style={[textStyles.body, { color: colors.text.secondary }]}>@vlossom_user</Text>
 
           {/* Stats row */}
           <View style={[styles.statsRow, { marginTop: spacing.lg }]}>
@@ -122,20 +185,36 @@ export default function ProfileScreen() {
       {/* Tab content */}
       <View style={{ padding: spacing.lg }}>
         {activeTab === 'overview' && (
-          <OverviewTab colors={colors} spacing={spacing} borderRadius={borderRadius} shadows={shadows} />
+          <OverviewTab
+            colors={colors}
+            spacing={spacing}
+            borderRadius={borderRadius}
+            shadows={shadows}
+            onLogout={handleLogout}
+            logoutLoading={logoutLoading}
+          />
         )}
         {activeTab === 'stylist' && (
           <Text style={[textStyles.body, { color: colors.text.secondary }]}>Stylist Dashboard</Text>
         )}
         {activeTab === 'salon' && (
-          <Text style={[textStyles.body, { color: colors.text.secondary }]}>Salon Dashboard</Text>
+          <Text style={[textStyles.body, { color: colors.text.secondary }]}>Properties Dashboard</Text>
         )}
       </View>
     </ScrollView>
   );
 }
 
-function OverviewTab({ colors, spacing, borderRadius, shadows }: any) {
+interface OverviewTabProps {
+  colors: ReturnType<typeof useTheme>['colors'];
+  spacing: ReturnType<typeof useTheme>['spacing'];
+  borderRadius: ReturnType<typeof useTheme>['borderRadius'];
+  shadows: ReturnType<typeof useTheme>['shadows'];
+  onLogout: () => void;
+  logoutLoading: boolean;
+}
+
+function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutLoading }: OverviewTabProps) {
   return (
     <View>
       {/* Hair Health Card */}
@@ -204,6 +283,7 @@ function OverviewTab({ colors, spacing, borderRadius, shadows }: any) {
             backgroundColor: colors.background.primary,
             borderRadius: borderRadius.lg,
             ...shadows.card,
+            marginBottom: spacing.lg,
           },
         ]}
       >
@@ -215,6 +295,31 @@ function OverviewTab({ colors, spacing, borderRadius, shadows }: any) {
         </View>
         <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.sm }]}>
           No favorite stylists yet
+        </Text>
+      </Pressable>
+
+      {/* Logout Button */}
+      <Pressable
+        style={[
+          styles.logoutButton,
+          {
+            borderColor: colors.status.error,
+            borderRadius: borderRadius.md,
+          },
+        ]}
+        onPress={onLogout}
+        disabled={logoutLoading}
+      >
+        <Text
+          style={[
+            textStyles.button,
+            {
+              color: colors.status.error,
+              opacity: logoutLoading ? 0.5 : 1,
+            },
+          ]}
+        >
+          {logoutLoading ? 'Signing out...' : 'Sign Out'}
         </Text>
       </Pressable>
     </View>
@@ -243,9 +348,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  avatarImage: {
+    width: 80,
+    height: 80,
+  },
   avatarText: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
+  },
+  roleBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
   },
   statsRow: {
     flexDirection: 'row',
@@ -274,5 +387,11 @@ const styles = StyleSheet.create({
   cardAction: {
     alignItems: 'center',
     paddingVertical: 12,
+  },
+  logoutButton: {
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderWidth: 1,
+    marginTop: 8,
   },
 });

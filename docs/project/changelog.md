@@ -7,6 +7,119 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [6.8.0] - 2025-12-20
+
+### V6.8.0: Mobile Foundation & Full Parity - COMPLETE ✅
+
+**Goal**: Complete mobile app functionality with real API integration across all 5 tabs, achieving feature parity with web.
+
+---
+
+#### ✅ Sprint 1: Auth & Profile Foundation
+
+**New Files:**
+- `apps/mobile/src/api/auth.ts` - Auth API client (login, signup, logout, refresh)
+- `apps/mobile/src/stores/auth.ts` - Zustand auth store with SecureStore
+- `apps/mobile/app/(auth)/_layout.tsx` - Auth stack navigator
+- `apps/mobile/app/(auth)/login.tsx` - Login screen with validation
+- `apps/mobile/app/(auth)/signup.tsx` - Signup screen with terms
+
+---
+
+#### ✅ Sprint 2: Wallet Integration
+
+**New Files:**
+- `apps/mobile/src/api/wallet.ts` - Wallet API client
+- `apps/mobile/src/stores/wallet.ts` - Zustand wallet store
+- `apps/mobile/app/wallet/_layout.tsx` - Wallet stack navigator
+- `apps/mobile/app/wallet/fund.tsx` - Fund via Kotani Pay onramp
+- `apps/mobile/app/wallet/withdraw.tsx` - Withdraw via Kotani Pay offramp
+- `apps/mobile/app/wallet/send.tsx` - P2P send with address lookup
+- `apps/mobile/app/wallet/receive.tsx` - QR code display
+
+**Features:**
+- Real balance display (fiat-first ZAR)
+- Transaction history with pull-to-refresh
+- Biometric auth for transactions
+
+---
+
+#### ✅ Sprint 3: Uber-like Home Tab
+
+**New Files:**
+- `apps/mobile/src/api/stylists.ts` - Stylists API client
+- `apps/mobile/src/stores/stylists.ts` - Zustand stylists store
+
+**Modified:**
+- `apps/mobile/app/(tabs)/index.tsx` - Full rewrite with map + booking sheet
+
+**Features:**
+- Full-screen map with react-native-maps
+- Color-coded stylist pins (green=fixed, amber=mobile, red=home-call)
+- Bottom sheet booking overlay (Uber-style, never leaves map)
+- Quick filters (Today, This week, Budget, Wash included)
+
+---
+
+#### ✅ Sprint 4: Stylist Discovery & Search
+
+**New Files:**
+- `apps/mobile/app/stylists/_layout.tsx` - Stylists stack navigator
+- `apps/mobile/app/stylists/[id]/index.tsx` - Stylist detail screen
+- `apps/mobile/app/stylists/[id]/book.tsx` - 4-step booking flow
+
+**Modified:**
+- `apps/mobile/app/(tabs)/search.tsx` - Complete rewrite with real API
+
+**Features:**
+- Debounced search with real API
+- Category filters (Hair Care, Styling, Coloring, etc.)
+- Sort options (distance, rating, price)
+- Infinite scroll pagination
+- Stylist detail with services and portfolio tabs
+- 4-step booking: Service → DateTime → Location → Confirm
+
+---
+
+#### ✅ Sprint 5: Notifications + Hair Health
+
+**New Files:**
+- `apps/mobile/src/api/notifications.ts` - Notifications API client
+- `apps/mobile/src/stores/notifications.ts` - Zustand notifications store
+- `apps/mobile/src/api/hair-health.ts` - Hair health API client
+- `apps/mobile/src/stores/hair-health.ts` - Zustand hair health store
+- `apps/mobile/app/hair-health/_layout.tsx` - Hair health stack navigator
+- `apps/mobile/app/hair-health/index.tsx` - Hair health dashboard
+- `apps/mobile/app/hair-health/onboarding.tsx` - 6-step onboarding wizard
+- `apps/mobile/app/hair-health/edit.tsx` - Profile editor
+
+**Modified:**
+- `apps/mobile/app/(tabs)/notifications.tsx` - Complete rewrite with real API
+
+**Features:**
+- Notifications with category filtering (All, Bookings, Payments, Messages)
+- Mark as read (single and all) with optimistic updates
+- Unread badge display
+- Hair health dashboard with profile summary card
+- Learning journey progress (6 modules)
+- 6-step onboarding: Pattern, Porosity, Density, Thickness, Shrinkage, Confirmation
+- Profile edit with all attributes
+
+---
+
+#### Mobile Parity Summary
+
+| Tab | Before V6.8 | After V6.8 |
+|-----|-------------|------------|
+| Home | Map placeholder | ✅ Full-screen map with booking sheet |
+| Search | Static chips | ✅ Real API, filters, infinite scroll |
+| Wallet | $0.00 hardcoded | ✅ Real balance, Fund/Withdraw, P2P |
+| Notifications | Empty state | ✅ Real notifications, filtering |
+| Profile | Mock data | ✅ Real user, Hair Health card |
+| Messages | ✅ V6.7.1 | ✅ Complete (from V6.7.1) |
+
+---
+
 ## [6.7.1] - 2025-12-20
 
 ### V6.7.1: Mobile Messaging API Integration - COMPLETE ✅
