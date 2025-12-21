@@ -15,7 +15,9 @@ export type NotificationType =
   // V5.0 Phase 4: Real-time session tracking
   | "SESSION_PROGRESS"
   | "STYLIST_ARRIVED"
-  | "CUSTOMER_ARRIVED";
+  | "CUSTOMER_ARRIVED"
+  // V6.7.0: Direct Messaging
+  | "MESSAGE_RECEIVED";
 
 export type NotificationChannel = "EMAIL" | "SMS" | "IN_APP";
 
@@ -34,6 +36,10 @@ export interface NotificationMetadata {
   // V5.0 Phase 4: Real-time session tracking
   etaMinutes?: number;
   progressPercent?: number;
+  // V6.7.0: Direct Messaging
+  conversationId?: string;
+  senderName?: string;
+  messagePreview?: string;
   [key: string]: unknown;
 }
 

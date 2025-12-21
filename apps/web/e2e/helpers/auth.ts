@@ -8,7 +8,7 @@ export interface TestUser {
   email: string;
   password: string;
   displayName: string;
-  role: "CUSTOMER" | "STYLIST";
+  role: "CUSTOMER" | "STYLIST" | "PROPERTY_OWNER";
 }
 
 /**
@@ -27,6 +27,12 @@ export const TEST_USERS = {
     displayName: "Test Stylist",
     role: "STYLIST" as const,
   },
+  propertyOwner: {
+    email: "test.property.owner@vlossom.test",
+    password: "TestPassword123!",
+    displayName: "Test Property Owner",
+    role: "PROPERTY_OWNER" as const,
+  },
 };
 
 /**
@@ -41,13 +47,18 @@ export async function signUp(page: Page, user: TestUser): Promise<void> {
   await page.getByLabel("Display Name").fill(user.displayName);
 
   // Select role
-  await page.getByRole("radio", { name: user.role === "CUSTOMER" ? "Customer" : "Stylist" }).click();
+  const roleLabels: Record<string, string> = {
+    CUSTOMER: "Customer",
+    STYLIST: "Stylist",
+    PROPERTY_OWNER: "Property Owner",
+  };
+  await page.getByRole("radio", { name: roleLabels[user.role] }).click();
 
   // Submit
   await page.getByRole("button", { name: /sign up/i }).click();
 
   // Wait for redirect to dashboard or home
-  await expect(page).toHaveURL(/\/(dashboard|home|stylists)/);
+  await expect(page).toHaveURL(/\/(dashboard|home|stylists|property-owner)/);
 }
 
 /**
@@ -64,7 +75,7 @@ export async function login(page: Page, email: string, password: string): Promis
   await page.getByRole("button", { name: /log in|sign in/i }).click();
 
   // Wait for redirect
-  await expect(page).toHaveURL(/\/(dashboard|home|stylists)/);
+  await expect(page).toHaveURL(/\/(dashboard|home|stylists|property-owner)/);
 }
 
 /**

@@ -301,6 +301,23 @@ export default function HomePage() {
                 My Schedule
               </Button>
             </div>
+            {/* Quick Actions */}
+            <div className="flex gap-2 mt-3 pt-3 border-t border-border-default">
+              <button
+                onClick={() => router.push("/special-events")}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-accent-orange/10 hover:bg-accent-orange/20 transition-colors"
+              >
+                <Icon name="growing" size="sm" className="text-accent-orange" />
+                <span className="text-xs font-medium text-accent-orange">Special Events</span>
+              </button>
+              <button
+                onClick={() => router.push("/search")}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-colors"
+              >
+                <Icon name="search" size="sm" className="text-text-secondary" />
+                <span className="text-xs font-medium text-text-secondary">Find Stylists</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

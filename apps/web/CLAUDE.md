@@ -4,6 +4,18 @@
 
 ## Current Implementation Status
 
+**V7.0.0 Security Hardening & UX Improvements** (Dec 20, 2025)
+
+Complete security overhaul with cookie-based authentication, CSRF protection, and enhanced UX with balance warnings and improved validation.
+
+**V6.7.0 Direct Messaging** (Dec 20, 2025)
+
+In-app messaging between customers and stylists. Accessible via stylist profiles and booking pages (not in main navigation).
+
+**V6.6.0 Special Events Booking** (Dec 19, 2025)
+
+Complete Special Events booking flow for weddings, photoshoots, and group styling with Quick Actions integration.
+
 **V6.5.1 Property Owner UI Components** (Dec 19, 2025)
 
 Complete property owner frontend with image upload, amenity picker, and chair management components.
@@ -31,6 +43,68 @@ Sacred orange rule enforced across 12 files. Orange (#FF510D) now strictly reser
 **V6.0.0 Mobile App + Full Frontend Design Handover** (Dec 17, 2025)
 
 Complete design system with botanical icons (28 SVGs), animation system (unfold/breathe/settle), and typography/color audits. All design documentation updated.
+
+---
+
+### V7.0.0 Changes
+
+**Authentication Security**
+- `lib/auth-client.ts` - Cookie-based authentication with `credentials: 'include'`
+- No more localStorage token storage (more secure, immune to XSS)
+- CSRF token handling in all mutating requests
+- Automatic session management via httpOnly cookies
+
+**Property Owner Routes**
+- `app/property-owner/add-property/page.tsx` - New route for adding properties
+- Enhanced property management workflow
+
+**API Client Updates**
+- All API clients now use `credentials: 'include'` for cookie-based auth
+- CSRF token extraction from cookies and inclusion in POST/PUT/DELETE requests
+- Better error handling for 401 Unauthorized (automatic redirect to login)
+
+**Security Benefits:**
+- Cookies are httpOnly (JavaScript cannot access)
+- CSRF tokens prevent cross-site attacks
+- Refresh token rotation every 15 minutes
+- 7-day refresh token expiry (instead of 30-day access tokens)
+
+---
+
+### V6.7.0 Changes
+
+**Direct Messaging Feature**
+- `app/(main)/messages/page.tsx` - Conversations list with All/Unread tabs
+- `app/(main)/messages/[id]/page.tsx` - Conversation thread with message bubbles
+- `lib/messages-client.ts` - Typed API client for messaging endpoints
+- `hooks/use-messages.ts` - React Query hooks with optimistic updates
+
+**Entry Points (Not in Main Nav):**
+- Stylist profile page → "Message" button
+- Booking details page → "Message Stylist" button
+- Notifications → Links to conversation
+
+**API Endpoints:**
+```
+GET    /api/v1/conversations              - List conversations
+POST   /api/v1/conversations              - Start/get conversation
+GET    /api/v1/conversations/:id          - Get with messages
+POST   /api/v1/conversations/:id/messages - Send message
+POST   /api/v1/conversations/:id/read     - Mark as read
+```
+
+---
+
+### V6.6.0 Changes
+
+**Special Events Booking**
+- `app/(main)/special-events/page.tsx` - Landing page with categories grid
+- `app/(main)/special-events/request/page.tsx` - Multi-step request form
+- Quick Actions integration on home page greeting card
+- E2E test suite: `e2e/special-events.spec.ts`
+
+**Event Categories:**
+- Weddings, Photoshoots, Corporate Events, Festivals, Galas, Private Parties
 
 ---
 

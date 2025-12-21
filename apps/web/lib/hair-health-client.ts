@@ -202,3 +202,193 @@ export async function unlockLearningNode(nodeId: string): Promise<LearningNode> 
   );
   return response.data.node;
 }
+
+// ============================================================================
+// V6.9 Calendar Intelligence Types & Functions
+// ============================================================================
+
+export interface RitualRecommendation {
+  templateId: string;
+  name: string;
+  description: string;
+  ritualType: string;
+  loadLevel: "LIGHT" | "STANDARD" | "HEAVY";
+  durationMinutes: number;
+  frequency: string;
+  priority: "ESSENTIAL" | "RECOMMENDED" | "OPTIONAL";
+  reasoning: string;
+  steps: RitualStep[];
+}
+
+export interface RitualStep {
+  stepType: string;
+  name: string;
+  estimatedMinutes: number;
+  optional: boolean;
+  notes?: string;
+}
+
+export interface WeeklyRitualSlot {
+  dayOfWeek: number;
+  dayName: string;
+  rituals: {
+    templateId: string;
+    name: string;
+    loadLevel: string;
+    estimatedMinutes: number;
+    timeOfDay: "MORNING" | "AFTERNOON" | "EVENING";
+  }[];
+  totalLoad: number;
+  isRestDay: boolean;
+}
+
+export interface RitualPlanResponse {
+  recommendations: RitualRecommendation[];
+  weeklySchedule: WeeklyRitualSlot[];
+  loadSummary: {
+    totalWeeklyLoad: number;
+    maxCapacity: number;
+    balance: "UNDER" | "OPTIMAL" | "OVER";
+  };
+  reasoning: string[];
+}
+
+export interface UpcomingRitual {
+  id: string;
+  name: string;
+  scheduledStart: string;
+  scheduledEnd: string;
+  loadLevel: string;
+  eventType: string;
+  status: string;
+  isOverdue: boolean;
+  daysUntil: number;
+}
+
+export interface UpcomingRitualsResponse {
+  rituals: UpcomingRitual[];
+  totalUpcoming: number;
+  nextWashDay: string | null;
+  weeklyLoadStatus: {
+    current: number;
+    max: number;
+    percentage: number;
+  };
+}
+
+export interface CalendarSummaryResponse {
+  nextRitual: UpcomingRitual | null;
+  thisWeekLoad: number;
+  maxWeekLoad: number;
+  overdueCount: number;
+  completedThisWeek: number;
+  streakDays: number;
+}
+
+export interface CalendarGenerateResult {
+  success: boolean;
+  eventsCreated: number;
+  eventsSkipped: number;
+  conflicts: {
+    date: string;
+    proposedEvent: string;
+    existingEvent: string;
+    resolution: string;
+  }[];
+  nextScheduledDate: string | null;
+  weeklyLoadScore: number;
+}
+
+/**
+ * Get personalized ritual recommendations based on profile
+ */
+export async function getRitualPlan(): Promise<RitualPlanResponse> {
+  const response = await api.get<ApiResponse<RitualPlanResponse>>(
+    "/api/v1/hair-health/ritual-plan"
+  );
+  return response.data;
+}
+
+/**
+ * Get all available ritual templates
+ */
+export async function getRitualTemplates(): Promise<RitualRecommendation[]> {
+  const response = await api.get<ApiResponse<RitualRecommendation[]>>(
+    "/api/v1/hair-health/ritual-templates"
+  );
+  return response.data;
+}
+
+/**
+ * Generate calendar events from ritual plan
+ */
+export async function generateCalendar(options?: {
+  weeksToGenerate?: number;
+  replaceExisting?: boolean;
+}): Promise<CalendarGenerateResult> {
+  const response = await api.post<ApiResponse<CalendarGenerateResult>>(
+    "/api/v1/hair-health/calendar/generate",
+    options || {}
+  );
+  return response.data;
+}
+
+/**
+ * Get upcoming rituals for the next N days
+ */
+export async function getUpcomingRituals(
+  days: number = 14
+): Promise<UpcomingRitualsResponse> {
+  const response = await api.get<ApiResponse<UpcomingRitualsResponse>>(
+    `/api/v1/hair-health/calendar/upcoming?days=${days}`
+  );
+  return response.data;
+}
+
+/**
+ * Get calendar summary for widget display
+ */
+export async function getCalendarSummary(): Promise<CalendarSummaryResponse> {
+  const response = await api.get<ApiResponse<CalendarSummaryResponse>>(
+    "/api/v1/hair-health/calendar/summary"
+  );
+  return response.data;
+}
+
+/**
+ * Mark an event as completed
+ */
+export async function completeCalendarEvent(
+  eventId: string,
+  quality: "EXCELLENT" | "GOOD" | "ADEQUATE" | "POOR" = "GOOD"
+): Promise<void> {
+  await api.post(`/api/v1/hair-health/calendar/${eventId}/complete`, { quality });
+}
+
+/**
+ * Skip an event
+ */
+export async function skipCalendarEvent(
+  eventId: string,
+  reason?: string
+): Promise<{ suggestedMakeup: string | null }> {
+  const response = await api.post<ApiResponse<{ suggestedMakeup: string | null }>>(
+    `/api/v1/hair-health/calendar/${eventId}/skip`,
+    { reason }
+  );
+  return response.data;
+}
+
+/**
+ * Reschedule an event
+ */
+export async function rescheduleCalendarEvent(
+  eventId: string,
+  newDate: Date
+): Promise<{ success: boolean; warnings: string[] }> {
+  const response = await api.patch<ApiResponse<{ success: boolean; warnings: string[] }>>(
+    `/api/v1/hair-health/calendar/${eventId}/reschedule`,
+    { newDate: newDate.toISOString() }
+  );
+  return response.data;
+}

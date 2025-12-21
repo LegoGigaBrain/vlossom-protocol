@@ -1,12 +1,13 @@
 /**
- * Schedule Page - Hair-Aware Calendar (V5.1)
+ * Schedule Page - Hair-Aware Calendar (V6.10)
  *
  * Three calendar view modes:
  * - Rhythm Strip (default): Horizontal day carousel
  * - Month Garden: Full month view
  * - Day Flow: Single day timeline
  *
- * Wired to bookings API for real booking data.
+ * Wired to bookings API for booking data and hair-health API for rituals.
+ * V6.10: Replaced mock ritual data with real API.
  * Reference: docs/vlossom/15-frontend-ux-flows.md Section 15
  */
 
@@ -16,6 +17,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useCalendarEvents } from "@/hooks/use-calendar-bookings";
+import { useUpcomingRituals, useRitualTemplates } from "@/hooks/use-hair-health";
 import { AppHeader } from "@/components/layout/app-header";
 
 import { Button } from "@/components/ui/button";
@@ -31,44 +33,6 @@ import {
 import { Icon } from "@/components/icons";
 
 type CalendarView = "rhythm" | "month" | "day";
-
-// Mock ritual events - TODO: Wire to ritual API when available
-// Bookings come from real API, rituals are still mock data
-function getMockRitualEvents(): CalendarEvent[] {
-  return [
-    {
-      id: "ritual-1",
-      title: "Wash Day",
-      eventCategory: "HAIR_RITUAL",
-      eventType: "WASH_DAY_FULL",
-      scheduledStart: new Date().toISOString(),
-      scheduledEnd: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
-      loadLevel: "HIGH",
-      status: "DUE",
-      requiresRestBuffer: true,
-    },
-    {
-      id: "ritual-2",
-      title: "Deep Condition",
-      eventCategory: "HAIR_RITUAL",
-      eventType: "DEEP_CONDITION",
-      scheduledStart: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-      scheduledEnd: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString(),
-      loadLevel: "MEDIUM",
-      status: "PLANNED",
-    },
-    {
-      id: "ritual-3",
-      title: "Rest Day",
-      eventCategory: "REST_BUFFER",
-      eventType: "REST_DAY",
-      scheduledStart: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-      scheduledEnd: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 24 * 60 * 60 * 1000).toISOString(),
-      loadLevel: "LOW",
-      status: "PLANNED",
-    },
-  ];
-}
 
 // Mock ritual for demonstration
 const mockRitual: Ritual = {
@@ -152,6 +116,7 @@ export default function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showRitualSheet, setShowRitualSheet] = useState(false);
+  const [selectedRitual, setSelectedRitual] = useState<Ritual | null>(null);
 
   // Fetch bookings from API based on current view
   const {
@@ -160,10 +125,35 @@ export default function SchedulePage() {
     error: bookingsError,
   } = useCalendarEvents(selectedDate, view);
 
-  // Combine booking events with mock ritual events
-  // TODO: Replace mock rituals with real API when available
+  // Fetch upcoming rituals from hair-health API (30 days)
+  const {
+    data: upcomingRitualsData,
+    isLoading: ritualsLoading,
+    error: ritualsError,
+  } = useUpcomingRituals(30);
+
+  // Fetch ritual templates for detailed ritual info
+  const { data: ritualTemplates } = useRitualTemplates();
+
+  // Transform upcoming rituals to CalendarEvent format
+  const ritualEvents = useMemo<CalendarEvent[]>(() => {
+    if (!upcomingRitualsData?.rituals) return [];
+
+    return upcomingRitualsData.rituals.map((ritual) => ({
+      id: ritual.id,
+      title: ritual.name,
+      eventCategory: "HAIR_RITUAL" as const,
+      eventType: ritual.eventType,
+      scheduledStart: ritual.scheduledStart,
+      scheduledEnd: ritual.scheduledEnd,
+      loadLevel: ritual.loadLevel as "LOW" | "MEDIUM" | "HIGH",
+      status: ritual.isOverdue ? "OVERDUE" : ritual.status,
+      requiresRestBuffer: ritual.loadLevel === "HIGH",
+    }));
+  }, [upcomingRitualsData]);
+
+  // Combine booking events with ritual events
   const events = useMemo<CalendarEvent[]>(() => {
-    const ritualEvents = getMockRitualEvents();
     // Cast booking events to CalendarEvent type (they're compatible)
     const allEvents = [
       ...ritualEvents,
@@ -175,12 +165,22 @@ export default function SchedulePage() {
         new Date(a.scheduledStart).getTime() -
         new Date(b.scheduledStart).getTime()
     );
-  }, [bookingEvents]);
+  }, [bookingEvents, ritualEvents]);
 
   // Handle event click
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event);
     if (event.eventCategory === "HAIR_RITUAL") {
+      // Find matching ritual template for detailed steps
+      const template = ritualTemplates?.find(
+        (t) => t.ritualType === event.eventType
+      );
+      if (template) {
+        setSelectedRitual(template);
+      } else {
+        // Fallback to mock ritual if template not found
+        setSelectedRitual(mockRitual);
+      }
       setShowRitualSheet(true);
     } else if (event.eventCategory === "BOOKING_SERVICE") {
       // Navigate to booking details
@@ -188,7 +188,7 @@ export default function SchedulePage() {
     }
   };
 
-  const isLoading = authLoading || bookingsLoading;
+  const isLoading = authLoading || bookingsLoading || ritualsLoading;
 
   if (isLoading) {
     return (
@@ -230,10 +230,16 @@ export default function SchedulePage() {
 
       <div className="p-4 space-y-4">
         {/* Error State */}
-        {bookingsError && (
+        {(bookingsError || ritualsError) && (
           <div className="flex items-center gap-2 p-3 bg-status-error/10 text-status-error rounded-lg">
             <Icon name="calmError" size="md" />
-            <p className="text-sm">Unable to load bookings. Showing ritual events only.</p>
+            <p className="text-sm">
+              {bookingsError && ritualsError
+                ? "Unable to load calendar events."
+                : bookingsError
+                  ? "Unable to load bookings. Showing ritual events only."
+                  : "Unable to load rituals. Showing booking events only."}
+            </p>
           </div>
         )}
 
@@ -311,13 +317,14 @@ export default function SchedulePage() {
       </div>
 
       {/* Ritual Sheet */}
-      {selectedEvent?.eventCategory === "HAIR_RITUAL" && (
+      {selectedEvent?.eventCategory === "HAIR_RITUAL" && selectedRitual && (
         <RitualSheet
-          ritual={mockRitual}
+          ritual={selectedRitual}
           isOpen={showRitualSheet}
           onClose={() => {
             setShowRitualSheet(false);
             setSelectedEvent(null);
+            setSelectedRitual(null);
           }}
           onStartRitual={() => {
             // TODO: Start ritual tracking

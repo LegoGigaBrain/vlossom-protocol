@@ -64,7 +64,7 @@ VlossomHome.displayName = "VlossomHome";
  * Usage: DiscoveryMap, SearchHeader
  */
 export const VlossomSearch = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -91,7 +91,7 @@ VlossomSearch.displayName = "VlossomSearch";
  * Usage: CalendarView, RhythmStrip
  */
 export const VlossomCalendar = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -117,7 +117,7 @@ VlossomCalendar.displayName = "VlossomCalendar";
  * Usage: WalletOverview, WalletSummary
  */
 export const VlossomWallet = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -143,7 +143,7 @@ VlossomWallet.displayName = "VlossomWallet";
  * Usage: ProfileHeader
  */
 export const VlossomProfile = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -172,7 +172,7 @@ VlossomProfile.displayName = "VlossomProfile";
  * Usage: NotificationIndicator
  */
 export const VlossomNotifications = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -203,7 +203,7 @@ VlossomNotifications.displayName = "VlossomNotifications";
  * Usage: HealthStatusBadge
  */
 export const VlossomHealthy = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -258,7 +258,7 @@ VlossomGrowing.displayName = "VlossomGrowing";
  * Usage: CalendarDayCell, ScheduleOverlay
  */
 export const VlossomResting = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -285,7 +285,7 @@ VlossomResting.displayName = "VlossomResting";
  * Usage: CareAlertCard
  */
 export const VlossomNeedsCare = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -347,7 +347,7 @@ VlossomTransition.displayName = "VlossomTransition";
  * Usage: Add buttons, create actions
  */
 export const VlossomAdd = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -373,7 +373,7 @@ VlossomAdd.displayName = "VlossomAdd";
  * Usage: Close buttons, dismiss actions
  */
 export const VlossomClose = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -403,7 +403,7 @@ VlossomClose.displayName = "VlossomClose";
  * Usage: Favorite buttons, likes
  */
 export const VlossomFavorite = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"
@@ -428,7 +428,7 @@ VlossomFavorite.displayName = "VlossomFavorite";
  * Usage: Settings, preferences
  */
 export const VlossomSettings = React.forwardRef<SVGSVGElement, VlossomIconProps>(
-  ({ size = 24, className, ...props }, ref) => (
+  ({ size = 24, className, accent: _accent, ...props }, ref) => (
     <svg
       ref={ref}
       viewBox="0 0 24 24"

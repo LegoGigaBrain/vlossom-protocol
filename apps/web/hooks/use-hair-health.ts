@@ -1,6 +1,6 @@
 /**
- * Hair Health Hooks (V5.1)
- * React Query hooks for hair health profile and learning progress
+ * Hair Health Hooks (V6.9)
+ * React Query hooks for hair health profile, learning progress, and calendar intelligence
  */
 
 "use client";
@@ -14,11 +14,26 @@ import {
   deleteHairProfile,
   getLearningProgress,
   unlockLearningNode,
+  // V6.9 Calendar Intelligence
+  getRitualPlan,
+  getRitualTemplates,
+  generateCalendar,
+  getUpcomingRituals,
+  getCalendarSummary,
+  completeCalendarEvent,
+  skipCalendarEvent,
+  rescheduleCalendarEvent,
   type HairProfileCreateInput,
   type HairProfileUpdateInput,
   type HairProfileResponse,
   type LearningProgressResponse,
   type ProfileAnalysis,
+  // V6.9 Calendar Types
+  type RitualPlanResponse,
+  type RitualRecommendation,
+  type UpcomingRitualsResponse,
+  type CalendarSummaryResponse,
+  type CalendarGenerateResult,
 } from "@/lib/hair-health-client";
 
 // Re-export types for convenience
@@ -36,6 +51,15 @@ export type {
   RoutineType,
   HealthScore,
   LearningNode,
+  // V6.9 Calendar Types
+  RitualPlanResponse,
+  RitualRecommendation,
+  UpcomingRitualsResponse,
+  CalendarSummaryResponse,
+  CalendarGenerateResult,
+  UpcomingRitual,
+  WeeklyRitualSlot,
+  RitualStep,
 } from "@/lib/hair-health-client";
 
 // ============================================================================
@@ -47,6 +71,11 @@ export const hairHealthKeys = {
   profile: () => [...hairHealthKeys.all, "profile"] as const,
   profileWithAnalysis: () => [...hairHealthKeys.all, "profile-analysis"] as const,
   learning: () => [...hairHealthKeys.all, "learning"] as const,
+  // V6.9 Calendar Intelligence
+  ritualPlan: () => [...hairHealthKeys.all, "ritual-plan"] as const,
+  ritualTemplates: () => [...hairHealthKeys.all, "ritual-templates"] as const,
+  upcomingRituals: (days: number) => [...hairHealthKeys.all, "upcoming", days] as const,
+  calendarSummary: () => [...hairHealthKeys.all, "calendar-summary"] as const,
 };
 
 // ============================================================================
@@ -197,6 +226,174 @@ export function useHealthGrade() {
   return {
     grade: data?.analysis?.healthScore?.grade ?? null,
     score: data?.analysis?.healthScore?.overall ?? null,
+    isLoading,
+  };
+}
+
+// ============================================================================
+// V6.9 Calendar Intelligence Hooks
+// ============================================================================
+
+/**
+ * Hook to fetch personalized ritual plan based on profile
+ */
+export function useRitualPlan() {
+  const { data: profile } = useHairProfile();
+
+  return useQuery({
+    queryKey: hairHealthKeys.ritualPlan(),
+    queryFn: getRitualPlan,
+    enabled: !!profile, // Only fetch if user has a profile
+    staleTime: 10 * 60 * 1000, // 10 minutes - plan doesn't change often
+  });
+}
+
+/**
+ * Hook to fetch all available ritual templates
+ */
+export function useRitualTemplates() {
+  return useQuery({
+    queryKey: hairHealthKeys.ritualTemplates(),
+    queryFn: getRitualTemplates,
+    staleTime: 30 * 60 * 1000, // 30 minutes - templates are static
+  });
+}
+
+/**
+ * Hook to fetch upcoming rituals for the next N days
+ */
+export function useUpcomingRituals(days: number = 14) {
+  return useQuery({
+    queryKey: hairHealthKeys.upcomingRituals(days),
+    queryFn: () => getUpcomingRituals(days),
+    staleTime: 2 * 60 * 1000, // 2 minutes - more dynamic
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Hook to fetch calendar summary for widget display
+ */
+export function useCalendarSummary() {
+  const { data: profile } = useHairProfile();
+
+  return useQuery({
+    queryKey: hairHealthKeys.calendarSummary(),
+    queryFn: getCalendarSummary,
+    enabled: !!profile,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnWindowFocus: true,
+  });
+}
+
+/**
+ * Hook to generate calendar events from ritual plan
+ */
+export function useGenerateCalendar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (options?: { weeksToGenerate?: number; replaceExisting?: boolean }) =>
+      generateCalendar(options),
+    onSuccess: () => {
+      // Invalidate all calendar-related queries
+      queryClient.invalidateQueries({ queryKey: hairHealthKeys.upcomingRituals(7) });
+      queryClient.invalidateQueries({ queryKey: hairHealthKeys.upcomingRituals(14) });
+      queryClient.invalidateQueries({ queryKey: hairHealthKeys.upcomingRituals(30) });
+      queryClient.invalidateQueries({ queryKey: hairHealthKeys.calendarSummary() });
+    },
+  });
+}
+
+/**
+ * Hook to mark a calendar event as completed
+ */
+export function useCompleteCalendarEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      eventId,
+      quality,
+    }: {
+      eventId: string;
+      quality?: "EXCELLENT" | "GOOD" | "ADEQUATE" | "POOR";
+    }) => completeCalendarEvent(eventId, quality),
+    onSuccess: () => {
+      // Invalidate upcoming and summary to reflect completion
+      queryClient.invalidateQueries({ queryKey: ["hair-health", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: hairHealthKeys.calendarSummary() });
+    },
+  });
+}
+
+/**
+ * Hook to skip a calendar event
+ */
+export function useSkipCalendarEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, reason }: { eventId: string; reason?: string }) =>
+      skipCalendarEvent(eventId, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hair-health", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: hairHealthKeys.calendarSummary() });
+    },
+  });
+}
+
+/**
+ * Hook to reschedule a calendar event
+ */
+export function useRescheduleCalendarEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ eventId, newDate }: { eventId: string; newDate: Date }) =>
+      rescheduleCalendarEvent(eventId, newDate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hair-health", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: hairHealthKeys.calendarSummary() });
+    },
+  });
+}
+
+/**
+ * Hook to check if user has calendar events generated
+ */
+export function useHasCalendarEvents() {
+  const { data, isLoading } = useUpcomingRituals(30);
+  return {
+    hasEvents: (data?.totalUpcoming ?? 0) > 0,
+    eventCount: data?.totalUpcoming ?? 0,
+    isLoading,
+  };
+}
+
+/**
+ * Hook to get next wash day info
+ */
+export function useNextWashDay() {
+  const { data, isLoading } = useCalendarSummary();
+  return {
+    nextRitual: data?.nextRitual ?? null,
+    overdueCount: data?.overdueCount ?? 0,
+    streakDays: data?.streakDays ?? 0,
+    isLoading,
+  };
+}
+
+/**
+ * Hook to get weekly load status
+ */
+export function useWeeklyLoadStatus() {
+  const { data, isLoading } = useCalendarSummary();
+  return {
+    currentLoad: data?.thisWeekLoad ?? 0,
+    maxLoad: data?.maxWeekLoad ?? 100,
+    completedThisWeek: data?.completedThisWeek ?? 0,
+    loadPercentage: data ? Math.round((data.thisWeekLoad / data.maxWeekLoad) * 100) : 0,
     isLoading,
   };
 }

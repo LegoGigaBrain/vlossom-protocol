@@ -1,38 +1,132 @@
 /**
- * Vlossom Mobile Root Layout (V6.0)
+ * Vlossom Mobile Root Layout (V6.8.0)
  *
  * Provides:
  * - Theme provider
  * - Font loading
- * - Navigation stack
+ * - Auth state initialization
+ * - Navigation stack with auth routing
  * - Splash screen management
+ * - Deep link validation (V7.0.0)
  */
 
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../src/styles/theme';
 import { colors } from '../src/styles/tokens';
+import { useAuthStore } from '../src/stores/auth';
+import { validateDeepLink } from '../src/utils/deep-link-validator';
+
+// Google Fonts - bundled at build time
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
+import {
+  PlayfairDisplay_400Regular,
+  PlayfairDisplay_700Bold,
+} from '@expo-google-fonts/playfair-display';
+import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+/**
+ * Auth Guard Component
+ * Handles routing based on authentication state
+ * V7.0.0 (M-11): Added deep link validation
+ */
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const segments = useSegments();
+  const { isAuthenticated, isInitialized, initialize } = useAuthStore();
+
+  // Initialize auth state on mount
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  // V7.0.0 (M-11): Deep link validation handler
+  useEffect(() => {
+    const handleDeepLink = (event: { url: string }) => {
+      const result = validateDeepLink(event.url);
+
+      if (!result.isValid) {
+        console.warn('[DeepLink] Blocked invalid deep link:', event.url, result.error);
+        // Don't navigate for invalid links
+        return;
+      }
+
+      // Link is valid, Expo Router will handle navigation
+      console.log('[DeepLink] Validated:', result.path, result.params);
+    };
+
+    // Subscribe to deep link events
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    // Check initial URL (app opened via deep link)
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        const result = validateDeepLink(url);
+        if (!result.isValid) {
+          console.warn('[DeepLink] Initial URL blocked:', url, result.error);
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  // Handle auth routing
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // Not authenticated and trying to access protected route
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Authenticated but on auth screen, redirect to main app
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, isInitialized, segments, router]);
+
+  // Show loading while initializing
+  if (!isInitialized) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.brand.rose} />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
+
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     // UI Font
-    'Inter': require('../assets/fonts/Inter-Regular.ttf'),
-    'Inter-Medium': require('../assets/fonts/Inter-Medium.ttf'),
-    'Inter-SemiBold': require('../assets/fonts/Inter-SemiBold.ttf'),
-    'Inter-Bold': require('../assets/fonts/Inter-Bold.ttf'),
+    'Inter': Inter_400Regular,
+    'Inter-Medium': Inter_500Medium,
+    'Inter-SemiBold': Inter_600SemiBold,
+    'Inter-Bold': Inter_700Bold,
     // Editorial Font
-    'PlayfairDisplay': require('../assets/fonts/PlayfairDisplay-Regular.ttf'),
-    'PlayfairDisplay-Bold': require('../assets/fonts/PlayfairDisplay-Bold.ttf'),
+    'PlayfairDisplay': PlayfairDisplay_400Regular,
+    'PlayfairDisplay-Bold': PlayfairDisplay_700Bold,
     // Mono Font (for wallet addresses, etc.)
-    'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'SpaceMono': SpaceMono_400Regular,
   });
 
   useEffect(() => {
@@ -50,25 +144,44 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <StatusBar style="auto" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background.primary },
-              animation: 'slide_from_right',
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="booking/[id]"
-              options={{
-                presentation: 'modal',
-                animation: 'slide_from_bottom',
+          <AuthGuard>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.background.primary },
+                animation: 'slide_from_right',
               }}
-            />
-          </Stack>
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="booking/[id]"
+                options={{
+                  presentation: 'modal',
+                  animation: 'slide_from_bottom',
+                }}
+              />
+              <Stack.Screen
+                name="wallet"
+                options={{
+                  headerShown: false,
+                  presentation: 'modal',
+                  animation: 'slide_from_bottom',
+                }}
+              />
+            </Stack>
+          </AuthGuard>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.background.primary,
+  },
+});

@@ -1,26 +1,111 @@
 # Product Roadmap
 
 ## 0. Current Stage
-**V6.1.0 Orange Color Governance Enforcement ✅ COMPLETE**
+**V7.0.0 Security, Admin Panel & UX Hardening ✅ COMPLETE**
 
-✅ **V6.1.0 Orange Governance (Dec 17, 2025)** - Sacred Orange Rule Enforced:
-- **Color Governance Enforcement** - Orange (#FF510D) strictly reserved for growth/celebration
-- **12 Files Corrected** - Error states use red, warnings use amber
-- **Code Documentation** - Sacred orange comments in tailwind.config.js
-- **Status Token Update** - status.warning changed from orange to amber (#F59E0B)
+✅ **V7.0.0 Security & Admin Panel (Dec 20, 2025)** - Production Security & Full Admin:
+- **Cookie Auth Migration** - JWT moved from localStorage to httpOnly cookies (XSS protection)
+- **Refresh Token Rotation** - 15-min access tokens with secure refresh flow
+- **CSRF Protection** - Double-submit cookie pattern for all mutating requests
+- **Rate Limit Fail-Closed** - Returns 503 when Redis unavailable in production
+- **Complete Admin Panel** - 8 pages (Dashboard, Users, Bookings, Sessions, Disputes, Logs, DeFi, Paymaster)
+- **Security Tests** - Unit tests for auth, CSRF, rate-limiter; E2E tests for auth flow
 
 **What's Included:**
-- Error state corrections (9 files) - All use `status-error` (red) instead of orange
-- Warning state corrections (3 files) - All use `status-warning` (amber) instead of orange
-- Tailwind config updated with governance comments
-- 100% design system compliance with Doc 16 color rules
+- 88 files changed (+14,527 / -324 lines)
+- Admin panel with cookie auth, React Query, 8 functional pages
+- Security middleware: CSRF, fail-closed rate limiting
+- API tests: auth.test.ts, csrf.test.ts, rate-limiter.test.ts
+- E2E tests: auth-v7.spec.ts, property-creation.spec.ts
+- Mobile input validation: EIP-55 addresses, reset tokens, deep links
 
-**Color Separation Enforced:**
-- Red (#D0021B) - Errors, destructive actions
-- Amber (#F59E0B) - Warnings, caution, validation
-- Orange (#FF510D) - Growth, celebration, achievement ONLY
+**Next Phase:** V8.0.0 Production Launch
 
-**Next Phase:** Mobile App MVP (V6.2)
+---
+
+✅ **V6.10.0 Mobile Parity (Dec 20, 2025)** - Complete Mobile Feature Coverage:
+- **Booking Flow** - Real API integration with 4-step booking wizard
+- **Wallet QR Features** - QR scanner + QR generation
+- **Auth Screens** - Forgot/reset password with deep linking
+- **Property Owner Dashboard** - 4 screens fully wired to API
+
+---
+
+✅ **V6.9.0 Calendar Intelligence (Dec 20, 2025)** - Smart Hair Ritual Scheduling:
+- **Ritual Generator** - Profile-based ritual recommendations with 8 archetypes
+- **Calendar Scheduler** - Automatic event generation with load balancing
+- **Smart Calendar Widget** - Web component with rituals, completion, skipping
+- **Mobile Integration** - Full API and Zustand store for calendar intelligence
+
+**What's Included:**
+- Ritual plan generation based on hair profile attributes
+- Weekly schedule builder with load capacity (LIGHT/STANDARD/HEAVY)
+- Event lifecycle management (PLANNED → COMPLETED/SKIPPED/RESCHEDULED)
+- Calendar widget with streak tracking and overdue detection
+- 10 React Query hooks for web, 8 API functions for mobile
+- Zustand store with calendar state and selectors
+
+**Next Phase:** V6.10.0 Mobile Parity
+
+---
+
+✅ **V6.8.0 Mobile Foundation (Dec 20, 2025)** - Mobile App Fully Functional:
+- **Sprint 1: Auth & Profile** - Login/signup with SecureStore, protected routes
+- **Sprint 2: Wallet Integration** - Real balance, Fund/Withdraw via Kotani Pay, P2P Send/Receive
+- **Sprint 3: Uber-like Home Tab** - Full-screen map with stylist pins, bottom sheet booking
+- **Sprint 4: Stylist Discovery** - Search with filters, stylist detail, 4-step booking flow
+- **Sprint 5: Notifications + Hair Health** - Real notifications, 6-step hair profile wizard
+
+**What's Included:**
+- 25 new files (API clients, stores, screens)
+- All 5 mobile tabs functional with real API integration
+- Complete feature parity with web application
+- Auth routing with SecureStore token persistence
+- Zustand state management across all features
+
+**Mobile Parity Achieved:**
+| Tab | Before V6.8 | After V6.8 |
+|-----|-------------|------------|
+| Home | Map placeholder | Full-screen map with booking sheet |
+| Search | Static chips | Real API, filters, infinite scroll |
+| Wallet | $0.00 hardcoded | Real balance, Fund/Withdraw, P2P |
+| Notifications | Empty state | Real notifications, filtering |
+| Profile | Mock data | Real user, Hair Health card |
+
+**Next Phase:** V6.9.0 Calendar Intelligence & Hair Discovery
+
+---
+
+✅ **V6.7.0/V6.7.1 Direct Messaging (Dec 20, 2025)** - In-App Communication:
+- **Conversation System** - Text messaging with per-participant unread counts
+- **Entry Points** - Message buttons on stylist profiles and booking pages
+- **Web + Mobile** - Full messaging on both platforms with API integration
+
+---
+
+✅ **V6.6.0 Special Events Booking (Dec 19, 2025)** - Event Services:
+- **Mobile Special Events** - Landing page with categories, multi-step request form
+- **Web Special Events** - Matching flow with Quick Actions integration
+- **E2E Tests** - Comprehensive Playwright test suite
+
+---
+
+✅ **V6.5.0/V6.5.1 Property Owner & Icons (Dec 19, 2025)**:
+- **Property Owner UI** - Image upload, amenity picker, chair form dialog
+- **Phosphor Icon Migration** - Complete Lucide removal (50+ files)
+
+---
+
+✅ **V6.0.0 Mobile App + Design Handover (Dec 18, 2025)**:
+- **React Native + Expo** - 5-tab navigation foundation
+- **Botanical Icons** - 28 custom SVGs in 5 categories
+- **Animation System** - Motion utilities (unfold, breathe, settle)
+
+---
+
+✅ **V6.1.0 Orange Governance (Dec 17, 2025)** - Sacred Orange Rule Enforced:
+- Orange (#FF510D) strictly reserved for growth/celebration
+- Error states use red, warnings use amber
 
 ---
 
@@ -346,7 +431,15 @@
 | **V5.3.0** | Mock Data | - | Feature flag for demo mode, profile stats hooks, auto-fallback | ✅ Complete |
 | **V6.0.0** | Mobile + Design | - | React Native app, botanical icons (28 SVGs), animation system | ✅ Complete |
 | **V6.1.0** | Orange Governance | - | Sacred orange enforcement, 12 files corrected, amber for warnings | ✅ Complete |
-| **V6.2** | Mobile MVP | - | Mobile app API integration, wallet, biometrics | 🔜 Planned |
+| **V6.5.0** | Phosphor Icons | - | Complete Lucide to Phosphor migration (50+ files) | ✅ Complete |
+| **V6.5.1** | Property Owner UI | - | Image upload, amenity picker, chair form dialog | ✅ Complete |
+| **V6.6.0** | Special Events | - | Special events booking flow (mobile + web) | ✅ Complete |
+| **V6.7.0** | Direct Messaging | - | In-app messaging between customers and stylists | ✅ Complete |
+| **V6.7.1** | Mobile Messaging | - | Mobile messaging API integration with Zustand | ✅ Complete |
+| **V6.8.0** | Mobile Foundation | 5 sprints | Full mobile parity - all tabs functional with real APIs | ✅ Complete |
+| **V6.9.0** | Calendar Intelligence | - | Smart calendar widget, ritual generation, load balancing | ✅ Complete |
+| **V6.10.0** | Mobile Parity | - | Booking flow, wallet QR, auth screens, property owner dashboard | ✅ Complete |
+| **V7.0.0** | Production Ready | - | Admin support, service progress, security audit | 🔜 Planned |
 
 ---
 

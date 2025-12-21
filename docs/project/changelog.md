@@ -7,6 +7,677 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.0.0] - 2025-12-20
+
+### V7.0.0: Security, Admin Panel & UX Hardening
+
+**Goal**: Address all security findings from V6.10.0 comprehensive review, complete admin panel, and improve UX.
+
+---
+
+#### ✅ Phase 1: Critical Auth Security (P0)
+
+**H-1: JWT httpOnly Cookie Migration**
+- Migrated JWT tokens from localStorage to httpOnly cookies (XSS protection)
+- Added `cookie-config.ts` with secure cookie options
+- Added CSRF middleware with double-submit token pattern
+- Updated auth middleware to read from cookies with Bearer header fallback
+- Web auth-client now uses `credentials: 'include'`
+
+**H-2: Refresh Token Rotation**
+- Added `/auth/refresh` endpoint with token rotation
+- Reduced access token expiry to 15 minutes
+- Refresh tokens valid for 7 days
+- Auto-refresh on 401 TOKEN_EXPIRED responses
+
+**H-3: SIWE Nonce Race Condition Fix**
+- Fixed `/auth/link-wallet` to use atomic Prisma transaction
+- Prevents nonce reuse attacks with concurrent requests
+
+**H-4: Rate Limit Fail-Closed**
+- Added `REQUIRE_REDIS` environment variable
+- Returns 503 Service Unavailable when Redis required but not available
+- Prevents rate limit bypass in production
+
+---
+
+#### ✅ Phase 2: Input Validation & Mobile Security (P1)
+
+**H-5: QR Address Validation with EIP-55**
+- Created `address-validation.ts` utility for mobile
+- Validates Ethereum addresses with EIP-55 checksum
+- Handles EIP-681 payment URIs
+- Updated QRScanner to use proper validation
+
+**H-6: Reset Token Format Validation**
+- Added `/auth/reset-password/validate` endpoint
+- Client-side validation: 64 hex characters
+- Server-side validation before showing form
+- Shows loading → valid/invalid/expired states
+
+**M-2: Password Reset Rate Limiting**
+- Updated forgot-password route to use `passwordReset` rate limiter
+- 3 requests/hour with 60-minute block after limit
+
+**M-4: Input Length Limits (Mobile)**
+- Created `input-validation.ts` utility with limits
+- Email: 254 chars, Password: 128 chars, Display Name: 100 chars
+- Applied to login, signup, forgot-password, reset-password screens
+
+**M-11: Deep Link Scheme Validation**
+- Created `deep-link-validator.ts` utility
+- Whitelist approach for allowed paths
+- Parameter sanitization
+- Integrated in root layout
+
+---
+
+#### ✅ Phase 3: UX Improvements (P2)
+
+**UX-1: Balance Check at Step 1**
+- Added `BalanceWarningBanner` component to booking flow
+- Shows warning at service selection if balance is low
+- Direct "Fund Wallet" action button
+
+**UX-2: Mobile Empty State Component**
+- Created `EmptyState` component with 14 presets
+- Created 9 SVG illustrations (calendar, search, wallet, scissors, inbox, reviews, message, property, completed)
+- Matches web empty state patterns for consistency
+
+**UX-3: Add Property Route**
+- Created `/property-owner/add-property` page
+- Multi-step form: Details → Location → Settings
+- Category selection, approval mode, coordinate entry
+
+**UX-4: Mobile Skeleton Components**
+- Created `Skeleton` base component with shimmer animation
+- Created specialized skeletons: SkeletonText, SkeletonAvatar, SkeletonCard, SkeletonListItem, SkeletonButton
+- Created presets: StylistCardSkeleton, BookingCardSkeleton, TransactionSkeleton
+
+---
+
+#### ✅ Phase 4: Security & E2E Tests
+
+**API Security Tests (Unit/Integration)**
+- `services/api/src/middleware/__tests__/auth.test.ts` - Cookie auth, Bearer fallback, token expiry
+- `services/api/src/middleware/__tests__/csrf.test.ts` - Token generation, validation, cross-origin blocking
+- `services/api/src/middleware/__tests__/rate-limiter.test.ts` - Fail-closed mode, REQUIRE_REDIS
+- `services/api/src/routes/__tests__/auth.integration.test.ts` - Login/refresh/logout cycle
+
+**E2E Tests (Playwright)**
+- `apps/web/e2e/auth-v7.spec.ts` - Cookie auth flow, auto-refresh, CSRF validation
+- `apps/web/e2e/property-creation.spec.ts` - Multi-step property creation
+
+---
+
+#### ✅ Phase 6: Complete Admin Panel
+
+**Core Infrastructure**
+- `apps/admin/src/lib/admin-client.ts` - Base API client with httpOnly cookie auth + CSRF
+- `apps/admin/src/hooks/use-admin-auth.ts` - Admin auth hook with role verification
+- `apps/admin/src/providers/query-provider.tsx` - React Query setup
+- `apps/admin/src/providers/auth-provider.tsx` - Admin auth context
+- `apps/admin/src/app/login/page.tsx` - Admin login page
+- `apps/admin/src/components/layout/admin-layout.tsx` - Main layout with sidebar
+- `apps/admin/src/components/layout/admin-sidebar.tsx` - Navigation (8 items)
+- `apps/admin/src/components/layout/admin-header.tsx` - Top header with user menu
+
+**Reusable UI Components**
+- `apps/admin/src/components/ui/data-table.tsx` - Generic sortable table
+- `apps/admin/src/components/ui/pagination.tsx` - Pagination controls
+- `apps/admin/src/components/ui/filter-bar.tsx` - Search + dropdown filters
+- `apps/admin/src/components/ui/stat-card.tsx` - Metric cards with icons
+- `apps/admin/src/components/ui/status-badge.tsx` - Status indicators
+- `apps/admin/src/components/ui/confirm-dialog.tsx` - Confirmation modal
+
+**Admin Pages (8 total)**
+| Page | Route | Features |
+|------|-------|----------|
+| Dashboard | `/` | Key metrics, quick actions overview |
+| Users | `/users` | List, search, freeze/unfreeze/verify, detail panel |
+| Bookings | `/bookings` | List, status filters, status change, detail panel |
+| Sessions | `/sessions` | Real-time IN_PROGRESS bookings with progress tracking |
+| Disputes | `/disputes`, `/disputes/[id]` | Full resolution workflow with 8 resolution types |
+| Audit Logs | `/logs` | Searchable logs with action/target filters |
+| DeFi Config | `/defi` | APY params, fee split, emergency controls |
+| Paymaster | `/paymaster` | Balance monitoring, gas tracking, alerts |
+
+**API Client Files**
+- `apps/admin/src/lib/users-client.ts` - Users CRUD operations
+- `apps/admin/src/lib/bookings-client.ts` - Bookings management
+- `apps/admin/src/lib/disputes-client.ts` - Dispute workflow (8 resolution types)
+- `apps/admin/src/lib/sessions-client.ts` - Active session monitoring
+- `apps/admin/src/lib/logs-client.ts` - Audit log queries
+- `apps/admin/src/lib/defi-client.ts` - DeFi configuration
+- `apps/admin/src/lib/paymaster-client.ts` - Paymaster monitoring
+
+**React Query Hooks**
+- `apps/admin/src/hooks/use-users.ts` - User management hooks
+- `apps/admin/src/hooks/use-bookings.ts` - Booking management hooks
+- `apps/admin/src/hooks/use-disputes.ts` - Dispute workflow hooks
+- `apps/admin/src/hooks/use-active-sessions.ts` - Real-time session hooks (30s polling)
+- `apps/admin/src/hooks/use-logs.ts` - Audit log hooks
+- `apps/admin/src/hooks/use-defi.ts` - DeFi config hooks
+- `apps/admin/src/hooks/use-paymaster.ts` - Paymaster monitoring hooks
+
+---
+
+#### Files Created (Phase 1-3)
+
+- `services/api/src/lib/cookie-config.ts`
+- `services/api/src/middleware/csrf.ts`
+- `apps/mobile/src/utils/address-validation.ts`
+- `apps/mobile/src/utils/input-validation.ts`
+- `apps/mobile/src/utils/deep-link-validator.ts`
+- `apps/mobile/src/components/ui/EmptyState.tsx`
+- `apps/mobile/src/components/ui/Skeleton.tsx`
+- `apps/mobile/src/components/ui/illustrations.tsx`
+- `apps/mobile/src/components/ui/index.ts`
+- `apps/web/app/property-owner/add-property/page.tsx`
+
+#### Files Modified (Phase 1-3)
+
+- `services/api/src/middleware/auth.ts` - Cookie reading, token pair generation
+- `services/api/src/middleware/rate-limiter.ts` - Fail-closed mode
+- `services/api/src/routes/auth.ts` - Cookie auth, refresh, SIWE fix, validation
+- `services/api/src/index.ts` - Cookie-parser middleware
+- `apps/web/lib/auth-client.ts` - CSRF, credentials, no localStorage
+- `apps/mobile/app/(auth)/login.tsx` - Input limits
+- `apps/mobile/app/(auth)/signup.tsx` - Input limits
+- `apps/mobile/app/(auth)/forgot-password.tsx` - Input limits
+- `apps/mobile/app/(auth)/reset-password.tsx` - Token validation, input limits
+- `apps/mobile/app/_layout.tsx` - Deep link validation
+- `apps/mobile/src/components/wallet/QRScanner.tsx` - Address validation
+- `apps/mobile/app/stylists/[id]/book.tsx` - Balance warning banner
+
+---
+
+## [6.9.0] - 2025-12-20
+
+### V6.9.0: Calendar Intelligence & Hair Discovery - COMPLETE ✅
+
+**Goal**: Implement personalized ritual plans based on hair profiles with smart calendar scheduling and load balancing.
+
+---
+
+#### ✅ Backend: Ritual Generator & Calendar Scheduler
+
+**New File:** `services/api/src/lib/hair-health/ritual-generator.ts` (~450 lines)
+
+Ritual plan generation with archetype matching:
+- `generateRitualPlan()` - Creates personalized ritual recommendations
+- 8 hair archetypes with tailored ritual templates
+- Weekly schedule builder with load balancing
+- Frequency calculations based on profile attributes
+- Priority system: ESSENTIAL, RECOMMENDED, OPTIONAL
+
+**New File:** `services/api/src/lib/hair-health/calendar-scheduler.ts` (~350 lines)
+
+Calendar event scheduling:
+- `generateCalendarEvents()` - Creates HairCalendarEvent records
+- Load factor scoring (LIGHT=15, STANDARD=35, HEAVY=60)
+- Weekly load capacity calculations
+- Conflict detection and resolution
+- Event lifecycle: PLANNED → COMPLETED/SKIPPED/RESCHEDULED
+
+**Ritual Templates:**
+- DEEP_CONDITION - Weekly deep conditioning treatment
+- WASH_DAY - Complete wash day ritual
+- PROTECTIVE_STYLE_INSTALL - Protective styling setup
+- SCALP_TREATMENT - Scalp care routine
+- PROTEIN_TREATMENT - Protein-moisture balance
+- CLARIFYING_WASH - Product buildup removal
+- TRIM_MAINTENANCE - Regular trim schedule
+- DETANGLE_SESSION - Gentle detangling routine
+
+---
+
+#### ✅ Web Frontend: Calendar Widget
+
+**New File:** `apps/web/components/hair-health/calendar-widget.tsx` (~400 lines)
+
+Smart calendar widget with:
+- Calendar summary (next ritual, streak, overdue count)
+- Weekly load progress bar with capacity
+- Upcoming rituals list (next 14 days)
+- GenerateCalendarDialog for event creation
+- CompleteRitualDialog with quality ratings
+- Skip functionality with optional reason
+- Empty state for new users
+
+**New File:** `apps/web/components/hair-health/index.ts`
+
+Barrel export for hair health components.
+
+**Modified File:** `apps/web/app/(main)/profile/hair-health/page.tsx`
+
+- Integrated CalendarWidget after Hair Snapshot section
+- Updated version comment to V6.9
+
+---
+
+#### ✅ React Query Hooks (Web)
+
+**Modified File:** `apps/web/hooks/use-hair-health.ts` (~200 lines added)
+
+New V6.9 Calendar Intelligence hooks:
+- `useRitualPlan()` - Fetch personalized ritual plan
+- `useUpcomingRituals(days)` - Get upcoming rituals
+- `useCalendarSummary()` - Widget summary data
+- `useGenerateCalendar()` - Generate events mutation
+- `useCompleteCalendarEvent()` - Mark event completed
+- `useSkipCalendarEvent()` - Skip event mutation
+- `useRescheduleCalendarEvent()` - Reschedule mutation
+- `useHasCalendarEvents()` - Check if events exist
+- `useNextWashDay()` - Get next wash day date
+- `useWeeklyLoadStatus()` - Weekly load percentage
+
+Query key additions:
+- `ritualPlan`, `ritualTemplates`, `upcomingRituals`, `calendarSummary`
+
+---
+
+#### ✅ Mobile API Integration
+
+**Modified File:** `apps/mobile/src/api/hair-health.ts` (~200 lines added)
+
+V6.9 Calendar Intelligence types:
+- `RitualStep`, `RitualRecommendation`, `WeeklyRitualSlot`
+- `UpcomingRitual`, `CalendarSummaryResponse`, `CalendarGenerateResult`
+
+V6.9 API functions:
+- `getRitualPlan()` - Fetch personalized ritual plan
+- `getRitualTemplates()` - Get all available templates
+- `generateCalendar(options)` - Generate calendar events
+- `getUpcomingRituals(days)` - Get upcoming rituals
+- `getCalendarSummary()` - Widget summary data
+- `completeCalendarEvent(eventId, quality)` - Mark completed
+- `skipCalendarEvent(eventId, reason)` - Skip with reason
+- `rescheduleCalendarEvent(eventId, newDate)` - Reschedule
+
+Utility function:
+- `formatRitualDate()` - Format dates for display (Today, Tomorrow, weekday)
+
+---
+
+#### ✅ Mobile Zustand Store
+
+**Modified File:** `apps/mobile/src/stores/hair-health.ts` (~150 lines added)
+
+V6.9 Calendar state:
+- `calendarSummary` - Widget summary state
+- `upcomingRituals` - Upcoming rituals array
+- `calendarLoading` - Loading state
+- `calendarError` - Error state
+- `hasCalendarEvents` - Boolean for empty state
+
+V6.9 Calendar actions:
+- `fetchCalendarSummary()` - Fetch summary
+- `fetchUpcomingRituals(days)` - Fetch rituals
+- `generateCalendarEvents(weeks)` - Generate events
+- `completeRitual(eventId, quality)` - Complete event
+- `skipRitual(eventId, reason)` - Skip event
+
+V6.9 Calendar selectors:
+- `selectCalendarSummary`, `selectUpcomingRituals`
+- `selectCalendarLoading`, `selectHasCalendarEvents`
+- `selectNextRitual`, `selectOverdueCount`, `selectStreakDays`
+
+---
+
+#### Files Summary (V6.9.0)
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| Backend | 2 | Ritual generator, calendar scheduler |
+| Web Components | 2 | Calendar widget, index barrel |
+| Web Hooks | 1 | V6.9 calendar hooks |
+| Web Pages | 1 | Hair health page integration |
+| Mobile API | 1 | Calendar API functions |
+| Mobile Store | 1 | Calendar state management |
+
+**Total:** ~1,200 lines of new code
+
+---
+
+## [6.8.0] - 2025-12-20
+
+### V6.8.0: Mobile Foundation & Full Parity - COMPLETE ✅
+
+**Goal**: Complete mobile app functionality with real API integration across all 5 tabs, achieving feature parity with web.
+
+---
+
+#### ✅ Sprint 1: Auth & Profile Foundation
+
+**New Files:**
+- `apps/mobile/src/api/auth.ts` - Auth API client (login, signup, logout, refresh)
+- `apps/mobile/src/stores/auth.ts` - Zustand auth store with SecureStore
+- `apps/mobile/app/(auth)/_layout.tsx` - Auth stack navigator
+- `apps/mobile/app/(auth)/login.tsx` - Login screen with validation
+- `apps/mobile/app/(auth)/signup.tsx` - Signup screen with terms
+
+---
+
+#### ✅ Sprint 2: Wallet Integration
+
+**New Files:**
+- `apps/mobile/src/api/wallet.ts` - Wallet API client
+- `apps/mobile/src/stores/wallet.ts` - Zustand wallet store
+- `apps/mobile/app/wallet/_layout.tsx` - Wallet stack navigator
+- `apps/mobile/app/wallet/fund.tsx` - Fund via Kotani Pay onramp
+- `apps/mobile/app/wallet/withdraw.tsx` - Withdraw via Kotani Pay offramp
+- `apps/mobile/app/wallet/send.tsx` - P2P send with address lookup
+- `apps/mobile/app/wallet/receive.tsx` - QR code display
+
+**Features:**
+- Real balance display (fiat-first ZAR)
+- Transaction history with pull-to-refresh
+- Biometric auth for transactions
+
+---
+
+#### ✅ Sprint 3: Uber-like Home Tab
+
+**New Files:**
+- `apps/mobile/src/api/stylists.ts` - Stylists API client
+- `apps/mobile/src/stores/stylists.ts` - Zustand stylists store
+
+**Modified:**
+- `apps/mobile/app/(tabs)/index.tsx` - Full rewrite with map + booking sheet
+
+**Features:**
+- Full-screen map with react-native-maps
+- Color-coded stylist pins (green=fixed, amber=mobile, red=home-call)
+- Bottom sheet booking overlay (Uber-style, never leaves map)
+- Quick filters (Today, This week, Budget, Wash included)
+
+---
+
+#### ✅ Sprint 4: Stylist Discovery & Search
+
+**New Files:**
+- `apps/mobile/app/stylists/_layout.tsx` - Stylists stack navigator
+- `apps/mobile/app/stylists/[id]/index.tsx` - Stylist detail screen
+- `apps/mobile/app/stylists/[id]/book.tsx` - 4-step booking flow
+
+**Modified:**
+- `apps/mobile/app/(tabs)/search.tsx` - Complete rewrite with real API
+
+**Features:**
+- Debounced search with real API
+- Category filters (Hair Care, Styling, Coloring, etc.)
+- Sort options (distance, rating, price)
+- Infinite scroll pagination
+- Stylist detail with services and portfolio tabs
+- 4-step booking: Service → DateTime → Location → Confirm
+
+---
+
+#### ✅ Sprint 5: Notifications + Hair Health
+
+**New Files:**
+- `apps/mobile/src/api/notifications.ts` - Notifications API client
+- `apps/mobile/src/stores/notifications.ts` - Zustand notifications store
+- `apps/mobile/src/api/hair-health.ts` - Hair health API client
+- `apps/mobile/src/stores/hair-health.ts` - Zustand hair health store
+- `apps/mobile/app/hair-health/_layout.tsx` - Hair health stack navigator
+- `apps/mobile/app/hair-health/index.tsx` - Hair health dashboard
+- `apps/mobile/app/hair-health/onboarding.tsx` - 6-step onboarding wizard
+- `apps/mobile/app/hair-health/edit.tsx` - Profile editor
+
+**Modified:**
+- `apps/mobile/app/(tabs)/notifications.tsx` - Complete rewrite with real API
+
+**Features:**
+- Notifications with category filtering (All, Bookings, Payments, Messages)
+- Mark as read (single and all) with optimistic updates
+- Unread badge display
+- Hair health dashboard with profile summary card
+- Learning journey progress (6 modules)
+- 6-step onboarding: Pattern, Porosity, Density, Thickness, Shrinkage, Confirmation
+- Profile edit with all attributes
+
+---
+
+#### Mobile Parity Summary
+
+| Tab | Before V6.8 | After V6.8 |
+|-----|-------------|------------|
+| Home | Map placeholder | ✅ Full-screen map with booking sheet |
+| Search | Static chips | ✅ Real API, filters, infinite scroll |
+| Wallet | $0.00 hardcoded | ✅ Real balance, Fund/Withdraw, P2P |
+| Notifications | Empty state | ✅ Real notifications, filtering |
+| Profile | Mock data | ✅ Real user, Hair Health card |
+| Messages | ✅ V6.7.1 | ✅ Complete (from V6.7.1) |
+
+---
+
+## [6.7.1] - 2025-12-20
+
+### V6.7.1: Mobile Messaging API Integration - COMPLETE ✅
+
+**Goal**: Connect mobile messaging screens to backend API with proper state management.
+
+---
+
+#### ✅ Mobile API Infrastructure
+
+**New File:** `apps/mobile/src/api/client.ts` (~130 lines)
+
+Base API client with SecureStore token management:
+- `getAuthToken()` / `setAuthToken()` - Token persistence
+- `getRefreshToken()` / `setRefreshToken()` - Refresh token storage
+- `clearTokens()` - Logout cleanup
+- `apiRequest<T>()` - Generic request helper with auth
+- `APIError` class for structured error handling
+
+**New File:** `apps/mobile/src/api/messages.ts` (~170 lines)
+
+Messages API client matching web implementation:
+- `getConversations()` - List user's conversations
+- `startConversation()` - Start/get conversation
+- `getConversation()` - Get with messages
+- `sendMessage()` - Send message
+- `markConversationRead()` - Mark as read
+- `archiveConversation()` / `unarchiveConversation()`
+- `getUnreadCount()` - Total unread
+
+#### ✅ Zustand State Management
+
+**New File:** `apps/mobile/src/stores/messages.ts` (~220 lines)
+
+Messages store with:
+- Conversation list state with pagination
+- Active conversation and messages
+- Optimistic updates for sending
+- Mark as read on conversation open
+- Unread count tracking
+- Error handling per operation
+
+#### ✅ Updated Mobile Screens
+
+**Modified File:** `apps/mobile/app/messages/index.tsx`
+
+Conversations list connected to Zustand:
+- `useFocusEffect` for refresh on screen focus
+- Pull-to-refresh with store action
+- Loading/error/empty states
+- Real unread badge counts
+
+**Modified File:** `apps/mobile/app/messages/[id].tsx`
+
+Conversation thread connected to Zustand:
+- Fetch conversation on mount
+- Auto mark as read
+- Send with optimistic update
+- Loading spinner during send
+- Error display for failed sends
+
+---
+
+## [6.7.0] - 2025-12-20
+
+### V6.7.0: Direct Messaging Feature - COMPLETE ✅
+
+**Goal**: Enable in-app communication between customers and stylists without sharing personal contact information.
+
+**Design Decision**: Messaging is a supporting feature, not a primary navigation element. Users access it through contextual entry points (stylist profiles, booking pages).
+
+---
+
+#### ✅ Database Models
+
+**Modified File:** `services/api/prisma/schema.prisma`
+
+New models:
+- `Conversation` - Per-participant unread counts, archive timestamps, booking link
+- `Message` - Content, senderId, readAt, soft delete support
+- `MESSAGE_RECEIVED` added to NotificationType enum
+
+Indexes:
+- `(participant1Id, lastMessageAt)` for list queries
+- `(conversationId, createdAt)` for message pagination
+
+#### ✅ Conversations API
+
+**New File:** `services/api/src/routes/conversations.ts` (~550 lines)
+
+Full REST API with Zod validation:
+- `GET /conversations` - List with pagination, archive filter
+- `POST /conversations` - Start or get existing conversation
+- `GET /conversations/:id` - Get with messages (paginated)
+- `POST /conversations/:id/messages` - Send message
+- `POST /conversations/:id/read` - Mark all as read
+- `POST /conversations/:id/archive` - Archive
+- `DELETE /conversations/:id/archive` - Unarchive
+- `GET /conversations/unread-count` - Total unread
+
+Helper functions:
+- `getOrCreateConversation()` - Handles participant ordering
+- `getParticipantPosition()` - Returns 1 or 2 for current user
+- `getOtherParticipantId()` - Gets conversation partner
+
+#### ✅ Notification Integration
+
+**Modified Files:**
+- `services/api/src/lib/notifications/types.ts` - Added MESSAGE_RECEIVED type
+- `services/api/src/lib/notifications/templates.ts` - In-app and SMS templates
+
+Notification metadata:
+- `conversationId` - Links to conversation
+- `senderName` - For notification text
+- `messagePreview` - First 50 chars
+
+#### ✅ Web Frontend
+
+**New File:** `apps/web/lib/messages-client.ts` (~340 lines)
+
+Typed API client with all conversation operations.
+
+**New File:** `apps/web/hooks/use-messages.ts` (~200 lines)
+
+React Query hooks:
+- `useConversations()` - List with caching
+- `useConversation(id)` - Single conversation
+- `useSendMessage(conversationId)` - With optimistic update
+- `useMarkAsRead(conversationId)` - Mark read
+- `useStartConversation()` - Create/get conversation
+- `useUnreadCount()` - Badge count
+
+**New File:** `apps/web/app/(main)/messages/page.tsx`
+
+Messages list with All/Unread tabs:
+- Conversation cards with avatar, preview, time
+- Booking badge for linked conversations
+- Unread indicator styling
+- Empty states per tab
+
+**New File:** `apps/web/app/(main)/messages/[id]/page.tsx`
+
+Conversation thread:
+- Date separators (Today, Yesterday, full date)
+- Message bubbles (own = rose, other = gray)
+- Read receipts
+- Text input with send button
+- Auto-scroll on new messages
+
+#### ✅ Entry Points
+
+**Modified File:** `apps/web/components/stylists/stylist-profile.tsx`
+
+- "Message" button next to Favorite (desktop)
+- Message icon button in mobile sticky footer
+- Uses `useStartConversation()` hook
+
+**Modified File:** `apps/web/components/bookings/booking-details.tsx`
+
+- "Message Stylist" button in stylist section
+- Links conversation to booking via `bookingId`
+
+#### ✅ Mobile Screens (Mock Data)
+
+**New Files:**
+- `apps/mobile/app/messages/_layout.tsx` - Stack navigator
+- `apps/mobile/app/messages/index.tsx` - Conversations list
+- `apps/mobile/app/messages/[id].tsx` - Conversation thread
+
+Initial implementation with mock data, API integration in V6.7.1.
+
+---
+
+## [6.6.0] - 2025-12-19
+
+### V6.6.0: Special Events Booking - COMPLETE ✅
+
+**Goal**: Enable customers to request stylists for weddings, photoshoots, and group events.
+
+---
+
+#### ✅ Mobile Special Events
+
+**New File:** `apps/mobile/app/special-events/index.tsx`
+
+Landing page with:
+- Event categories (Wedding, Photoshoot, Corporate, Group, Festival)
+- Featured stylists for events
+- How It Works section
+
+**New File:** `apps/mobile/app/special-events/request.tsx`
+
+Multi-step request form:
+- Step 1: Event details (type, date, guests)
+- Step 2: Location selection
+- Step 3: Services needed
+- Step 4: Review and submit
+
+**Modified:** Home Quick Actions with Special Events entry
+
+#### ✅ Web Special Events
+
+**New File:** `apps/web/app/(main)/special-events/page.tsx`
+
+Landing page matching mobile design.
+
+**New File:** `apps/web/app/(main)/special-events/request/page.tsx`
+
+Multi-step form with same flow as mobile.
+
+**Modified:** Home greeting card with Quick Actions
+
+#### ✅ Reusable Components
+
+- `LocationSelector` - Location type picker (home, salon, venue)
+- `ChairSelector` - Chair count selector for group events
+
+#### ✅ E2E Tests
+
+**New File:** `apps/web/e2e/special-events.spec.ts`
+
+Playwright tests for Special Events flow.
+
+---
+
 ## [6.5.1] - 2025-12-19
 
 ### V6.5.1: Property Owner UI Components - COMPLETE ✅

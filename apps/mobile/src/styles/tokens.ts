@@ -54,9 +54,13 @@ export const colors = {
   // Status
   status: {
     success: '#A9D326',
+    successLight: '#A9D32620', // 20% opacity success
     warning: '#F59E0B', // NOT orange - use amber for warnings
+    warningLight: '#F59E0B20',
     error: '#D0021B',
+    errorLight: '#D0021B20',
     info: '#ADA5C4',
+    infoLight: '#ADA5C420',
   },
 
   // Surface
@@ -105,6 +109,11 @@ export const typography = {
     sans: 'Inter',
     display: 'PlayfairDisplay',
     mono: 'SpaceMono',
+    // Weight-specific font names for React Native
+    regular: 'Inter',
+    medium: 'Inter-Medium',
+    semibold: 'Inter-SemiBold',
+    bold: 'Inter-Bold',
   },
 
   // Font Sizes
@@ -113,9 +122,14 @@ export const typography = {
     h1: 32,
     h2: 24,
     h3: 20,
+    xl: 20,
+    xxl: 24,
     body: 16,
+    base: 16,
     bodySmall: 14,
+    sm: 14,
     caption: 12,
+    xs: 12,
     button: 14,
     label: 12,
   },
@@ -167,6 +181,9 @@ export const borderRadius = {
   pill: 999,
   circle: 9999,
 } as const;
+
+// Alias for convenience
+export const radius = borderRadius;
 
 // =============================================================================
 // Shadows

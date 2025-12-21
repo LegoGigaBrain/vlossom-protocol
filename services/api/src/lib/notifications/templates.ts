@@ -109,6 +109,15 @@ export function getInAppContent(
         body: `${metadata.customerName || "Your customer"} has arrived at the location.`,
       };
 
+    // V6.7.0: Direct Messaging
+    case "MESSAGE_RECEIVED":
+      return {
+        title: "New Message",
+        body: metadata.messagePreview
+          ? `${metadata.senderName || "Someone"}: ${metadata.messagePreview}${metadata.messagePreview.length >= 50 ? "..." : ""}`
+          : `${metadata.senderName || "Someone"} sent you a message.`,
+      };
+
     default:
       return {
         title: "Notification",
@@ -235,6 +244,11 @@ export function getSMSContent(
 
     case "CUSTOMER_ARRIVED":
       message = `Vlossom: ${metadata.customerName || "Your customer"} has arrived at the location.`;
+      break;
+
+    // V6.7.0: Direct Messaging
+    case "MESSAGE_RECEIVED":
+      message = `Vlossom: New message from ${metadata.senderName || "someone"}. Open app to reply.`;
       break;
 
     default:
