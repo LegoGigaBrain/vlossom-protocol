@@ -21,22 +21,22 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTheme, textStyles } from '../../src/styles/theme';
+import { useTheme, textStyles } from '../../../src/styles/theme';
 import {
   VlossomBackIcon,
   VlossomFavoriteIcon,
   VlossomLocationIcon,
   VlossomCalendarIcon,
-} from '../../src/components/icons/VlossomIcons';
+} from '../../../src/components/icons/VlossomIcons';
 import { useEffect, useState } from 'react';
-import { useStylistsStore, selectSelectedStylist } from '../../src/stores';
+import { useStylistsStore, selectSelectedStylist } from '../../../src/stores';
 import {
   formatPrice,
   formatDistance,
   getOperatingModeLabel,
   getPinColor,
   type StylistService,
-} from '../../src/api/stylists';
+} from '../../../src/api/stylists';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PORTFOLIO_ITEM_SIZE = (SCREEN_WIDTH - 48 - 8) / 3; // 3 columns with gaps

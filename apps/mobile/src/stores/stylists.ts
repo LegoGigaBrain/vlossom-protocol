@@ -173,7 +173,7 @@ export const useStylistsStore = create<StylistsState>((set, get) => ({
 
     try {
       const response = await searchStylists({
-        query: params.query ?? filters.query || undefined,
+        query: params.query ?? (filters.query || undefined),
         lat: userLocation?.lat,
         lng: userLocation?.lng,
         radius: searchRadius,

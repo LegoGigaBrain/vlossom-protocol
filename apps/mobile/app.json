@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vlossom",
     "slug": "vlossom",
-    "version": "6.0.0",
+    "version": "7.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "vlossom",
@@ -79,7 +79,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "7e333ab4-a4c8-4e41-8ec6-ddb67f37a8d1"
       }
     }
   }

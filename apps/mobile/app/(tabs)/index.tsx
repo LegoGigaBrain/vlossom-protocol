@@ -23,7 +23,7 @@ import {
   PanResponder,
   Image,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import { MapView, Marker, PROVIDER_GOOGLE, type Region } from '../../src/components/MapView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
