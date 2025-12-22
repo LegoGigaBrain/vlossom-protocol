@@ -35,6 +35,7 @@ import {
   VlossomCloseIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { useStylistsStore } from '../../src/stores/stylists';
+import { useDemoModeStore, selectIsDemoMode } from '../../src/stores/demo-mode';
 import {
   formatPrice,
   formatPriceRange,
@@ -74,6 +75,9 @@ export default function HomeScreen() {
     clearSelectedStylist,
     setFilter,
   } = useStylistsStore();
+
+  // Demo mode - refetch when toggled
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
 
   // Local state
   const [locationLoading, setLocationLoading] = useState(true);
@@ -119,12 +123,12 @@ export default function HomeScreen() {
     })();
   }, [setUserLocation, fetchNearbyStylists]);
 
-  // Fetch stylists when location changes
+  // Fetch stylists when location changes or demo mode toggles
   useEffect(() => {
     if (userLocation) {
       fetchNearbyStylists();
     }
-  }, [userLocation, fetchNearbyStylists]);
+  }, [userLocation, fetchNearbyStylists, isDemoMode]);
 
   // Handle marker press
   const handleMarkerPress = useCallback(

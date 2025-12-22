@@ -24,6 +24,7 @@ import {
   VlossomWalletIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { useWalletStore } from '../../src/stores/wallet';
+import { useDemoModeStore, selectIsDemoMode } from '../../src/stores/demo-mode';
 import { colors as tokenColors } from '../../src/styles/tokens';
 
 export default function WalletScreen() {
@@ -43,12 +44,15 @@ export default function WalletScreen() {
     fetchFiatConfig,
   } = useWalletStore();
 
-  // Load wallet data on mount
+  // Demo mode - refetch when toggled
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+
+  // Load wallet data on mount and when demo mode changes
   useEffect(() => {
     fetchWallet();
     fetchTransactions(true);
     fetchFiatConfig();
-  }, [fetchWallet, fetchTransactions, fetchFiatConfig]);
+  }, [fetchWallet, fetchTransactions, fetchFiatConfig, isDemoMode]);
 
   // Pull to refresh
   const onRefresh = useCallback(() => {

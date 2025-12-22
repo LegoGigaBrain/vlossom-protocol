@@ -28,6 +28,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useNotificationsStore, selectNotifications, selectUnreadCount } from '../../src/stores';
+import { useDemoModeStore, selectIsDemoMode } from '../../src/stores/demo-mode';
 import {
   formatRelativeTime,
   getNotificationCategory,
@@ -68,11 +69,14 @@ export default function NotificationsScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch on mount
+  // Demo mode - refetch when toggled
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+
+  // Fetch on mount and when demo mode changes
   useEffect(() => {
     fetchNotifications();
     fetchUnreadCount();
-  }, [fetchNotifications, fetchUnreadCount]);
+  }, [fetchNotifications, fetchUnreadCount, isDemoMode]);
 
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {

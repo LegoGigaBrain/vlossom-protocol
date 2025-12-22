@@ -243,6 +243,26 @@ interface OverviewTabProps {
 }
 
 function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutLoading }: OverviewTabProps) {
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+  const bookings = useBookingsStore(selectBookings);
+  const nextBooking = useBookingsStore(selectNextBooking);
+  const { fetchBookings, fetchStats } = useBookingsStore();
+
+  // Fetch bookings on mount and when demo mode changes
+  useEffect(() => {
+    fetchBookings(true);
+    fetchStats();
+  }, [fetchBookings, fetchStats, isDemoMode]);
+
+  // Get upcoming bookings for display
+  const upcomingBookings = isDemoMode
+    ? getUpcomingMockBookings()
+    : bookings.filter(
+        (b) =>
+          ['CONFIRMED', 'PENDING_PAYMENT'].includes(b.status) &&
+          new Date(b.scheduledStartTime) >= new Date()
+      );
+
   return (
     <View>
       {/* Hair Health Card */}
@@ -281,7 +301,7 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
       </Pressable>
 
       {/* Schedule Card */}
-      <Pressable
+      <View
         style={[
           styles.card,
           {
@@ -298,10 +318,64 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
             Upcoming
           </Text>
         </View>
-        <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.sm }]}>
-          No upcoming appointments
-        </Text>
-      </Pressable>
+        {upcomingBookings.length > 0 ? (
+          <View style={{ marginTop: spacing.sm }}>
+            {upcomingBookings.slice(0, 2).map((booking) => (
+              <View
+                key={booking.id}
+                style={[
+                  styles.bookingPreview,
+                  {
+                    backgroundColor: colors.background.secondary,
+                    borderRadius: borderRadius.md,
+                    marginTop: spacing.xs,
+                  },
+                ]}
+              >
+                <View style={styles.bookingPreviewContent}>
+                  <Text style={[textStyles.body, { color: colors.text.primary }]} numberOfLines={1}>
+                    {booking.service.name}
+                  </Text>
+                  <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                    {new Date(booking.scheduledStartTime).toLocaleDateString('en-ZA', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })}{' '}
+                    at{' '}
+                    {new Date(booking.scheduledStartTime).toLocaleTimeString('en-ZA', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: getBookingStatusColor(booking.status) + '20',
+                      borderRadius: borderRadius.sm,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      textStyles.caption,
+                      { color: getBookingStatusColor(booking.status) },
+                    ]}
+                  >
+                    {getBookingStatusLabel(booking.status)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.sm }]}>
+            No upcoming appointments
+          </Text>
+        )}
+      </View>
 
       {/* Favorites Card */}
       <Pressable
@@ -708,5 +782,19 @@ const styles = StyleSheet.create({
   propertiesStatsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  bookingPreview: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+  },
+  bookingPreviewContent: {
+    flex: 1,
+    marginRight: 8,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
 });
