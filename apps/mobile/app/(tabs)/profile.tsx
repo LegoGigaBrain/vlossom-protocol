@@ -1,11 +1,12 @@
 /**
- * Profile Tab - Identity + Dashboards (V6.8.0)
+ * Profile Tab - Identity + Dashboards (V7.0.0)
  *
  * Purpose: User identity, hair health, schedule, role-based dashboards
  * Dynamic tabs based on user roles
  * Connected to auth store for real user data
  */
 
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Image, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -15,9 +16,25 @@ import {
   VlossomHealthyIcon,
   VlossomCalendarIcon,
   VlossomFavoriteIcon,
+  VlossomWalletIcon,
+  VlossomGrowingIcon,
+  VlossomHomeIcon,
 } from '../../src/components/icons/VlossomIcons';
-import { useState } from 'react';
-import { useAuthStore } from '../../src/stores/auth';
+import {
+  useAuthStore,
+  useBookingsStore,
+  selectBookings,
+  selectNextBooking,
+  usePropertyOwnerStore,
+  selectProperties,
+  selectStats as selectPropertyStats,
+  selectPendingCount,
+  useDemoModeStore,
+  selectIsDemoMode,
+} from '../../src/stores';
+import { MOCK_BOOKINGS, getUpcomingMockBookings } from '../../src/data/mock-data';
+import { formatPrice } from '../../src/api/stylists';
+import { getBookingStatusLabel, getBookingStatusColor } from '../../src/api/bookings';
 
 type ProfileTab = 'overview' | 'stylist' | 'salon';
 
@@ -57,8 +74,7 @@ export default function ProfileScreen() {
   };
 
   const handleSettings = () => {
-    // Navigate to settings
-    // TODO: Implement settings screen
+    router.push('/settings');
   };
 
   // Get display name and initial
@@ -195,10 +211,22 @@ export default function ProfileScreen() {
           />
         )}
         {activeTab === 'stylist' && (
-          <Text style={[textStyles.body, { color: colors.text.secondary }]}>Stylist Dashboard</Text>
+          <StylistDashboardTab
+            router={router}
+            colors={colors}
+            spacing={spacing}
+            borderRadius={borderRadius}
+            shadows={shadows}
+          />
         )}
         {activeTab === 'salon' && (
-          <Text style={[textStyles.body, { color: colors.text.secondary }]}>Properties Dashboard</Text>
+          <PropertiesDashboardTab
+            router={router}
+            colors={colors}
+            spacing={spacing}
+            borderRadius={borderRadius}
+            shadows={shadows}
+          />
         )}
       </View>
     </ScrollView>
@@ -326,6 +354,271 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
   );
 }
 
+// Stylist Dashboard Tab
+interface StylistDashboardTabProps {
+  router: ReturnType<typeof useRouter>;
+  colors: ReturnType<typeof useTheme>['colors'];
+  spacing: ReturnType<typeof useTheme>['spacing'];
+  borderRadius: ReturnType<typeof useTheme>['borderRadius'];
+  shadows: ReturnType<typeof useTheme>['shadows'];
+}
+
+function StylistDashboardTab({ router, colors, spacing, borderRadius, shadows }: StylistDashboardTabProps) {
+  // TODO: Connect to real stylist earnings API when available
+  const mockEarnings = {
+    thisMonth: 245000, // R2,450.00
+    pending: 35000, // R350.00
+  };
+
+  return (
+    <View>
+      {/* Earnings Summary */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.primary,
+            borderRadius: borderRadius.lg,
+            marginBottom: spacing.lg,
+          },
+        ]}
+      >
+        <View style={styles.cardHeader}>
+          <VlossomWalletIcon size={24} color={colors.white} />
+          <Text style={[textStyles.h3, { color: colors.white, marginLeft: spacing.sm }]}>
+            Earnings
+          </Text>
+        </View>
+        <View style={[styles.earningsRow, { marginTop: spacing.md }]}>
+          <View>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>
+              This Month
+            </Text>
+            <Text style={[textStyles.h2, { color: colors.white }]}>
+              {formatPrice(mockEarnings.thisMonth)}
+            </Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>
+              Pending
+            </Text>
+            <Text style={[textStyles.h4, { color: colors.white }]}>
+              {formatPrice(mockEarnings.pending)}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Pending Requests */}
+      <Pressable
+        onPress={() => {
+          // TODO: Navigate to stylist requests
+          Alert.alert('Coming Soon', 'Stylist requests view will be available soon.');
+        }}
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.background.primary,
+            borderRadius: borderRadius.lg,
+            ...shadows.card,
+            marginBottom: spacing.lg,
+          },
+        ]}
+      >
+        <View style={styles.cardHeader}>
+          <VlossomCalendarIcon size={24} color={colors.primary} />
+          <Text style={[textStyles.h3, { color: colors.text.primary, marginLeft: spacing.sm }]}>
+            Pending Requests
+          </Text>
+        </View>
+        <View style={[styles.pendingBadge, { backgroundColor: colors.status.warning + '20', borderRadius: borderRadius.pill, marginTop: spacing.sm }]}>
+          <Text style={[textStyles.body, { color: colors.status.warning }]}>
+            3 requests awaiting response
+          </Text>
+        </View>
+      </Pressable>
+
+      {/* Quick Actions */}
+      <View style={styles.quickActionsRow}>
+        <Pressable
+          onPress={() => {
+            // TODO: Navigate to manage services
+            Alert.alert('Coming Soon', 'Service management will be available soon.');
+          }}
+          style={[
+            styles.quickActionButton,
+            {
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.lg,
+              marginRight: spacing.sm,
+            },
+          ]}
+        >
+          <VlossomGrowingIcon size={24} color={colors.primary} />
+          <Text style={[textStyles.bodySmall, { color: colors.text.primary, marginTop: spacing.xs }]}>
+            Manage Services
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            // TODO: Navigate to calendar
+            Alert.alert('Coming Soon', 'Calendar view will be available soon.');
+          }}
+          style={[
+            styles.quickActionButton,
+            {
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.lg,
+              marginLeft: spacing.sm,
+            },
+          ]}
+        >
+          <VlossomCalendarIcon size={24} color={colors.primary} />
+          <Text style={[textStyles.bodySmall, { color: colors.text.primary, marginTop: spacing.xs }]}>
+            View Calendar
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+// Properties Dashboard Tab
+interface PropertiesDashboardTabProps {
+  router: ReturnType<typeof useRouter>;
+  colors: ReturnType<typeof useTheme>['colors'];
+  spacing: ReturnType<typeof useTheme>['spacing'];
+  borderRadius: ReturnType<typeof useTheme>['borderRadius'];
+  shadows: ReturnType<typeof useTheme>['shadows'];
+}
+
+function PropertiesDashboardTab({ router, colors, spacing, borderRadius, shadows }: PropertiesDashboardTabProps) {
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+  const properties = usePropertyOwnerStore(selectProperties);
+  const stats = usePropertyOwnerStore(selectPropertyStats);
+  const pendingCount = usePropertyOwnerStore(selectPendingCount);
+  const { fetchProperties } = usePropertyOwnerStore();
+
+  useEffect(() => {
+    if (!isDemoMode) {
+      fetchProperties();
+    }
+  }, [isDemoMode, fetchProperties]);
+
+  // Mock data for demo mode
+  const displayStats = isDemoMode ? {
+    totalProperties: 2,
+    totalChairs: 5,
+    occupancyRate: 60,
+  } : {
+    totalProperties: properties.length,
+    totalChairs: stats?.totalChairs || 0,
+    occupancyRate: stats?.occupancyRate || 0,
+  };
+
+  const displayPendingCount = isDemoMode ? 2 : pendingCount;
+
+  return (
+    <View>
+      {/* Properties Overview */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.tertiary,
+            borderRadius: borderRadius.lg,
+            marginBottom: spacing.lg,
+          },
+        ]}
+      >
+        <View style={styles.cardHeader}>
+          <VlossomHomeIcon size={24} color={colors.white} />
+          <Text style={[textStyles.h3, { color: colors.white, marginLeft: spacing.sm }]}>
+            Properties Overview
+          </Text>
+        </View>
+        <View style={[styles.propertiesStatsRow, { marginTop: spacing.md }]}>
+          <View>
+            <Text style={[textStyles.h2, { color: colors.white }]}>
+              {displayStats.totalProperties}
+            </Text>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>
+              Properties
+            </Text>
+          </View>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={[textStyles.h2, { color: colors.white }]}>
+              {displayStats.totalChairs}
+            </Text>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>
+              Chairs
+            </Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={[textStyles.h2, { color: colors.white }]}>
+              {displayStats.occupancyRate}%
+            </Text>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>
+              Occupancy
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Pending Rentals */}
+      <Pressable
+        onPress={() => {
+          // TODO: Navigate to rental requests
+          router.push('/property-owner');
+        }}
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.background.primary,
+            borderRadius: borderRadius.lg,
+            ...shadows.card,
+            marginBottom: spacing.lg,
+          },
+        ]}
+      >
+        <View style={styles.cardHeader}>
+          <VlossomCalendarIcon size={24} color={colors.primary} />
+          <Text style={[textStyles.h3, { color: colors.text.primary, marginLeft: spacing.sm }]}>
+            Rental Requests
+          </Text>
+        </View>
+        {displayPendingCount > 0 ? (
+          <View style={[styles.pendingBadge, { backgroundColor: colors.status.warning + '20', borderRadius: borderRadius.pill, marginTop: spacing.sm }]}>
+            <Text style={[textStyles.body, { color: colors.status.warning }]}>
+              {displayPendingCount} pending request{displayPendingCount !== 1 ? 's' : ''}
+            </Text>
+          </View>
+        ) : (
+          <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.sm }]}>
+            No pending requests
+          </Text>
+        )}
+      </Pressable>
+
+      {/* Quick Action */}
+      <Pressable
+        onPress={() => router.push('/property-owner')}
+        style={[
+          styles.cardAction,
+          {
+            backgroundColor: colors.primary,
+            borderRadius: borderRadius.lg,
+          },
+        ]}
+      >
+        <Text style={[textStyles.button, { color: colors.white }]}>
+          Manage Properties
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -393,5 +686,27 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderWidth: 1,
     marginTop: 8,
+  },
+  earningsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+  },
+  pendingBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignSelf: 'flex-start',
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+  },
+  quickActionButton: {
+    flex: 1,
+    padding: 16,
+    alignItems: 'center',
+  },
+  propertiesStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

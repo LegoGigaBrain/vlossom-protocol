@@ -101,8 +101,7 @@ export default function NotificationsScreen() {
     if (notification.type === 'MESSAGE_RECEIVED' && metadata.conversationId) {
       router.push(`/messages/${metadata.conversationId}`);
     } else if (metadata.bookingId) {
-      // TODO: Navigate to booking details
-      // router.push(`/bookings/${metadata.bookingId}`);
+      router.push(`/bookings/${metadata.bookingId}`);
     }
   };
 

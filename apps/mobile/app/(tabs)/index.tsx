@@ -407,7 +407,7 @@ export default function HomeScreen() {
             stylist={selectedStylist}
             onClose={collapseSheet}
             onBook={() => {
-              router.push(`/booking/${selectedStylist.id}`);
+              router.push(`/stylists/${selectedStylist.id}/book`);
             }}
             colors={colors}
             spacing={spacing}

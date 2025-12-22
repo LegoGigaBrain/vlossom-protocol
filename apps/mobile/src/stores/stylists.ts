@@ -1,8 +1,9 @@
 /**
- * Stylists Store (V6.8.0)
+ * Stylists Store (V7.0.0)
  *
  * Zustand store for managing stylist discovery state.
  * Handles search, filtering, and selected stylist.
+ * Supports demo mode with mock data.
  */
 
 import { create } from 'zustand';
@@ -17,6 +18,8 @@ import {
   type OperatingMode,
   type SortOption,
 } from '../api/stylists';
+import { MOCK_STYLISTS, getMockStylistDetail } from '../data/mock-data';
+import { getIsDemoMode } from './demo-mode';
 
 // ============================================================================
 // Types
@@ -126,9 +129,32 @@ export const useStylistsStore = create<StylistsState>((set, get) => ({
 
   /**
    * Fetch nearby stylists based on user location
+   * In demo mode, returns mock stylists instead of API call
    */
   fetchNearbyStylists: async () => {
     const { userLocation, searchRadius, filters } = get();
+
+    // Demo mode: return mock stylists
+    if (getIsDemoMode()) {
+      set({ stylistsLoading: true, stylistsError: null });
+      // Simulate brief loading for UX
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      let mockData = [...MOCK_STYLISTS];
+      // Apply operating mode filter if set
+      if (filters.operatingMode) {
+        mockData = mockData.filter((s) => s.operatingMode === filters.operatingMode);
+      }
+
+      set({
+        stylists: mockData,
+        stylistsLoading: false,
+        page: 1,
+        hasMore: false,
+        total: mockData.length,
+      });
+      return;
+    }
 
     if (!userLocation) {
       set({ stylistsError: 'Location not available' });
@@ -263,9 +289,21 @@ export const useStylistsStore = create<StylistsState>((set, get) => ({
 
   /**
    * Select a stylist and load full details
+   * In demo mode, returns mock stylist detail
    */
   selectStylist: async (id: string) => {
     set({ selectedStylistLoading: true });
+
+    // Demo mode: return mock stylist detail
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const mockStylist = getMockStylistDetail(id);
+      set({
+        selectedStylist: mockStylist,
+        selectedStylistLoading: false,
+      });
+      return;
+    }
 
     try {
       const stylist = await getStylistById(id);

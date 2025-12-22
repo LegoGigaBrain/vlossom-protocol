@@ -1,8 +1,9 @@
 /**
- * Stores Exports (V6.10.0)
+ * Stores Exports (V7.0.0)
  */
 
 export { useAuthStore, selectUser, selectIsAuthenticated, selectIsLoading, selectIsInitialized } from './auth';
+export { useDemoModeStore, selectIsDemoMode, selectIsHydrated, getIsDemoMode } from './demo-mode';
 export { useWalletStore, selectBalance, selectWallet, selectTransactions, selectFiatConfig } from './wallet';
 export { useMessagesStore } from './messages';
 export { useStylistsStore, selectStylists, selectSelectedStylist, selectFilters, selectUserLocation } from './stylists';

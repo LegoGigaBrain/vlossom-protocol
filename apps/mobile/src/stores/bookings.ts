@@ -1,8 +1,9 @@
 /**
- * Bookings Store (V6.10.0)
+ * Bookings Store (V7.0.0)
  *
  * Zustand store for managing booking state.
  * Handles booking list, creation, status updates, and cancellations.
+ * Supports demo mode with mock data.
  */
 
 import { create } from 'zustand';
@@ -20,6 +21,8 @@ import {
   type CreateBookingRequest,
   type AvailabilitySlot,
 } from '../api/bookings';
+import { MOCK_BOOKINGS, getMockBooking, MOCK_AVAILABILITY_SLOTS } from '../data/mock-data';
+import { getIsDemoMode } from './demo-mode';
 
 // ============================================================================
 // Types
@@ -114,6 +117,7 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
 
   /**
    * Fetch bookings list with optional filter
+   * In demo mode, returns mock bookings
    */
   fetchBookings: async (refresh = false) => {
     const state = get();
@@ -121,6 +125,25 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
 
     const page = refresh ? 1 : state.bookingsPage;
     set({ bookingsLoading: true, bookingsError: null });
+
+    // Demo mode: return mock bookings
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      let mockData = [...MOCK_BOOKINGS];
+      // Apply status filter if set
+      if (state.statusFilter) {
+        mockData = mockData.filter((b) => b.status === state.statusFilter);
+      }
+
+      set({
+        bookings: mockData,
+        hasMoreBookings: false,
+        bookingsPage: 1,
+        bookingsLoading: false,
+      });
+      return;
+    }
 
     try {
       const response = await getBookings({
@@ -147,9 +170,21 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
 
   /**
    * Fetch single booking by ID
+   * In demo mode, returns mock booking
    */
   fetchBooking: async (id: string) => {
     set({ currentBookingLoading: true, currentBookingError: null });
+
+    // Demo mode: return mock booking
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      const mockBooking = getMockBooking(id);
+      set({
+        currentBooking: mockBooking,
+        currentBookingLoading: false,
+      });
+      return mockBooking;
+    }
 
     try {
       const booking = await getBooking(id);
@@ -169,9 +204,28 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
 
   /**
    * Fetch booking statistics
+   * In demo mode, returns mock stats
    */
   fetchStats: async () => {
     set({ statsLoading: true });
+
+    // Demo mode: return mock stats
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      set({
+        stats: {
+          total: MOCK_BOOKINGS.length,
+          completed: MOCK_BOOKINGS.filter((b) => b.status === 'COMPLETED').length,
+          pending: MOCK_BOOKINGS.filter((b) => b.status === 'PENDING_PAYMENT').length,
+          cancelled: MOCK_BOOKINGS.filter((b) => b.status === 'CANCELLED').length,
+          upcoming: MOCK_BOOKINGS.filter(
+            (b) => b.status === 'CONFIRMED' && new Date(b.scheduledStartTime) >= new Date()
+          ).length,
+        },
+        statsLoading: false,
+      });
+      return;
+    }
 
     try {
       const response = await getBookingStats();
@@ -187,9 +241,20 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
 
   /**
    * Fetch stylist availability for a date
+   * In demo mode, returns mock availability slots
    */
   fetchAvailability: async (stylistId: string, date: string) => {
     set({ availabilityLoading: true, availabilityDate: date });
+
+    // Demo mode: return mock availability slots
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      set({
+        availability: MOCK_AVAILABILITY_SLOTS,
+        availabilityLoading: false,
+      });
+      return;
+    }
 
     try {
       const response = await getStylistAvailability(stylistId, date);
