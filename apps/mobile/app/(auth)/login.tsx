@@ -60,9 +60,9 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={styles.header} accessible accessibilityRole="header">
             <Text style={styles.logo}>Vlossom</Text>
-            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.title} accessibilityRole="header">Welcome back</Text>
             <Text style={styles.subtitle}>
               Sign in to continue your hair journey
             </Text>
@@ -72,7 +72,7 @@ export default function LoginScreen() {
           <View style={styles.form}>
             {/* Email Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label} nativeID="emailLabel">Email</Text>
               <TextInput
                 style={styles.input}
                 value={email}
@@ -89,12 +89,15 @@ export default function LoginScreen() {
                 returnKeyType="next"
                 editable={!loginLoading}
                 maxLength={INPUT_LIMITS.EMAIL}
+                accessibilityLabel="Email address"
+                accessibilityLabelledBy="emailLabel"
+                accessibilityHint="Enter your email address to sign in"
               />
             </View>
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label} nativeID="passwordLabel">Password</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
@@ -112,10 +115,16 @@ export default function LoginScreen() {
                   onSubmitEditing={handleLogin}
                   editable={!loginLoading}
                   maxLength={INPUT_LIMITS.PASSWORD}
+                  accessibilityLabel="Password"
+                  accessibilityLabelledBy="passwordLabel"
+                  accessibilityHint="Enter your password, minimum 8 characters"
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}
                   onPress={() => setShowPassword(!showPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityHint="Double tap to toggle password visibility"
                 >
                   <Text style={styles.showPasswordText}>
                     {showPassword ? 'Hide' : 'Show'}
@@ -126,7 +135,12 @@ export default function LoginScreen() {
 
             {/* Error Message */}
             {loginError && (
-              <View style={styles.errorContainer}>
+              <View
+                style={styles.errorContainer}
+                accessible
+                accessibilityRole="alert"
+                accessibilityLiveRegion="polite"
+              >
                 <Text style={styles.errorText}>{loginError}</Text>
               </View>
             )}
@@ -139,9 +153,13 @@ export default function LoginScreen() {
               ]}
               onPress={handleLogin}
               disabled={!isFormValid || loginLoading}
+              accessibilityRole="button"
+              accessibilityLabel={loginLoading ? 'Signing in' : 'Sign in'}
+              accessibilityState={{ disabled: !isFormValid || loginLoading }}
+              accessibilityHint="Double tap to sign in to your account"
             >
               {loginLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="#FFFFFF" accessibilityLabel="Loading" />
               ) : (
                 <Text style={styles.buttonText}>Sign In</Text>
               )}
@@ -149,7 +167,12 @@ export default function LoginScreen() {
 
             {/* Forgot Password */}
             <Link href="/(auth)/forgot-password" asChild>
-              <TouchableOpacity style={styles.forgotPassword}>
+              <TouchableOpacity
+                style={styles.forgotPassword}
+                accessibilityRole="link"
+                accessibilityLabel="Forgot password"
+                accessibilityHint="Double tap to reset your password"
+              >
                 <Text style={styles.forgotPasswordText}>Forgot password?</Text>
               </TouchableOpacity>
             </Link>
@@ -160,7 +183,14 @@ export default function LoginScreen() {
             <Text style={styles.footerText}>
               Don't have an account?{' '}
               <Link href="/(auth)/signup" asChild>
-                <Text style={styles.footerLink}>Sign up</Text>
+                <Text
+                  style={styles.footerLink}
+                  accessibilityRole="link"
+                  accessibilityLabel="Sign up"
+                  accessibilityHint="Double tap to create a new account"
+                >
+                  Sign up
+                </Text>
               </Link>
             </Text>
           </View>

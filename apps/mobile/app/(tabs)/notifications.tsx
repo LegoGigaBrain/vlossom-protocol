@@ -136,24 +136,42 @@ export default function NotificationsScreen() {
         </View>
         <View style={styles.headerRight}>
           {unreadCount > 0 && (
-            <Pressable onPress={handleMarkAllRead} style={{ marginRight: spacing.md }}>
+            <Pressable
+              onPress={handleMarkAllRead}
+              style={{ marginRight: spacing.md }}
+              accessibilityRole="button"
+              accessibilityLabel="Mark all notifications as read"
+              accessibilityHint="Marks all unread notifications as read"
+            >
               <Text style={[textStyles.bodySmall, { color: colors.primary }]}>Mark all read</Text>
             </Pressable>
           )}
-          <Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Notification settings"
+            accessibilityHint="Opens notification settings"
+          >
             <VlossomSettingsIcon size={24} color={colors.text.secondary} />
           </Pressable>
         </View>
       </View>
 
       {/* Filter tabs */}
-      <View style={[styles.filterTabs, { paddingHorizontal: spacing.lg, borderBottomColor: colors.border.default }]}>
+      <View
+        style={[styles.filterTabs, { paddingHorizontal: spacing.lg, borderBottomColor: colors.border.default }]}
+        accessibilityRole="tablist"
+        accessibilityLabel="Notification filters"
+      >
         {FILTER_TABS.map((tab) => {
           const isActive = activeFilter === tab.value;
           return (
             <Pressable
               key={tab.value}
               onPress={() => setActiveFilter(tab.value)}
+              accessibilityRole="tab"
+              accessibilityLabel={`${tab.label} notifications${isActive ? ', Selected' : ''}`}
+              accessibilityState={{ selected: isActive }}
+              accessibilityHint={`Show ${tab.value === 'all' ? 'all' : tab.value} notifications`}
               style={[
                 styles.filterTab,
                 {
@@ -310,10 +328,16 @@ function NotificationItem({
   onPress,
 }: NotificationItemProps) {
   const IconComponent = getIconForType(notification.type);
+  const category = getNotificationCategory(notification.type);
+  const readStatus = notification.read ? '' : ', Unread';
 
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${notification.title}, ${notification.body}, ${formatRelativeTime(notification.createdAt)}${readStatus}`}
+      accessibilityHint={`${category} notification, double tap to view details`}
+      accessibilityState={{ selected: !notification.read }}
       style={[
         styles.notificationItem,
         {

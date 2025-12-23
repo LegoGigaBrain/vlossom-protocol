@@ -1,8 +1,9 @@
 /**
- * Property Owner Chairs Screen (V6.10.0)
+ * Property Owner Chairs Screen (V7.2.0)
  *
  * Manage chairs across all properties.
  * V6.10: Wired to real API with status updates.
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, ActivityIndicator, Alert } from 'react-native';
@@ -98,9 +99,14 @@ export default function ChairsScreen() {
   // Loading state
   if (propertiesLoading && properties.length === 0) {
     return (
-      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]}>
+      <View
+        style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLabel="Loading chairs, please wait"
+      >
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading" />
+        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]} aria-hidden>
           Loading chairs...
         </Text>
       </View>
@@ -114,9 +120,12 @@ export default function ChairsScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[styles.filterRow, { paddingHorizontal: spacing.lg }]}
+        accessibilityRole="tablist"
+        accessibilityLabel="Filter chairs by status"
       >
         {(['all', 'AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'BLOCKED'] as const).map((status) => {
           const isActive = filterStatus === status;
+          const statusLabel = status === 'all' ? 'All' : STATUS_COLORS[status].label;
           return (
             <Pressable
               key={status}
@@ -129,14 +138,19 @@ export default function ChairsScreen() {
                   marginRight: spacing.sm,
                 },
               ]}
+              accessibilityRole="tab"
+              accessibilityLabel={statusLabel}
+              accessibilityState={{ selected: isActive }}
+              accessibilityHint={isActive ? 'Currently selected' : `Double tap to filter by ${statusLabel.toLowerCase()}`}
             >
               <Text
                 style={[
                   textStyles.caption,
                   { color: isActive ? colors.white : colors.text.secondary },
                 ]}
+                aria-hidden
               >
-                {status === 'all' ? 'All' : STATUS_COLORS[status].label}
+                {statusLabel}
               </Text>
             </Pressable>
           );
@@ -161,127 +175,153 @@ export default function ChairsScreen() {
                 ...shadows.card,
               },
             ]}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel="No chairs match your filters"
           >
-            <Text style={[textStyles.body, { color: colors.text.secondary }]}>
+            <Text style={[textStyles.body, { color: colors.text.secondary }]} aria-hidden>
               No chairs match your filters
             </Text>
           </View>
         ) : (
-          filteredChairs.map((chair) => {
-            const statusStyle = STATUS_COLORS[chair.status] || STATUS_COLORS.AVAILABLE;
-            const isUpdating = updatingChairId === chair.id;
+          <View
+            accessibilityRole="list"
+            accessibilityLabel={`${filteredChairs.length} chairs`}
+          >
+            {filteredChairs.map((chair) => {
+              const statusStyle = STATUS_COLORS[chair.status] || STATUS_COLORS.AVAILABLE;
+              const isUpdating = updatingChairId === chair.id;
+              const amenitiesText = chair.amenities && chair.amenities.length > 0
+                ? `. Amenities: ${chair.amenities.join(', ')}`
+                : '';
 
-            return (
-              <View
-                key={chair.id}
-                style={[
-                  styles.chairCard,
-                  {
-                    backgroundColor: colors.background.primary,
-                    borderRadius: borderRadius.lg,
-                    marginBottom: spacing.md,
-                    opacity: isUpdating ? 0.7 : 1,
-                    ...shadows.card,
-                  },
-                ]}
-              >
-                {/* Header */}
-                <View style={styles.cardHeader}>
-                  <View style={styles.cardTitleRow}>
+              return (
+                <View
+                  key={chair.id}
+                  style={[
+                    styles.chairCard,
+                    {
+                      backgroundColor: colors.background.primary,
+                      borderRadius: borderRadius.lg,
+                      marginBottom: spacing.md,
+                      opacity: isUpdating ? 0.7 : 1,
+                      ...shadows.card,
+                    },
+                  ]}
+                  accessible
+                  accessibilityRole="listitem"
+                  accessibilityLabel={`${chair.name}, ${CHAIR_TYPE_LABELS[chair.type]} at ${chair.propertyName}, ${statusStyle.label}, daily rate ${formatPrice(chair.dailyRateCents || 0)}${amenitiesText}${isUpdating ? ', updating' : ''}`}
+                >
+                  {/* Header */}
+                  <View style={styles.cardHeader} aria-hidden>
+                    <View style={styles.cardTitleRow}>
+                      <Text
+                        style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}
+                      >
+                        {chair.name}
+                      </Text>
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          { backgroundColor: statusStyle.bg, borderRadius: borderRadius.pill },
+                        ]}
+                      >
+                        <Text style={[textStyles.caption, { color: statusStyle.text }]}>
+                          {statusStyle.label}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+                      {CHAIR_TYPE_LABELS[chair.type]} • {chair.propertyName}
+                    </Text>
+                  </View>
+
+                  {/* Pricing */}
+                  <View style={[styles.cardSection, { borderTopColor: colors.border.default }]} aria-hidden>
+                    <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                      Daily Rate
+                    </Text>
                     <Text
                       style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}
                     >
-                      {chair.name}
+                      {formatPrice(chair.dailyRateCents || 0)}
                     </Text>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        { backgroundColor: statusStyle.bg, borderRadius: borderRadius.pill },
-                      ]}
-                    >
-                      <Text style={[textStyles.caption, { color: statusStyle.text }]}>
-                        {statusStyle.label}
-                      </Text>
-                    </View>
                   </View>
-                  <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
-                    {CHAIR_TYPE_LABELS[chair.type]} • {chair.propertyName}
-                  </Text>
-                </View>
 
-                {/* Pricing */}
-                <View style={[styles.cardSection, { borderTopColor: colors.border.default }]}>
-                  <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
-                    Daily Rate
-                  </Text>
-                  <Text
-                    style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}
-                  >
-                    {formatPrice(chair.dailyRateCents || 0)}
-                  </Text>
-                </View>
-
-                {/* Amenities */}
-                {chair.amenities && chair.amenities.length > 0 && (
-                  <View style={[styles.cardSection, { borderTopColor: colors.border.default }]}>
-                    <View style={styles.amenitiesRow}>
-                      {chair.amenities.slice(0, 3).map((amenity) => (
-                        <View
-                          key={amenity}
-                          style={[
-                            styles.amenityChip,
-                            {
-                              backgroundColor: colors.background.tertiary,
-                              borderRadius: borderRadius.sm,
-                            },
-                          ]}
-                        >
-                          <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
-                            {amenity}
+                  {/* Amenities */}
+                  {chair.amenities && chair.amenities.length > 0 && (
+                    <View style={[styles.cardSection, { borderTopColor: colors.border.default }]} aria-hidden>
+                      <View style={styles.amenitiesRow}>
+                        {chair.amenities.slice(0, 3).map((amenity) => (
+                          <View
+                            key={amenity}
+                            style={[
+                              styles.amenityChip,
+                              {
+                                backgroundColor: colors.background.tertiary,
+                                borderRadius: borderRadius.sm,
+                              },
+                            ]}
+                          >
+                            <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                              {amenity}
+                            </Text>
+                          </View>
+                        ))}
+                        {chair.amenities.length > 3 && (
+                          <Text style={[textStyles.caption, { color: colors.text.muted }]}>
+                            +{chair.amenities.length - 3}
                           </Text>
-                        </View>
-                      ))}
-                      {chair.amenities.length > 3 && (
-                        <Text style={[textStyles.caption, { color: colors.text.muted }]}>
-                          +{chair.amenities.length - 3}
-                        </Text>
-                      )}
+                        )}
+                      </View>
                     </View>
-                  </View>
-                )}
+                  )}
 
-                {/* Actions */}
-                <View style={[styles.cardActions, { borderTopColor: colors.border.default }]}>
-                  <Pressable style={styles.actionButton} disabled={isUpdating}>
-                    <VlossomSettingsIcon size={16} color={colors.text.secondary} />
-                    <Text
-                      style={[
-                        textStyles.caption,
-                        { color: colors.text.secondary, marginLeft: spacing.xs },
-                      ]}
-                    >
-                      Edit
-                    </Text>
-                  </Pressable>
-                  {chair.status !== 'AVAILABLE' && (
+                  {/* Actions */}
+                  <View style={[styles.cardActions, { borderTopColor: colors.border.default }]}>
                     <Pressable
                       style={styles.actionButton}
-                      onPress={() => handleMarkAvailable(chair.propertyId, chair.id)}
                       disabled={isUpdating}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Edit ${chair.name}`}
+                      accessibilityHint="Double tap to edit chair details"
+                      accessibilityState={{ disabled: isUpdating }}
                     >
-                      {isUpdating ? (
-                        <ActivityIndicator size="small" color={colors.status.success} />
-                      ) : (
-                        <Text style={[textStyles.caption, { color: colors.status.success }]}>
-                          Mark Available
-                        </Text>
-                      )}
+                      <VlossomSettingsIcon size={16} color={colors.text.secondary} />
+                      <Text
+                        style={[
+                          textStyles.caption,
+                          { color: colors.text.secondary, marginLeft: spacing.xs },
+                        ]}
+                        aria-hidden
+                      >
+                        Edit
+                      </Text>
                     </Pressable>
-                  )}
+                    {chair.status !== 'AVAILABLE' && (
+                      <Pressable
+                        style={styles.actionButton}
+                        onPress={() => handleMarkAvailable(chair.propertyId, chair.id)}
+                        disabled={isUpdating}
+                        accessibilityRole="button"
+                        accessibilityLabel={isUpdating ? 'Updating status' : `Mark ${chair.name} as available`}
+                        accessibilityHint={isUpdating ? 'Please wait' : 'Double tap to mark this chair as available'}
+                        accessibilityState={{ disabled: isUpdating }}
+                      >
+                        {isUpdating ? (
+                          <ActivityIndicator size="small" color={colors.status.success} accessibilityLabel="Updating" />
+                        ) : (
+                          <Text style={[textStyles.caption, { color: colors.status.success }]} aria-hidden>
+                            Mark Available
+                          </Text>
+                        )}
+                      </Pressable>
+                    )}
+                  </View>
                 </View>
-              </View>
-            );
-          })
+              );
+            })}
+          </View>
         )}
       </ScrollView>
     </View>

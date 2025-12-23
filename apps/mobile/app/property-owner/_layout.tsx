@@ -1,7 +1,12 @@
 /**
- * Property Owner Stack Layout (V6.5.2)
+ * Property Owner Stack Layout (V7.1)
  *
- * Stack navigation for property owner dashboard screens
+ * Stack navigation for property owner dashboard screens:
+ * - index: Property dashboard
+ * - add-property: Add new property wizard (V7.1)
+ * - chairs: Manage chairs
+ * - requests: Rental requests
+ * - revenue: Revenue analytics
  */
 
 import { Stack } from 'expo-router';
@@ -32,6 +37,13 @@ export default function PropertyOwnerLayout() {
         options={{
           title: 'Property Dashboard',
           headerLargeTitle: true,
+        }}
+      />
+      <Stack.Screen
+        name="add-property"
+        options={{
+          title: 'Add Property',
+          headerShown: false,
         }}
       />
       <Stack.Screen

@@ -8,6 +8,7 @@
  * - Share address/QR
  *
  * V6.10: Added real QR code generation with react-native-qrcode-svg
+ * V7.2.0: Added accessibility labels for screen reader support
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -179,6 +180,15 @@ export default function ReceiveScreen() {
                 ...shadows.elevated,
               },
             ]}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={
+              wallet?.address
+                ? paymentRequest
+                  ? `QR code for payment request of ${parseFloat(amount).toFixed(2)} dollars USDC. Wallet address: ${displayAddress}`
+                  : `QR code for your wallet address: ${displayAddress}`
+                : 'Loading wallet address'
+            }
           >
             {wallet?.address ? (
               <>
@@ -222,7 +232,7 @@ export default function ReceiveScreen() {
               </>
             ) : (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator color={colors.primary} />
+                <ActivityIndicator color={colors.primary} accessibilityLabel="Loading wallet" />
               </View>
             )}
           </View>
@@ -240,6 +250,10 @@ export default function ReceiveScreen() {
             ]}
             onPress={handleCopyAddress}
             disabled={!wallet?.address}
+            accessibilityRole="button"
+            accessibilityLabel={copied ? 'Address copied to clipboard' : 'Copy address to clipboard'}
+            accessibilityState={{ disabled: !wallet?.address }}
+            accessibilityHint="Double tap to copy your wallet address"
           >
             <Text
               style={[
@@ -264,6 +278,10 @@ export default function ReceiveScreen() {
             ]}
             onPress={paymentRequest ? handleShareRequest : handleShareAddress}
             disabled={!wallet?.address}
+            accessibilityRole="button"
+            accessibilityLabel={paymentRequest ? 'Share payment request' : 'Share wallet address'}
+            accessibilityState={{ disabled: !wallet?.address }}
+            accessibilityHint={paymentRequest ? 'Double tap to share payment request link' : 'Double tap to share your wallet address'}
           >
             <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
               Share
@@ -291,6 +309,9 @@ export default function ReceiveScreen() {
                   borderRadius: borderRadius.lg,
                 },
               ]}
+              accessible
+              accessibilityRole="alert"
+              accessibilityLabel={`Payment request created for ${parseFloat(amount).toFixed(2)} dollars USDC${memo ? `. Note: ${memo}` : ''}`}
             >
               <Text style={[textStyles.body, { color: colors.status.success, fontWeight: '600' }]}>
                 Payment Request Created
@@ -314,6 +335,9 @@ export default function ReceiveScreen() {
                   },
                 ]}
                 onPress={handleClearRequest}
+                accessibilityRole="button"
+                accessibilityLabel="Create new payment request"
+                accessibilityHint="Double tap to clear current request and create a new one"
               >
                 <Text style={[textStyles.bodySmall, { color: colors.status.success }]}>
                   Create New Request
@@ -324,7 +348,10 @@ export default function ReceiveScreen() {
         ) : (
           <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
             {/* Amount Input */}
-            <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
+            <Text
+              style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}
+              nativeID="requestAmountLabel"
+            >
               Amount (USDC)
             </Text>
             <View
@@ -338,7 +365,7 @@ export default function ReceiveScreen() {
                 },
               ]}
             >
-              <Text style={[styles.currencyPrefix, { color: colors.text.primary }]}>$</Text>
+              <Text style={[styles.currencyPrefix, { color: colors.text.primary }]} aria-hidden>$</Text>
               <TextInput
                 style={[styles.input, { color: colors.text.primary }]}
                 value={amount}
@@ -346,6 +373,9 @@ export default function ReceiveScreen() {
                 placeholder="0.00"
                 placeholderTextColor={colors.text.muted}
                 keyboardType="decimal-pad"
+                accessibilityLabel="Request amount in dollars"
+                accessibilityLabelledBy="requestAmountLabel"
+                accessibilityHint="Enter the amount you want to request"
               />
             </View>
 
@@ -356,6 +386,7 @@ export default function ReceiveScreen() {
                 styles.label,
                 { color: colors.text.secondary, marginTop: 16 },
               ]}
+              nativeID="requestMemoLabel"
             >
               Note (Optional)
             </Text>
@@ -377,6 +408,9 @@ export default function ReceiveScreen() {
                 placeholder="What's this for?"
                 placeholderTextColor={colors.text.muted}
                 maxLength={100}
+                accessibilityLabel="Note for payment request"
+                accessibilityLabelledBy="requestMemoLabel"
+                accessibilityHint="Optional. Add a note to describe what this payment is for"
               />
             </View>
 
@@ -393,9 +427,19 @@ export default function ReceiveScreen() {
               ]}
               onPress={handleCreateRequest}
               disabled={!amount || isCreatingRequest}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isCreatingRequest
+                  ? 'Creating request'
+                  : amount
+                    ? `Request ${parseFloat(amount).toFixed(2)} dollars`
+                    : 'Enter amount to create request'
+              }
+              accessibilityState={{ disabled: !amount || isCreatingRequest }}
+              accessibilityHint={amount ? 'Double tap to create a payment request QR code' : 'Enter an amount first'}
             >
               {isCreatingRequest ? (
-                <ActivityIndicator color={colors.white} />
+                <ActivityIndicator color={colors.white} accessibilityLabel="Creating" />
               ) : (
                 <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
                   {amount ? `Request $${parseFloat(amount).toFixed(2)}` : 'Enter Amount'}
@@ -406,7 +450,11 @@ export default function ReceiveScreen() {
         )}
 
         {/* Info Note */}
-        <View style={[styles.infoNote, { paddingHorizontal: spacing.lg }]}>
+        <View
+          style={[styles.infoNote, { paddingHorizontal: spacing.lg }]}
+          accessible
+          accessibilityLabel="Important: Only receive USDC on Base network to this address"
+        >
           <VlossomWalletIcon size={16} color={colors.text.muted} />
           <Text style={[textStyles.caption, { color: colors.text.muted, marginLeft: spacing.xs }]}>
             Only receive USDC on Base network to this address

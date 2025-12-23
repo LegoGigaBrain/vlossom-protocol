@@ -1,8 +1,9 @@
 /**
- * Property Owner Requests Screen (V6.10.0)
+ * Property Owner Requests Screen (V7.2.0)
  *
  * Review and manage chair rental requests from stylists.
  * V6.10: Wired to real API with approve/reject actions.
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import { View, Text, StyleSheet, ScrollView, Pressable, Image, RefreshControl, ActivityIndicator, Alert } from 'react-native';
@@ -131,9 +132,14 @@ export default function RequestsScreen() {
   // Loading state
   if (rentalRequestsLoading && rentalRequests.length === 0) {
     return (
-      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]}>
+      <View
+        style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLabel="Loading requests, please wait"
+      >
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading" />
+        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]} aria-hidden>
           Loading requests...
         </Text>
       </View>
@@ -147,6 +153,8 @@ export default function RequestsScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[styles.filterRow, { paddingHorizontal: spacing.lg }]}
+        accessibilityRole="tablist"
+        accessibilityLabel="Filter requests by status"
       >
         {[
           { value: 'PENDING_APPROVAL', label: 'Pending', count: pendingCount },
@@ -155,6 +163,9 @@ export default function RequestsScreen() {
           { value: 'all', label: 'All' },
         ].map((tab) => {
           const isActive = filter === tab.value;
+          const tabLabel = tab.count !== undefined && tab.count > 0
+            ? `${tab.label}, ${tab.count} requests`
+            : tab.label;
           return (
             <Pressable
               key={tab.value}
@@ -167,12 +178,17 @@ export default function RequestsScreen() {
                   marginRight: spacing.sm,
                 },
               ]}
+              accessibilityRole="tab"
+              accessibilityLabel={tabLabel}
+              accessibilityState={{ selected: isActive }}
+              accessibilityHint={isActive ? 'Currently selected' : `Double tap to filter by ${tab.label.toLowerCase()}`}
             >
               <Text
                 style={[
                   textStyles.caption,
                   { color: isActive ? colors.white : colors.text.secondary },
                 ]}
+                aria-hidden
               >
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && ` (${tab.count})`}
@@ -200,8 +216,19 @@ export default function RequestsScreen() {
                 ...shadows.card,
               },
             ]}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={
+              filter === 'PENDING_APPROVAL'
+                ? 'No pending requests'
+                : filter === 'APPROVED'
+                  ? 'No approved requests'
+                  : filter === 'REJECTED'
+                    ? 'No declined requests'
+                    : 'No requests yet'
+            }
           >
-            <Text style={[textStyles.body, { color: colors.text.secondary, textAlign: 'center' }]}>
+            <Text style={[textStyles.body, { color: colors.text.secondary, textAlign: 'center' }]} aria-hidden>
               {filter === 'PENDING_APPROVAL'
                 ? 'No pending requests'
                 : filter === 'APPROVED'
@@ -212,147 +239,171 @@ export default function RequestsScreen() {
             </Text>
           </View>
         ) : (
-          filteredRequests.map((request) => {
-            const isProcessing = decisionLoading === request.id;
+          <View accessibilityRole="list" accessibilityLabel={`${filteredRequests.length} rental requests`}>
+            {filteredRequests.map((request) => {
+              const isProcessing = decisionLoading === request.id;
+              const stylistName = request.stylist?.displayName || 'Unknown Stylist';
+              const chairName = request.chair?.name || 'Unknown';
+              const rentalType = RENTAL_MODE_LABELS[request.rentalMode] || request.rentalMode;
+              const amount = `R ${(request.totalAmountCents / 100).toFixed(2)}`;
+              const statusText = request.status === 'APPROVED' ? 'approved' : request.status === 'REJECTED' ? 'declined' : 'pending';
 
-            return (
-              <View
-                key={request.id}
-                style={[
-                  styles.requestCard,
-                  {
-                    backgroundColor: colors.background.primary,
-                    borderRadius: borderRadius.lg,
-                    marginBottom: spacing.md,
-                    opacity: isProcessing ? 0.7 : 1,
-                    ...shadows.card,
-                  },
-                ]}
-              >
-                {/* Stylist Header */}
-                <View style={[styles.cardHeader, { borderBottomColor: colors.border.default }]}>
-                  <View style={styles.stylistRow}>
-                    {/* Avatar */}
+              return (
+                <View
+                  key={request.id}
+                  style={[
+                    styles.requestCard,
+                    {
+                      backgroundColor: colors.background.primary,
+                      borderRadius: borderRadius.lg,
+                      marginBottom: spacing.md,
+                      opacity: isProcessing ? 0.7 : 1,
+                      ...shadows.card,
+                    },
+                  ]}
+                  accessible
+                  accessibilityRole="listitem"
+                  accessibilityLabel={`${stylistName} requesting ${chairName}, ${rentalType} rental starting ${formatDate(request.startTime)}, ${amount}, ${statusText}${isProcessing ? ', processing' : ''}`}
+                >
+                  {/* Stylist Header */}
+                  <View style={[styles.cardHeader, { borderBottomColor: colors.border.default }]} aria-hidden>
+                    <View style={styles.stylistRow}>
+                      {/* Avatar */}
+                      <View
+                        style={[
+                          styles.avatar,
+                          { backgroundColor: colors.background.tertiary, borderRadius: borderRadius.circle },
+                        ]}
+                      >
+                        {request.stylist?.avatarUrl ? (
+                          <Image
+                            source={{ uri: request.stylist.avatarUrl }}
+                            style={styles.avatarImage}
+                          />
+                        ) : (
+                          <VlossomProfileIcon size={24} color={colors.text.muted} />
+                        )}
+                      </View>
+
+                      {/* Info */}
+                      <View style={styles.stylistInfo}>
+                        <View style={styles.nameRow}>
+                          <Text
+                            style={[
+                              textStyles.bodySmall,
+                              { color: colors.text.primary, fontWeight: '600' },
+                            ]}
+                          >
+                            {request.stylist?.displayName || 'Unknown Stylist'}
+                          </Text>
+                          <VlossomVerifiedIcon size={14} color={colors.primary} />
+                        </View>
+                        <View style={styles.metaRow}>
+                          <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+                            {formatTimeAgo(request.createdAt)}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Request Details */}
+                  <View style={styles.details} aria-hidden>
+                    <View style={styles.detailRow}>
+                      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Chair</Text>
+                      <Text style={[textStyles.caption, { color: colors.text.primary }]}>
+                        {request.chair?.name || 'Unknown'}
+                      </Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Type</Text>
+                      <Text style={[textStyles.caption, { color: colors.text.primary }]}>
+                        {RENTAL_MODE_LABELS[request.rentalMode] || request.rentalMode}
+                      </Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Start</Text>
+                      <Text style={[textStyles.caption, { color: colors.text.primary }]}>
+                        {formatDate(request.startTime)}
+                      </Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Amount</Text>
+                      <Text style={[textStyles.caption, { color: colors.primary, fontWeight: '600' }]}>
+                        {amount}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Actions */}
+                  {request.status === 'PENDING_APPROVAL' && (
+                    <View style={[styles.actions, { borderTopColor: colors.border.default }]}>
+                      <Pressable
+                        style={[
+                          styles.actionButton,
+                          styles.declineButton,
+                          { borderColor: colors.border.default, borderRadius: borderRadius.md },
+                        ]}
+                        onPress={() => handleReject(request.id)}
+                        disabled={isProcessing}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Decline request from ${stylistName}`}
+                        accessibilityHint="Double tap to decline this rental request"
+                        accessibilityState={{ disabled: isProcessing }}
+                      >
+                        {isProcessing ? (
+                          <ActivityIndicator size="small" color={colors.text.secondary} accessibilityLabel="Processing" />
+                        ) : (
+                          <Text style={[textStyles.button, { color: colors.text.secondary }]} aria-hidden>Decline</Text>
+                        )}
+                      </Pressable>
+                      <Pressable
+                        style={[
+                          styles.actionButton,
+                          styles.approveButton,
+                          { backgroundColor: colors.primary, borderRadius: borderRadius.md },
+                        ]}
+                        onPress={() => handleApprove(request.id)}
+                        disabled={isProcessing}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Approve request from ${stylistName}`}
+                        accessibilityHint="Double tap to approve this rental request"
+                        accessibilityState={{ disabled: isProcessing }}
+                      >
+                        {isProcessing ? (
+                          <ActivityIndicator size="small" color={colors.white} accessibilityLabel="Processing" />
+                        ) : (
+                          <Text style={[textStyles.button, { color: colors.white }]} aria-hidden>Approve</Text>
+                        )}
+                      </Pressable>
+                    </View>
+                  )}
+
+                  {request.status === 'APPROVED' && (
                     <View
-                      style={[
-                        styles.avatar,
-                        { backgroundColor: colors.background.tertiary, borderRadius: borderRadius.circle },
-                      ]}
+                      style={[styles.statusBar, { backgroundColor: colors.status.success + '20' }]}
+                      aria-hidden
                     >
-                      {request.stylist?.avatarUrl ? (
-                        <Image
-                          source={{ uri: request.stylist.avatarUrl }}
-                          style={styles.avatarImage}
-                        />
-                      ) : (
-                        <VlossomProfileIcon size={24} color={colors.text.muted} />
-                      )}
+                      <Text style={[textStyles.caption, { color: colors.status.success }]}>
+                        ✓ Approved
+                      </Text>
                     </View>
+                  )}
 
-                    {/* Info */}
-                    <View style={styles.stylistInfo}>
-                      <View style={styles.nameRow}>
-                        <Text
-                          style={[
-                            textStyles.bodySmall,
-                            { color: colors.text.primary, fontWeight: '600' },
-                          ]}
-                        >
-                          {request.stylist?.displayName || 'Unknown Stylist'}
-                        </Text>
-                        <VlossomVerifiedIcon size={14} color={colors.primary} />
-                      </View>
-                      <View style={styles.metaRow}>
-                        <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
-                          {formatTimeAgo(request.createdAt)}
-                        </Text>
-                      </View>
+                  {request.status === 'REJECTED' && (
+                    <View
+                      style={[styles.statusBar, { backgroundColor: colors.status.error + '20' }]}
+                      aria-hidden
+                    >
+                      <Text style={[textStyles.caption, { color: colors.status.error }]}>
+                        ✗ Declined
+                      </Text>
                     </View>
-                  </View>
+                  )}
                 </View>
-
-                {/* Request Details */}
-                <View style={styles.details}>
-                  <View style={styles.detailRow}>
-                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Chair</Text>
-                    <Text style={[textStyles.caption, { color: colors.text.primary }]}>
-                      {request.chair?.name || 'Unknown'}
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Type</Text>
-                    <Text style={[textStyles.caption, { color: colors.text.primary }]}>
-                      {RENTAL_MODE_LABELS[request.rentalMode] || request.rentalMode}
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Start</Text>
-                    <Text style={[textStyles.caption, { color: colors.text.primary }]}>
-                      {formatDate(request.startTime)}
-                    </Text>
-                  </View>
-                  <View style={styles.detailRow}>
-                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Amount</Text>
-                    <Text style={[textStyles.caption, { color: colors.primary, fontWeight: '600' }]}>
-                      R {(request.totalAmountCents / 100).toFixed(2)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Actions */}
-                {request.status === 'PENDING_APPROVAL' && (
-                  <View style={[styles.actions, { borderTopColor: colors.border.default }]}>
-                    <Pressable
-                      style={[
-                        styles.actionButton,
-                        styles.declineButton,
-                        { borderColor: colors.border.default, borderRadius: borderRadius.md },
-                      ]}
-                      onPress={() => handleReject(request.id)}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? (
-                        <ActivityIndicator size="small" color={colors.text.secondary} />
-                      ) : (
-                        <Text style={[textStyles.button, { color: colors.text.secondary }]}>Decline</Text>
-                      )}
-                    </Pressable>
-                    <Pressable
-                      style={[
-                        styles.actionButton,
-                        styles.approveButton,
-                        { backgroundColor: colors.primary, borderRadius: borderRadius.md },
-                      ]}
-                      onPress={() => handleApprove(request.id)}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? (
-                        <ActivityIndicator size="small" color={colors.white} />
-                      ) : (
-                        <Text style={[textStyles.button, { color: colors.white }]}>Approve</Text>
-                      )}
-                    </Pressable>
-                  </View>
-                )}
-
-                {request.status === 'APPROVED' && (
-                  <View style={[styles.statusBar, { backgroundColor: colors.status.success + '20' }]}>
-                    <Text style={[textStyles.caption, { color: colors.status.success }]}>
-                      ✓ Approved
-                    </Text>
-                  </View>
-                )}
-
-                {request.status === 'REJECTED' && (
-                  <View style={[styles.statusBar, { backgroundColor: colors.status.error + '20' }]}>
-                    <Text style={[textStyles.caption, { color: colors.status.error }]}>
-                      ✗ Declined
-                    </Text>
-                  </View>
-                )}
-              </View>
-            );
-          })
+              );
+            })}
+          </View>
         )}
       </ScrollView>
     </View>

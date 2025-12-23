@@ -1,8 +1,9 @@
 /**
- * Wallet Tab - Financial Hub (V6.8.0)
+ * Wallet Tab - Financial Hub (V7.1.0)
  *
  * Purpose: Balance, transactions, fund/withdraw, send/receive
- * Connected to wallet store for real data
+ * Connected to wallet store for real data.
+ * V7.1: Added navigation to History, Rewards, and DeFi sub-screens
  */
 
 import { useEffect, useCallback } from 'react';
@@ -22,6 +23,8 @@ import {
   VlossomAddIcon,
   VlossomSettingsIcon,
   VlossomWalletIcon,
+  VlossomGrowthIcon,
+  VlossomFavoriteIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { useWalletStore } from '../../src/stores/wallet';
 import { useDemoModeStore, selectIsDemoMode } from '../../src/stores/demo-mode';
@@ -71,9 +74,9 @@ export default function WalletScreen() {
   const handleReceive = () => router.push('/wallet/receive');
   const handleFund = () => router.push('/wallet/fund');
   const handleWithdraw = () => router.push('/wallet/withdraw');
-  const handleViewAllTransactions = () => {
-    // TODO: Navigate to full transaction history
-  };
+  const handleViewAllTransactions = () => router.push('/wallet/history');
+  const handleRewards = () => router.push('/wallet/rewards');
+  const handleDefi = () => router.push('/wallet/defi');
 
   return (
     <ScrollView
@@ -90,7 +93,11 @@ export default function WalletScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.lg }]}>
         <Text style={[textStyles.h2, { color: colors.text.primary }]}>Wallet</Text>
-        <Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Wallet settings"
+          accessibilityHint="Opens wallet settings"
+        >
           <VlossomSettingsIcon size={24} color={colors.text.secondary} />
         </Pressable>
       </View>
@@ -101,7 +108,12 @@ export default function WalletScreen() {
           <Text style={[textStyles.bodySmall, { color: colors.status.error }]}>
             {walletError}
           </Text>
-          <Pressable onPress={fetchWallet}>
+          <Pressable
+            onPress={fetchWallet}
+            accessibilityRole="button"
+            accessibilityLabel="Retry loading wallet"
+            accessibilityHint="Attempts to reload wallet data"
+          >
             <Text style={[textStyles.bodySmall, { color: colors.primary }]}>Retry</Text>
           </Pressable>
         </View>
@@ -197,12 +209,74 @@ export default function WalletScreen() {
         </View>
       )}
 
+      {/* Quick Access Cards - Rewards & DeFi */}
+      <View style={[styles.quickAccessSection, { paddingHorizontal: spacing.lg }]}>
+        <Pressable
+          style={[
+            styles.quickAccessCard,
+            {
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.lg,
+            },
+          ]}
+          onPress={handleRewards}
+          accessibilityRole="button"
+          accessibilityLabel="Rewards: XP, badges and streaks"
+          accessibilityHint="View your rewards, XP progress, and earned badges"
+        >
+          <View style={[styles.quickAccessIcon, { backgroundColor: colors.status.successLight }]}>
+            <VlossomFavoriteIcon size={24} color={colors.status.success} />
+          </View>
+          <View style={styles.quickAccessContent}>
+            <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+              Rewards
+            </Text>
+            <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+              XP, badges & streaks
+            </Text>
+          </View>
+          <Text style={[textStyles.caption, { color: colors.primary }]}>→</Text>
+        </Pressable>
+
+        <Pressable
+          style={[
+            styles.quickAccessCard,
+            {
+              backgroundColor: colors.background.secondary,
+              borderRadius: borderRadius.lg,
+            },
+          ]}
+          onPress={handleDefi}
+          accessibilityRole="button"
+          accessibilityLabel="DeFi Staking: Earn yield on USDC"
+          accessibilityHint="View staking options and earn yield on your USDC"
+        >
+          <View style={[styles.quickAccessIcon, { backgroundColor: colors.primary + '20' }]}>
+            <VlossomGrowthIcon size={24} color={colors.primary} />
+          </View>
+          <View style={styles.quickAccessContent}>
+            <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+              DeFi Staking
+            </Text>
+            <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+              Earn yield on USDC
+            </Text>
+          </View>
+          <Text style={[textStyles.caption, { color: colors.primary }]}>→</Text>
+        </Pressable>
+      </View>
+
       {/* Transactions */}
       <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
         <View style={styles.sectionHeader}>
           <Text style={[textStyles.h3, { color: colors.text.primary }]}>Recent Activity</Text>
           {transactions.length > 0 && (
-            <Pressable onPress={handleViewAllTransactions}>
+            <Pressable
+              onPress={handleViewAllTransactions}
+              accessibilityRole="link"
+              accessibilityLabel="View all transactions"
+              accessibilityHint="Opens full transaction history"
+            >
               <Text style={[textStyles.bodySmall, { color: colors.primary }]}>View All</Text>
             </Pressable>
           )}
@@ -256,6 +330,11 @@ interface BalanceButtonProps {
 }
 
 function BalanceButton({ label, onPress, colors, borderRadius, spacing }: BalanceButtonProps) {
+  const hintText = label === 'Send' ? 'Send funds to another wallet'
+    : label === 'Receive' ? 'Get your wallet address to receive funds'
+    : label === 'Fund' ? 'Add funds to your wallet'
+    : 'Withdraw funds from your wallet';
+
   return (
     <Pressable
       style={[
@@ -266,6 +345,9 @@ function BalanceButton({ label, onPress, colors, borderRadius, spacing }: Balanc
         },
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={hintText}
     >
       <VlossomAddIcon size={20} color={colors.white} />
       <Text style={[textStyles.caption, { color: colors.white, marginTop: spacing.xs }]}>
@@ -431,5 +513,27 @@ const styles = StyleSheet.create({
   },
   transactionRight: {
     alignItems: 'flex-end',
+  },
+  quickAccessSection: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  quickAccessCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  quickAccessIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickAccessContent: {
+    flex: 1,
+    marginLeft: 12,
   },
 });

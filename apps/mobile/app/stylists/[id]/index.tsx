@@ -1,11 +1,14 @@
 /**
- * Stylist Detail Screen (V6.8.0)
+ * Stylist Detail Screen (V7.2.0)
  *
  * Full profile view with:
  * - Cover image and avatar
+ * - TPS/Reputation breakdown
  * - Services list with pricing
  * - Portfolio gallery
  * - Message and Book action buttons
+ *
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import {
@@ -30,6 +33,7 @@ import {
 } from '../../../src/components/icons/VlossomIcons';
 import { useEffect, useState } from 'react';
 import { useStylistsStore, selectSelectedStylist } from '../../../src/stores';
+import { useDemoModeStore, selectIsDemoMode } from '../../../src/stores/demo-mode';
 import {
   formatPrice,
   formatDistance,
@@ -37,6 +41,8 @@ import {
   getPinColor,
   type StylistService,
 } from '../../../src/api/stylists';
+import { TPSBreakdown, type ReputationScoreData } from '../../../src/components/ui/TPSBreakdown';
+import { MOCK_STYLIST_REPUTATION } from '../../../src/data/mock-data';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PORTFOLIO_ITEM_SIZE = (SCREEN_WIDTH - 48 - 8) / 3; // 3 columns with gaps
@@ -53,6 +59,23 @@ export default function StylistDetailScreen() {
 
   // Local state
   const [activeTab, setActiveTab] = useState<'services' | 'portfolio'>('services');
+
+  // Demo mode for mock reputation data
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+
+  // Mock reputation data for demo mode (TODO: fetch from API when real endpoint available)
+  const reputationScore: ReputationScoreData = isDemoMode
+    ? MOCK_STYLIST_REPUTATION
+    : {
+        totalScore: 8500,
+        tpsScore: 8800,
+        reliabilityScore: 8200,
+        feedbackScore: 8500,
+        disputeScore: 9000,
+        completedBookings: 32,
+        cancelledBookings: 2,
+        isVerified: true,
+      };
 
   // Fetch stylist on mount
   useEffect(() => {
@@ -86,9 +109,15 @@ export default function StylistDetailScreen() {
   // Loading state
   if (selectedStylistLoading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background.primary }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.md }]}>
+      <View
+        style={[styles.loadingContainer, { backgroundColor: colors.background.primary }]}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLabel="Loading stylist profile"
+        accessibilityLiveRegion="polite"
+      >
+        <ActivityIndicator size="large" color={colors.primary} accessibilityElementsHidden />
+        <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.md }]} aria-hidden>
           Loading stylist...
         </Text>
       </View>
@@ -98,16 +127,25 @@ export default function StylistDetailScreen() {
   // Not found state
   if (!stylist) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: colors.background.primary }]}>
-        <Text style={[textStyles.h3, { color: colors.text.primary }]}>Stylist not found</Text>
+      <View
+        style={[styles.errorContainer, { backgroundColor: colors.background.primary }]}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLabel="Stylist not found"
+        accessibilityLiveRegion="assertive"
+      >
+        <Text style={[textStyles.h3, { color: colors.text.primary }]} aria-hidden>Stylist not found</Text>
         <Pressable
           onPress={handleBack}
           style={[
             styles.backButton,
             { backgroundColor: colors.primary, borderRadius: borderRadius.md },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel="Go Back"
+          accessibilityHint="Returns to previous screen"
         >
-          <Text style={[textStyles.body, { color: colors.white }]}>Go Back</Text>
+          <Text style={[textStyles.body, { color: colors.white }]} aria-hidden>Go Back</Text>
         </Pressable>
       </View>
     );
@@ -140,6 +178,9 @@ export default function StylistDetailScreen() {
                 borderRadius: borderRadius.pill,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            accessibilityHint="Returns to previous screen"
           >
             <VlossomBackIcon size={24} color={colors.white} />
           </Pressable>
@@ -155,6 +196,9 @@ export default function StylistDetailScreen() {
                 borderRadius: borderRadius.pill,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel="Add to favorites"
+            accessibilityHint="Saves this stylist to your favorites"
           >
             <VlossomFavoriteIcon size={24} color={colors.white} />
           </Pressable>
@@ -188,12 +232,20 @@ export default function StylistDetailScreen() {
 
         {/* Profile Info */}
         <View style={[styles.profileSection, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.h2, { color: colors.text.primary, textAlign: 'center' }]}>
+          <Text
+            style={[textStyles.h2, { color: colors.text.primary, textAlign: 'center' }]}
+            accessibilityRole="header"
+          >
             {stylist.displayName}
           </Text>
 
           {/* Operating Mode Badge */}
-          <View style={styles.badgesRow}>
+          <View
+            style={styles.badgesRow}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`${getOperatingModeLabel(stylist.operatingMode)}${stylist.verificationStatus === 'VERIFIED' ? ', Verified stylist' : ''}`}
+          >
             <View
               style={[
                 styles.modeBadge,
@@ -204,6 +256,7 @@ export default function StylistDetailScreen() {
                   paddingVertical: spacing.xs,
                 },
               ]}
+              aria-hidden
             >
               <Text style={[textStyles.bodySmall, { color: operatingModeColor }]}>
                 {getOperatingModeLabel(stylist.operatingMode)}
@@ -221,6 +274,7 @@ export default function StylistDetailScreen() {
                     marginLeft: spacing.sm,
                   },
                 ]}
+                aria-hidden
               >
                 <Text style={[textStyles.bodySmall, { color: colors.tertiary }]}>Verified</Text>
               </View>
@@ -234,6 +288,7 @@ export default function StylistDetailScreen() {
                 textStyles.body,
                 { color: colors.text.secondary, textAlign: 'center', marginTop: spacing.sm },
               ]}
+              accessibilityLabel={`Specialties: ${stylist.specialties.join(', ')}`}
             >
               {stylist.specialties.join(' · ')}
             </Text>
@@ -246,6 +301,7 @@ export default function StylistDetailScreen() {
                 textStyles.body,
                 { color: colors.text.tertiary, textAlign: 'center', marginTop: spacing.md },
               ]}
+              accessibilityLabel={`About: ${stylist.bio}`}
             >
               {stylist.bio}
             </Text>
@@ -253,9 +309,14 @@ export default function StylistDetailScreen() {
 
           {/* Location & Distance */}
           {stylist.baseLocation && (
-            <View style={[styles.locationRow, { marginTop: spacing.md }]}>
+            <View
+              style={[styles.locationRow, { marginTop: spacing.md }]}
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel={`Location: ${stylist.baseLocation.address || 'Location available'}${stylist.distance !== null ? `, ${formatDistance(stylist.distance)} away` : ''}`}
+            >
               <VlossomLocationIcon size={16} color={colors.text.tertiary} />
-              <Text style={[textStyles.bodySmall, { color: colors.text.tertiary, marginLeft: spacing.xs }]}>
+              <Text style={[textStyles.bodySmall, { color: colors.text.tertiary, marginLeft: spacing.xs }]} aria-hidden>
                 {stylist.baseLocation.address || 'Location available'}
                 {stylist.distance !== null && ` · ${formatDistance(stylist.distance)}`}
               </Text>
@@ -263,16 +324,30 @@ export default function StylistDetailScreen() {
           )}
 
           {/* Member Since */}
-          <View style={[styles.memberSinceRow, { marginTop: spacing.sm }]}>
+          <View
+            style={[styles.memberSinceRow, { marginTop: spacing.sm }]}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Member since ${new Date(stylist.memberSince).toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })}`}
+          >
             <VlossomCalendarIcon size={16} color={colors.text.muted} />
-            <Text style={[textStyles.caption, { color: colors.text.muted, marginLeft: spacing.xs }]}>
+            <Text style={[textStyles.caption, { color: colors.text.muted, marginLeft: spacing.xs }]} aria-hidden>
               Member since {new Date(stylist.memberSince).toLocaleDateString('en-ZA', { month: 'long', year: 'numeric' })}
             </Text>
           </View>
         </View>
 
+        {/* TPS / Reputation Breakdown */}
+        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
+          <TPSBreakdown score={reputationScore} variant="compact" />
+        </View>
+
         {/* Tabs */}
-        <View style={[styles.tabsContainer, { borderBottomColor: colors.border.default }]}>
+        <View
+          style={[styles.tabsContainer, { borderBottomColor: colors.border.default }]}
+          accessibilityRole="tablist"
+          accessibilityLabel="Profile sections"
+        >
           <Pressable
             onPress={() => setActiveTab('services')}
             style={[
@@ -282,6 +357,10 @@ export default function StylistDetailScreen() {
                 borderBottomColor: colors.primary,
               },
             ]}
+            accessibilityRole="tab"
+            accessibilityLabel={`Services, ${stylist.services.length} available`}
+            accessibilityState={{ selected: activeTab === 'services' }}
+            accessibilityHint={activeTab === 'services' ? 'Currently selected' : 'Double tap to view services'}
           >
             <Text
               style={[
@@ -291,6 +370,7 @@ export default function StylistDetailScreen() {
                   fontWeight: activeTab === 'services' ? '600' : '400',
                 },
               ]}
+              aria-hidden
             >
               Services ({stylist.services.length})
             </Text>
@@ -304,6 +384,10 @@ export default function StylistDetailScreen() {
                 borderBottomColor: colors.primary,
               },
             ]}
+            accessibilityRole="tab"
+            accessibilityLabel={`Portfolio, ${stylist.portfolioImages.length} images`}
+            accessibilityState={{ selected: activeTab === 'portfolio' }}
+            accessibilityHint={activeTab === 'portfolio' ? 'Currently selected' : 'Double tap to view portfolio'}
           >
             <Text
               style={[
@@ -313,6 +397,7 @@ export default function StylistDetailScreen() {
                   fontWeight: activeTab === 'portfolio' ? '600' : '400',
                 },
               ]}
+              aria-hidden
             >
               Portfolio ({stylist.portfolioImages.length})
             </Text>
@@ -366,8 +451,11 @@ export default function StylistDetailScreen() {
               borderRadius: borderRadius.lg,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={`Message ${stylist.displayName}`}
+          accessibilityHint="Opens conversation with this stylist"
         >
-          <Text style={[textStyles.body, { color: colors.primary, fontWeight: '600' }]}>
+          <Text style={[textStyles.body, { color: colors.primary, fontWeight: '600' }]} aria-hidden>
             Message
           </Text>
         </Pressable>
@@ -382,8 +470,12 @@ export default function StylistDetailScreen() {
             },
           ]}
           disabled={!stylist.isAcceptingBookings}
+          accessibilityRole="button"
+          accessibilityLabel={stylist.isAcceptingBookings ? `Book ${stylist.displayName}` : 'Stylist not available for booking'}
+          accessibilityState={{ disabled: !stylist.isAcceptingBookings }}
+          accessibilityHint={stylist.isAcceptingBookings ? 'Opens booking flow' : 'This stylist is currently not accepting bookings'}
         >
-          <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
+          <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]} aria-hidden>
             {stylist.isAcceptingBookings ? 'Book Now' : 'Not Available'}
           </Text>
         </Pressable>
@@ -404,8 +496,13 @@ interface ServicesTabProps {
 function ServicesTab({ services, colors, spacing, borderRadius, shadows }: ServicesTabProps) {
   if (services.length === 0) {
     return (
-      <View style={[styles.emptyTab, { backgroundColor: colors.background.secondary, borderRadius: borderRadius.lg }]}>
-        <Text style={[textStyles.body, { color: colors.text.tertiary }]}>
+      <View
+        style={[styles.emptyTab, { backgroundColor: colors.background.secondary, borderRadius: borderRadius.lg }]}
+        accessible
+        accessibilityRole="text"
+        accessibilityLabel="No services listed yet"
+      >
+        <Text style={[textStyles.body, { color: colors.text.tertiary }]} aria-hidden>
           No services listed yet
         </Text>
       </View>
@@ -413,62 +510,70 @@ function ServicesTab({ services, colors, spacing, borderRadius, shadows }: Servi
   }
 
   return (
-    <View style={styles.servicesContainer}>
-      {services.map((service) => (
-        <View
-          key={service.id}
-          style={[
-            styles.serviceCard,
-            {
-              backgroundColor: colors.background.primary,
-              borderRadius: borderRadius.lg,
-              marginBottom: spacing.md,
-              ...shadows.card,
-            },
-          ]}
-        >
-          <View style={styles.serviceHeader}>
-            <View style={styles.serviceInfo}>
-              <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
-                {service.name}
-              </Text>
-              <View
-                style={[
-                  styles.categoryBadge,
-                  {
-                    backgroundColor: colors.surface.light,
-                    borderRadius: borderRadius.sm,
-                    paddingHorizontal: spacing.xs,
-                    marginTop: spacing.xs,
-                  },
-                ]}
-              >
-                <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
-                  {service.category}
+    <View style={styles.servicesContainer} accessibilityRole="list" accessibilityLabel="Services offered">
+      {services.map((service) => {
+        const serviceLabel = `${service.name}, ${service.category}, ${formatPrice(service.priceAmountCents)}, ${service.estimatedDurationMin} minutes${service.description ? `. ${service.description}` : ''}`;
+
+        return (
+          <View
+            key={service.id}
+            style={[
+              styles.serviceCard,
+              {
+                backgroundColor: colors.background.primary,
+                borderRadius: borderRadius.lg,
+                marginBottom: spacing.md,
+                ...shadows.card,
+              },
+            ]}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={serviceLabel}
+          >
+            <View style={styles.serviceHeader} aria-hidden>
+              <View style={styles.serviceInfo}>
+                <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+                  {service.name}
+                </Text>
+                <View
+                  style={[
+                    styles.categoryBadge,
+                    {
+                      backgroundColor: colors.surface.light,
+                      borderRadius: borderRadius.sm,
+                      paddingHorizontal: spacing.xs,
+                      marginTop: spacing.xs,
+                    },
+                  ]}
+                >
+                  <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                    {service.category}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.servicePricing}>
+                <Text style={[textStyles.body, { color: colors.primary, fontWeight: '600' }]}>
+                  {formatPrice(service.priceAmountCents)}
+                </Text>
+                <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+                  {service.estimatedDurationMin} min
                 </Text>
               </View>
             </View>
-            <View style={styles.servicePricing}>
-              <Text style={[textStyles.body, { color: colors.primary, fontWeight: '600' }]}>
-                {formatPrice(service.priceAmountCents)}
+            {service.description && (
+              <Text
+                style={[
+                  textStyles.bodySmall,
+                  { color: colors.text.tertiary, marginTop: spacing.sm },
+                ]}
+                aria-hidden
+              >
+                {service.description}
               </Text>
-              <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
-                {service.estimatedDurationMin} min
-              </Text>
-            </View>
+            )}
           </View>
-          {service.description && (
-            <Text
-              style={[
-                textStyles.bodySmall,
-                { color: colors.text.tertiary, marginTop: spacing.sm },
-              ]}
-            >
-              {service.description}
-            </Text>
-          )}
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -484,8 +589,13 @@ interface PortfolioTabProps {
 function PortfolioTab({ images, colors, spacing, borderRadius }: PortfolioTabProps) {
   if (images.length === 0) {
     return (
-      <View style={[styles.emptyTab, { backgroundColor: colors.background.secondary, borderRadius: borderRadius.lg }]}>
-        <Text style={[textStyles.body, { color: colors.text.tertiary }]}>
+      <View
+        style={[styles.emptyTab, { backgroundColor: colors.background.secondary, borderRadius: borderRadius.lg }]}
+        accessible
+        accessibilityRole="text"
+        accessibilityLabel="No portfolio images yet"
+      >
+        <Text style={[textStyles.body, { color: colors.text.tertiary }]} aria-hidden>
           No portfolio images yet
         </Text>
       </View>
@@ -493,9 +603,19 @@ function PortfolioTab({ images, colors, spacing, borderRadius }: PortfolioTabPro
   }
 
   return (
-    <View style={styles.portfolioGrid}>
+    <View
+      style={styles.portfolioGrid}
+      accessibilityRole="list"
+      accessibilityLabel={`Portfolio gallery, ${images.length} images`}
+    >
       {images.map((uri, index) => (
-        <Pressable key={index} style={styles.portfolioItem}>
+        <Pressable
+          key={index}
+          style={styles.portfolioItem}
+          accessibilityRole="image"
+          accessibilityLabel={`Portfolio image ${index + 1} of ${images.length}`}
+          accessibilityHint="Double tap to view full size"
+        >
           <Image
             source={{ uri }}
             style={[

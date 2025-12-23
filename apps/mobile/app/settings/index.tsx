@@ -1,16 +1,19 @@
 /**
- * Settings Screen (V7.0.0)
+ * Settings Screen (V7.2.0)
  *
  * App settings with sections:
  * - Account: Edit Profile, Change Password
+ * - Partner Programs: Become a Stylist, List a Property (V7.1)
  * - Preferences: Currency, Theme, Demo Mode
  * - Notifications: Toggle by type
  * - Security: Biometric Login
  * - Support: Help Center, Contact Us
  * - About: Version, Terms, Privacy
+ *
+ * Accessibility: Full screen reader support with semantic roles
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -20,6 +23,7 @@ import {
   Switch,
   Alert,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -30,10 +34,14 @@ import {
   VlossomProfileIcon,
   VlossomNotificationsIcon,
   VlossomWalletIcon,
+  VlossomHomeIcon,
+  VlossomCalendarIcon,
 } from '../../src/components/icons/VlossomIcons';
 import {
   useAuthStore,
   selectUser,
+  selectUserRoles,
+  selectAddRoleLoading,
   useDemoModeStore,
   selectIsDemoMode,
 } from '../../src/stores';
@@ -46,9 +54,15 @@ export default function SettingsScreen() {
 
   // Store state
   const user = useAuthStore(selectUser);
-  const { logout } = useAuthStore();
+  const userRoles = useAuthStore(selectUserRoles);
+  const addRoleLoading = useAuthStore(selectAddRoleLoading);
+  const { logout, addRole } = useAuthStore();
   const isDemoMode = useDemoModeStore(selectIsDemoMode);
   const { toggleDemoMode } = useDemoModeStore();
+
+  // Check current roles
+  const isStylist = userRoles.includes('STYLIST');
+  const isPropertyOwner = userRoles.includes('PROPERTY_OWNER');
 
   // Local state for toggles
   const [notifications, setNotifications] = useState({
@@ -63,13 +77,69 @@ export default function SettingsScreen() {
   };
 
   const handleEditProfile = () => {
-    // TODO: Navigate to edit profile screen
-    Alert.alert('Coming Soon', 'Edit profile functionality will be available soon.');
+    router.push('/settings/edit-profile');
   };
 
   const handleChangePassword = () => {
-    // TODO: Navigate to change password screen
-    Alert.alert('Coming Soon', 'Change password functionality will be available soon.');
+    router.push('/settings/change-password');
+  };
+
+  const handleBecomeStylist = async () => {
+    Alert.alert(
+      'Become a Stylist',
+      'Join Vlossom as a professional stylist to offer your services to clients.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Get Started',
+          onPress: async () => {
+            const success = await addRole('STYLIST');
+            if (success) {
+              Alert.alert(
+                'Welcome, Stylist!',
+                'Your stylist role has been added. Set up your profile to start receiving bookings.',
+                [
+                  {
+                    text: 'Set Up Profile',
+                    onPress: () => router.push('/stylist/onboarding'),
+                  },
+                  { text: 'Later', style: 'cancel' },
+                ]
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleBecomePropertyOwner = async () => {
+    Alert.alert(
+      'List Your Space',
+      'List your salon or beauty space on Vlossom to rent chairs to stylists.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Get Started',
+          onPress: async () => {
+            const success = await addRole('PROPERTY_OWNER');
+            if (success) {
+              Alert.alert(
+                'Welcome, Property Owner!',
+                'Your property owner role has been added. Add your first property to start receiving rental requests.',
+                [
+                  {
+                    text: 'Add Property',
+                    onPress: () => router.push('/property-owner/add-property'),
+                  },
+                  { text: 'Later', style: 'cancel' },
+                ]
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleCurrency = () => {
@@ -146,10 +216,21 @@ export default function SettingsScreen() {
           },
         ]}
       >
-        <Pressable onPress={handleBack} style={styles.backButton}>
+        <Pressable
+          onPress={handleBack}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Returns to the previous screen"
+        >
           <VlossomBackIcon size={24} color={colors.text.primary} />
         </Pressable>
-        <Text style={[textStyles.h3, { color: colors.text.primary }]}>Settings</Text>
+        <Text
+          style={[textStyles.h3, { color: colors.text.primary }]}
+          accessibilityRole="header"
+        >
+          Settings
+        </Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -160,7 +241,10 @@ export default function SettingsScreen() {
       >
         {/* Account Section */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}>
+          <Text
+            style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}
+            accessibilityRole="header"
+          >
             Account
           </Text>
           <View
@@ -191,9 +275,89 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Partner Programs Section (V7.1) */}
+        {(!isStylist || !isPropertyOwner) && (
+          <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
+            <Text
+              style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}
+              accessibilityRole="header"
+            >
+              Partner Programs
+            </Text>
+            <View
+              style={[
+                styles.sectionCard,
+                {
+                  backgroundColor: colors.background.primary,
+                  borderRadius: borderRadius.lg,
+                  ...shadows.card,
+                },
+              ]}
+            >
+              {!isStylist && (
+                <>
+                  <SettingsRow
+                    icon={<VlossomCalendarIcon size={20} color={colors.primary} />}
+                    title="Become a Stylist"
+                    subtitle="Offer your services on Vlossom"
+                    onPress={handleBecomeStylist}
+                    rightElement={
+                      addRoleLoading ? (
+                        <ActivityIndicator size="small" color={colors.primary} accessibilityLabel="Loading" />
+                      ) : undefined
+                    }
+                    colors={colors}
+                    spacing={spacing}
+                    accessibilityHint="Double tap to start the stylist registration process"
+                  />
+                  {!isPropertyOwner && (
+                    <View style={[styles.rowDivider, { backgroundColor: colors.border.default }]} />
+                  )}
+                </>
+              )}
+              {!isPropertyOwner && (
+                <SettingsRow
+                  icon={<VlossomHomeIcon size={20} color={colors.primary} />}
+                  title="List Your Space"
+                  subtitle="Rent chairs to stylists at your salon"
+                  onPress={handleBecomePropertyOwner}
+                  rightElement={
+                    addRoleLoading ? (
+                      <ActivityIndicator size="small" color={colors.primary} accessibilityLabel="Loading" />
+                    ) : undefined
+                  }
+                  colors={colors}
+                  spacing={spacing}
+                  accessibilityHint="Double tap to start listing your property"
+                />
+              )}
+            </View>
+            <View
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel="You can have multiple roles. Your customer account remains active."
+              style={[
+                styles.partnerNote,
+                {
+                  backgroundColor: colors.primary + '10',
+                  borderRadius: borderRadius.md,
+                  marginTop: spacing.sm,
+                },
+              ]}
+            >
+              <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                You can have multiple roles. Your customer account remains active.
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Preferences Section */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}>
+          <Text
+            style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}
+            accessibilityRole="header"
+          >
             Preferences
           </Text>
           <View
@@ -240,6 +404,10 @@ export default function SettingsScreen() {
           </View>
           {isDemoMode && (
             <View
+              accessible
+              accessibilityRole="alert"
+              accessibilityLabel="Demo mode is enabled. You'll see sample data instead of real API data."
+              accessibilityLiveRegion="polite"
               style={[
                 styles.demoModeNote,
                 {
@@ -258,7 +426,10 @@ export default function SettingsScreen() {
 
         {/* Notifications Section */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}>
+          <Text
+            style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}
+            accessibilityRole="header"
+          >
             Notifications
           </Text>
           <View
@@ -321,7 +492,10 @@ export default function SettingsScreen() {
 
         {/* Security Section */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}>
+          <Text
+            style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}
+            accessibilityRole="header"
+          >
             Security
           </Text>
           <View
@@ -353,7 +527,10 @@ export default function SettingsScreen() {
 
         {/* Support Section */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}>
+          <Text
+            style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}
+            accessibilityRole="header"
+          >
             Support
           </Text>
           <View
@@ -371,6 +548,7 @@ export default function SettingsScreen() {
               onPress={handleHelpCenter}
               colors={colors}
               spacing={spacing}
+              accessibilityHint="Opens the help center in your browser"
             />
             <View style={[styles.rowDivider, { backgroundColor: colors.border.default }]} />
             <SettingsRow
@@ -378,13 +556,17 @@ export default function SettingsScreen() {
               onPress={handleContactUs}
               colors={colors}
               spacing={spacing}
+              accessibilityHint="Opens your email app to contact support"
             />
           </View>
         </View>
 
         {/* About Section */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}>
+          <Text
+            style={[textStyles.h4, { color: colors.text.primary, marginBottom: spacing.md }]}
+            accessibilityRole="header"
+          >
             About
           </Text>
           <View
@@ -409,6 +591,7 @@ export default function SettingsScreen() {
               onPress={handleTerms}
               colors={colors}
               spacing={spacing}
+              accessibilityHint="Opens terms of service in your browser"
             />
             <View style={[styles.rowDivider, { backgroundColor: colors.border.default }]} />
             <SettingsRow
@@ -416,6 +599,7 @@ export default function SettingsScreen() {
               onPress={handlePrivacy}
               colors={colors}
               spacing={spacing}
+              accessibilityHint="Opens privacy policy in your browser"
             />
           </View>
         </View>
@@ -431,6 +615,9 @@ export default function SettingsScreen() {
                 borderRadius: borderRadius.lg,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel="Sign Out"
+            accessibilityHint="Double tap to sign out of your account"
           >
             <Text style={[textStyles.body, { color: colors.status.error, fontWeight: '600' }]}>
               Sign Out
@@ -451,12 +638,20 @@ interface SettingsRowProps {
   onPress?: () => void;
   colors: ReturnType<typeof useTheme>['colors'];
   spacing: ReturnType<typeof useTheme>['spacing'];
+  accessibilityHint?: string;
 }
 
-function SettingsRow({ icon, title, subtitle, rightElement, onPress, colors, spacing }: SettingsRowProps) {
+function SettingsRow({ icon, title, subtitle, rightElement, onPress, colors, spacing, accessibilityHint }: SettingsRowProps) {
+  // Determine if this row has a switch (for accessibility state)
+  const hasSwitch = rightElement && React.isValidElement(rightElement) && rightElement.type === Switch;
+  const switchValue = hasSwitch ? (rightElement as React.ReactElement<{ value: boolean }>).props.value : undefined;
+
+  // Build accessibility label
+  const accessibilityLabel = subtitle ? `${title}, ${subtitle}` : title;
+
   const content = (
     <View style={[styles.settingsRow, { paddingHorizontal: spacing.lg, paddingVertical: spacing.md }]}>
-      {icon && <View style={styles.rowIcon}>{icon}</View>}
+      {icon && <View style={styles.rowIcon} aria-hidden>{icon}</View>}
       <View style={[styles.rowContent, icon ? { marginLeft: spacing.md } : {}]}>
         <Text style={[textStyles.body, { color: colors.text.primary }]}>{title}</Text>
         {subtitle && (
@@ -478,10 +673,43 @@ function SettingsRow({ icon, title, subtitle, rightElement, onPress, colors, spa
   );
 
   if (onPress) {
-    return <Pressable onPress={onPress}>{content}</Pressable>;
+    return (
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint || `Double tap to ${title.toLowerCase()}`}
+      >
+        {content}
+      </Pressable>
+    );
   }
 
-  return content;
+  // Non-pressable rows (with switches or static info)
+  if (hasSwitch) {
+    return (
+      <View
+        accessible
+        accessibilityRole="switch"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityState={{ checked: switchValue }}
+        accessibilityHint={accessibilityHint || `Double tap to ${switchValue ? 'disable' : 'enable'}`}
+      >
+        {content}
+      </View>
+    );
+  }
+
+  // Static info row (like Version)
+  return (
+    <View
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={accessibilityLabel}
+    >
+      {content}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -527,6 +755,9 @@ const styles = StyleSheet.create({
     marginLeft: 56,
   },
   demoModeNote: {
+    padding: 12,
+  },
+  partnerNote: {
     padding: 12,
   },
   signOutButton: {

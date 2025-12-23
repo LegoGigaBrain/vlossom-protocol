@@ -1,7 +1,9 @@
 /**
- * Hair Health Edit Screen (V6.8.0)
+ * Hair Health Edit Screen (V7.2.0)
  *
  * Edit existing hair profile attributes
+ *
+ * Accessibility: Full screen reader support with semantic roles
  */
 
 import {
@@ -221,56 +223,91 @@ export default function HairHealthEdit() {
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <Pressable onPress={handleBack} hitSlop={8}>
+        <Pressable
+          onPress={handleBack}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Returns to hair health dashboard"
+        >
           <VlossomBackIcon size={24} color={colors.text.primary} />
         </Pressable>
-        <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+        <Text
+          style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}
+          accessibilityRole="header"
+        >
           Edit Profile
         </Text>
-        <View style={{ width: 24 }} />
+        <View style={{ width: 24 }} aria-hidden />
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={{ padding: spacing.lg }}>
-        {SECTIONS.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600', marginBottom: spacing.md }]}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={{ padding: spacing.lg }}
+        accessibilityLabel="Hair profile edit form"
+      >
+        {SECTIONS.map((section, sectionIndex) => (
+          <View
+            key={section.title}
+            style={styles.section}
+            accessibilityRole="none"
+          >
+            <Text
+              style={[textStyles.body, { color: colors.text.primary, fontWeight: '600', marginBottom: spacing.md }]}
+              accessibilityRole="header"
+            >
               {section.title}
             </Text>
 
-            {section.fields.map((field) => (
-              <View key={field.key} style={{ marginBottom: spacing.md }}>
-                <Text style={[textStyles.bodySmall, { color: colors.text.tertiary, marginBottom: spacing.xs }]}>
-                  {field.label}
-                </Text>
-                <View style={styles.optionsRow}>
-                  {field.options.map((option) => {
-                    const isSelected = formData[field.key] === option.value;
-                    return (
-                      <Pressable
-                        key={option.value}
-                        onPress={() => handleFieldChange(field.key, option.value)}
-                        style={[
-                          styles.optionChip,
-                          {
-                            backgroundColor: isSelected ? colors.primary : colors.background.secondary,
-                            borderRadius: borderRadius.md,
-                          },
-                        ]}
-                      >
-                        <Text
+            {section.fields.map((field) => {
+              const selectedOption = field.options.find((o) => o.value === formData[field.key]);
+              return (
+                <View key={field.key} style={{ marginBottom: spacing.md }}>
+                  <Text
+                    style={[textStyles.bodySmall, { color: colors.text.tertiary, marginBottom: spacing.xs }]}
+                    nativeID={`label-${field.key}`}
+                  >
+                    {field.label}
+                  </Text>
+                  <View
+                    style={styles.optionsRow}
+                    accessibilityRole="radiogroup"
+                    accessibilityLabelledBy={`label-${field.key}`}
+                  >
+                    {field.options.map((option) => {
+                      const isSelected = formData[field.key] === option.value;
+                      return (
+                        <Pressable
+                          key={option.value}
+                          onPress={() => handleFieldChange(field.key, option.value)}
                           style={[
-                            textStyles.bodySmall,
-                            { color: isSelected ? colors.white : colors.text.secondary },
+                            styles.optionChip,
+                            {
+                              backgroundColor: isSelected ? colors.primary : colors.background.secondary,
+                              borderRadius: borderRadius.md,
+                            },
                           ]}
+                          accessibilityRole="radio"
+                          accessibilityLabel={option.label}
+                          accessibilityState={{ selected: isSelected }}
+                          accessibilityHint={isSelected ? 'Currently selected' : `Double tap to select ${option.label}`}
                         >
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
+                          <Text
+                            style={[
+                              textStyles.bodySmall,
+                              { color: isSelected ? colors.white : colors.text.secondary },
+                            ]}
+                            aria-hidden
+                          >
+                            {option.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         ))}
 
@@ -290,6 +327,7 @@ export default function HairHealthEdit() {
               ...shadows.card,
             },
           ]}
+          accessibilityLiveRegion="polite"
         >
           <Pressable
             onPress={handleSave}
@@ -301,11 +339,15 @@ export default function HairHealthEdit() {
                 borderRadius: borderRadius.lg,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={profileLoading ? 'Saving changes' : 'Save Changes'}
+            accessibilityState={{ disabled: profileLoading }}
+            accessibilityHint={profileLoading ? 'Please wait' : 'Double tap to save your profile changes'}
           >
             {profileLoading ? (
-              <ActivityIndicator color={colors.white} />
+              <ActivityIndicator color={colors.white} accessibilityLabel="Saving" />
             ) : (
-              <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
+              <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]} aria-hidden>
                 Save Changes
               </Text>
             )}

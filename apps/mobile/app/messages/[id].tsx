@@ -1,8 +1,10 @@
 /**
- * Conversation Thread Screen (V6.7.0)
+ * Conversation Thread Screen (V7.2.0)
  *
  * View and send messages in a conversation.
  * Connected to Zustand store for API integration.
+ *
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -120,11 +122,20 @@ export default function ConversationScreen() {
       !item.isOwn &&
       (index === 0 || messages[index - 1].isOwn !== item.isOwn);
 
+    // Build accessibility label for message
+    const senderLabel = item.isOwn ? 'You' : (participant?.displayName || 'Unknown');
+    const readLabel = item.isOwn && item.readAt ? ', read' : '';
+    const messageAccessibilityLabel = `${senderLabel} said: ${item.content}. ${formatTime(item.createdAt)}${readLabel}`;
+
     return (
       <View>
         {showDateHeader && (
-          <View style={styles.dateHeader}>
-            <Text style={styles.dateHeaderText}>
+          <View
+            style={styles.dateHeader}
+            accessibilityRole="header"
+            accessibilityLabel={`Messages from ${formatDateHeader(item.createdAt)}`}
+          >
+            <Text style={styles.dateHeaderText} aria-hidden>
               {formatDateHeader(item.createdAt)}
             </Text>
           </View>
@@ -135,10 +146,13 @@ export default function ConversationScreen() {
             styles.messageRow,
             item.isOwn ? styles.ownMessageRow : styles.otherMessageRow,
           ]}
+          accessible
+          accessibilityRole="text"
+          accessibilityLabel={messageAccessibilityLabel}
         >
           {/* Avatar for received messages */}
           {!item.isOwn && (
-            <View style={styles.avatarSpace}>
+            <View style={styles.avatarSpace} aria-hidden>
               {showAvatar && participant && (
                 participant.avatarUrl ? (
                   <Image
@@ -162,6 +176,7 @@ export default function ConversationScreen() {
               styles.messageBubble,
               item.isOwn ? styles.ownBubble : styles.otherBubble,
             ]}
+            aria-hidden
           >
             <Text
               style={[
@@ -200,9 +215,15 @@ export default function ConversationScreen() {
           }}
         />
         <SafeAreaView style={styles.container} edges={['bottom']}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.brand.rose} />
-            <Text style={styles.loadingText}>Loading conversation...</Text>
+          <View
+            style={styles.loadingContainer}
+            accessible
+            accessibilityRole="alert"
+            accessibilityLabel="Loading conversation"
+            accessibilityLiveRegion="polite"
+          >
+            <ActivityIndicator size="large" color={colors.brand.rose} accessibilityElementsHidden />
+            <Text style={styles.loadingText} aria-hidden>Loading conversation...</Text>
           </View>
         </SafeAreaView>
       </>
@@ -219,20 +240,34 @@ export default function ConversationScreen() {
           }}
         />
         <SafeAreaView style={styles.container} edges={['bottom']}>
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorTitle}>Something went wrong</Text>
-            <Text style={styles.errorText}>{messagesError}</Text>
+          <View
+            style={styles.errorContainer}
+            accessible
+            accessibilityRole="alert"
+            accessibilityLabel={`Error: Something went wrong. ${messagesError}`}
+            accessibilityLiveRegion="assertive"
+          >
+            <Text style={styles.errorTitle} aria-hidden>Something went wrong</Text>
+            <Text style={styles.errorText} aria-hidden>{messagesError}</Text>
             <TouchableOpacity
               style={styles.retryButton}
               onPress={() => fetchConversation(conversationId)}
+              accessibilityRole="button"
+              accessibilityLabel="Try again"
+              accessibilityHint="Attempts to reload the conversation"
             >
-              <Text style={styles.retryButtonText}>Try Again</Text>
+              <Text style={styles.retryButtonText} aria-hidden>Try Again</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
       </>
     );
   }
+
+  // Header accessibility labels
+  const participantLabel = participant
+    ? `${participant.displayName}${participant.specialties && participant.specialties.length > 0 ? `, specializes in ${participant.specialties.slice(0, 2).join(' and ')}` : ''}`
+    : 'Unknown';
 
   return (
     <>
@@ -242,20 +277,25 @@ export default function ConversationScreen() {
             <TouchableOpacity
               style={styles.headerTitleContainer}
               onPress={() => participant && router.push(`/stylists/${participant.id}`)}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel={`View profile of ${participantLabel}`}
+              accessibilityHint="Opens stylist profile page"
             >
               {participant?.avatarUrl ? (
                 <Image
                   source={{ uri: participant.avatarUrl }}
                   style={styles.headerAvatar}
+                  aria-hidden
                 />
               ) : participant ? (
-                <View style={styles.headerAvatarPlaceholder}>
+                <View style={styles.headerAvatarPlaceholder} aria-hidden>
                   <Text style={styles.headerAvatarInitial}>
                     {participant.displayName.charAt(0)}
                   </Text>
                 </View>
               ) : null}
-              <View>
+              <View aria-hidden>
                 <Text style={styles.headerName} numberOfLines={1}>
                   {participant?.displayName || 'Unknown'}
                 </Text>
@@ -272,6 +312,9 @@ export default function ConversationScreen() {
               <TouchableOpacity
                 onPress={() => router.push(`/booking/${bookingId}`)}
                 style={styles.headerBookingButton}
+                accessibilityRole="button"
+                accessibilityLabel="View related booking"
+                accessibilityHint="Opens the booking details page"
               >
                 <VlossomCalendarIcon size={20} color={colors.brand.rose} />
               </TouchableOpacity>
@@ -297,8 +340,13 @@ export default function ConversationScreen() {
               flatListRef.current?.scrollToEnd({ animated: false })
             }
             ListEmptyComponent={
-              <View style={styles.emptyMessages}>
-                <Text style={styles.emptyMessagesText}>
+              <View
+                style={styles.emptyMessages}
+                accessible
+                accessibilityRole="text"
+                accessibilityLabel="No messages yet. Start the conversation!"
+              >
+                <Text style={styles.emptyMessagesText} aria-hidden>
                   No messages yet. Start the conversation!
                 </Text>
               </View>
@@ -307,8 +355,14 @@ export default function ConversationScreen() {
 
           {/* Send Error */}
           {sendError && (
-            <View style={styles.sendErrorContainer}>
-              <Text style={styles.sendErrorText}>{sendError}</Text>
+            <View
+              style={styles.sendErrorContainer}
+              accessible
+              accessibilityRole="alert"
+              accessibilityLabel={`Message failed to send: ${sendError}`}
+              accessibilityLiveRegion="assertive"
+            >
+              <Text style={styles.sendErrorText} aria-hidden>{sendError}</Text>
             </View>
           )}
 
@@ -325,6 +379,8 @@ export default function ConversationScreen() {
               returnKeyType="send"
               onSubmitEditing={handleSend}
               blurOnSubmit={false}
+              accessibilityLabel="Message input"
+              accessibilityHint="Type your message here. Press send or return key to send"
             />
             <TouchableOpacity
               style={[
@@ -333,9 +389,13 @@ export default function ConversationScreen() {
               ]}
               onPress={handleSend}
               disabled={!newMessage.trim() || sendingMessage}
+              accessibilityRole="button"
+              accessibilityLabel={sendingMessage ? 'Sending message' : 'Send message'}
+              accessibilityState={{ disabled: !newMessage.trim() || sendingMessage }}
+              accessibilityHint={newMessage.trim() && !sendingMessage ? 'Double tap to send' : 'Type a message first'}
             >
               {sendingMessage ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color="#FFFFFF" accessibilityElementsHidden />
               ) : (
                 <VlossomChevronRightIcon
                   size={24}

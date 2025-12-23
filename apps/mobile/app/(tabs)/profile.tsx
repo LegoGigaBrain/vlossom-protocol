@@ -1,9 +1,11 @@
 /**
- * Profile Tab - Identity + Dashboards (V7.0.0)
+ * Profile Tab - Identity + Dashboards (V7.1.0)
  *
  * Purpose: User identity, hair health, schedule, role-based dashboards
- * Dynamic tabs based on user roles
+ * Dynamic tabs based on user roles array (V7.1: multi-role support)
  * Connected to auth store for real user data
+ *
+ * V7.1: Uses user.roles array instead of single role for multi-role support
  */
 
 import { useEffect, useState } from 'react';
@@ -31,10 +33,23 @@ import {
   selectPendingCount,
   useDemoModeStore,
   selectIsDemoMode,
+  useStylistsStore,
 } from '../../src/stores';
-import { MOCK_BOOKINGS, getUpcomingMockBookings } from '../../src/data/mock-data';
+import { MOCK_BOOKINGS, getUpcomingMockBookings, MOCK_HAIR_PROFILE, getMockCalendarSummary } from '../../src/data/mock-data';
 import { formatPrice } from '../../src/api/stylists';
 import { getBookingStatusLabel, getBookingStatusColor } from '../../src/api/bookings';
+import {
+  HairHealthSummaryCard,
+  HairHealthEmptyCard,
+} from '../../src/components/hair-health/HairHealthSummaryCard';
+import {
+  useHairHealthStore,
+  selectHairProfile,
+  selectHasProfile,
+  selectNextRitual,
+  selectStreakDays,
+  selectOverdueCount,
+} from '../../src/stores';
 
 type ProfileTab = 'overview' | 'stylist' | 'salon';
 
@@ -46,9 +61,9 @@ export default function ProfileScreen() {
 
   const { user, logout, logoutLoading } = useAuthStore();
 
-  // Get user roles from auth store
+  // Get user roles from auth store - V7.1: Use roles array for multi-role support
   const userRole = user?.role || 'CUSTOMER';
-  const userRoles = [userRole];
+  const userRoles = user?.roles || [userRole]; // Use roles array if available, fallback to single role
 
   const tabs = [
     { id: 'overview' as ProfileTab, label: 'Overview' },
@@ -100,7 +115,12 @@ export default function ProfileScreen() {
       >
         {/* Settings button */}
         <View style={styles.headerActions}>
-          <Pressable onPress={handleSettings}>
+          <Pressable
+            onPress={handleSettings}
+            accessibilityRole="button"
+            accessibilityLabel="Settings"
+            accessibilityHint="Opens settings screen"
+          >
             <VlossomSettingsIcon size={24} color={colors.text.secondary} />
           </Pressable>
         </View>
@@ -135,20 +155,32 @@ export default function ProfileScreen() {
             <Text style={[textStyles.body, { color: colors.text.secondary }]}>{username}</Text>
           )}
 
-          {/* Role badge */}
-          <View
-            style={[
-              styles.roleBadge,
-              {
-                backgroundColor: colors.primary + '15',
-                borderRadius: borderRadius.pill,
-                marginTop: spacing.sm,
-              },
-            ]}
-          >
-            <Text style={[textStyles.caption, { color: colors.primary }]}>
-              {userRole === 'STYLIST' ? 'Stylist' : userRole === 'PROPERTY_OWNER' ? 'Property Owner' : 'Customer'}
-            </Text>
+          {/* Role badges - V7.1: Show all user roles */}
+          <View style={[styles.roleBadgesContainer, { marginTop: spacing.sm }]}>
+            {userRoles.map((role) => (
+              <View
+                key={role}
+                style={[
+                  styles.roleBadge,
+                  {
+                    backgroundColor: colors.primary + '15',
+                    borderRadius: borderRadius.pill,
+                    marginRight: spacing.xs,
+                    marginBottom: spacing.xs,
+                  },
+                ]}
+              >
+                <Text style={[textStyles.caption, { color: colors.primary }]}>
+                  {role === 'STYLIST'
+                    ? 'Stylist'
+                    : role === 'PROPERTY_OWNER'
+                    ? 'Property Owner'
+                    : role === 'ADMIN'
+                    ? 'Admin'
+                    : 'Customer'}
+                </Text>
+              </View>
+            ))}
           </View>
 
           {/* Stats row */}
@@ -170,32 +202,42 @@ export default function ProfileScreen() {
       </View>
 
       {/* Role tabs */}
-      <View style={[styles.tabBar, { borderBottomColor: colors.border.default }]}>
-        {tabs.map((tab) => (
-          <Pressable
-            key={tab.id}
-            style={[
-              styles.tab,
-              {
-                borderBottomWidth: 2,
-                borderBottomColor: activeTab === tab.id ? colors.primary : 'transparent',
-              },
-            ]}
-            onPress={() => setActiveTab(tab.id)}
-          >
-            <Text
+      <View
+        style={[styles.tabBar, { borderBottomColor: colors.border.default }]}
+        accessibilityRole="tablist"
+        accessibilityLabel="Profile sections"
+      >
+        {tabs.map((tab) => {
+          const isSelected = activeTab === tab.id;
+          return (
+            <Pressable
+              key={tab.id}
               style={[
-                textStyles.bodySmall,
+                styles.tab,
                 {
-                  color: activeTab === tab.id ? colors.primary : colors.text.secondary,
-                  fontWeight: activeTab === tab.id ? '600' : '400',
+                  borderBottomWidth: 2,
+                  borderBottomColor: isSelected ? colors.primary : 'transparent',
                 },
               ]}
+              onPress={() => setActiveTab(tab.id)}
+              accessibilityRole="tab"
+              accessibilityLabel={`${tab.label} tab${isSelected ? ', Selected' : ''}`}
+              accessibilityState={{ selected: isSelected }}
             >
-              {tab.label}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={[
+                  textStyles.bodySmall,
+                  {
+                    color: isSelected ? colors.primary : colors.text.secondary,
+                    fontWeight: isSelected ? '600' : '400',
+                  },
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       {/* Tab content */}
@@ -248,11 +290,24 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
   const nextBooking = useBookingsStore(selectNextBooking);
   const { fetchBookings, fetchStats } = useBookingsStore();
 
-  // Fetch bookings on mount and when demo mode changes
+  // Hair Health store
+  const hairProfile = useHairHealthStore(selectHairProfile);
+  const hasProfile = useHairHealthStore(selectHasProfile);
+  const nextRitual = useHairHealthStore(selectNextRitual);
+  const streakDays = useHairHealthStore(selectStreakDays);
+  const overdueCount = useHairHealthStore(selectOverdueCount);
+  const { fetchProfile, fetchCalendarSummary, fetchUpcomingRituals } = useHairHealthStore();
+
+  // Fetch data on mount and when demo mode changes
   useEffect(() => {
     fetchBookings(true);
     fetchStats();
-  }, [fetchBookings, fetchStats, isDemoMode]);
+    if (!isDemoMode) {
+      fetchProfile();
+      fetchCalendarSummary();
+      fetchUpcomingRituals();
+    }
+  }, [fetchBookings, fetchStats, fetchProfile, fetchCalendarSummary, fetchUpcomingRituals, isDemoMode]);
 
   // Get upcoming bookings for display
   const upcomingBookings = isDemoMode
@@ -263,42 +318,43 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
           new Date(b.scheduledStartTime) >= new Date()
       );
 
+  // Get hair health data - use mock in demo mode
+  const displayHasProfile = isDemoMode ? true : hasProfile;
+  const displayProfile = isDemoMode ? MOCK_HAIR_PROFILE : hairProfile;
+  const mockCalendarSummary = isDemoMode ? getMockCalendarSummary() : null;
+  const displayNextRitual = isDemoMode
+    ? mockCalendarSummary?.nextRitual
+      ? {
+          name: mockCalendarSummary.nextRitual.title,
+          daysUntil: mockCalendarSummary.nextRitual.daysUntil,
+          isOverdue: mockCalendarSummary.nextRitual.isOverdue,
+        }
+      : null
+    : nextRitual
+    ? {
+        name: nextRitual.name,
+        daysUntil: nextRitual.daysUntil,
+        isOverdue: nextRitual.isOverdue,
+      }
+    : null;
+  const displayStreakDays = isDemoMode ? mockCalendarSummary?.streakDays ?? 0 : streakDays;
+  const displayOverdueCount = isDemoMode ? mockCalendarSummary?.overdueCount ?? 0 : overdueCount;
+
   return (
     <View>
       {/* Hair Health Card */}
-      <Pressable
-        style={[
-          styles.card,
-          {
-            backgroundColor: colors.background.primary,
-            borderRadius: borderRadius.lg,
-            ...shadows.card,
-            marginBottom: spacing.lg,
-          },
-        ]}
-      >
-        <View style={styles.cardHeader}>
-          <VlossomHealthyIcon size={24} color={colors.primary} />
-          <Text style={[textStyles.h3, { color: colors.text.primary, marginLeft: spacing.sm }]}>
-            Hair Health
-          </Text>
-        </View>
-        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.sm }]}>
-          Set up your hair profile to get personalized recommendations
-        </Text>
-        <Pressable
-          style={[
-            styles.cardAction,
-            {
-              backgroundColor: colors.primary,
-              borderRadius: borderRadius.md,
-              marginTop: spacing.md,
-            },
-          ]}
-        >
-          <Text style={[textStyles.button, { color: colors.white }]}>Get Started</Text>
-        </Pressable>
-      </Pressable>
+      <View style={{ marginBottom: spacing.lg }}>
+        {displayHasProfile && displayProfile ? (
+          <HairHealthSummaryCard
+            profile={displayProfile as Parameters<typeof HairHealthSummaryCard>[0]['profile']}
+            nextRitual={displayNextRitual}
+            streakDays={displayStreakDays}
+            overdueCount={displayOverdueCount}
+          />
+        ) : (
+          <HairHealthEmptyCard />
+        )}
+      </View>
 
       {/* Schedule Card */}
       <View
@@ -379,6 +435,9 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
 
       {/* Favorites Card */}
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Favorites, No favorite stylists yet"
+        accessibilityHint="View and manage your favorite stylists"
         style={[
           styles.card,
           {
@@ -411,6 +470,10 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
         ]}
         onPress={onLogout}
         disabled={logoutLoading}
+        accessibilityRole="button"
+        accessibilityLabel={logoutLoading ? 'Signing out' : 'Sign out'}
+        accessibilityState={{ disabled: logoutLoading, busy: logoutLoading }}
+        accessibilityHint="Signs you out of your account"
       >
         <Text
           style={[
@@ -438,14 +501,85 @@ interface StylistDashboardTabProps {
 }
 
 function StylistDashboardTab({ router, colors, spacing, borderRadius, shadows }: StylistDashboardTabProps) {
-  // TODO: Connect to real stylist earnings API when available
-  const mockEarnings = {
-    thisMonth: 245000, // R2,450.00
-    pending: 35000, // R350.00
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+  const {
+    dashboard,
+    dashboardLoading,
+    dashboardError,
+    fetchDashboard,
+    approveRequest,
+    declineRequest,
+  } = useStylistsStore();
+
+  // Fetch dashboard on mount and when demo mode changes
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard, isDemoMode]);
+
+  // Get dashboard stats with fallback
+  const stats = dashboard?.stats || {
+    pendingRequests: 0,
+    upcomingBookings: 0,
+    thisMonthEarnings: 0,
+    totalEarnings: 0,
+    completedBookings: 0,
+    averageRating: 0,
+  };
+
+  const pendingRequests = dashboard?.pendingRequests || [];
+
+  const handleApproveRequest = async (requestId: string) => {
+    try {
+      await approveRequest(requestId);
+    } catch {
+      Alert.alert('Error', 'Failed to approve request. Please try again.');
+    }
+  };
+
+  const handleDeclineRequest = async (requestId: string) => {
+    Alert.alert(
+      'Decline Request',
+      'Are you sure you want to decline this booking request?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await declineRequest(requestId);
+            } catch {
+              Alert.alert('Error', 'Failed to decline request. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
     <View>
+      {/* Error State */}
+      {dashboardError && (
+        <View
+          style={[
+            styles.errorBanner,
+            {
+              backgroundColor: colors.status.errorLight,
+              borderRadius: borderRadius.md,
+              marginBottom: spacing.lg,
+            },
+          ]}
+        >
+          <Text style={[textStyles.bodySmall, { color: colors.status.error, flex: 1 }]}>
+            {dashboardError}
+          </Text>
+          <Pressable onPress={fetchDashboard}>
+            <Text style={[textStyles.bodySmall, { color: colors.primary }]}>Retry</Text>
+          </Pressable>
+        </View>
+      )}
+
       {/* Earnings Summary */}
       <View
         style={[
@@ -469,26 +603,36 @@ function StylistDashboardTab({ router, colors, spacing, borderRadius, shadows }:
               This Month
             </Text>
             <Text style={[textStyles.h2, { color: colors.white }]}>
-              {formatPrice(mockEarnings.thisMonth)}
+              {formatPrice(stats.thisMonthEarnings)}
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
             <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>
-              Pending
+              Total
             </Text>
             <Text style={[textStyles.h4, { color: colors.white }]}>
-              {formatPrice(mockEarnings.pending)}
+              {formatPrice(stats.totalEarnings)}
             </Text>
+          </View>
+        </View>
+        <View style={[styles.statsGrid, { marginTop: spacing.md }]}>
+          <View style={styles.statBadge}>
+            <Text style={[textStyles.h4, { color: colors.white }]}>{stats.completedBookings}</Text>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>Completed</Text>
+          </View>
+          <View style={styles.statBadge}>
+            <Text style={[textStyles.h4, { color: colors.white }]}>{stats.upcomingBookings}</Text>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>Upcoming</Text>
+          </View>
+          <View style={styles.statBadge}>
+            <Text style={[textStyles.h4, { color: colors.white }]}>{stats.averageRating.toFixed(1)}</Text>
+            <Text style={[textStyles.caption, { color: colors.white, opacity: 0.8 }]}>Rating</Text>
           </View>
         </View>
       </View>
 
       {/* Pending Requests */}
-      <Pressable
-        onPress={() => {
-          // TODO: Navigate to stylist requests
-          Alert.alert('Coming Soon', 'Stylist requests view will be available soon.');
-        }}
+      <View
         style={[
           styles.card,
           {
@@ -504,21 +648,111 @@ function StylistDashboardTab({ router, colors, spacing, borderRadius, shadows }:
           <Text style={[textStyles.h3, { color: colors.text.primary, marginLeft: spacing.sm }]}>
             Pending Requests
           </Text>
+          {stats.pendingRequests > 0 && (
+            <View
+              style={[
+                styles.countBadge,
+                { backgroundColor: colors.status.warning, borderRadius: borderRadius.circle, marginLeft: spacing.sm },
+              ]}
+            >
+              <Text style={[textStyles.caption, { color: colors.white }]}>{stats.pendingRequests}</Text>
+            </View>
+          )}
         </View>
-        <View style={[styles.pendingBadge, { backgroundColor: colors.status.warning + '20', borderRadius: borderRadius.pill, marginTop: spacing.sm }]}>
-          <Text style={[textStyles.body, { color: colors.status.warning }]}>
-            3 requests awaiting response
+
+        {dashboardLoading && pendingRequests.length === 0 ? (
+          <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.sm }]}>
+            Loading...
           </Text>
-        </View>
-      </Pressable>
+        ) : pendingRequests.length === 0 ? (
+          <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.sm }]}>
+            No pending requests
+          </Text>
+        ) : (
+          <View style={{ marginTop: spacing.sm }}>
+            {pendingRequests.slice(0, 3).map((request) => (
+              <View
+                key={request.id}
+                style={[
+                  styles.requestCard,
+                  {
+                    backgroundColor: colors.background.secondary,
+                    borderRadius: borderRadius.md,
+                    marginTop: spacing.xs,
+                  },
+                ]}
+              >
+                <View style={styles.requestInfo}>
+                  <Text style={[textStyles.body, { color: colors.text.primary }]} numberOfLines={1}>
+                    {request.serviceName}
+                  </Text>
+                  <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                    {request.customerName} • {new Date(request.requestedDate).toLocaleDateString('en-ZA', {
+                      month: 'short',
+                      day: 'numeric',
+                    })} at {request.requestedTime}
+                  </Text>
+                  <Text style={[textStyles.bodySmall, { color: colors.primary, marginTop: 2 }]}>
+                    {formatPrice(request.priceAmountCents)}
+                  </Text>
+                </View>
+                <View style={styles.requestActions}>
+                  <Pressable
+                    onPress={() => handleApproveRequest(request.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Accept booking request from ${request.customerName} for ${request.serviceName}`}
+                    accessibilityHint="Confirms this booking request"
+                    style={[
+                      styles.requestButton,
+                      { backgroundColor: colors.status.success, borderRadius: borderRadius.sm },
+                    ]}
+                  >
+                    <Text style={[textStyles.caption, { color: colors.white }]}>Accept</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleDeclineRequest(request.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Decline booking request from ${request.customerName}`}
+                    accessibilityHint="Opens confirmation to decline this request"
+                    style={[
+                      styles.requestButton,
+                      {
+                        backgroundColor: 'transparent',
+                        borderWidth: 1,
+                        borderColor: colors.status.error,
+                        borderRadius: borderRadius.sm,
+                        marginTop: 4,
+                      },
+                    ]}
+                  >
+                    <Text style={[textStyles.caption, { color: colors.status.error }]}>Decline</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+            {pendingRequests.length > 3 && (
+              <Pressable
+                onPress={() => router.push('/stylist/requests')}
+                style={{ marginTop: spacing.sm, alignItems: 'center' }}
+              >
+                <Text style={[textStyles.bodySmall, { color: colors.primary }]}>
+                  View all {pendingRequests.length} requests
+                </Text>
+              </Pressable>
+            )}
+          </View>
+        )}
+      </View>
 
       {/* Quick Actions */}
       <View style={styles.quickActionsRow}>
         <Pressable
           onPress={() => {
-            // TODO: Navigate to manage services
-            Alert.alert('Coming Soon', 'Service management will be available soon.');
+            router.push('/stylist/services');
           }}
+          accessibilityRole="button"
+          accessibilityLabel="Manage Services"
+          accessibilityHint="Opens your services management screen"
           style={[
             styles.quickActionButton,
             {
@@ -535,9 +769,11 @@ function StylistDashboardTab({ router, colors, spacing, borderRadius, shadows }:
         </Pressable>
         <Pressable
           onPress={() => {
-            // TODO: Navigate to calendar
-            Alert.alert('Coming Soon', 'Calendar view will be available soon.');
+            router.push('/stylist/calendar');
           }}
+          accessibilityRole="button"
+          accessibilityLabel="View Calendar"
+          accessibilityHint="Opens your booking calendar"
           style={[
             styles.quickActionButton,
             {
@@ -553,6 +789,27 @@ function StylistDashboardTab({ router, colors, spacing, borderRadius, shadows }:
           </Text>
         </Pressable>
       </View>
+
+      {/* Full Dashboard Link */}
+      <Pressable
+        onPress={() => router.push('/stylist/dashboard')}
+        accessibilityRole="link"
+        accessibilityLabel="Open full stylist dashboard"
+        accessibilityHint="Navigate to the complete stylist dashboard"
+        style={[
+          styles.fullDashboardLink,
+          {
+            borderTopWidth: 1,
+            borderTopColor: colors.border.default,
+            marginTop: spacing.lg,
+            paddingTop: spacing.md,
+          },
+        ]}
+      >
+        <Text style={[textStyles.body, { color: colors.primary }]}>
+          Open Full Dashboard →
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -645,6 +902,9 @@ function PropertiesDashboardTab({ router, colors, spacing, borderRadius, shadows
           // TODO: Navigate to rental requests
           router.push('/property-owner');
         }}
+        accessibilityRole="button"
+        accessibilityLabel={`Rental Requests, ${displayPendingCount > 0 ? `${displayPendingCount} pending` : 'No pending requests'}`}
+        accessibilityHint="View and manage rental requests"
         style={[
           styles.card,
           {
@@ -677,6 +937,9 @@ function PropertiesDashboardTab({ router, colors, spacing, borderRadius, shadows
       {/* Quick Action */}
       <Pressable
         onPress={() => router.push('/property-owner')}
+        accessibilityRole="button"
+        accessibilityLabel="Manage Properties"
+        accessibilityHint="Opens property management dashboard"
         style={[
           styles.cardAction,
           {
@@ -722,6 +985,11 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
+  },
+  roleBadgesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   roleBadge: {
     paddingHorizontal: 12,
@@ -779,6 +1047,9 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
+  fullDashboardLink: {
+    alignItems: 'center',
+  },
   propertiesStatsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -796,5 +1067,45 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
+  },
+  // Stylist Dashboard styles
+  errorBanner: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(255,255,255,0.2)',
+  },
+  statBadge: {
+    alignItems: 'center',
+  },
+  countBadge: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  requestCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+  },
+  requestInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  requestActions: {
+    alignItems: 'flex-end',
+  },
+  requestButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
 });
