@@ -1,6 +1,6 @@
 # UI Design System
 
-**Version**: V6.4.0 | December 2025
+**Version**: V7.0.0 | December 2025
 
 > Purpose: Shared React component library implementing Vlossom's design system with brand tokens and Radix primitives.
 
@@ -23,9 +23,11 @@
 - Peer: React 18, React DOM 18
 
 ## Design Tokens
-- Primary: `#8B5CF6` (purple — empowerment)
-- Secondary: `#F9A8D4` (pink — beauty, care)
-- Accent: `#34D399` (green — growth, blossom)
+- Primary (brand-rose): `#311E6B` (deep purple — empowerment)
+- Accent Orange: `#FF510D` (sacred — growth/celebration only)
+- Success: `#10B981` (green — healthy states)
+- Warning: `#F59E0B` (amber — caution, NOT orange)
+- Error: `#EF4444` (red — errors, NOT orange)
 
 ## Gotchas
 - Emotional constraints apply: calm over urgency, dignity over optimization

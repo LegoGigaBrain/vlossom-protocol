@@ -1,6 +1,6 @@
 # Infrastructure
 
-**Version**: V6.4.0 | December 2025
+**Version**: V7.0.0 | December 2025
 
 > Purpose: Docker configurations, deployment scripts, and infrastructure-as-code for Vlossom services.
 
@@ -8,8 +8,8 @@
 - [Doc 23: DevOps and Infrastructure](../../docs/vlossom/23-devops-and-infrastructure.md)
 
 ## Key Files
-- `docker/Dockerfile.api` — API service container
-- `docker/docker-compose.yml` — Local development stack
+- `Dockerfile.api` — API service container
+- `docker-compose.yml` — Local development stack
 
 ## Local Development Stack
 - PostgreSQL 16 (port 5432)

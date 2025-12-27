@@ -1,6 +1,6 @@
 # Indexer Service
 
-**Version**: V6.4.0 | December 2025
+**Version**: V7.0.0 | December 2025
 
 > Purpose: Chain event indexer that subscribes to on-chain events and syncs them to PostgreSQL.
 

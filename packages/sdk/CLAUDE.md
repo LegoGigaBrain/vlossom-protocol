@@ -1,6 +1,6 @@
 # Vlossom SDK
 
-**Version**: V6.4.0 | December 2025
+**Version**: V7.0.0 | December 2025
 
 > Purpose: Official TypeScript SDK for interacting with Vlossom Protocol APIs. Provides type-safe client methods for authentication, bookings, wallet operations, and stylist discovery.
 

@@ -1,6 +1,6 @@
 # packages/config
 
-**Version**: V6.4.0 | December 2025
+**Version**: V7.0.0 | December 2025
 
 > Purpose: Shared configuration presets for ESLint, TypeScript, and Tailwind CSS used across all apps and packages.
 
