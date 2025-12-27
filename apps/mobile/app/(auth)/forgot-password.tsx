@@ -72,20 +72,30 @@ export default function ForgotPasswordScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Success Icon */}
-          <View style={styles.successIconContainer}>
+          <View
+            style={styles.successIconContainer}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel="Success"
+          >
             <VlossomCheckIcon size={32} color={colors.status.success} />
           </View>
 
           {/* Message */}
-          <Text style={styles.successTitle}>Check your email</Text>
-          <Text style={styles.successMessage}>
+          <View accessible accessibilityRole="header">
+            <Text style={styles.successTitle}>Check your email</Text>
+          </View>
+          <Text
+            style={styles.successMessage}
+            accessibilityLabel={`If an account exists for ${submittedEmail}, we've sent password reset instructions.`}
+          >
             If an account exists for{' '}
             <Text style={styles.emailHighlight}>{submittedEmail}</Text>, we've
             sent password reset instructions.
           </Text>
 
           {/* Info Box */}
-          <View style={styles.infoBox}>
+          <View style={styles.infoBox} accessible accessibilityRole="text">
             <Text style={styles.infoTitle}>Didn't receive the email?</Text>
             <Text style={styles.infoText}>
               Check your spam folder, or make sure you entered the correct email
@@ -98,6 +108,9 @@ export default function ForgotPasswordScreen() {
             <TouchableOpacity
               style={styles.outlineButton}
               onPress={handleTryAgain}
+              accessibilityRole="button"
+              accessibilityLabel="Try a different email"
+              accessibilityHint="Double tap to enter a different email address"
             >
               <Text style={styles.outlineButtonText}>Try a different email</Text>
             </TouchableOpacity>
@@ -105,6 +118,9 @@ export default function ForgotPasswordScreen() {
             <TouchableOpacity
               style={styles.ghostButton}
               onPress={() => router.replace('/(auth)/login')}
+              accessibilityRole="button"
+              accessibilityLabel="Back to login"
+              accessibilityHint="Double tap to return to the login screen"
             >
               <VlossomBackIcon size={16} color={colors.text.secondary} />
               <Text style={styles.ghostButtonText}>Back to login</Text>
@@ -128,9 +144,9 @@ export default function ForgotPasswordScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={styles.header} accessible accessibilityRole="header">
             <Text style={styles.logo}>Vlossom</Text>
-            <Text style={styles.title}>Forgot password?</Text>
+            <Text style={styles.title} accessibilityRole="header">Forgot password?</Text>
             <Text style={styles.subtitle}>
               Enter your email and we'll send you a reset link
             </Text>
@@ -140,7 +156,7 @@ export default function ForgotPasswordScreen() {
           <View style={styles.form}>
             {/* Email Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email address</Text>
+              <Text style={styles.label} nativeID="emailLabel">Email address</Text>
               <TextInput
                 style={styles.input}
                 value={email}
@@ -155,6 +171,9 @@ export default function ForgotPasswordScreen() {
                 onSubmitEditing={handleSubmit}
                 editable={!isLoading}
                 maxLength={INPUT_LIMITS.EMAIL}
+                accessibilityLabel="Email address"
+                accessibilityLabelledBy="emailLabel"
+                accessibilityHint="Enter the email address associated with your account"
               />
             </View>
 
@@ -166,9 +185,13 @@ export default function ForgotPasswordScreen() {
               ]}
               onPress={handleSubmit}
               disabled={!isEmailValid || isLoading}
+              accessibilityRole="button"
+              accessibilityLabel={isLoading ? 'Sending reset link' : 'Send reset link'}
+              accessibilityState={{ disabled: !isEmailValid || isLoading }}
+              accessibilityHint="Double tap to send a password reset link to your email"
             >
               {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="#FFFFFF" accessibilityLabel="Sending, please wait" />
               ) : (
                 <Text style={styles.buttonText}>Send reset link</Text>
               )}
@@ -178,6 +201,9 @@ export default function ForgotPasswordScreen() {
             <TouchableOpacity
               style={styles.backLink}
               onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel="Back to login"
+              accessibilityHint="Double tap to return to the login screen"
             >
               <VlossomBackIcon size={16} color={colors.brand.rose} />
               <Text style={styles.backLinkText}>Back to login</Text>

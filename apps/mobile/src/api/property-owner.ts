@@ -136,7 +136,7 @@ export interface Transaction {
  * Get all properties owned by the current user
  */
 export async function getMyProperties(): Promise<Property[]> {
-  const response = await apiRequest<{ properties: Property[] }>('/properties/my/all', {
+  const response = await apiRequest<{ properties: Property[] }>('/api/v1/properties/my/all', {
     method: 'GET',
   });
   return response.properties;
@@ -146,7 +146,7 @@ export async function getMyProperties(): Promise<Property[]> {
  * Get a single property by ID
  */
 export async function getProperty(id: string): Promise<Property> {
-  const response = await apiRequest<{ property: Property }>(`/properties/${id}`, {
+  const response = await apiRequest<{ property: Property }>(`/api/v1/properties/${id}`, {
     method: 'GET',
   });
   return response.property;
@@ -168,9 +168,9 @@ export async function createProperty(data: {
   images?: string[];
   coverImage?: string;
 }): Promise<Property> {
-  const response = await apiRequest<{ property: Property }>('/properties', {
+  const response = await apiRequest<{ property: Property }>('/api/v1/properties', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: data,
   });
   return response.property;
 }
@@ -194,9 +194,9 @@ export async function updateProperty(
     coverImage: string;
   }>
 ): Promise<Property> {
-  const response = await apiRequest<{ property: Property }>(`/properties/${id}`, {
+  const response = await apiRequest<{ property: Property }>(`/api/v1/properties/${id}`, {
     method: 'PUT',
-    body: JSON.stringify(data),
+    body: data,
   });
   return response.property;
 }
@@ -205,7 +205,7 @@ export async function updateProperty(
  * Delete a property (soft delete)
  */
 export async function deleteProperty(id: string): Promise<void> {
-  await apiRequest<{ success: boolean }>(`/properties/${id}`, {
+  await apiRequest<{ success: boolean }>(`/api/v1/properties/${id}`, {
     method: 'DELETE',
   });
 }
@@ -218,7 +218,7 @@ export async function deleteProperty(id: string): Promise<void> {
  * Get all chairs for a property
  */
 export async function getChairs(propertyId: string): Promise<Chair[]> {
-  const response = await apiRequest<{ property: Property }>(`/properties/${propertyId}`, {
+  const response = await apiRequest<{ property: Property }>(`/api/v1/properties/${propertyId}`, {
     method: 'GET',
   });
   return response.property.chairs;
@@ -241,9 +241,9 @@ export async function createChair(
     rentalModesEnabled?: RentalMode[];
   }
 ): Promise<Chair> {
-  const response = await apiRequest<{ chair: Chair }>(`/properties/${propertyId}/chairs`, {
+  const response = await apiRequest<{ chair: Chair }>(`/api/v1/properties/${propertyId}/chairs`, {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: data,
   });
   return response.chair;
 }
@@ -268,10 +268,10 @@ export async function updateChair(
   }>
 ): Promise<Chair> {
   const response = await apiRequest<{ chair: Chair }>(
-    `/properties/${propertyId}/chairs/${chairId}`,
+    `/api/v1/properties/${propertyId}/chairs/${chairId}`,
     {
       method: 'PUT',
-      body: JSON.stringify(data),
+      body: data,
     }
   );
   return response.chair;
@@ -281,7 +281,7 @@ export async function updateChair(
  * Delete a chair (soft delete)
  */
 export async function deleteChair(propertyId: string, chairId: string): Promise<void> {
-  await apiRequest<{ success: boolean }>(`/properties/${propertyId}/chairs/${chairId}`, {
+  await apiRequest<{ success: boolean }>(`/api/v1/properties/${propertyId}/chairs/${chairId}`, {
     method: 'DELETE',
   });
 }
@@ -299,7 +299,7 @@ export async function getRentalRequests(
 ): Promise<RentalRequest[]> {
   const params = status ? `?status=${status}` : '';
   const response = await apiRequest<{ rentals: RentalRequest[] }>(
-    `/properties/${propertyId}/rentals${params}`,
+    `/api/v1/properties/${propertyId}/rentals${params}`,
     {
       method: 'GET',
     }
@@ -335,10 +335,10 @@ export async function getAllRentalRequests(status?: RentalStatus): Promise<Renta
  */
 export async function approveRentalRequest(rentalId: string): Promise<RentalRequest> {
   const response = await apiRequest<{ rentalRequest: RentalRequest }>(
-    `/properties/rentals/${rentalId}/decision`,
+    `/api/v1/properties/rentals/${rentalId}/decision`,
     {
       method: 'POST',
-      body: JSON.stringify({ decision: 'APPROVE' }),
+      body: { decision: 'APPROVE' },
     }
   );
   return response.rentalRequest;
@@ -352,10 +352,10 @@ export async function rejectRentalRequest(
   reason?: string
 ): Promise<RentalRequest> {
   const response = await apiRequest<{ rentalRequest: RentalRequest }>(
-    `/properties/rentals/${rentalId}/decision`,
+    `/api/v1/properties/rentals/${rentalId}/decision`,
     {
       method: 'POST',
-      body: JSON.stringify({ decision: 'REJECT', rejectionReason: reason }),
+      body: { decision: 'REJECT', rejectionReason: reason },
     }
   );
   return response.rentalRequest;

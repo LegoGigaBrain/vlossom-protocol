@@ -1,8 +1,9 @@
 /**
- * Notifications Store (V6.8.0)
+ * Notifications Store (V7.0.0)
  *
  * Zustand store for managing notification state.
  * Handles fetching, pagination, and read status.
+ * Supports demo mode with mock data.
  */
 
 import { create } from 'zustand';
@@ -13,6 +14,8 @@ import {
   markAllAsRead as apiMarkAllAsRead,
   type Notification,
 } from '../api/notifications';
+import { MOCK_NOTIFICATIONS, getUnreadMockNotificationCount } from '../data/mock-data';
+import { getIsDemoMode } from './demo-mode';
 
 // ============================================================================
 // Types
@@ -68,12 +71,26 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
 
   /**
    * Fetch notifications (first page or refresh)
+   * In demo mode, returns mock notifications
    */
   fetchNotifications: async (refresh = false) => {
     const { notificationsLoading } = get();
     if (notificationsLoading && !refresh) return;
 
     set({ notificationsLoading: true, notificationsError: null });
+
+    // Demo mode: return mock notifications
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      set({
+        notifications: MOCK_NOTIFICATIONS,
+        notificationsLoading: false,
+        page: 1,
+        hasMore: false,
+        total: MOCK_NOTIFICATIONS.length,
+      });
+      return;
+    }
 
     try {
       const response = await getNotifications({ page: 1, limit: 20 });
@@ -121,9 +138,19 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
 
   /**
    * Fetch unread count (for badge)
+   * In demo mode, returns mock unread count
    */
   fetchUnreadCount: async () => {
     set({ unreadCountLoading: true });
+
+    // Demo mode: return mock unread count
+    if (getIsDemoMode()) {
+      set({
+        unreadCount: getUnreadMockNotificationCount(),
+        unreadCountLoading: false,
+      });
+      return;
+    }
 
     try {
       const response = await getUnreadCount();

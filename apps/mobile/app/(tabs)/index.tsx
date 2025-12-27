@@ -35,6 +35,7 @@ import {
   VlossomCloseIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { useStylistsStore } from '../../src/stores/stylists';
+import { useDemoModeStore, selectIsDemoMode } from '../../src/stores/demo-mode';
 import {
   formatPrice,
   formatPriceRange,
@@ -74,6 +75,9 @@ export default function HomeScreen() {
     clearSelectedStylist,
     setFilter,
   } = useStylistsStore();
+
+  // Demo mode - refetch when toggled
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
 
   // Local state
   const [locationLoading, setLocationLoading] = useState(true);
@@ -119,12 +123,12 @@ export default function HomeScreen() {
     })();
   }, [setUserLocation, fetchNearbyStylists]);
 
-  // Fetch stylists when location changes
+  // Fetch stylists when location changes or demo mode toggles
   useEffect(() => {
     if (userLocation) {
       fetchNearbyStylists();
     }
-  }, [userLocation, fetchNearbyStylists]);
+  }, [userLocation, fetchNearbyStylists, isDemoMode]);
 
   // Handle marker press
   const handleMarkerPress = useCallback(
@@ -284,12 +288,15 @@ export default function HomeScreen() {
             },
           ]}
           onPress={() => router.push('/search')}
+          accessibilityRole="search"
+          accessibilityLabel="Search for stylists and services"
+          accessibilityHint="Opens the search screen"
         >
           <VlossomSearchIcon size={20} color={colors.text.secondary} />
           <Text
             style={[textStyles.body, { color: colors.text.tertiary, marginLeft: spacing.sm }]}
           >
-            Search stylists, services...
+            Find stylists, services...
           </Text>
         </Pressable>
       </View>
@@ -352,6 +359,9 @@ export default function HomeScreen() {
           },
         ]}
         onPress={handleCenterLocation}
+        accessibilityRole="button"
+        accessibilityLabel="Center map on my location"
+        accessibilityHint="Moves the map to show your current location"
       >
         <VlossomLocationIcon size={24} color={colors.primary} />
       </Pressable>
@@ -392,7 +402,12 @@ export default function HomeScreen() {
         {...panResponder.panHandlers}
       >
         {/* Drag Handle */}
-        <View style={styles.dragHandleContainer}>
+        <View
+          style={styles.dragHandleContainer}
+          accessibilityRole="adjustable"
+          accessibilityLabel="Bottom sheet drag handle"
+          accessibilityHint="Drag up to expand, drag down to collapse"
+        >
           <View
             style={[
               styles.dragHandle,
@@ -407,7 +422,7 @@ export default function HomeScreen() {
             stylist={selectedStylist}
             onClose={collapseSheet}
             onBook={() => {
-              router.push(`/booking/${selectedStylist.id}`);
+              router.push(`/stylists/${selectedStylist.id}/book`);
             }}
             colors={colors}
             spacing={spacing}
@@ -464,6 +479,10 @@ function FilterChip({
         },
       ]}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${label} filter${active ? ', Active' : ''}`}
+      accessibilityState={{ selected: active }}
+      accessibilityHint={`Filter stylists by ${label}`}
     >
       <Text
         style={[
@@ -568,7 +587,13 @@ function StylistDetailCard({
             </View>
           </View>
         </View>
-        <Pressable onPress={onClose} style={styles.closeButton}>
+        <Pressable
+          onPress={onClose}
+          style={styles.closeButton}
+          accessibilityRole="button"
+          accessibilityLabel="Close stylist details"
+          accessibilityHint="Closes the stylist detail panel"
+        >
           <VlossomCloseIcon size={24} color={colors.text.secondary} />
         </Pressable>
       </View>
@@ -626,6 +651,9 @@ function StylistDetailCard({
           },
         ]}
         onPress={onBook}
+        accessibilityRole="button"
+        accessibilityLabel={`Book appointment with ${stylist.displayName}`}
+        accessibilityHint="Opens the booking flow to schedule an appointment"
       >
         <VlossomCalendarIcon size={20} color={colors.white} />
         <Text style={[textStyles.body, { color: colors.white, fontWeight: '600', marginLeft: spacing.sm }]}>
@@ -674,6 +702,9 @@ function QuickActionsContent({
               },
             ]}
             onPress={() => onStylistPress(stylist)}
+            accessibilityRole="button"
+            accessibilityLabel={`${stylist.displayName}, ${formatPriceRange(stylist.priceRange.min, stylist.priceRange.max)}`}
+            accessibilityHint="Double tap to view stylist details"
           >
             {stylist.avatarUrl ? (
               <Image

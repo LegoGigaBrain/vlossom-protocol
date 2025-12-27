@@ -175,7 +175,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-caption text-text-tertiary">
-          V6.5.1 - Base Sepolia Testnet
+          V7.4.0 - Base Sepolia Testnet
         </p>
       </div>
     </div>

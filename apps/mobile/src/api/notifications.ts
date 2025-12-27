@@ -101,21 +101,21 @@ export async function getNotifications(
     queryParams.set('unreadOnly', 'true');
   }
 
-  return apiRequest<NotificationsResponse>(`/notifications?${queryParams.toString()}`);
+  return apiRequest<NotificationsResponse>(`/api/v1/notifications?${queryParams.toString()}`);
 }
 
 /**
  * Get unread notification count
  */
 export async function getUnreadCount(): Promise<UnreadCountResponse> {
-  return apiRequest<UnreadCountResponse>('/notifications/unread-count');
+  return apiRequest<UnreadCountResponse>('/api/v1/notifications/unread-count');
 }
 
 /**
  * Mark a single notification as read
  */
 export async function markAsRead(notificationId: string): Promise<MarkReadResponse> {
-  return apiRequest<MarkReadResponse>(`/notifications/${notificationId}/read`, {
+  return apiRequest<MarkReadResponse>(`/api/v1/notifications/${notificationId}/read`, {
     method: 'POST',
   });
 }
@@ -124,7 +124,7 @@ export async function markAsRead(notificationId: string): Promise<MarkReadRespon
  * Mark all notifications as read
  */
 export async function markAllAsRead(): Promise<MarkAllReadResponse> {
-  return apiRequest<MarkAllReadResponse>('/notifications/read-all', {
+  return apiRequest<MarkAllReadResponse>('/api/v1/notifications/read-all', {
     method: 'POST',
   });
 }

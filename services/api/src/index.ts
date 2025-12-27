@@ -64,6 +64,7 @@ import stylistContextRouter from "./routes/stylist-context";
 import favoritesRouter from "./routes/favorites";
 import ritualsRouter from "./routes/rituals";
 import conversationsRouter from "./routes/conversations";
+import specialEventsRouter from "./routes/special-events";
 import adminPaymasterRouter from "./routes/admin/paymaster";
 import adminUsersRouter from "./routes/admin/users";
 import adminBookingsRouter from "./routes/admin/bookings";
@@ -94,6 +95,11 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
 ];
 app.use(corsHeaders(allowedOrigins));
 
+// Health check - MUST be before rate limiting for uptime monitoring/Playwright tests
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", service: "@vlossom/api" });
+});
+
 // F4.7: Global rate limiting (100 requests per minute per IP)
 app.use(rateLimiters.global);
 
@@ -115,11 +121,6 @@ app.use((req, res, next) => {
   });
 
   next();
-});
-
-// Health check (exempt from rate limiting)
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "@vlossom/api" });
 });
 
 // API Documentation (Swagger UI)
@@ -144,6 +145,7 @@ app.use("/api/v1/stylist-context", stylistContextRouter);
 app.use("/api/v1/favorites", favoritesRouter);
 app.use("/api/v1/rituals", ritualsRouter);
 app.use("/api/v1/conversations", conversationsRouter);
+app.use("/api/v1/special-events", specialEventsRouter);
 app.use("/api/v1/admin/paymaster", adminPaymasterRouter);
 app.use("/api/v1/admin/users", adminUsersRouter);
 app.use("/api/v1/admin/bookings", adminBookingsRouter);

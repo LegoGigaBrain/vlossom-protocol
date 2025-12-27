@@ -1,11 +1,13 @@
 /**
- * Hair Health Dashboard Screen (V6.9.0)
+ * Hair Health Dashboard Screen (V7.2.0)
  *
  * Main hair health profile view with:
  * - Profile summary card
  * - V6.9 Smart Calendar widget
  * - Learning progress
  * - Quick actions
+ *
+ * Accessibility: Full screen reader support with semantic roles
  */
 
 import {
@@ -25,6 +27,7 @@ import {
   VlossomHealthyIcon,
   VlossomGrowingIcon,
   VlossomSettingsIcon,
+  VlossomCalendarIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { useEffect, useState, useCallback } from 'react';
 import {
@@ -98,11 +101,20 @@ export default function HairHealthDashboard() {
     router.push('/hair-health/edit');
   };
 
+  const handleViewCalendar = () => {
+    router.push('/hair-health/calendar');
+  };
+
   // Loading state
   if (profileLoading && !profile) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background.primary }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View
+        style={[styles.loadingContainer, { backgroundColor: colors.background.primary }]}
+        accessible
+        accessibilityLabel="Loading hair profile"
+        accessibilityRole="progressbar"
+      >
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading" />
         <Text style={[textStyles.body, { color: colors.text.tertiary, marginTop: spacing.md }]}>
           Loading hair profile...
         </Text>
@@ -116,10 +128,19 @@ export default function HairHealthDashboard() {
       <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <Pressable onPress={handleBack} hitSlop={8}>
+          <Pressable
+            onPress={handleBack}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            accessibilityHint="Returns to previous screen"
+          >
             <VlossomBackIcon size={24} color={colors.text.primary} />
           </Pressable>
-          <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+          <Text
+            style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}
+            accessibilityRole="header"
+          >
             Hair Health
           </Text>
           <View style={{ width: 24 }} />
@@ -132,10 +153,14 @@ export default function HairHealthDashboard() {
               styles.emptyIcon,
               { backgroundColor: colors.surface.light, borderRadius: borderRadius.circle },
             ]}
+            aria-hidden
           >
             <VlossomHealthyIcon size={48} color={colors.primary} />
           </View>
-          <Text style={[textStyles.h2, { color: colors.text.primary, marginTop: spacing.xl }]}>
+          <Text
+            style={[textStyles.h2, { color: colors.text.primary, marginTop: spacing.xl }]}
+            accessibilityRole="header"
+          >
             Know Your Hair
           </Text>
           <Text
@@ -152,6 +177,9 @@ export default function HairHealthDashboard() {
               styles.startButton,
               { backgroundColor: colors.primary, borderRadius: borderRadius.lg, marginTop: spacing.xl },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel="Get Started"
+            accessibilityHint="Double tap to create your hair profile"
           >
             <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
               Get Started
@@ -170,13 +198,28 @@ export default function HairHealthDashboard() {
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <Pressable onPress={handleBack} hitSlop={8}>
+        <Pressable
+          onPress={handleBack}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Returns to previous screen"
+        >
           <VlossomBackIcon size={24} color={colors.text.primary} />
         </Pressable>
-        <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+        <Text
+          style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}
+          accessibilityRole="header"
+        >
           Hair Health
         </Text>
-        <Pressable onPress={handleEditProfile} hitSlop={8}>
+        <Pressable
+          onPress={handleEditProfile}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Edit hair profile"
+          accessibilityHint="Double tap to edit your hair attributes"
+        >
           <VlossomSettingsIcon size={24} color={colors.text.secondary} />
         </Pressable>
       </View>
@@ -194,13 +237,16 @@ export default function HairHealthDashboard() {
       >
         {/* Profile Summary Card */}
         <View
+          accessible
+          accessibilityRole="summary"
+          accessibilityLabel={`Hair profile: ${getTextureLabel(profile?.textureClass || null)}, ${getPatternLabel(profile?.patternFamily || null)}. Profile ${completion}% complete.`}
           style={[
             styles.profileCard,
             { backgroundColor: colors.background.primary, borderRadius: borderRadius.xl, ...shadows.card },
           ]}
         >
           {/* Texture Badge */}
-          <View style={styles.textureHeader}>
+          <View style={styles.textureHeader} aria-hidden>
             <View
               style={[
                 styles.textureBadge,
@@ -220,8 +266,14 @@ export default function HairHealthDashboard() {
           </View>
 
           {/* Progress Bar */}
-          <View style={styles.progressSection}>
-            <View style={styles.progressHeader}>
+          <View
+            style={styles.progressSection}
+            accessible
+            accessibilityRole="progressbar"
+            accessibilityLabel={`Profile completion: ${completion}%`}
+            accessibilityValue={{ min: 0, max: 100, now: completion }}
+          >
+            <View style={styles.progressHeader} aria-hidden>
               <Text style={[textStyles.bodySmall, { color: colors.text.tertiary }]}>
                 Profile Completion
               </Text>
@@ -229,7 +281,7 @@ export default function HairHealthDashboard() {
                 {completion}%
               </Text>
             </View>
-            <View style={[styles.progressTrack, { backgroundColor: colors.surface.light }]}>
+            <View style={[styles.progressTrack, { backgroundColor: colors.surface.light }]} aria-hidden>
               <View
                 style={[
                   styles.progressFill,
@@ -276,19 +328,32 @@ export default function HairHealthDashboard() {
         <CalendarWidget />
 
         {/* Learning Progress Section */}
-        <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600', marginTop: spacing.xl }]}>
+        <Text
+          style={[textStyles.body, { color: colors.text.primary, fontWeight: '600', marginTop: spacing.xl }]}
+          accessibilityRole="header"
+        >
           Learning Journey
         </Text>
-        <Text style={[textStyles.bodySmall, { color: colors.text.tertiary, marginBottom: spacing.md }]}>
+        <Text
+          style={[textStyles.bodySmall, { color: colors.text.tertiary, marginBottom: spacing.md }]}
+          accessibilityLabel={`${unlockedNodes.length} of ${totalNodes} modules completed`}
+        >
           {unlockedNodes.length} of {totalNodes} modules completed
         </Text>
 
-        <View style={styles.learningGrid}>
+        <View
+          style={styles.learningGrid}
+          accessibilityRole="list"
+          accessibilityLabel={`Learning modules, ${unlockedNodes.length} of ${totalNodes} completed`}
+        >
           {LEARNING_NODES.map((node) => {
             const isUnlocked = unlockedNodes.includes(node.id);
             return (
-              <Pressable
+              <View
                 key={node.id}
+                accessible
+                accessibilityRole="listitem"
+                accessibilityLabel={`${node.title}, ${isUnlocked ? 'completed' : 'locked'}`}
                 style={[
                   styles.learningCard,
                   {
@@ -313,28 +378,54 @@ export default function HairHealthDashboard() {
                     },
                   ]}
                   numberOfLines={2}
+                  aria-hidden
                 >
                   {node.title}
                 </Text>
-              </Pressable>
+              </View>
             );
           })}
         </View>
 
         {/* Quick Actions */}
-        <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600', marginTop: spacing.xl }]}>
+        <Text
+          style={[textStyles.body, { color: colors.text.primary, fontWeight: '600', marginTop: spacing.xl }]}
+          accessibilityRole="header"
+        >
           Quick Actions
         </Text>
+
+        <Pressable
+          onPress={handleViewCalendar}
+          style={[
+            styles.actionCard,
+            { backgroundColor: colors.background.primary, borderRadius: borderRadius.lg, ...shadows.card, marginTop: spacing.md },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="View Calendar, See your full ritual schedule"
+          accessibilityHint="Double tap to open your hair care calendar"
+        >
+          <VlossomCalendarIcon size={24} color={colors.primary} aria-hidden />
+          <View style={styles.actionInfo} aria-hidden>
+            <Text style={[textStyles.body, { color: colors.text.primary }]}>View Calendar</Text>
+            <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+              See your full ritual schedule
+            </Text>
+          </View>
+        </Pressable>
 
         <Pressable
           onPress={handleEditProfile}
           style={[
             styles.actionCard,
-            { backgroundColor: colors.background.primary, borderRadius: borderRadius.lg, ...shadows.card, marginTop: spacing.md },
+            { backgroundColor: colors.background.primary, borderRadius: borderRadius.lg, ...shadows.card, marginTop: spacing.sm },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel="Edit Profile, Update your hair attributes"
+          accessibilityHint="Double tap to edit your hair profile"
         >
-          <VlossomSettingsIcon size={24} color={colors.primary} />
-          <View style={styles.actionInfo}>
+          <VlossomSettingsIcon size={24} color={colors.primary} aria-hidden />
+          <View style={styles.actionInfo} aria-hidden>
             <Text style={[textStyles.body, { color: colors.text.primary }]}>Edit Profile</Text>
             <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
               Update your hair attributes
@@ -361,13 +452,16 @@ interface AttributeItemProps {
 function AttributeItem({ label, value, colors, spacing, borderRadius }: AttributeItemProps) {
   return (
     <View
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={`${label}: ${value}`}
       style={[
         styles.attributeItem,
         { backgroundColor: colors.surface.light, borderRadius: borderRadius.md },
       ]}
     >
-      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>{label}</Text>
-      <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
+      <Text style={[textStyles.caption, { color: colors.text.tertiary }]} aria-hidden>{label}</Text>
+      <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]} aria-hidden>
         {value}
       </Text>
     </View>

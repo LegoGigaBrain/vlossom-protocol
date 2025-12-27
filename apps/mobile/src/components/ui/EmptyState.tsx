@@ -1,15 +1,19 @@
 /**
- * EmptyState Component (V7.0.0)
+ * EmptyState Component (V7.4)
  *
  * Display when no content is available.
  * Port of web empty-state.tsx with React Native styling.
  *
  * V7.0.0 (UX-2): Mobile empty state component with 14 presets
+ * V7.4: Added settle animation for gentle arrival into view
+ *
+ * Motion: Uses "settle" animation for gentle arrival into view.
  */
 
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ViewStyle, Animated } from 'react-native';
 import { colors, spacing, typography, borderRadius } from '../../styles/tokens';
+import { useSettleMotion } from '../../hooks/useMotion';
 import {
   CalendarIllustration,
   SearchIllustration,
@@ -131,11 +135,24 @@ export function EmptyState({
 }: EmptyStateProps) {
   const sizeConfig = sizeStyles[size];
   const IllustrationComponent = illustration !== 'custom' ? illustrations[illustration] : null;
+  const { style: settleStyle } = useSettleMotion({ autoPlay: true });
+
+  // Accessibility: combine title and description for screen readers
+  const accessibilityLabel = description ? `${title}. ${description}` : title;
 
   return (
-    <View style={[styles.container, { padding: sizeConfig.containerPadding }, style]}>
-      {/* Illustration */}
-      <View style={[styles.illustrationContainer, { marginBottom: sizeConfig.gap }]}>
+    <Animated.View
+      style={[styles.container, { padding: sizeConfig.containerPadding }, settleStyle, style]}
+      accessible
+      accessibilityRole="none"
+      accessibilityLabel={accessibilityLabel}
+    >
+      {/* Illustration - decorative, hidden from screen readers */}
+      <View
+        style={[styles.illustrationContainer, { marginBottom: sizeConfig.gap }]}
+        accessible={false}
+        importantForAccessibility="no-hide-descendants"
+      >
         {illustration === 'custom' && customIllustration
           ? customIllustration
           : IllustrationComponent && (
@@ -152,6 +169,7 @@ export function EmptyState({
             marginBottom: description ? spacing.xs : action ? sizeConfig.gap : 0,
           },
         ]}
+        accessibilityRole="header"
       >
         {title}
       </Text>
@@ -166,6 +184,7 @@ export function EmptyState({
               marginBottom: action || secondaryAction ? sizeConfig.gap : 0,
             },
           ]}
+          accessibilityRole="text"
         >
           {description}
         </Text>
@@ -173,7 +192,7 @@ export function EmptyState({
 
       {/* Actions */}
       {(action || secondaryAction) && (
-        <View style={styles.actionsContainer}>
+        <View style={styles.actionsContainer} accessibilityRole="none">
           {action && (
             <Pressable
               onPress={action.onPress}
@@ -183,6 +202,9 @@ export function EmptyState({
                 action.variant === 'secondary' && styles.secondaryButton,
                 pressed && styles.buttonPressed,
               ]}
+              accessibilityRole="button"
+              accessibilityLabel={action.label}
+              accessibilityHint={`Tap to ${action.label.toLowerCase()}`}
             >
               <Text
                 style={[
@@ -196,13 +218,18 @@ export function EmptyState({
             </Pressable>
           )}
           {secondaryAction && (
-            <Pressable onPress={secondaryAction.onPress} style={styles.secondaryActionButton}>
+            <Pressable
+              onPress={secondaryAction.onPress}
+              style={styles.secondaryActionButton}
+              accessibilityRole="button"
+              accessibilityLabel={secondaryAction.label}
+            >
               <Text style={styles.secondaryActionText}>{secondaryAction.label}</Text>
             </Pressable>
           )}
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 }
 

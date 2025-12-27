@@ -1,5 +1,6 @@
 /**
  * EmptyState component - Display when no content is available
+ * Motion: Uses "settle" animation for gentle arrival into view
  */
 
 import * as React from "react";
@@ -115,7 +116,7 @@ function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center text-center",
+        "flex flex-col items-center justify-center text-center animate-settle motion-reduce:animate-settleFade",
         styles.container,
         className
       )}

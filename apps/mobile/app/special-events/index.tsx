@@ -1,11 +1,13 @@
 /**
- * Special Events Landing Screen (V6.6.0)
+ * Special Events Landing Screen (V7.2.0)
  *
  * Entry point for special event booking requests
  * Features:
  * - Event category selection
  * - Recent special events from stylists
  * - Quick start request flow
+ *
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
@@ -139,6 +141,9 @@ export default function SpecialEventsScreen() {
             paddingVertical: spacing.xl,
           },
         ]}
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel="Special Events. Custom styling for weddings, photoshoots, and special occasions"
       >
         <VlossomGrowingIcon size={40} color={colors.accent} accent />
         <Text
@@ -146,6 +151,7 @@ export default function SpecialEventsScreen() {
             textStyles.h2,
             { color: colors.text.primary, marginTop: spacing.md, textAlign: 'center' },
           ]}
+          aria-hidden
         >
           Special Events
         </Text>
@@ -154,6 +160,7 @@ export default function SpecialEventsScreen() {
             textStyles.body,
             { color: colors.text.secondary, marginTop: spacing.sm, textAlign: 'center' },
           ]}
+          aria-hidden
         >
           Custom styling for weddings, photoshoots, and special occasions
         </Text>
@@ -168,18 +175,28 @@ export default function SpecialEventsScreen() {
               marginTop: spacing.lg,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel="Request a Quote"
+          accessibilityHint="Opens the special event request form"
         >
-          <Text style={[textStyles.button, { color: colors.white }]}>Request a Quote</Text>
+          <Text style={[textStyles.button, { color: colors.white }]} aria-hidden>Request a Quote</Text>
         </Pressable>
       </View>
 
       {/* Popular Categories */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
-        <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
+        <Text
+          style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}
+          accessibilityRole="header"
+        >
           Popular Categories
         </Text>
 
-        <View style={styles.categoriesGrid}>
+        <View
+          style={styles.categoriesGrid}
+          accessibilityRole="list"
+          accessibilityLabel="Popular event categories"
+        >
           {EVENT_CATEGORIES.filter((c) => c.popular).map((category) => (
             <Pressable
               key={category.id}
@@ -192,6 +209,10 @@ export default function SpecialEventsScreen() {
                   ...shadows.card,
                 },
               ]}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel={`${category.label}: ${category.description}`}
+              accessibilityHint="Opens request form for this category"
             >
               <View
                 style={[
@@ -201,6 +222,7 @@ export default function SpecialEventsScreen() {
                     borderRadius: borderRadius.circle,
                   },
                 ]}
+                aria-hidden
               >
                 {getIcon(category.icon)}
               </View>
@@ -209,12 +231,14 @@ export default function SpecialEventsScreen() {
                   textStyles.bodySmall,
                   { color: colors.text.primary, fontWeight: '600', marginTop: spacing.sm },
                 ]}
+                aria-hidden
               >
                 {category.label}
               </Text>
               <Text
                 style={[textStyles.caption, { color: colors.text.tertiary, textAlign: 'center' }]}
                 numberOfLines={2}
+                aria-hidden
               >
                 {category.description}
               </Text>
@@ -225,7 +249,10 @@ export default function SpecialEventsScreen() {
 
       {/* All Categories */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
-        <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
+        <Text
+          style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}
+          accessibilityRole="header"
+        >
           All Event Types
         </Text>
 
@@ -238,6 +265,8 @@ export default function SpecialEventsScreen() {
               ...shadows.card,
             },
           ]}
+          accessibilityRole="list"
+          accessibilityLabel="All event types"
         >
           {EVENT_CATEGORIES.map((category, index) => {
             const isLast = index === EVENT_CATEGORIES.length - 1;
@@ -250,6 +279,10 @@ export default function SpecialEventsScreen() {
                   !isLast && { borderBottomWidth: StyleSheet.hairlineWidth },
                   { borderBottomColor: colors.border.default },
                 ]}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel={`${category.label}: ${category.description}`}
+                accessibilityHint="Opens request form for this category"
               >
                 <View
                   style={[
@@ -259,10 +292,11 @@ export default function SpecialEventsScreen() {
                       borderRadius: borderRadius.md,
                     },
                   ]}
+                  aria-hidden
                 >
                   {getIcon(category.icon)}
                 </View>
-                <View style={styles.rowInfo}>
+                <View style={styles.rowInfo} aria-hidden>
                   <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
                     {category.label}
                   </Text>
@@ -270,7 +304,7 @@ export default function SpecialEventsScreen() {
                     {category.description}
                   </Text>
                 </View>
-                <Text style={[textStyles.caption, { color: colors.text.muted }]}>→</Text>
+                <Text style={[textStyles.caption, { color: colors.text.muted }]} aria-hidden>→</Text>
               </Pressable>
             );
           })}
@@ -279,7 +313,10 @@ export default function SpecialEventsScreen() {
 
       {/* Featured Stylists */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
-        <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
+        <Text
+          style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}
+          accessibilityRole="header"
+        >
           Top Event Stylists
         </Text>
 
@@ -287,6 +324,8 @@ export default function SpecialEventsScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: spacing.md }}
+          accessibilityRole="list"
+          accessibilityLabel="Top event stylists"
         >
           {FEATURED_STYLISTS.map((stylist) => (
             <Pressable
@@ -299,12 +338,17 @@ export default function SpecialEventsScreen() {
                   ...shadows.card,
                 },
               ]}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel={`${stylist.name}, ${stylist.specialty}, ${stylist.rating.toFixed(1)} stars, ${stylist.completedEvents} events completed`}
+              accessibilityHint="Double tap to view stylist profile"
             >
               <View
                 style={[
                   styles.stylistAvatar,
                   { backgroundColor: colors.background.tertiary, borderRadius: borderRadius.circle },
                 ]}
+                aria-hidden
               >
                 {stylist.avatarUrl ? (
                   <Image source={{ uri: stylist.avatarUrl }} style={styles.avatarImage} />
@@ -317,13 +361,14 @@ export default function SpecialEventsScreen() {
                   textStyles.bodySmall,
                   { color: colors.text.primary, fontWeight: '600', marginTop: spacing.sm },
                 ]}
+                aria-hidden
               >
                 {stylist.name}
               </Text>
-              <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+              <Text style={[textStyles.caption, { color: colors.text.secondary }]} aria-hidden>
                 {stylist.specialty}
               </Text>
-              <View style={styles.stylistMeta}>
+              <View style={styles.stylistMeta} aria-hidden>
                 <Text style={[textStyles.caption, { color: colors.accent }]}>
                   ★ {stylist.rating.toFixed(1)}
                 </Text>
@@ -339,7 +384,10 @@ export default function SpecialEventsScreen() {
 
       {/* How It Works */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.xl }}>
-        <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
+        <Text
+          style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}
+          accessibilityRole="header"
+        >
           How It Works
         </Text>
 
@@ -352,6 +400,8 @@ export default function SpecialEventsScreen() {
               ...shadows.card,
             },
           ]}
+          accessibilityRole="list"
+          accessibilityLabel="How special event booking works"
         >
           {[
             { step: '1', title: 'Describe Your Event', desc: 'Tell us about your occasion and needs' },
@@ -366,18 +416,22 @@ export default function SpecialEventsScreen() {
                 index < 3 && { borderBottomWidth: StyleSheet.hairlineWidth },
                 { borderBottomColor: colors.border.default },
               ]}
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel={`Step ${item.step}: ${item.title}. ${item.desc}`}
             >
               <View
                 style={[
                   styles.stepNumber,
                   { backgroundColor: colors.accent + '20', borderRadius: borderRadius.circle },
                 ]}
+                aria-hidden
               >
                 <Text style={[textStyles.bodySmall, { color: colors.accent, fontWeight: '700' }]}>
                   {item.step}
                 </Text>
               </View>
-              <View style={styles.stepInfo}>
+              <View style={styles.stepInfo} aria-hidden>
                 <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
                   {item.title}
                 </Text>

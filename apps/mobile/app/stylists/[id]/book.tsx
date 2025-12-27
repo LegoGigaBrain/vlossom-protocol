@@ -1,5 +1,5 @@
 /**
- * Booking Flow Screen (V6.10.0)
+ * Booking Flow Screen (V7.1.2)
  *
  * Multi-step booking flow for scheduling a service with a stylist
  * Steps: Service Selection → Date/Time → Location → Confirmation
@@ -7,6 +7,7 @@
  * Wired to real API with wallet balance check and error handling.
  *
  * V7.0.0 (UX-1): Balance check at step 1 with warning banner
+ * V7.1.2: Real availability API integration for time slots
  */
 
 import {
@@ -23,7 +24,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme, textStyles } from '../../../src/styles/theme';
 import {
   VlossomBackIcon,
-  VlossomCalendarIcon,
   VlossomLocationIcon,
   VlossomWalletIcon,
 } from '../../../src/components/icons/VlossomIcons';
@@ -99,6 +99,9 @@ function BalanceWarningBanner({
       </View>
       <Pressable
         onPress={onFundWallet}
+        accessibilityRole="button"
+        accessibilityLabel="Fund wallet"
+        accessibilityHint="Opens wallet funding screen to add funds"
         style={[
           styles.fundButton,
           {
@@ -305,7 +308,14 @@ export default function BookingScreen() {
           },
         ]}
       >
-        <Pressable onPress={handleBack} style={styles.backButton} hitSlop={8}>
+        <Pressable
+          onPress={handleBack}
+          style={styles.backButton}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={currentStep === 'service' ? 'Go back to stylist profile' : `Go back to ${currentStep === 'datetime' ? 'service selection' : currentStep === 'location' ? 'date and time' : 'location'}`}
+          accessibilityHint="Navigate to previous step"
+        >
           <VlossomBackIcon size={24} color={colors.text.primary} />
         </Pressable>
         <View style={styles.headerTitle}>
@@ -320,7 +330,12 @@ export default function BookingScreen() {
       </View>
 
       {/* Progress Bar */}
-      <View style={[styles.progressContainer, { paddingHorizontal: spacing.lg }]}>
+      <View
+        style={[styles.progressContainer, { paddingHorizontal: spacing.lg }]}
+        accessibilityRole="progressbar"
+        accessibilityLabel={`Booking progress: Step ${getStepNumber()} of 4`}
+        accessibilityValue={{ min: 0, max: 4, now: getStepNumber() }}
+      >
         <View style={[styles.progressTrack, { backgroundColor: colors.surface.light }]}>
           <View
             style={[
@@ -351,6 +366,9 @@ export default function BookingScreen() {
 
         {currentStep === 'datetime' && (
           <DateTimeStep
+            stylistId={id!}
+            availability={availability}
+            fetchAvailability={fetchAvailability}
             onSelect={handleSelectDateTime}
             colors={colors}
             spacing={spacing}
@@ -427,6 +445,9 @@ function ServiceStep({ services, onSelect, balance, onFundWallet, colors, spacin
         <Pressable
           key={service.id}
           onPress={() => onSelect(service)}
+          accessibilityRole="button"
+          accessibilityLabel={`${service.name}, ${formatPrice(service.priceAmountCents)}, ${service.estimatedDurationMin} minutes`}
+          accessibilityHint="Double tap to select this service"
           style={[
             styles.serviceCard,
             {
@@ -462,17 +483,29 @@ function ServiceStep({ services, onSelect, balance, onFundWallet, colors, spacin
   );
 }
 
-// Date/Time Selection Step (Simplified for now)
+// Date/Time Selection Step - V7.1.2: Real availability API integration
 interface DateTimeStepProps {
+  stylistId: string;
+  availability: { time: string; available: boolean }[];
+  fetchAvailability: (stylistId: string, date: string) => Promise<void>;
   onSelect: (date: Date, time: string) => void;
   colors: ReturnType<typeof useTheme>['colors'];
   spacing: ReturnType<typeof useTheme>['spacing'];
   borderRadius: ReturnType<typeof useTheme>['borderRadius'];
 }
 
-function DateTimeStep({ onSelect, colors, spacing, borderRadius }: DateTimeStepProps) {
+function DateTimeStep({
+  stylistId,
+  availability,
+  fetchAvailability,
+  onSelect,
+  colors,
+  spacing,
+  borderRadius,
+}: DateTimeStepProps) {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Generate next 7 days
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -481,8 +514,21 @@ function DateTimeStep({ onSelect, colors, spacing, borderRadius }: DateTimeStepP
     return date;
   });
 
-  // Mock time slots
-  const timeSlots = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
+  // Fetch availability when day is selected
+  useEffect(() => {
+    if (selectedDay !== null) {
+      const selectedDate = days[selectedDay];
+      const dateStr = selectedDate.toISOString().split('T')[0]; // YYYY-MM-DD
+      setLoadingSlots(true);
+      setSelectedTimeSlot(null); // Reset time slot selection
+      fetchAvailability(stylistId, dateStr).finally(() => setLoadingSlots(false));
+    }
+  }, [selectedDay, stylistId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Get time slots from availability (or fallback to default)
+  const timeSlots = availability.length > 0
+    ? availability
+    : generateTimeSlots().map(time => ({ time, available: true }));
 
   const handleContinue = () => {
     if (selectedDay !== null && selectedTimeSlot) {
@@ -500,10 +546,16 @@ function DateTimeStep({ onSelect, colors, spacing, borderRadius }: DateTimeStepP
           const isSelected = selectedDay === index;
           const dayName = date.toLocaleDateString('en-ZA', { weekday: 'short' });
           const dayNumber = date.getDate();
+          const monthName = date.toLocaleDateString('en-ZA', { month: 'short' });
+          const isToday = index === 0;
           return (
             <Pressable
               key={index}
               onPress={() => setSelectedDay(index)}
+              accessibilityRole="button"
+              accessibilityLabel={`${dayName}, ${monthName} ${dayNumber}${isToday ? ', Today' : ''}${isSelected ? ', Selected' : ''}`}
+              accessibilityState={{ selected: isSelected }}
+              accessibilityHint="Double tap to select this date"
               style={[
                 styles.dayCard,
                 {
@@ -537,37 +589,75 @@ function DateTimeStep({ onSelect, colors, spacing, borderRadius }: DateTimeStepP
       <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
         Select Time
       </Text>
-      <View style={styles.timeGrid}>
-        {timeSlots.map((time) => {
-          const isSelected = selectedTimeSlot === time;
-          return (
-            <Pressable
-              key={time}
-              onPress={() => setSelectedTimeSlot(time)}
-              style={[
-                styles.timeSlot,
-                {
-                  backgroundColor: isSelected ? colors.primary : colors.background.secondary,
-                  borderRadius: borderRadius.md,
-                },
-              ]}
-            >
-              <Text
+      {loadingSlots ? (
+        <View style={[styles.loadingSlotsContainer, { padding: spacing.xl }]}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[textStyles.caption, { color: colors.text.tertiary, marginTop: spacing.sm }]}>
+            Loading available times...
+          </Text>
+        </View>
+      ) : selectedDay === null ? (
+        <Text style={[textStyles.body, { color: colors.text.tertiary }]}>
+          Select a date to see available times
+        </Text>
+      ) : (
+        <View style={styles.timeGrid} accessibilityRole="radiogroup" accessibilityLabel="Available time slots">
+          {timeSlots.map((slot) => {
+            const isSelected = selectedTimeSlot === slot.time;
+            const isAvailable = slot.available;
+            return (
+              <Pressable
+                key={slot.time}
+                onPress={() => isAvailable && setSelectedTimeSlot(slot.time)}
+                disabled={!isAvailable}
+                accessibilityRole="radio"
+                accessibilityLabel={`${slot.time}${isAvailable ? '' : ', Booked'}${isSelected ? ', Selected' : ''}`}
+                accessibilityState={{ selected: isSelected, disabled: !isAvailable }}
+                accessibilityHint={isAvailable ? 'Double tap to select this time' : 'This time slot is not available'}
                 style={[
-                  textStyles.body,
-                  { color: isSelected ? colors.white : colors.text.primary },
+                  styles.timeSlot,
+                  {
+                    backgroundColor: isSelected
+                      ? colors.primary
+                      : isAvailable
+                        ? colors.background.secondary
+                        : colors.background.tertiary,
+                    borderRadius: borderRadius.md,
+                    opacity: isAvailable ? 1 : 0.5,
+                  },
                 ]}
               >
-                {time}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+                <Text
+                  style={[
+                    textStyles.body,
+                    {
+                      color: isSelected
+                        ? colors.white
+                        : isAvailable
+                          ? colors.text.primary
+                          : colors.text.tertiary,
+                    },
+                  ]}
+                >
+                  {slot.time}
+                </Text>
+                {!isAvailable && (
+                  <Text style={[textStyles.caption, { color: colors.text.tertiary, fontSize: 10 }]}>
+                    Booked
+                  </Text>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       {selectedDay !== null && selectedTimeSlot && (
         <Pressable
           onPress={handleContinue}
+          accessibilityRole="button"
+          accessibilityLabel={`Continue with ${days[selectedDay].toLocaleDateString('en-ZA', { weekday: 'long', month: 'short', day: 'numeric' })} at ${selectedTimeSlot}`}
+          accessibilityHint="Proceed to location selection"
           style={[
             styles.continueButton,
             {
@@ -609,6 +699,9 @@ function LocationStep({ operatingMode, onSelect, colors, spacing, borderRadius, 
       {canVisitStylist && (
         <Pressable
           onPress={() => onSelect('stylist')}
+          accessibilityRole="button"
+          accessibilityLabel="Visit the stylist at their salon or studio"
+          accessibilityHint="Double tap to select this location option"
           style={[
             styles.locationOption,
             {
@@ -636,6 +729,9 @@ function LocationStep({ operatingMode, onSelect, colors, spacing, borderRadius, 
       {canHaveStylistVisit && (
         <Pressable
           onPress={() => onSelect('customer')}
+          accessibilityRole="button"
+          accessibilityLabel="Have the stylist come to your location"
+          accessibilityHint="Double tap to select this location option"
           style={[
             styles.locationOption,
             {
@@ -721,6 +817,8 @@ function ConfirmStep({
             ...shadows.card,
           },
         ]}
+        accessibilityRole="summary"
+        accessibilityLabel={`Booking summary: ${service.name} with ${stylistName}, ${formattedDate} at ${time}, ${locationChoice === 'stylist' ? "Stylist's location" : 'Your location'}, Total ${formatPrice(priceBreakdown.totalAmount)}`}
       >
         <View style={styles.confirmRow}>
           <Text style={[textStyles.bodySmall, { color: colors.text.tertiary }]}>Stylist</Text>
@@ -833,6 +931,10 @@ function ConfirmStep({
       <Pressable
         onPress={onConfirm}
         disabled={isLoading}
+        accessibilityRole="button"
+        accessibilityLabel={isLoading ? 'Confirming booking' : `Confirm booking for ${service.name} with ${stylistName} on ${formattedDate} at ${time}, total ${formatPrice(priceBreakdown.totalAmount)}`}
+        accessibilityState={{ disabled: isLoading, busy: isLoading }}
+        accessibilityHint={hasInsufficientBalance ? 'Insufficient wallet balance' : 'Double tap to confirm your booking'}
         style={[
           styles.confirmButton,
           {
@@ -912,6 +1014,11 @@ const styles = StyleSheet.create({
   timeSlot: {
     paddingHorizontal: 16,
     paddingVertical: 12,
+    alignItems: 'center',
+  },
+  loadingSlotsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   continueButton: {
     paddingVertical: 16,

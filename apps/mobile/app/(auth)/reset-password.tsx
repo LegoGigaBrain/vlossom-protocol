@@ -174,12 +174,19 @@ export default function ResetPasswordScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Success Icon */}
-          <View style={styles.successIconContainer}>
+          <View
+            style={styles.successIconContainer}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel="Success"
+          >
             <VlossomCheckIcon size={32} color={colors.status.success} />
           </View>
 
           {/* Message */}
-          <Text style={styles.stateTitle}>Password reset successful</Text>
+          <View accessible accessibilityRole="header">
+            <Text style={styles.stateTitle}>Password reset successful</Text>
+          </View>
           <Text style={styles.stateMessage}>
             Your password has been updated. You can now log in with your new
             password.
@@ -189,6 +196,9 @@ export default function ResetPasswordScreen() {
           <TouchableOpacity
             style={styles.button}
             onPress={() => router.replace('/(auth)/login')}
+            accessibilityRole="button"
+            accessibilityLabel="Go to login"
+            accessibilityHint="Double tap to go to the login screen"
           >
             <Text style={styles.buttonText}>Go to login</Text>
           </TouchableOpacity>
@@ -201,8 +211,8 @@ export default function ResetPasswordScreen() {
   if (tokenState === 'validating') {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <View style={styles.stateContent}>
-          <ActivityIndicator size="large" color={colors.brand.rose} />
+        <View style={styles.stateContent} accessible accessibilityRole="progressbar">
+          <ActivityIndicator size="large" color={colors.brand.rose} accessibilityLabel="Loading" />
           <Text style={[styles.stateMessage, { marginTop: spacing.lg }]}>
             Validating reset link...
           </Text>
@@ -220,25 +230,35 @@ export default function ResetPasswordScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Error Icon */}
-          <View style={styles.errorIconContainer}>
+          <View
+            style={styles.errorIconContainer}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel="Error"
+          >
             <VlossomCloseIcon size={32} color={colors.status.error} />
           </View>
 
           {/* Message */}
-          <Text style={styles.stateTitle}>
-            {tokenState === 'expired' ? 'Link expired' : 'Invalid or expired link'}
-          </Text>
-          <Text style={styles.stateMessage}>
-            {tokenState === 'expired'
-              ? 'This password reset link has expired. Please request a new one.'
-              : 'This password reset link is invalid or has expired. Please request a new one.'}
-          </Text>
+          <View accessible accessibilityRole="alert">
+            <Text style={styles.stateTitle}>
+              {tokenState === 'expired' ? 'Link expired' : 'Invalid or expired link'}
+            </Text>
+            <Text style={styles.stateMessage}>
+              {tokenState === 'expired'
+                ? 'This password reset link has expired. Please request a new one.'
+                : 'This password reset link is invalid or has expired. Please request a new one.'}
+            </Text>
+          </View>
 
           {/* Actions */}
           <View style={styles.stateActions}>
             <TouchableOpacity
               style={styles.button}
               onPress={() => router.replace('/(auth)/forgot-password')}
+              accessibilityRole="button"
+              accessibilityLabel="Request new reset link"
+              accessibilityHint="Double tap to request a new password reset link"
             >
               <Text style={styles.buttonText}>Request new reset link</Text>
             </TouchableOpacity>
@@ -246,6 +266,9 @@ export default function ResetPasswordScreen() {
             <TouchableOpacity
               style={styles.ghostButton}
               onPress={() => router.replace('/(auth)/login')}
+              accessibilityRole="button"
+              accessibilityLabel="Back to login"
+              accessibilityHint="Double tap to return to the login screen"
             >
               <VlossomBackIcon size={16} color={colors.text.secondary} />
               <Text style={styles.ghostButtonText}>Back to login</Text>
@@ -269,9 +292,9 @@ export default function ResetPasswordScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={styles.header} accessible accessibilityRole="header">
             <Text style={styles.logo}>Vlossom</Text>
-            <Text style={styles.title}>Reset password</Text>
+            <Text style={styles.title} accessibilityRole="header">Reset password</Text>
             <Text style={styles.subtitle}>Enter your new password below</Text>
           </View>
 
@@ -279,14 +302,19 @@ export default function ResetPasswordScreen() {
           <View style={styles.form}>
             {/* Error Message */}
             {error && !error.includes('Invalid reset link') && (
-              <View style={styles.errorContainer}>
+              <View
+                style={styles.errorContainer}
+                accessible
+                accessibilityRole="alert"
+                accessibilityLiveRegion="polite"
+              >
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
 
             {/* New Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>New password</Text>
+              <Text style={styles.label} nativeID="passwordLabel">New password</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
@@ -303,10 +331,16 @@ export default function ResetPasswordScreen() {
                   returnKeyType="next"
                   editable={!isLoading}
                   maxLength={INPUT_LIMITS.PASSWORD}
+                  accessibilityLabel="New password"
+                  accessibilityLabelledBy="passwordLabel"
+                  accessibilityHint="Enter a strong password with at least 8 characters"
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}
                   onPress={() => setShowPassword(!showPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityHint="Double tap to toggle password visibility"
                 >
                   <Text style={styles.showPasswordText}>
                     {showPassword ? 'Hide' : 'Show'}
@@ -316,7 +350,13 @@ export default function ResetPasswordScreen() {
 
               {/* Password Strength */}
               {passwordStrength && (
-                <View style={styles.strengthContainer}>
+                <View
+                  style={styles.strengthContainer}
+                  accessible
+                  accessibilityRole="progressbar"
+                  accessibilityLabel={`Password strength: ${passwordStrength.label}`}
+                  accessibilityValue={{ now: passwordStrength.score, min: 0, max: 6 }}
+                >
                   <View style={styles.strengthBars}>
                     {[1, 2, 3, 4].map((level) => (
                       <View
@@ -346,7 +386,12 @@ export default function ResetPasswordScreen() {
 
               {/* Password Requirements */}
               {password.length > 0 && !passwordValidation.isValid && (
-                <View style={styles.requirementsList}>
+                <View
+                  style={styles.requirementsList}
+                  accessible
+                  accessibilityRole="list"
+                  accessibilityLabel={`Password requirements: ${passwordValidation.issues.join(', ')}`}
+                >
                   {passwordValidation.issues.map((issue, index) => (
                     <Text key={index} style={styles.requirementItem}>
                       • {issue}
@@ -358,7 +403,7 @@ export default function ResetPasswordScreen() {
 
             {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm new password</Text>
+              <Text style={styles.label} nativeID="confirmPasswordLabel">Confirm new password</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
@@ -376,10 +421,16 @@ export default function ResetPasswordScreen() {
                   onSubmitEditing={handleSubmit}
                   editable={!isLoading}
                   maxLength={INPUT_LIMITS.PASSWORD}
+                  accessibilityLabel="Confirm new password"
+                  accessibilityLabelledBy="confirmPasswordLabel"
+                  accessibilityHint="Re-enter your new password to confirm"
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  accessibilityHint="Double tap to toggle password visibility"
                 >
                   <Text style={styles.showPasswordText}>
                     {showConfirmPassword ? 'Hide' : 'Show'}
@@ -389,7 +440,13 @@ export default function ResetPasswordScreen() {
 
               {/* Match indicator */}
               {confirmPassword.length > 0 && (
-                <View style={styles.matchIndicator}>
+                <View
+                  style={styles.matchIndicator}
+                  accessible
+                  accessibilityRole="text"
+                  accessibilityLabel={passwordsMatch ? 'Passwords match' : "Passwords don't match"}
+                  accessibilityLiveRegion="polite"
+                >
                   {passwordsMatch ? (
                     <>
                       <VlossomCheckIcon size={14} color={colors.status.success} />
@@ -417,9 +474,13 @@ export default function ResetPasswordScreen() {
               ]}
               onPress={handleSubmit}
               disabled={!isFormValid || isLoading}
+              accessibilityRole="button"
+              accessibilityLabel={isLoading ? 'Resetting password' : 'Reset password'}
+              accessibilityState={{ disabled: !isFormValid || isLoading }}
+              accessibilityHint="Double tap to reset your password"
             >
               {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="#FFFFFF" accessibilityLabel="Resetting, please wait" />
               ) : (
                 <Text style={styles.buttonText}>Reset password</Text>
               )}
@@ -429,6 +490,9 @@ export default function ResetPasswordScreen() {
             <TouchableOpacity
               style={styles.backLink}
               onPress={() => router.replace('/(auth)/login')}
+              accessibilityRole="button"
+              accessibilityLabel="Back to login"
+              accessibilityHint="Double tap to return to the login screen"
             >
               <VlossomBackIcon size={16} color={colors.brand.rose} />
               <Text style={styles.backLinkText}>Back to login</Text>

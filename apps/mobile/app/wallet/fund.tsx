@@ -7,6 +7,8 @@
  * - See estimated USDC to receive
  * - Biometric auth required before proceeding
  * - Initiate onramp via Kotani Pay
+ *
+ * V7.2.0: Added accessibility labels for screen reader support
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -82,7 +84,7 @@ export default function FundScreen() {
   // Calculate fees and estimated USDC
   const feeAmount = amountNumber * FEE_PERCENTAGE + NETWORK_FEE_ZAR;
   const netAmount = Math.max(0, amountNumber - feeAmount);
-  const estimatedUsdc = exchangeRate ? netAmount / exchangeRate.rate : 0;
+  const estimatedUsdc = exchangeRate ? netAmount / exchangeRate.buyRate : 0;
 
   // Validation
   const isValidAmount = amountNumber >= MIN_AMOUNT_ZAR && amountNumber <= MAX_AMOUNT_ZAR;
@@ -175,11 +177,18 @@ export default function FundScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header Icon */}
-        <View style={[styles.iconContainer, { backgroundColor: colors.primarySoft }]}>
+        <View
+          style={[styles.iconContainer, { backgroundColor: colors.primarySoft }]}
+          accessible
+          accessibilityRole="header"
+        >
           <VlossomAddIcon size={32} color={colors.primary} />
         </View>
 
-        <Text style={[textStyles.h3, styles.title, { color: colors.text.primary }]}>
+        <Text
+          style={[textStyles.h3, styles.title, { color: colors.text.primary }]}
+          accessibilityRole="header"
+        >
           Add Money to Wallet
         </Text>
         <Text style={[textStyles.body, styles.subtitle, { color: colors.text.secondary }]}>
@@ -188,7 +197,12 @@ export default function FundScreen() {
 
         {/* Error Banner */}
         {fundError && (
-          <View style={[styles.errorBanner, { backgroundColor: colors.status.errorLight }]}>
+          <View
+            style={[styles.errorBanner, { backgroundColor: colors.status.errorLight }]}
+            accessible
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
             <Text style={[textStyles.bodySmall, { color: colors.status.error }]}>
               {fundError}
             </Text>
@@ -197,7 +211,10 @@ export default function FundScreen() {
 
         {/* Amount Input */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
+          <Text
+            style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}
+            nativeID="fundAmountLabel"
+          >
             Amount (ZAR)
           </Text>
           <View
@@ -211,7 +228,7 @@ export default function FundScreen() {
               },
             ]}
           >
-            <Text style={[styles.currencyPrefix, { color: colors.text.primary }]}>R</Text>
+            <Text style={[styles.currencyPrefix, { color: colors.text.primary }]} aria-hidden>R</Text>
             <TextInput
               style={[styles.input, { color: colors.text.primary }]}
               value={amount}
@@ -220,12 +237,19 @@ export default function FundScreen() {
               placeholderTextColor={colors.text.muted}
               keyboardType="decimal-pad"
               autoFocus
+              accessibilityLabel="Amount in South African Rand"
+              accessibilityLabelledBy="fundAmountLabel"
+              accessibilityHint={`Enter amount between R${MIN_AMOUNT_ZAR} and R${MAX_AMOUNT_ZAR.toLocaleString()}`}
             />
           </View>
 
           {/* Validation message */}
           {amount && !isValidAmount && (
-            <Text style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}>
+            <Text
+              style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
               {amountNumber < MIN_AMOUNT_ZAR
                 ? `Minimum amount is R${MIN_AMOUNT_ZAR}`
                 : `Maximum amount is R${MAX_AMOUNT_ZAR.toLocaleString()}`}
@@ -233,34 +257,37 @@ export default function FundScreen() {
           )}
 
           {/* Quick amount buttons */}
-          <View style={styles.quickAmounts}>
-            {quickAmounts.map((quickAmount) => (
-              <Pressable
-                key={quickAmount}
-                style={[
-                  styles.quickAmountButton,
-                  {
-                    backgroundColor:
-                      amountNumber === quickAmount
-                        ? colors.primary
-                        : colors.background.secondary,
-                    borderRadius: borderRadius.md,
-                  },
-                ]}
-                onPress={() => setAmount(quickAmount.toString())}
-              >
-                <Text
+          <View style={styles.quickAmounts} accessibilityRole="radiogroup" accessibilityLabel="Quick amount selection">
+            {quickAmounts.map((quickAmount) => {
+              const isSelected = amountNumber === quickAmount;
+              return (
+                <Pressable
+                  key={quickAmount}
                   style={[
-                    textStyles.bodySmall,
+                    styles.quickAmountButton,
                     {
-                      color: amountNumber === quickAmount ? colors.white : colors.text.primary,
+                      backgroundColor: isSelected ? colors.primary : colors.background.secondary,
+                      borderRadius: borderRadius.md,
                     },
                   ]}
+                  onPress={() => setAmount(quickAmount.toString())}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${quickAmount.toLocaleString()} Rand`}
+                  accessibilityState={{ checked: isSelected }}
                 >
-                  R{quickAmount.toLocaleString()}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={[
+                      textStyles.bodySmall,
+                      {
+                        color: isSelected ? colors.white : colors.text.primary,
+                      },
+                    ]}
+                  >
+                    R{quickAmount.toLocaleString()}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
@@ -269,7 +296,7 @@ export default function FundScreen() {
           <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
             Payment Method
           </Text>
-          <View style={styles.methodOptions}>
+          <View style={styles.methodOptions} accessibilityRole="radiogroup" accessibilityLabel="Payment method selection">
             <Pressable
               style={[
                 styles.methodOption,
@@ -287,6 +314,9 @@ export default function FundScreen() {
                 },
               ]}
               onPress={() => setSelectedMethod('bank_transfer')}
+              accessibilityRole="radio"
+              accessibilityLabel="Bank Transfer, EFT or instant payment"
+              accessibilityState={{ checked: selectedMethod === 'bank_transfer' }}
             >
               <Text
                 style={[
@@ -324,6 +354,9 @@ export default function FundScreen() {
                 },
               ]}
               onPress={() => setSelectedMethod('mobile_money')}
+              accessibilityRole="radio"
+              accessibilityLabel="Mobile Money, M-Pesa, MTN, and others"
+              accessibilityState={{ checked: selectedMethod === 'mobile_money' }}
             >
               <Text
                 style={[
@@ -357,6 +390,13 @@ export default function FundScreen() {
                   borderRadius: borderRadius.lg,
                 },
               ]}
+              accessible
+              accessibilityRole="summary"
+              accessibilityLabel={
+                exchangeRate
+                  ? `Funding summary: Amount R${amountNumber.toFixed(2)}, Fee R${feeAmount.toFixed(2)}, You receive ${estimatedUsdc.toFixed(2)} dollars USDC. Exchange rate: 1 USD equals R${exchangeRate.buyRate.toFixed(2)}`
+                  : `Funding summary: Amount R${amountNumber.toFixed(2)}, Fee R${feeAmount.toFixed(2)}, Loading exchange rate`
+              }
             >
               <View style={styles.summaryRow}>
                 <Text style={[textStyles.body, { color: colors.text.secondary }]}>
@@ -398,14 +438,14 @@ export default function FundScreen() {
                       </Text>
                     </>
                   ) : (
-                    <ActivityIndicator size="small" color={colors.primary} />
+                    <ActivityIndicator size="small" color={colors.primary} accessibilityLabel="Loading exchange rate" />
                   )}
                 </View>
               </View>
 
               {exchangeRate && (
                 <Text style={[textStyles.caption, styles.rateText, { color: colors.text.muted }]}>
-                  Rate: 1 USD = R{exchangeRate.rate.toFixed(2)} ZAR
+                  Rate: 1 USD = R{exchangeRate.buyRate.toFixed(2)} ZAR
                 </Text>
               )}
             </View>
@@ -414,7 +454,11 @@ export default function FundScreen() {
 
         {/* Biometric Info */}
         {biometricAvailable && (
-          <View style={[styles.biometricInfo, { paddingHorizontal: spacing.lg }]}>
+          <View
+            style={[styles.biometricInfo, { paddingHorizontal: spacing.lg }]}
+            accessible
+            accessibilityLabel={`${getBiometricTypeName(biometricType)} authentication will be required to confirm this transaction`}
+          >
             <Text style={[textStyles.caption, { color: colors.text.muted, textAlign: 'center' }]}>
               {getBiometricTypeName(biometricType)} will be required to confirm this transaction
             </Text>
@@ -434,9 +478,19 @@ export default function FundScreen() {
             ]}
             onPress={handleFund}
             disabled={!canProceed}
+            accessibilityRole="button"
+            accessibilityLabel={
+              fundLoading || isProcessing
+                ? 'Processing'
+                : isValidAmount
+                  ? `Add R${amountNumber.toFixed(2)} to wallet`
+                  : 'Enter a valid amount'
+            }
+            accessibilityState={{ disabled: !canProceed }}
+            accessibilityHint={canProceed ? 'Double tap to initiate funding' : 'Enter a valid amount first'}
           >
             {fundLoading || isProcessing ? (
-              <ActivityIndicator color={colors.white} />
+              <ActivityIndicator color={colors.white} accessibilityLabel="Processing" />
             ) : (
               <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
                 {isValidAmount ? `Add R${amountNumber.toFixed(2)}` : 'Enter Amount'}
@@ -446,7 +500,11 @@ export default function FundScreen() {
         </View>
 
         {/* Security Note */}
-        <View style={[styles.securityNote, { paddingHorizontal: spacing.lg }]}>
+        <View
+          style={[styles.securityNote, { paddingHorizontal: spacing.lg }]}
+          accessible
+          accessibilityLabel="Secured by Kotani Pay. Funds typically arrive within minutes."
+        >
           <VlossomWalletIcon size={16} color={colors.text.muted} />
           <Text style={[textStyles.caption, { color: colors.text.muted, marginLeft: spacing.xs }]}>
             Secured by Kotani Pay. Funds typically arrive within minutes.

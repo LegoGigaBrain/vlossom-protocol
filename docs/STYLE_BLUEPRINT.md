@@ -679,11 +679,47 @@ import { motionUnfold, motionSettle, MOTION_CLASSES } from '@/lib/motion';
 
 All animations respect `prefers-reduced-motion: reduce` automatically.
 
+#### V7.4 Motion Implementation Status
 
+The motion system is now integrated into core UI components:
+
+| Component | Motion | Trigger |
+|-----------|--------|---------|
+| **Dialog (Web)** | `unfold` | On open |
+| **Card (Web/Mobile)** | `settle` | When `animate` prop is true |
+| **EmptyState (Web/Mobile)** | `settle` | On mount |
+| **BookingSuccess (Web)** | `unfold` + `settle` stagger | On success screen |
+
+**Web Usage:**
+```tsx
+// Dialog automatically uses unfold animation
+<Dialog open={isOpen} onOpenChange={setIsOpen}>
+  <DialogContent>...</DialogContent>
+</Dialog>
+
+// Card with settle animation
+<Card animate>
+  <CardContent>...</CardContent>
+</Card>
+```
+
+**Mobile Usage (React Native):**
+```tsx
+import { useSettleMotion, useUnfoldMotion } from '@/hooks/useMotion';
+
+// In component
+const { style: settleStyle } = useSettleMotion({ autoPlay: true });
+
+return (
+  <Animated.View style={settleStyle}>
+    <Card animate>...</Card>
+  </Animated.View>
+);
+```
 
 ---
 
- 
+
 
 ## 8. Component Ethos
 

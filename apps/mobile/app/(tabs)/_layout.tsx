@@ -3,7 +3,7 @@
  *
  * 5-Tab Navigation Structure:
  * - Home: Map-first discovery + booking
- * - Search: Intentional exploration, following feed
+ * - Browse: Intentional exploration, category filtering
  * - Wallet: Financial hub (center position)
  * - Notifications: Global inbox
  * - Profile: Identity, hair health, role dashboards
@@ -61,7 +61,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Search',
+          title: 'Browse',
           tabBarIcon: ({ color, focused }) => (
             <VlossomSearchIcon size={22} color={color} focused={focused} />
           ),

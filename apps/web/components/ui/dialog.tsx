@@ -10,6 +10,7 @@
  * - Proper ARIA attributes (role="dialog", aria-modal)
  * - Backdrop click handling
  *
+ * Motion: Uses "unfold" animation for organic petal-opening reveal
  * @see https://www.radix-ui.com/primitives/docs/components/dialog
  */
 
@@ -53,7 +54,7 @@ export function Dialog({
           className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-fadeIn data-[state=closed]:animate-fadeOut"
         />
         <RadixDialog.Content
-          className="fixed left-1/2 top-1/2 z-modal w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-surface-elevated-light dark:bg-surface-elevated-dark p-6 sm:p-8 shadow-vlossom-modal focus:outline-none max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain data-[state=open]:animate-dialogIn data-[state=closed]:animate-dialogOut"
+          className="fixed left-1/2 top-1/2 z-modal w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-surface-elevated-light dark:bg-surface-elevated-dark p-6 sm:p-8 shadow-vlossom-modal focus:outline-none max-h-[85vh] sm:max-h-[90vh] overflow-y-auto overscroll-contain data-[state=open]:animate-unfold data-[state=closed]:animate-fadeOut motion-reduce:data-[state=open]:animate-settleFade"
           aria-label={ariaLabel}
           onInteractOutside={(e) => {
             if (preventClose) {

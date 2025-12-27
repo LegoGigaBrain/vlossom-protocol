@@ -208,14 +208,14 @@ export interface FiatTransaction {
  * Get wallet info including balance
  */
 export async function getWallet(): Promise<WalletInfo> {
-  return apiRequest<WalletInfo>('/wallet', { method: 'GET' });
+  return apiRequest<WalletInfo>('/api/v1/wallet', { method: 'GET' });
 }
 
 /**
  * Get wallet balance only
  */
 export async function getBalance(): Promise<WalletBalance> {
-  return apiRequest<WalletBalance>('/wallet/balance', { method: 'GET' });
+  return apiRequest<WalletBalance>('/api/v1/wallet/balance', { method: 'GET' });
 }
 
 /**
@@ -230,7 +230,7 @@ export async function getTransactions(options?: {
   if (options?.limit) params.set('limit', options.limit.toString());
 
   const queryString = params.toString();
-  const url = queryString ? `/wallet/transactions?${queryString}` : '/wallet/transactions';
+  const url = queryString ? `/api/v1/wallet/transactions?${queryString}` : '/api/v1/wallet/transactions';
 
   return apiRequest<TransactionsResponse>(url, { method: 'GET' });
 }
@@ -239,9 +239,9 @@ export async function getTransactions(options?: {
  * Send P2P USDC transfer
  */
 export async function sendTransfer(request: TransferRequest): Promise<TransferResponse> {
-  return apiRequest<TransferResponse>('/wallet/transfer', {
+  return apiRequest<TransferResponse>('/api/v1/wallet/transfer', {
     method: 'POST',
-    body: JSON.stringify(request),
+    body: request,
   });
 }
 
@@ -253,9 +253,9 @@ export async function createPaymentRequest(options: {
   memo?: string;
   expiresInMinutes?: number;
 }): Promise<CreatePaymentRequestResponse> {
-  return apiRequest<CreatePaymentRequestResponse>('/wallet/request', {
+  return apiRequest<CreatePaymentRequestResponse>('/api/v1/wallet/request', {
     method: 'POST',
-    body: JSON.stringify(options),
+    body: options,
   });
 }
 
@@ -263,7 +263,7 @@ export async function createPaymentRequest(options: {
  * Get payment request details
  */
 export async function getPaymentRequest(requestId: string): Promise<PaymentRequest> {
-  return apiRequest<PaymentRequest>(`/wallet/request/${requestId}`, {
+  return apiRequest<PaymentRequest>(`/api/v1/wallet/request/${requestId}`, {
     method: 'GET',
   });
 }
@@ -272,7 +272,7 @@ export async function getPaymentRequest(requestId: string): Promise<PaymentReque
  * Pay a payment request
  */
 export async function payPaymentRequest(requestId: string): Promise<TransferResponse> {
-  return apiRequest<TransferResponse>(`/wallet/request/${requestId}/pay`, {
+  return apiRequest<TransferResponse>(`/api/v1/wallet/request/${requestId}/pay`, {
     method: 'POST',
   });
 }
@@ -281,7 +281,7 @@ export async function payPaymentRequest(requestId: string): Promise<TransferResp
  * Get pending payment requests
  */
 export async function getPendingPaymentRequests(): Promise<{ requests: PaymentRequest[] }> {
-  return apiRequest<{ requests: PaymentRequest[] }>('/wallet/requests', {
+  return apiRequest<{ requests: PaymentRequest[] }>('/api/v1/wallet/requests', {
     method: 'GET',
   });
 }
@@ -296,7 +296,7 @@ export async function claimFaucet(): Promise<{
   amountFormatted: string;
   message: string;
 }> {
-  return apiRequest('/wallet/faucet', { method: 'POST' });
+  return apiRequest('/api/v1/wallet/faucet', { method: 'POST' });
 }
 
 // ============================================================================
@@ -307,7 +307,7 @@ export async function claimFaucet(): Promise<{
  * Get fiat configuration (limits, banks, fees)
  */
 export async function getFiatConfig(): Promise<FiatConfig> {
-  return apiRequest<FiatConfig>('/fiat/config', { method: 'GET' });
+  return apiRequest<FiatConfig>('/api/v1/fiat/config', { method: 'GET' });
 }
 
 /**
@@ -324,28 +324,28 @@ export async function getExchangeRate(options: {
     type: options.type,
   });
 
-  return apiRequest<ExchangeRate>(`/fiat/rates?${params}`, { method: 'GET' });
+  return apiRequest<ExchangeRate>(`/api/v1/fiat/rates?${params}`, { method: 'GET' });
 }
 
 /**
  * Get list of supported banks
  */
 export async function getBanks(country: string = 'ZA'): Promise<{ banks: Bank[] }> {
-  return apiRequest<{ banks: Bank[] }>(`/fiat/banks?country=${country}`, { method: 'GET' });
+  return apiRequest<{ banks: Bank[] }>(`/api/v1/fiat/banks?country=${country}`, { method: 'GET' });
 }
 
 /**
  * Initiate onramp (Fund wallet: ZAR → USDC)
  */
 export async function initiateOnramp(request: OnrampRequest): Promise<OnrampResponse> {
-  return apiRequest<OnrampResponse>('/fiat/onramp/initiate', {
+  return apiRequest<OnrampResponse>('/api/v1/fiat/onramp/initiate', {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       fiatAmount: request.fiatAmount,
       fiatCurrency: request.fiatCurrency || 'ZAR',
       paymentChannel: request.paymentChannel || 'bank_transfer',
       phoneNumber: request.phoneNumber,
-    }),
+    },
   });
 }
 
@@ -353,9 +353,9 @@ export async function initiateOnramp(request: OnrampRequest): Promise<OnrampResp
  * Initiate offramp (Withdraw: USDC → ZAR)
  */
 export async function initiateOfframp(request: OfframpRequest): Promise<OfframpResponse> {
-  return apiRequest<OfframpResponse>('/fiat/offramp/initiate', {
+  return apiRequest<OfframpResponse>('/api/v1/fiat/offramp/initiate', {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       cryptoAmount: request.cryptoAmount,
       fiatCurrency: request.fiatCurrency || 'ZAR',
       paymentChannel: request.paymentChannel || 'bank_transfer',
@@ -363,7 +363,7 @@ export async function initiateOfframp(request: OfframpRequest): Promise<OfframpR
       bankAccount: request.bankAccount,
       bankCode: request.bankCode,
       accountName: request.accountName,
-    }),
+    },
   });
 }
 
@@ -371,7 +371,7 @@ export async function initiateOfframp(request: OfframpRequest): Promise<OfframpR
  * Get fiat transaction status
  */
 export async function getFiatTransactionStatus(transactionId: string): Promise<FiatTransaction> {
-  return apiRequest<FiatTransaction>(`/fiat/transactions/${transactionId}`, { method: 'GET' });
+  return apiRequest<FiatTransaction>(`/api/v1/fiat/transactions/${transactionId}`, { method: 'GET' });
 }
 
 /**
@@ -382,7 +382,7 @@ export async function getFiatTransactions(): Promise<{
   total: number;
   mode: 'sandbox' | 'production';
 }> {
-  return apiRequest('/fiat/transactions', { method: 'GET' });
+  return apiRequest('/api/v1/fiat/transactions', { method: 'GET' });
 }
 
 // ============================================================================

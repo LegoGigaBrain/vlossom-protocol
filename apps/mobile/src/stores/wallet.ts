@@ -1,8 +1,9 @@
 /**
- * Wallet Store (V6.8.0)
+ * Wallet Store (V7.0.0)
  *
  * Zustand store for managing wallet state.
  * Handles balance, transactions, fund/withdraw, and P2P transfers.
+ * Supports demo mode with mock data.
  */
 
 import { create } from 'zustand';
@@ -29,6 +30,8 @@ import {
   type TransferRequest,
   type CreatePaymentRequestResponse,
 } from '../api/wallet';
+import { MOCK_WALLET, MOCK_TRANSACTIONS } from '../data/mock-data';
+import { getIsDemoMode } from './demo-mode';
 
 // ============================================================================
 // Types
@@ -110,9 +113,21 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   /**
    * Fetch wallet info including balance
+   * In demo mode, returns mock wallet
    */
   fetchWallet: async () => {
     set({ walletLoading: true, walletError: null });
+
+    // Demo mode: return mock wallet
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      set({
+        wallet: MOCK_WALLET,
+        balance: MOCK_WALLET.balance as WalletBalance,
+        walletLoading: false,
+      });
+      return;
+    }
 
     try {
       const wallet = await getWallet();
@@ -131,8 +146,15 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   /**
    * Fetch balance only (lightweight refresh)
+   * In demo mode, returns mock balance
    */
   fetchBalance: async () => {
+    // Demo mode: return mock balance
+    if (getIsDemoMode()) {
+      set({ balance: MOCK_WALLET.balance as WalletBalance });
+      return;
+    }
+
     try {
       const balance = await getBalance();
       set({ balance });
@@ -143,6 +165,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   /**
    * Fetch transaction history
+   * In demo mode, returns mock transactions
    */
   fetchTransactions: async (refresh = false) => {
     const state = get();
@@ -150,6 +173,18 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
     const page = refresh ? 1 : state.transactionPage;
     set({ transactionsLoading: true, transactionsError: null });
+
+    // Demo mode: return mock transactions
+    if (getIsDemoMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      set({
+        transactions: MOCK_TRANSACTIONS,
+        hasMoreTransactions: false,
+        transactionPage: 1,
+        transactionsLoading: false,
+      });
+      return;
+    }
 
     try {
       const response = await getTransactions({ page, limit: 20 });

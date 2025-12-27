@@ -1,11 +1,12 @@
 /**
- * Auth API Client (V6.10.0)
+ * Auth API Client (V7.1.0)
  *
  * Authentication endpoints: login, signup, logout, getMe, updateProfile,
- * forgotPassword, resetPassword, validateResetToken.
+ * forgotPassword, resetPassword, validateResetToken, addRole, removeRole.
  * Uses SecureStore for token management.
  *
  * V7.0.0: Added validateResetToken for H-6 security fix
+ * V7.1.0: Added multi-role support with addRole/removeRole endpoints
  */
 
 import { apiRequest, setAuthToken, clearTokens, APIError } from './client';
@@ -23,7 +24,8 @@ export interface User {
   email: string | null;
   phone: string | null;
   displayName: string;
-  role: UserRole;
+  role: UserRole; // Primary role (backwards compatible)
+  roles: UserRole[]; // V7.1: Full roles array for multi-role support
   walletAddress: string;
   avatarUrl: string | null;
   verificationStatus: VerificationStatus;
@@ -63,10 +65,10 @@ export interface UpdateProfileRequest {
  * @throws {APIError} On invalid credentials, account locked, or rate limit
  */
 export async function login(request: LoginRequest): Promise<AuthResponse> {
-  const response = await apiRequest<AuthResponse>('/auth/login', {
+  const response = await apiRequest<AuthResponse>('/api/v1/auth/login', {
     method: 'POST',
-    body: JSON.stringify(request),
-    requiresAuth: false,
+    body: request,
+    requireAuth: false,
   });
 
   // Store the token on successful login
@@ -81,10 +83,10 @@ export async function login(request: LoginRequest): Promise<AuthResponse> {
  * @throws {APIError} On email exists, weak password, or rate limit
  */
 export async function signup(request: SignupRequest): Promise<AuthResponse> {
-  const response = await apiRequest<AuthResponse>('/auth/signup', {
+  const response = await apiRequest<AuthResponse>('/api/v1/auth/signup', {
     method: 'POST',
-    body: JSON.stringify(request),
-    requiresAuth: false,
+    body: request,
+    requireAuth: false,
   });
 
   // Store the token on successful signup
@@ -99,7 +101,7 @@ export async function signup(request: SignupRequest): Promise<AuthResponse> {
  */
 export async function logout(): Promise<void> {
   try {
-    await apiRequest<{ message: string }>('/auth/logout', {
+    await apiRequest<{ message: string }>('/api/v1/auth/logout', {
       method: 'POST',
     });
   } catch (error) {
@@ -117,7 +119,7 @@ export async function logout(): Promise<void> {
  * @throws {APIError} If not authenticated or user not found
  */
 export async function getMe(): Promise<User> {
-  const response = await apiRequest<{ user: User }>('/auth/me', {
+  const response = await apiRequest<{ user: User }>('/api/v1/auth/me', {
     method: 'GET',
   });
 
@@ -130,9 +132,9 @@ export async function getMe(): Promise<User> {
  * @throws {APIError} On validation error or email already exists
  */
 export async function updateProfile(request: UpdateProfileRequest): Promise<User> {
-  const response = await apiRequest<{ user: User }>('/auth/me', {
+  const response = await apiRequest<{ user: User }>('/api/v1/auth/me', {
     method: 'PATCH',
-    body: JSON.stringify(request),
+    body: request,
   });
 
   return response.user;
@@ -169,8 +171,13 @@ export function isRateLimitError(error: unknown): boolean {
 }
 
 // ============================================================================
-// Password Recovery
+// Password Management
 // ============================================================================
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
 
 export interface ForgotPasswordRequest {
   email: string;
@@ -179,6 +186,18 @@ export interface ForgotPasswordRequest {
 export interface ResetPasswordRequest {
   token: string;
   password: string;
+}
+
+/**
+ * Change password for authenticated user (V7.1)
+ *
+ * @throws {APIError} On invalid current password or weak new password
+ */
+export async function changePassword(request: ChangePasswordRequest): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/api/v1/auth/change-password', {
+    method: 'POST',
+    body: request,
+  });
 }
 
 // V7.0.0 (H-6): Token validation response
@@ -193,10 +212,10 @@ export interface ValidateResetTokenResponse {
  * @throws {APIError} On invalid email or rate limit
  */
 export async function forgotPassword(request: ForgotPasswordRequest): Promise<{ message: string }> {
-  return apiRequest<{ message: string }>('/auth/forgot-password', {
+  return apiRequest<{ message: string }>('/api/v1/auth/forgot-password', {
     method: 'POST',
-    body: JSON.stringify(request),
-    requiresAuth: false,
+    body: request,
+    requireAuth: false,
   });
 }
 
@@ -206,10 +225,10 @@ export async function forgotPassword(request: ForgotPasswordRequest): Promise<{ 
  * @throws {APIError} On invalid/expired token or weak password
  */
 export async function resetPassword(request: ResetPasswordRequest): Promise<{ message: string }> {
-  return apiRequest<{ message: string }>('/auth/reset-password', {
+  return apiRequest<{ message: string }>('/api/v1/auth/reset-password', {
     method: 'POST',
-    body: JSON.stringify(request),
-    requiresAuth: false,
+    body: request,
+    requireAuth: false,
   });
 }
 
@@ -220,9 +239,50 @@ export async function resetPassword(request: ResetPasswordRequest): Promise<{ me
  * @throws {APIError} On network/server error
  */
 export async function validateResetToken(token: string): Promise<ValidateResetTokenResponse> {
-  return apiRequest<ValidateResetTokenResponse>(`/auth/reset-password/validate?token=${encodeURIComponent(token)}`, {
+  return apiRequest<ValidateResetTokenResponse>(`/api/v1/auth/reset-password/validate?token=${encodeURIComponent(token)}`, {
     method: 'GET',
-    requiresAuth: false,
+    requireAuth: false,
+  });
+}
+
+// ============================================================================
+// Role Management (V7.1)
+// ============================================================================
+
+export type PartnerRole = 'STYLIST' | 'PROPERTY_OWNER';
+
+export interface AddRoleRequest {
+  role: PartnerRole;
+}
+
+export interface AddRoleResponse {
+  message: string;
+  user: User;
+}
+
+/**
+ * V7.1: Add a new role to the current user's account
+ * Used for partner onboarding (become a stylist / list a property)
+ *
+ * @throws {APIError} On invalid role or role already exists
+ */
+export async function addRole(request: AddRoleRequest): Promise<AddRoleResponse> {
+  return apiRequest<AddRoleResponse>('/api/v1/auth/add-role', {
+    method: 'POST',
+    body: request,
+  });
+}
+
+/**
+ * V7.1: Remove a role from the current user's account
+ * Cannot remove CUSTOMER role (base role for all users)
+ *
+ * @throws {APIError} On invalid role or role not exists
+ */
+export async function removeRole(request: AddRoleRequest): Promise<AddRoleResponse> {
+  return apiRequest<AddRoleResponse>('/api/v1/auth/remove-role', {
+    method: 'DELETE',
+    body: request,
   });
 }
 
