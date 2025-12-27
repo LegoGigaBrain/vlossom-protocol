@@ -1,6 +1,6 @@
 # Shared Types
 
-**Version**: V7.0.0 | December 2025
+**Version**: V7.4.0 | December 2025
 
 > Purpose: TypeScript type definitions shared across all Vlossom packages and services.
 

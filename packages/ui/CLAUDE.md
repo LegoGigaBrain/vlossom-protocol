@@ -1,6 +1,6 @@
 # UI Design System
 
-**Version**: V7.0.0 | December 2025
+**Version**: V7.4.0 | December 2025
 
 > Purpose: Shared React component library implementing Vlossom's design system with brand tokens and Radix primitives.
 

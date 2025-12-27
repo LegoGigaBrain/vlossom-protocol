@@ -1,6 +1,6 @@
 # Infrastructure
 
-**Version**: V7.0.0 | December 2025
+**Version**: V7.4.0 | December 2025
 
 > Purpose: Docker configurations, deployment scripts, and infrastructure-as-code for Vlossom services.
 
