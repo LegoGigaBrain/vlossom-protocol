@@ -192,6 +192,44 @@ module.exports = {
           from: { transform: "rotate(0deg)" },
           to: { transform: "rotate(360deg)" },
         },
+        // =============================================
+        // Vlossom Motion System (V6.0)
+        // Philosophy: "Earned, not constant"
+        // =============================================
+
+        // UNFOLD - Organic reveal like a petal opening
+        unfold: {
+          "0%": { opacity: "0", transform: "scale(0.92) rotate(-2deg)" },
+          "60%": { opacity: "1", transform: "scale(1.02) rotate(0.5deg)" },
+          "100%": { opacity: "1", transform: "scale(1) rotate(0deg)" },
+        },
+        // UNFOLD-SUBTLE - Gentler version for smaller elements
+        unfoldSubtle: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        // BREATHE - Subtle life pulse (for active/alive states)
+        breathe: {
+          "0%, 100%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.02)" },
+        },
+        // SETTLE - Gentle arrival into place
+        settle: {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "70%": { opacity: "1", transform: "translateY(-2px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        // SETTLE-FADE - Simple fade-in settle
+        settleFade: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        // PETAL-OPEN - For icon state transitions
+        petalOpen: {
+          "0%": { transform: "rotate(0deg) scale(0.9)", opacity: "0.7" },
+          "50%": { transform: "rotate(6deg) scale(1.05)" },
+          "100%": { transform: "rotate(0deg) scale(1)", opacity: "1" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 220ms ease-out",
@@ -203,6 +241,14 @@ module.exports = {
         slideInUp: "slideInUp 300ms ease-out",
         shimmer: "shimmer 2s linear infinite",
         spin: "spin 1s linear infinite",
+        // Vlossom Motion Verbs
+        unfold: "unfold 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+        unfoldSubtle: "unfoldSubtle 300ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards",
+        breathe: "breathe 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        breatheOnce: "breathe 600ms cubic-bezier(0.4, 0, 0.6, 1) forwards",
+        settle: "settle 300ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards",
+        settleFade: "settleFade 200ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards",
+        petalOpen: "petalOpen 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
       },
     },
   },
