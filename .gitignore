@@ -159,6 +159,9 @@ contracts/typechain-types
 test-results/
 playwright-report/
 
+# Expo
+.expo/
+
 # Vercel
 .vercel
 .env*.local
