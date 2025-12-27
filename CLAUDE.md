@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V7.3.0** - Production Readiness (December 27, 2025)
+**V7.4.0** - Motion System Implementation (December 27, 2025)
 
-**Major Achievement**: Production-ready release with push notifications (Expo FCM/APNs), complete stylist mobile experience (availability, requests, profile), real-time session tracking, App Store build configuration (eas.json), and comprehensive security audit checklist.
+**Major Achievement**: Activated the Vlossom motion system (unfold/breathe/settle) across core UI components. Dialog uses organic "unfold" animation, Card and EmptyState use "settle" animation, BookingSuccess uses staggered animations. All respect `prefers-reduced-motion`.
 
-**Previous**: V7.0.0 - Security Hardening, V6.10.0 - Mobile Parity, V6.9.0 - Calendar Intelligence, V6.8.0 - Mobile Foundation
+**Previous**: V7.3.0 - Production Readiness, V7.0.0 - Security Hardening, V6.10.0 - Mobile Parity
 
 ---
 
@@ -39,8 +39,8 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V7.3.0 |
-| `apps/mobile/` | React Native + Expo mobile app with Push Notifications | ✅ V7.3.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V7.4.0 |
+| `apps/mobile/` | React Native + Expo mobile app with Push Notifications | ✅ V7.4.0 |
 | `apps/admin/` | Admin dashboard (8 pages) | ✅ V7.0.0 |
 
 ### `services/` - Backend Services
