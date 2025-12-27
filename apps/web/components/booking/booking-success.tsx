@@ -1,5 +1,10 @@
 "use client";
 
+/**
+ * BookingSuccess - Confirmation screen after successful booking
+ * Motion: Uses "unfold" for success checkmark and "settle" for content sections
+ */
+
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
@@ -37,12 +42,12 @@ export function BookingSuccess({
         className
       )}
     >
-      {/* Success Animation */}
+      {/* Success Animation - uses unfold for organic petal-opening reveal */}
       <div className="relative">
-        <div className="w-24 h-24 mx-auto rounded-full bg-status-success/10 flex items-center justify-center animate-bounce-in">
-          <Icon name="check" size="xl" className="text-status-success" />
+        <div className="w-24 h-24 mx-auto rounded-full bg-status-success/10 flex items-center justify-center animate-unfold motion-reduce:animate-settleFade">
+          <Icon name="check" size="xl" className="text-status-success animate-petalOpen motion-reduce:animate-none" />
         </div>
-        <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full bg-status-success/20 animate-ping" />
+        <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full bg-status-success/20 animate-breatheOnce motion-reduce:animate-none" />
       </div>
 
       {/* Title */}
@@ -57,8 +62,8 @@ export function BookingSuccess({
         )}
       </div>
 
-      {/* Booking Details Card */}
-      <div className="bg-background-secondary rounded-card p-4 text-left space-y-4">
+      {/* Booking Details Card - settles into view */}
+      <div className="bg-background-secondary rounded-card p-4 text-left space-y-4 animate-settle motion-reduce:animate-settleFade" style={{ animationDelay: "100ms" }}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center">
             <Icon name="calendar" size="sm" className="text-brand-rose" />
@@ -98,8 +103,8 @@ export function BookingSuccess({
         )}
       </div>
 
-      {/* What's Next */}
-      <div className="bg-background-tertiary rounded-lg p-4 text-left">
+      {/* What's Next - settles into view with stagger */}
+      <div className="bg-background-tertiary rounded-lg p-4 text-left animate-settle motion-reduce:animate-settleFade" style={{ animationDelay: "200ms" }}>
         <h3 className="font-medium text-text-primary mb-3">What&apos;s next?</h3>
         <ul className="space-y-2 text-sm text-text-secondary">
           <li className="flex items-start gap-2">
@@ -129,8 +134,8 @@ export function BookingSuccess({
         </ul>
       </div>
 
-      {/* Actions */}
-      <div className="space-y-3">
+      {/* Actions - settles into view last */}
+      <div className="space-y-3 animate-settle motion-reduce:animate-settleFade" style={{ animationDelay: "300ms" }}>
         {onAddToCalendar && (
           <Button variant="outline" onClick={onAddToCalendar} className="w-full">
             <Icon name="add" size="sm" className="mr-2" />

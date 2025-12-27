@@ -2,18 +2,24 @@
  * Card Component
  *
  * A versatile card container for grouping related content.
+ * Motion: Supports "settle" animation for gentle arrival into place.
  */
 
 import * as React from "react";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  /**
+   * Apply settle animation on mount (default: false)
+   * Use for cards that appear dynamically (search results, new items)
+   */
+  animate?: boolean;
 }
 
-export function Card({ children, className, ...props }: CardProps) {
+export function Card({ children, className, animate, ...props }: CardProps) {
   return (
     <div
-      className={`bg-surface-light dark:bg-surface-dark rounded-card shadow-vlossom transition-shadow ${className || ""}`}
+      className={`bg-surface-light dark:bg-surface-dark rounded-card shadow-vlossom transition-shadow ${animate ? "animate-settle motion-reduce:animate-settleFade" : ""} ${className || ""}`}
       {...props}
     >
       {children}
