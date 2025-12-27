@@ -58,6 +58,50 @@ export interface StylistDetail extends StylistSummary {
   isAcceptingBookings: boolean;
 }
 
+// ============================================================================
+// Stylist Dashboard Types (for stylist role users)
+// ============================================================================
+
+export interface PendingRequest {
+  id: string;
+  customerName: string;
+  customerAvatarUrl: string | null;
+  serviceName: string;
+  requestedDate: string;
+  requestedTime: string;
+  priceAmountCents: string;
+  createdAt: string;
+}
+
+export interface StylistDashboard {
+  stats: {
+    pendingRequests: number;
+    upcomingBookings: number;
+    thisMonthEarnings: number;
+    totalEarnings: number;
+    completedBookings: number;
+    averageRating: number;
+  };
+  pendingRequests: PendingRequest[];
+  upcomingBookings: Array<{
+    id: string;
+    customerName: string;
+    serviceName: string;
+    scheduledStartTime: string;
+    locationAddress: string;
+    status: string;
+  }>;
+}
+
+export interface StylistEarnings {
+  totalEarnings: number;
+  thisMonthEarnings: number;
+  lastMonthEarnings: number;
+  pendingEarnings: number;
+  pendingBookingsCount: number;
+  completedBookingsCount: number;
+}
+
 export interface SearchStylistsParams {
   query?: string;
   lat?: number;
@@ -116,7 +160,7 @@ export async function searchStylists(
   if (params.page !== undefined) queryParams.set('page', params.page.toString());
   if (params.pageSize !== undefined) queryParams.set('pageSize', params.pageSize.toString());
 
-  const url = `/stylists${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/api/v1/stylists${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return apiRequest<SearchStylistsResponse>(url);
 }
 
@@ -124,7 +168,7 @@ export async function searchStylists(
  * Get stylist by ID with full details
  */
 export async function getStylistById(id: string): Promise<StylistDetail> {
-  return apiRequest<StylistDetail>(`/stylists/${id}`);
+  return apiRequest<StylistDetail>(`/api/v1/stylists/${id}`);
 }
 
 /**
@@ -170,6 +214,125 @@ export async function getAvailableStylists(
     pageSize: 50,
   });
   return response.items;
+}
+
+// ============================================================================
+// Stylist Dashboard API (for stylist role users)
+// ============================================================================
+
+/**
+ * Get stylist dashboard data (earnings, pending requests, upcoming bookings)
+ * Requires authenticated user with STYLIST role
+ */
+export async function getStylistDashboard(): Promise<StylistDashboard> {
+  return apiRequest<StylistDashboard>('/api/v1/stylists/dashboard');
+}
+
+/**
+ * Get stylist earnings details
+ * Requires authenticated user with STYLIST role
+ */
+export async function getStylistEarnings(): Promise<StylistEarnings> {
+  return apiRequest<StylistEarnings>('/api/v1/stylists/earnings');
+}
+
+/**
+ * Approve a pending booking request
+ */
+export async function approveBookingRequest(requestId: string): Promise<void> {
+  return apiRequest(`/api/v1/bookings/${requestId}/approve`, {
+    method: 'POST',
+  });
+}
+
+/**
+ * Decline a pending booking request
+ */
+export async function declineBookingRequest(
+  requestId: string,
+  reason?: string
+): Promise<void> {
+  return apiRequest(`/api/v1/bookings/${requestId}/decline`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+// ============================================================================
+// Availability Types & API
+// ============================================================================
+
+export interface TimeSlot {
+  start: string; // HH:MM format
+  end: string;   // HH:MM format
+}
+
+export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export interface WeeklySchedule {
+  mon: TimeSlot[];
+  tue: TimeSlot[];
+  wed: TimeSlot[];
+  thu: TimeSlot[];
+  fri: TimeSlot[];
+  sat: TimeSlot[];
+  sun: TimeSlot[];
+}
+
+export interface AvailabilityException {
+  date: string; // YYYY-MM-DD
+  blocked: boolean;
+  note?: string;
+}
+
+export interface StylistAvailability {
+  id: string;
+  stylistId: string;
+  schedule: WeeklySchedule;
+  exceptions: AvailabilityException[];
+  updatedAt: string;
+}
+
+/**
+ * Get stylist's availability settings
+ */
+export async function getStylistAvailability(): Promise<StylistAvailability> {
+  return apiRequest<StylistAvailability>('/api/v1/stylists/availability');
+}
+
+/**
+ * Update weekly availability schedule
+ */
+export async function updateStylistAvailability(
+  schedule: Partial<WeeklySchedule>
+): Promise<StylistAvailability> {
+  return apiRequest<StylistAvailability>('/api/v1/stylists/availability', {
+    method: 'PUT',
+    body: { schedule },
+  });
+}
+
+/**
+ * Add an exception date (holiday, time off, etc.)
+ */
+export async function addAvailabilityException(
+  exception: Omit<AvailabilityException, 'id'>
+): Promise<StylistAvailability> {
+  return apiRequest<StylistAvailability>('/api/v1/stylists/availability/exceptions', {
+    method: 'POST',
+    body: exception,
+  });
+}
+
+/**
+ * Remove an exception date
+ */
+export async function removeAvailabilityException(
+  date: string
+): Promise<StylistAvailability> {
+  return apiRequest<StylistAvailability>(`/api/v1/stylists/availability/exceptions/${date}`, {
+    method: 'DELETE',
+  });
 }
 
 // ============================================================================

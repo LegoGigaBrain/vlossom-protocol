@@ -1,5 +1,5 @@
 /**
- * Vlossom Mobile Root Layout (V6.8.0)
+ * Vlossom Mobile Root Layout (V7.3.0)
  *
  * Provides:
  * - Theme provider
@@ -7,22 +7,29 @@
  * - Auth state initialization
  * - Navigation stack with auth routing
  * - Splash screen management
- * - Deep link validation (V7.0.0)
+ * - Deep link validation
+ * - Demo mode indicator banner
+ * - Push notification initialization (V7.3)
  */
 
-import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { View, ActivityIndicator, StyleSheet, Text, Pressable } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeProvider } from '../src/styles/theme';
-import { colors } from '../src/styles/tokens';
+import { colors, typography, spacing } from '../src/styles/tokens';
 import { useAuthStore } from '../src/stores/auth';
+import { useDemoModeStore, selectIsDemoMode, selectIsHydrated } from '../src/stores/demo-mode';
 import { validateDeepLink } from '../src/utils/deep-link-validator';
+import {
+  initializePushNotifications,
+  cleanupPushNotifications,
+} from '../src/services/push-notifications';
 
 // Google Fonts - bundled at build time
 import {
@@ -41,6 +48,57 @@ import { SpaceMono_400Regular } from '@expo-google-fonts/space-mono';
 SplashScreen.preventAutoHideAsync();
 
 /**
+ * Demo Mode Banner Component
+ * Shows a subtle banner when demo mode is enabled
+ * V7.2.0: Fixed - only shows tap to disable hint when authenticated
+ * Tapping navigates to settings (only when authenticated)
+ */
+function DemoModeBanner() {
+  const router = useRouter();
+  const segments = useSegments();
+  const insets = useSafeAreaInsets();
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+  const isHydrated = useDemoModeStore(selectIsHydrated);
+  const { toggleDemoMode } = useDemoModeStore();
+  const { isAuthenticated } = useAuthStore();
+
+  // Don't show banner until hydrated or if demo mode is off
+  if (!isHydrated || !isDemoMode) {
+    return null;
+  }
+
+  // Check if we're on auth screens
+  const inAuthGroup = segments[0] === '(auth)';
+
+  const handlePress = () => {
+    if (isAuthenticated && !inAuthGroup) {
+      // Navigate to settings if authenticated
+      router.push('/settings');
+    } else {
+      // Just toggle demo mode directly if on auth screens
+      toggleDemoMode();
+    }
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={[
+        styles.demoBanner,
+        { paddingTop: insets.top > 0 ? insets.top + 4 : 8 },
+      ]}
+    >
+      <Text style={styles.demoBannerText}>
+        Demo Mode - Using Sample Data
+      </Text>
+      <Text style={styles.demoBannerTapHint}>
+        {isAuthenticated && !inAuthGroup ? 'Tap to disable' : 'Tap to turn off'}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
  * Auth Guard Component
  * Handles routing based on authentication state
  * V7.0.0 (M-11): Added deep link validation
@@ -49,11 +107,36 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated, isInitialized, initialize } = useAuthStore();
+  const pushInitializedRef = useRef(false);
 
   // Initialize auth state on mount
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // V7.3: Initialize push notifications when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !pushInitializedRef.current) {
+      pushInitializedRef.current = true;
+      initializePushNotifications()
+        .then((result) => {
+          if (result.success) {
+            console.log('[Push] Initialized successfully', { isNew: result.isNew });
+          } else {
+            console.log('[Push] Initialization skipped or failed:', result.error);
+          }
+        })
+        .catch((error) => {
+          console.error('[Push] Initialization error:', error);
+        });
+    }
+
+    // Cleanup on logout
+    if (!isAuthenticated && pushInitializedRef.current) {
+      pushInitializedRef.current = false;
+      cleanupPushNotifications();
+    }
+  }, [isAuthenticated]);
 
   // V7.0.0 (M-11): Deep link validation handler
   useEffect(() => {
@@ -144,6 +227,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <ThemeProvider>
           <StatusBar style="auto" />
+          <DemoModeBanner />
           <AuthGuard>
             <Stack
               screenOptions={{
@@ -169,6 +253,8 @@ export default function RootLayout() {
                   animation: 'slide_from_bottom',
                 }}
               />
+              <Stack.Screen name="bookings" options={{ headerShown: false }} />
+              <Stack.Screen name="settings" options={{ headerShown: false }} />
             </Stack>
           </AuthGuard>
         </ThemeProvider>
@@ -183,5 +269,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background.primary,
+  },
+  demoBanner: {
+    backgroundColor: colors.status.warning,
+    paddingBottom: spacing.xs,
+    paddingHorizontal: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+  },
+  demoBannerText: {
+    fontFamily: typography.fontFamily.semiBold,
+    fontSize: typography.fontSize.xs,
+    color: colors.text.inverse,
+    letterSpacing: 0.5,
+  },
+  demoBannerTapHint: {
+    fontFamily: typography.fontFamily.regular,
+    fontSize: typography.fontSize.xs,
+    color: colors.text.inverse,
+    opacity: 0.8,
   },
 });

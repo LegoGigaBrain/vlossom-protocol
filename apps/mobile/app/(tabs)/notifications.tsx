@@ -28,6 +28,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useNotificationsStore, selectNotifications, selectUnreadCount } from '../../src/stores';
+import { useDemoModeStore, selectIsDemoMode } from '../../src/stores/demo-mode';
 import {
   formatRelativeTime,
   getNotificationCategory,
@@ -68,11 +69,14 @@ export default function NotificationsScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch on mount
+  // Demo mode - refetch when toggled
+  const isDemoMode = useDemoModeStore(selectIsDemoMode);
+
+  // Fetch on mount and when demo mode changes
   useEffect(() => {
     fetchNotifications();
     fetchUnreadCount();
-  }, [fetchNotifications, fetchUnreadCount]);
+  }, [fetchNotifications, fetchUnreadCount, isDemoMode]);
 
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {
@@ -101,8 +105,7 @@ export default function NotificationsScreen() {
     if (notification.type === 'MESSAGE_RECEIVED' && metadata.conversationId) {
       router.push(`/messages/${metadata.conversationId}`);
     } else if (metadata.bookingId) {
-      // TODO: Navigate to booking details
-      // router.push(`/bookings/${metadata.bookingId}`);
+      router.push(`/bookings/${metadata.bookingId}`);
     }
   };
 
@@ -133,24 +136,42 @@ export default function NotificationsScreen() {
         </View>
         <View style={styles.headerRight}>
           {unreadCount > 0 && (
-            <Pressable onPress={handleMarkAllRead} style={{ marginRight: spacing.md }}>
+            <Pressable
+              onPress={handleMarkAllRead}
+              style={{ marginRight: spacing.md }}
+              accessibilityRole="button"
+              accessibilityLabel="Mark all notifications as read"
+              accessibilityHint="Marks all unread notifications as read"
+            >
               <Text style={[textStyles.bodySmall, { color: colors.primary }]}>Mark all read</Text>
             </Pressable>
           )}
-          <Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Notification settings"
+            accessibilityHint="Opens notification settings"
+          >
             <VlossomSettingsIcon size={24} color={colors.text.secondary} />
           </Pressable>
         </View>
       </View>
 
       {/* Filter tabs */}
-      <View style={[styles.filterTabs, { paddingHorizontal: spacing.lg, borderBottomColor: colors.border.default }]}>
+      <View
+        style={[styles.filterTabs, { paddingHorizontal: spacing.lg, borderBottomColor: colors.border.default }]}
+        accessibilityRole="tablist"
+        accessibilityLabel="Notification filters"
+      >
         {FILTER_TABS.map((tab) => {
           const isActive = activeFilter === tab.value;
           return (
             <Pressable
               key={tab.value}
               onPress={() => setActiveFilter(tab.value)}
+              accessibilityRole="tab"
+              accessibilityLabel={`${tab.label} notifications${isActive ? ', Selected' : ''}`}
+              accessibilityState={{ selected: isActive }}
+              accessibilityHint={`Show ${tab.value === 'all' ? 'all' : tab.value} notifications`}
               style={[
                 styles.filterTab,
                 {
@@ -307,10 +328,16 @@ function NotificationItem({
   onPress,
 }: NotificationItemProps) {
   const IconComponent = getIconForType(notification.type);
+  const category = getNotificationCategory(notification.type);
+  const readStatus = notification.read ? '' : ', Unread';
 
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${notification.title}, ${notification.body}, ${formatRelativeTime(notification.createdAt)}${readStatus}`}
+      accessibilityHint={`${category} notification, double tap to view details`}
+      accessibilityState={{ selected: !notification.read }}
       style={[
         styles.notificationItem,
         {

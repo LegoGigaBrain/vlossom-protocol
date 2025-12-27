@@ -85,9 +85,9 @@ export default function SignupScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <View style={styles.header}>
+          <View style={styles.header} accessible accessibilityRole="header">
             <Text style={styles.logo}>Vlossom</Text>
-            <Text style={styles.title}>Create your account</Text>
+            <Text style={styles.title} accessibilityRole="header">Create your account</Text>
             <Text style={styles.subtitle}>
               Join the community and start your journey
             </Text>
@@ -97,8 +97,8 @@ export default function SignupScreen() {
           <View style={styles.form}>
             {/* Role Selector */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>I want to</Text>
-              <View style={styles.roleContainer}>
+              <Text style={styles.label} nativeID="roleLabel">I want to</Text>
+              <View style={styles.roleContainer} accessibilityRole="radiogroup" accessibilityLabelledBy="roleLabel">
                 <TouchableOpacity
                   style={[
                     styles.roleButton,
@@ -106,6 +106,10 @@ export default function SignupScreen() {
                   ]}
                   onPress={() => setRole('CUSTOMER')}
                   disabled={signupLoading}
+                  accessibilityRole="radio"
+                  accessibilityLabel="Book Stylists, Find and book hair services"
+                  accessibilityState={{ checked: role === 'CUSTOMER', disabled: signupLoading }}
+                  accessibilityHint="Double tap to select customer account type"
                 >
                   <Text
                     style={[
@@ -126,6 +130,10 @@ export default function SignupScreen() {
                   ]}
                   onPress={() => setRole('STYLIST')}
                   disabled={signupLoading}
+                  accessibilityRole="radio"
+                  accessibilityLabel="Offer Services, Get booked as a stylist"
+                  accessibilityState={{ checked: role === 'STYLIST', disabled: signupLoading }}
+                  accessibilityHint="Double tap to select stylist account type"
                 >
                   <Text
                     style={[
@@ -144,7 +152,7 @@ export default function SignupScreen() {
 
             {/* Display Name Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Display Name (optional)</Text>
+              <Text style={styles.label} nativeID="displayNameLabel">Display Name (optional)</Text>
               <TextInput
                 style={styles.input}
                 value={displayName}
@@ -156,12 +164,15 @@ export default function SignupScreen() {
                 returnKeyType="next"
                 editable={!signupLoading}
                 maxLength={INPUT_LIMITS.DISPLAY_NAME}
+                accessibilityLabel="Display name, optional"
+                accessibilityLabelledBy="displayNameLabel"
+                accessibilityHint="Enter the name you want others to see"
               />
             </View>
 
             {/* Email Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label} nativeID="emailLabel">Email</Text>
               <TextInput
                 style={styles.input}
                 value={email}
@@ -181,12 +192,15 @@ export default function SignupScreen() {
                 returnKeyType="next"
                 editable={!signupLoading}
                 maxLength={INPUT_LIMITS.EMAIL}
+                accessibilityLabel="Email address"
+                accessibilityLabelledBy="emailLabel"
+                accessibilityHint="Enter your email address for your account"
               />
             </View>
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={styles.label} nativeID="passwordLabel">Password</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={styles.passwordInput}
@@ -206,10 +220,16 @@ export default function SignupScreen() {
                   returnKeyType="next"
                   editable={!signupLoading}
                   maxLength={INPUT_LIMITS.PASSWORD}
+                  accessibilityLabel="Password"
+                  accessibilityLabelledBy="passwordLabel"
+                  accessibilityHint="Create a password with at least 8 characters"
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}
                   onPress={() => setShowPassword(!showPassword)}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+                  accessibilityHint="Double tap to toggle password visibility"
                 >
                   <Text style={styles.showPasswordText}>
                     {showPassword ? 'Hide' : 'Show'}
@@ -220,7 +240,7 @@ export default function SignupScreen() {
 
             {/* Confirm Password Input */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Confirm Password</Text>
+              <Text style={styles.label} nativeID="confirmPasswordLabel">Confirm Password</Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
@@ -240,12 +260,20 @@ export default function SignupScreen() {
                 onSubmitEditing={handleSignup}
                 editable={!signupLoading}
                 maxLength={INPUT_LIMITS.PASSWORD}
+                accessibilityLabel="Confirm password"
+                accessibilityLabelledBy="confirmPasswordLabel"
+                accessibilityHint="Re-enter your password to confirm"
               />
             </View>
 
             {/* Error Message */}
             {displayError && (
-              <View style={styles.errorContainer}>
+              <View
+                style={styles.errorContainer}
+                accessible
+                accessibilityRole="alert"
+                accessibilityLiveRegion="polite"
+              >
                 <Text style={styles.errorText}>{displayError}</Text>
               </View>
             )}
@@ -258,19 +286,23 @@ export default function SignupScreen() {
               ]}
               onPress={handleSignup}
               disabled={!isFormValid || signupLoading}
+              accessibilityRole="button"
+              accessibilityLabel={signupLoading ? 'Creating account' : 'Create Account'}
+              accessibilityState={{ disabled: !isFormValid || signupLoading }}
+              accessibilityHint="Double tap to create your account"
             >
               {signupLoading ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="#FFFFFF" accessibilityLabel="Creating account, please wait" />
               ) : (
                 <Text style={styles.buttonText}>Create Account</Text>
               )}
             </TouchableOpacity>
 
             {/* Terms */}
-            <Text style={styles.termsText}>
+            <Text style={styles.termsText} accessibilityRole="text">
               By signing up, you agree to our{' '}
-              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-              <Text style={styles.termsLink}>Privacy Policy</Text>
+              <Text style={styles.termsLink} accessibilityRole="link">Terms of Service</Text> and{' '}
+              <Text style={styles.termsLink} accessibilityRole="link">Privacy Policy</Text>
             </Text>
           </View>
 
@@ -279,7 +311,14 @@ export default function SignupScreen() {
             <Text style={styles.footerText}>
               Already have an account?{' '}
               <Link href="/(auth)/login" asChild>
-                <Text style={styles.footerLink}>Sign in</Text>
+                <Text
+                  style={styles.footerLink}
+                  accessibilityRole="link"
+                  accessibilityLabel="Sign in"
+                  accessibilityHint="Double tap to go to the sign in screen"
+                >
+                  Sign in
+                </Text>
               </Link>
             </Text>
           </View>

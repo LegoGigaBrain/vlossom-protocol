@@ -175,14 +175,23 @@ export default function SearchScreen() {
               textStyles.body,
               { color: colors.text.primary, marginLeft: spacing.sm },
             ]}
-            placeholder="Search stylists, services..."
+            placeholder="Find stylists, services..."
             placeholderTextColor={colors.text.tertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
             returnKeyType="search"
+            accessibilityRole="search"
+            accessibilityLabel="Search stylists and services"
+            accessibilityHint="Type to search for stylists by name or service"
           />
           {searchQuery.length > 0 && (
-            <Pressable onPress={handleClearSearch} hitSlop={8}>
+            <Pressable
+              onPress={handleClearSearch}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+              accessibilityHint="Clears the search input"
+            >
               <VlossomCloseIcon size={18} color={colors.text.tertiary} />
             </Pressable>
           )}
@@ -195,6 +204,8 @@ export default function SearchScreen() {
         showsHorizontalScrollIndicator={false}
         style={styles.categoriesScroll}
         contentContainerStyle={{ paddingHorizontal: spacing.lg }}
+        accessibilityRole="tablist"
+        accessibilityLabel="Service categories"
       >
         {SERVICE_CATEGORIES.map((cat) => {
           const isSelected = filters.serviceCategory === cat.value;
@@ -202,6 +213,10 @@ export default function SearchScreen() {
             <Pressable
               key={cat.label}
               onPress={() => handleCategorySelect(cat.value)}
+              accessibilityRole="tab"
+              accessibilityLabel={`${cat.label} category${isSelected ? ', Selected' : ''}`}
+              accessibilityState={{ selected: isSelected }}
+              accessibilityHint={`Filter by ${cat.label} services`}
               style={[
                 styles.categoryChip,
                 {
@@ -233,6 +248,10 @@ export default function SearchScreen() {
         </Text>
         <Pressable
           onPress={() => setShowSortOptions(!showSortOptions)}
+          accessibilityRole="button"
+          accessibilityLabel={`Sort by ${SORT_OPTIONS.find((s) => s.value === filters.sortBy)?.label || 'Nearest'}`}
+          accessibilityHint="Opens sort options menu"
+          accessibilityState={{ expanded: showSortOptions }}
           style={[
             styles.sortButton,
             {
@@ -263,36 +282,42 @@ export default function SearchScreen() {
               ...shadows.card,
             },
           ]}
+          accessibilityRole="menu"
+          accessibilityLabel="Sort options"
         >
-          {SORT_OPTIONS.map((option) => (
-            <Pressable
-              key={option.value}
-              onPress={() => handleSortSelect(option.value)}
-              style={[
-                styles.sortOption,
-                {
-                  backgroundColor:
-                    filters.sortBy === option.value
+          {SORT_OPTIONS.map((option) => {
+            const isSelected = filters.sortBy === option.value;
+            return (
+              <Pressable
+                key={option.value}
+                onPress={() => handleSortSelect(option.value)}
+                accessibilityRole="menuitem"
+                accessibilityLabel={`${option.label}${isSelected ? ', Selected' : ''}`}
+                accessibilityState={{ selected: isSelected }}
+                style={[
+                  styles.sortOption,
+                  {
+                    backgroundColor: isSelected
                       ? colors.surface.light
                       : colors.background.primary,
-                  paddingHorizontal: spacing.md,
-                  paddingVertical: spacing.sm,
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  textStyles.body,
-                  {
-                    color:
-                      filters.sortBy === option.value ? colors.primary : colors.text.primary,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm,
                   },
                 ]}
               >
-                {option.label}
-              </Text>
-            </Pressable>
-          ))}
+                <Text
+                  style={[
+                    textStyles.body,
+                    {
+                      color: isSelected ? colors.primary : colors.text.primary,
+                    },
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       )}
 
@@ -330,6 +355,9 @@ export default function SearchScreen() {
             </Text>
             <Pressable
               onPress={handleRefresh}
+              accessibilityRole="button"
+              accessibilityLabel="Retry loading stylists"
+              accessibilityHint="Attempts to reload the stylist list"
               style={[
                 styles.retryButton,
                 { backgroundColor: colors.primary, borderRadius: borderRadius.md },
@@ -378,6 +406,9 @@ export default function SearchScreen() {
                   setSearchQuery('');
                   searchStylists();
                 }}
+                accessibilityRole="button"
+                accessibilityLabel="Clear all filters"
+                accessibilityHint="Removes search query and category filters"
                 style={[
                   styles.clearFiltersButton,
                   { borderColor: colors.primary, borderRadius: borderRadius.md },
@@ -437,9 +468,16 @@ interface StylistCardProps {
 }
 
 function StylistCard({ stylist, colors, borderRadius, shadows, spacing, onPress }: StylistCardProps) {
+  const distanceText = stylist.distance !== null ? `, ${formatDistance(stylist.distance)} away` : '';
+  const priceText = formatPriceRange(stylist.priceRange.min, stylist.priceRange.max);
+  const specialtiesText = stylist.specialties.slice(0, 2).join(' and ') || 'Beauty Professional';
+
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${stylist.displayName}, ${specialtiesText}, ${priceText}${distanceText}`}
+      accessibilityHint="Double tap to view stylist profile"
       style={[
         styles.stylistCard,
         {
@@ -514,7 +552,13 @@ function StylistCard({ stylist, colors, borderRadius, shadows, spacing, onPress 
         <Text style={[textStyles.bodySmall, { color: colors.primary, fontWeight: '600' }]}>
           {formatPriceRange(stylist.priceRange.min, stylist.priceRange.max)}
         </Text>
-        <Pressable style={styles.favoriteButton} hitSlop={8}>
+        <Pressable
+          style={styles.favoriteButton}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={`Add ${stylist.displayName} to favorites`}
+          accessibilityHint="Double tap to add this stylist to your favorites"
+        >
           <VlossomFavoriteIcon size={20} color={colors.text.tertiary} />
         </Pressable>
       </View>

@@ -134,7 +134,7 @@ export async function getBookings(params?: {
   if (params?.page) queryParams.set('page', params.page.toString());
   if (params?.limit) queryParams.set('limit', params.limit.toString());
 
-  const url = `/bookings${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const url = `/api/v1/bookings${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
   return apiRequest<BookingPage>(url);
 }
 
@@ -142,16 +142,16 @@ export async function getBookings(params?: {
  * Get single booking by ID
  */
 export async function getBooking(id: string): Promise<Booking> {
-  return apiRequest<Booking>(`/bookings/${id}`);
+  return apiRequest<Booking>(`/api/v1/bookings/${id}`);
 }
 
 /**
  * Create a new booking
  */
 export async function createBooking(data: CreateBookingRequest): Promise<Booking> {
-  return apiRequest<Booking>('/bookings', {
+  return apiRequest<Booking>('/api/v1/bookings', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: data,
   });
 }
 
@@ -163,9 +163,9 @@ export async function updateBookingStatus(
   status: BookingStatus,
   escrowTxHash?: string
 ): Promise<Booking> {
-  return apiRequest<Booking>(`/bookings/${id}/status`, {
+  return apiRequest<Booking>(`/api/v1/bookings/${id}/status`, {
     method: 'PATCH',
-    body: JSON.stringify({ status, escrowTxHash }),
+    body: { status, escrowTxHash },
   });
 }
 
@@ -185,12 +185,12 @@ export async function confirmPayment(
     status: number;
   };
 }> {
-  return apiRequest(`/bookings/${bookingId}/confirm-payment`, {
+  return apiRequest(`/api/v1/bookings/${bookingId}/confirm-payment`, {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       escrowTxHash,
       skipOnChainVerification: options?.skipOnChainVerification ?? false,
-    }),
+    },
   });
 }
 
@@ -198,11 +198,11 @@ export async function confirmPayment(
  * Cancel a booking
  */
 export async function cancelBooking(id: string, reason?: string): Promise<Booking> {
-  return apiRequest<Booking>(`/bookings/${id}/cancel`, {
+  return apiRequest<Booking>(`/api/v1/bookings/${id}/cancel`, {
     method: 'POST',
-    body: JSON.stringify({
+    body: {
       reason: reason || 'customer_requested',
-    }),
+    },
   });
 }
 
@@ -210,7 +210,7 @@ export async function cancelBooking(id: string, reason?: string): Promise<Bookin
  * Get booking statistics for authenticated user
  */
 export async function getBookingStats(): Promise<{ stats: BookingStats }> {
-  return apiRequest<{ stats: BookingStats }>('/bookings/stats');
+  return apiRequest<{ stats: BookingStats }>('/api/v1/bookings/stats');
 }
 
 /**
@@ -220,7 +220,7 @@ export async function getStylistAvailability(
   stylistId: string,
   date: string // YYYY-MM-DD
 ): Promise<StylistAvailability> {
-  return apiRequest<StylistAvailability>(`/stylists/${stylistId}/availability?date=${date}`);
+  return apiRequest<StylistAvailability>(`/api/v1/stylists/${stylistId}/availability?date=${date}`);
 }
 
 // ============================================================================
@@ -351,6 +351,78 @@ export function generateTimeSlots(
 
   return slots;
 }
+
+// ============================================================================
+// Review Types & Functions
+// ============================================================================
+
+export interface Review {
+  id: string;
+  bookingId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewer: {
+    id: string;
+    displayName: string;
+    avatarUrl: string | null;
+  };
+}
+
+export interface CreateReviewRequest {
+  bookingId: string;
+  rating: number;
+  comment?: string;
+}
+
+export interface ReviewResponse {
+  review: Review;
+  message: string;
+}
+
+/**
+ * Submit a review for a completed booking
+ */
+export async function submitReview(data: CreateReviewRequest): Promise<ReviewResponse> {
+  return apiRequest<ReviewResponse>('/api/v1/reviews', {
+    method: 'POST',
+    body: data,
+  });
+}
+
+/**
+ * Get reviews for a stylist
+ */
+export async function getStylistReviews(
+  stylistId: string,
+  params?: { page?: number; limit?: number }
+): Promise<{
+  reviews: Review[];
+  total: number;
+  averageRating: number;
+}> {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.limit) queryParams.set('limit', params.limit.toString());
+
+  const url = `/api/v1/stylists/${stylistId}/reviews${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  return apiRequest(url);
+}
+
+/**
+ * Check if a booking has been reviewed
+ */
+export async function getBookingReview(bookingId: string): Promise<Review | null> {
+  try {
+    return await apiRequest<Review>(`/api/v1/bookings/${bookingId}/review`);
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================================
+// Display Utility Functions
+// ============================================================================
 
 /**
  * Format booking status for display

@@ -9,6 +9,7 @@
  * - Execute transfer via API
  *
  * V6.10: Added QR scanner for scanning wallet addresses
+ * V7.2.0: Added accessibility labels for screen reader support
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -140,7 +141,7 @@ export default function SendScreen() {
 
     try {
       const success = await send({
-        to: recipient,
+        toAddress: recipient,
         amount: amount,
         memo: memo || undefined,
       });
@@ -206,7 +207,12 @@ export default function SendScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header with Balance */}
-        <View style={[styles.balanceCard, { backgroundColor: colors.background.secondary }]}>
+        <View
+          style={[styles.balanceCard, { backgroundColor: colors.background.secondary }]}
+          accessible
+          accessibilityRole="summary"
+          accessibilityLabel={`Available balance: ${balance?.usdcFormatted || '0.00'} dollars USDC`}
+        >
           <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
             Available Balance
           </Text>
@@ -217,7 +223,12 @@ export default function SendScreen() {
 
         {/* Error Banner */}
         {sendError && (
-          <View style={[styles.errorBanner, { backgroundColor: colors.status.errorLight }]}>
+          <View
+            style={[styles.errorBanner, { backgroundColor: colors.status.errorLight }]}
+            accessible
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
             <Text style={[textStyles.bodySmall, { color: colors.status.error }]}>
               {sendError}
             </Text>
@@ -226,7 +237,10 @@ export default function SendScreen() {
 
         {/* Recipient Address */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
+          <Text
+            style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}
+            nativeID="recipientLabel"
+          >
             Recipient Address
           </Text>
           <View
@@ -248,15 +262,28 @@ export default function SendScreen() {
               placeholderTextColor={colors.text.muted}
               autoCapitalize="none"
               autoCorrect={false}
+              accessibilityLabel="Recipient wallet address"
+              accessibilityLabelledBy="recipientLabel"
+              accessibilityHint="Enter the wallet address starting with 0x, or tap scan to use camera"
             />
-            <Pressable style={styles.scanButton} onPress={() => setShowScanner(true)}>
+            <Pressable
+              style={styles.scanButton}
+              onPress={() => setShowScanner(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Scan QR code"
+              accessibilityHint="Double tap to open camera and scan a wallet QR code"
+            >
               <VlossomSearchIcon size={20} color={colors.text.secondary} />
             </Pressable>
           </View>
 
           {/* Validation message */}
           {addressError && (
-            <Text style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}>
+            <Text
+              style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
               {addressError}
             </Text>
           )}
@@ -265,10 +292,18 @@ export default function SendScreen() {
         {/* Amount Input */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
           <View style={styles.labelRow}>
-            <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
+            <Text
+              style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}
+              nativeID="amountLabel"
+            >
               Amount (USDC)
             </Text>
-            <Pressable onPress={handleMax}>
+            <Pressable
+              onPress={handleMax}
+              accessibilityRole="button"
+              accessibilityLabel={`Use maximum amount: ${availableBalance.toFixed(2)} dollars`}
+              accessibilityHint="Double tap to set the amount to your full balance"
+            >
               <Text style={[textStyles.caption, { color: colors.primary }]}>Max</Text>
             </Pressable>
           </View>
@@ -283,7 +318,7 @@ export default function SendScreen() {
               },
             ]}
           >
-            <Text style={[styles.currencyPrefix, { color: colors.text.primary }]}>$</Text>
+            <Text style={[styles.currencyPrefix, { color: colors.text.primary }]} aria-hidden>$</Text>
             <TextInput
               style={[styles.amountInput, { color: colors.text.primary }]}
               value={amount}
@@ -291,57 +326,70 @@ export default function SendScreen() {
               placeholder="0.00"
               placeholderTextColor={colors.text.muted}
               keyboardType="decimal-pad"
+              accessibilityLabel="Amount in dollars"
+              accessibilityLabelledBy="amountLabel"
+              accessibilityHint={`Enter amount to send. Minimum ${MIN_AMOUNT_USDC} dollars, maximum ${availableBalance.toFixed(2)} dollars`}
             />
           </View>
 
           {/* Validation message */}
           {amountError && (
-            <Text style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}>
+            <Text
+              style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
               {amountError}
             </Text>
           )}
 
           {/* Quick amount buttons */}
-          <View style={styles.quickAmounts}>
-            {quickAmounts.map((quickAmount) => (
-              <Pressable
-                key={quickAmount}
-                style={[
-                  styles.quickAmountButton,
-                  {
-                    backgroundColor:
-                      amountNumber === quickAmount
-                        ? colors.primary
-                        : colors.background.secondary,
-                    borderRadius: borderRadius.md,
-                  },
-                ]}
-                onPress={() => setAmount(quickAmount.toString())}
-                disabled={quickAmount > availableBalance}
-              >
-                <Text
+          <View style={styles.quickAmounts} accessibilityRole="radiogroup" accessibilityLabel="Quick amount selection">
+            {quickAmounts.map((quickAmount) => {
+              const isSelected = amountNumber === quickAmount;
+              const isDisabled = quickAmount > availableBalance;
+              return (
+                <Pressable
+                  key={quickAmount}
                   style={[
-                    textStyles.bodySmall,
+                    styles.quickAmountButton,
                     {
-                      color:
-                        quickAmount > availableBalance
-                          ? colors.text.muted
-                          : amountNumber === quickAmount
-                            ? colors.white
-                            : colors.text.primary,
+                      backgroundColor: isSelected ? colors.primary : colors.background.secondary,
+                      borderRadius: borderRadius.md,
                     },
                   ]}
+                  onPress={() => setAmount(quickAmount.toString())}
+                  disabled={isDisabled}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${quickAmount} dollars${isDisabled ? ', unavailable, exceeds balance' : ''}`}
+                  accessibilityState={{ checked: isSelected, disabled: isDisabled }}
                 >
-                  ${quickAmount}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={[
+                      textStyles.bodySmall,
+                      {
+                        color: isDisabled
+                          ? colors.text.muted
+                          : isSelected
+                            ? colors.white
+                            : colors.text.primary,
+                      },
+                    ]}
+                  >
+                    ${quickAmount}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
         {/* Memo (Optional) */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
+          <Text
+            style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}
+            nativeID="memoLabel"
+          >
             Note (Optional)
           </Text>
           <View
@@ -362,6 +410,9 @@ export default function SendScreen() {
               placeholder="What's this for?"
               placeholderTextColor={colors.text.muted}
               maxLength={100}
+              accessibilityLabel="Note or memo for this transfer"
+              accessibilityLabelledBy="memoLabel"
+              accessibilityHint="Optional. Add a note to remember what this transfer is for"
             />
           </View>
         </View>
@@ -377,6 +428,9 @@ export default function SendScreen() {
                   borderRadius: borderRadius.lg,
                 },
               ]}
+              accessible
+              accessibilityRole="summary"
+              accessibilityLabel={`Transfer summary: Sending ${amountNumber.toFixed(2)} dollars to ${recipient.slice(0, 8)}...${recipient.slice(-6)}. Network fee: Free`}
             >
               <View style={styles.summaryRow}>
                 <Text style={[textStyles.body, { color: colors.text.secondary }]}>Sending</Text>
@@ -413,7 +467,11 @@ export default function SendScreen() {
 
         {/* Biometric Info */}
         {biometricAvailable && (
-          <View style={[styles.biometricInfo, { paddingHorizontal: spacing.lg }]}>
+          <View
+            style={[styles.biometricInfo, { paddingHorizontal: spacing.lg }]}
+            accessible
+            accessibilityLabel={`${getBiometricTypeName(biometricType)} authentication will be required to confirm this transfer`}
+          >
             <Text style={[textStyles.caption, { color: colors.text.muted, textAlign: 'center' }]}>
               {getBiometricTypeName(biometricType)} will be required to confirm this transfer
             </Text>
@@ -433,9 +491,19 @@ export default function SendScreen() {
             ]}
             onPress={handleSend}
             disabled={!canProceed}
+            accessibilityRole="button"
+            accessibilityLabel={
+              sendLoading || isProcessing
+                ? 'Processing transfer'
+                : isValidAddress && isValidAmount
+                  ? `Send ${amountNumber.toFixed(2)} dollars`
+                  : 'Enter transfer details'
+            }
+            accessibilityState={{ disabled: !canProceed }}
+            accessibilityHint={canProceed ? 'Double tap to send the transfer' : 'Fill in all required fields to enable'}
           >
             {sendLoading || isProcessing ? (
-              <ActivityIndicator color={colors.white} />
+              <ActivityIndicator color={colors.white} accessibilityLabel="Processing" />
             ) : (
               <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
                 {isValidAddress && isValidAmount
@@ -447,7 +515,11 @@ export default function SendScreen() {
         </View>
 
         {/* Gasless Note */}
-        <View style={[styles.securityNote, { paddingHorizontal: spacing.lg }]}>
+        <View
+          style={[styles.securityNote, { paddingHorizontal: spacing.lg }]}
+          accessible
+          accessibilityLabel="Transfers are gasless, no network fees"
+        >
           <VlossomWalletIcon size={16} color={colors.text.muted} />
           <Text style={[textStyles.caption, { color: colors.text.muted, marginLeft: spacing.xs }]}>
             Transfers are gasless - no network fees!

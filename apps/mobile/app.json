@@ -2,7 +2,7 @@
   "expo": {
     "name": "Vlossom",
     "slug": "vlossom",
-    "version": "7.0.0",
+    "version": "7.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "vlossom",
@@ -12,19 +12,39 @@
       "resizeMode": "contain",
       "backgroundColor": "#311E6B"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "owner": "vlossom",
+    "description": "Vlossom connects you with trusted mobile hair stylists for in-home beauty services. Book appointments, track sessions, and pay securely.",
+    "githubUrl": "https://github.com/vlossom-protocol/vlossom-app",
+    "primaryColor": "#311E6B",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.vlossom.app",
+      "buildNumber": "1",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Vlossom uses Face ID for secure authentication",
         "NSLocationWhenInUseUsageDescription": "Vlossom uses your location to find stylists and salons near you",
         "NSLocationAlwaysUsageDescription": "Vlossom uses your location to provide directions to your appointments",
         "NSCameraUsageDescription": "Vlossom uses your camera to take hair photos for your health profile",
-        "NSPhotoLibraryUsageDescription": "Vlossom accesses your photos to add images to your hair health profile"
+        "NSPhotoLibraryUsageDescription": "Vlossom accesses your photos to add images to your hair health profile",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "associatedDomains": [
+        "applinks:vlossom.app",
+        "applinks:www.vlossom.app"
+      ],
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          }
+        ]
       }
     },
     "android": {
@@ -33,18 +53,39 @@
         "backgroundColor": "#311E6B"
       },
       "package": "com.vlossom.app",
+      "versionCode": 1,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
         "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "USE_FINGERPRINT",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
       ],
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "vlossom.app",
+              "pathPrefix": "/booking"
+            },
+            {
+              "scheme": "https",
+              "host": "vlossom.app",
+              "pathPrefix": "/stylist"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
@@ -67,7 +108,8 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#311E6B"
+          "color": "#311E6B",
+          "sounds": ["./assets/sounds/notification.wav"]
         }
       ]
     ],
@@ -81,6 +123,17 @@
       "eas": {
         "projectId": "7e333ab4-a4c8-4e41-8ec6-ddb67f37a8d1"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7e333ab4-a4c8-4e41-8ec6-ddb67f37a8d1"
+    },
+    "locales": {
+      "en": "./locales/en.json",
+      "zu": "./locales/zu.json",
+      "af": "./locales/af.json"
     }
   }
 }

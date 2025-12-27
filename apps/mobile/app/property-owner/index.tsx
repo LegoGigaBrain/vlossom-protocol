@@ -1,8 +1,9 @@
 /**
- * Property Owner Dashboard Screen (V6.10.0)
+ * Property Owner Dashboard Screen (V7.2.0)
  *
  * Overview of properties, chairs, and pending requests.
  * V6.10: Wired to real API via Zustand store.
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import { View, Text, StyleSheet, ScrollView, Pressable, Image, RefreshControl, ActivityIndicator } from 'react-native';
@@ -70,9 +71,14 @@ export default function PropertyOwnerDashboard() {
   // Loading state
   if (propertiesLoading && properties.length === 0) {
     return (
-      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]}>
+      <View
+        style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLabel="Loading properties, please wait"
+      >
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading" />
+        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]} aria-hidden>
           Loading properties...
         </Text>
       </View>
@@ -88,7 +94,12 @@ export default function PropertyOwnerDashboard() {
       }
     >
       {/* Stats Cards */}
-      <View style={[styles.statsGrid, { padding: spacing.lg }]}>
+      <View
+        style={[styles.statsGrid, { padding: spacing.lg }]}
+        accessible
+        accessibilityRole="summary"
+        accessibilityLabel={`Dashboard statistics: ${totalProperties} properties, ${totalChairs} total chairs, ${occupancyRate}% occupancy rate`}
+      >
         <View
           style={[
             styles.statCard,
@@ -98,6 +109,7 @@ export default function PropertyOwnerDashboard() {
               ...shadows.card,
             },
           ]}
+          aria-hidden
         >
           <VlossomHomeIcon size={20} color={colors.text.secondary} />
           <Text style={[textStyles.h2, { color: colors.text.primary }]}>{totalProperties}</Text>
@@ -113,6 +125,7 @@ export default function PropertyOwnerDashboard() {
               ...shadows.card,
             },
           ]}
+          aria-hidden
         >
           <VlossomCalendarIcon size={20} color={colors.text.secondary} />
           <Text style={[textStyles.h2, { color: colors.text.primary }]}>{totalChairs}</Text>
@@ -128,6 +141,7 @@ export default function PropertyOwnerDashboard() {
               ...shadows.card,
             },
           ]}
+          aria-hidden
         >
           <VlossomGrowingIcon size={20} color={colors.text.secondary} />
           <Text style={[textStyles.h2, { color: colors.text.primary }]}>{occupancyRate}%</Text>
@@ -149,8 +163,12 @@ export default function PropertyOwnerDashboard() {
               borderRadius: borderRadius.lg,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={`${totalPending} pending ${totalPending === 1 ? 'request' : 'requests'}. Stylists are waiting for your approval.`}
+          accessibilityHint="Double tap to review pending requests"
+          accessibilityLiveRegion="polite"
         >
-          <View>
+          <View aria-hidden>
             <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
               {totalPending} pending {totalPending === 1 ? 'request' : 'requests'}
             </Text>
@@ -158,12 +176,16 @@ export default function PropertyOwnerDashboard() {
               Stylists are waiting for your approval
             </Text>
           </View>
-          <Text style={[textStyles.bodySmall, { color: colors.primary }]}>Review →</Text>
+          <Text style={[textStyles.bodySmall, { color: colors.primary }]} aria-hidden>Review →</Text>
         </Pressable>
       )}
 
       {/* Quick Actions */}
-      <View style={[styles.quickActions, { marginHorizontal: spacing.lg, marginBottom: spacing.lg }]}>
+      <View
+        style={[styles.quickActions, { marginHorizontal: spacing.lg, marginBottom: spacing.lg }]}
+        accessibilityRole="list"
+        accessibilityLabel="Quick actions"
+      >
         <Pressable
           onPress={() => router.push('/property-owner/chairs')}
           style={[
@@ -174,11 +196,14 @@ export default function PropertyOwnerDashboard() {
               ...shadows.card,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel="Manage Chairs"
+          accessibilityHint="Double tap to add, edit, or update chair status"
         >
-          <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
+          <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]} aria-hidden>
             Manage Chairs
           </Text>
-          <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+          <Text style={[textStyles.caption, { color: colors.text.tertiary }]} aria-hidden>
             Add, edit, update status
           </Text>
         </Pressable>
@@ -193,11 +218,14 @@ export default function PropertyOwnerDashboard() {
               ...shadows.card,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel="View Revenue"
+          accessibilityHint="Double tap to view earnings and payouts"
         >
-          <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
+          <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]} aria-hidden>
             View Revenue
           </Text>
-          <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+          <Text style={[textStyles.caption, { color: colors.text.tertiary }]} aria-hidden>
             Earnings & payouts
           </Text>
         </Pressable>
@@ -205,7 +233,10 @@ export default function PropertyOwnerDashboard() {
 
       {/* Properties List */}
       <View style={{ paddingHorizontal: spacing.lg }}>
-        <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
+        <Text
+          style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}
+          accessibilityRole="header"
+        >
           Your Properties
         </Text>
 
@@ -219,9 +250,12 @@ export default function PropertyOwnerDashboard() {
                 ...shadows.card,
               },
             ]}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel="No properties yet. Add your first property to start renting chairs to stylists."
           >
             <VlossomHomeIcon size={48} color={colors.text.muted} />
-            <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]}>
+            <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]} aria-hidden>
               No properties yet
             </Text>
             <Text
@@ -229,93 +263,100 @@ export default function PropertyOwnerDashboard() {
                 textStyles.caption,
                 { color: colors.text.tertiary, textAlign: 'center', marginTop: spacing.xs },
               ]}
+              aria-hidden
             >
               Add your first property to start renting chairs to stylists
             </Text>
           </View>
         ) : (
-          displayProperties.map((property) => (
-            <Pressable
-              key={property.id}
-              onPress={() => router.push(`/property-owner/chairs?property=${property.id}`)}
-              style={[
-                styles.propertyCard,
-                {
-                  backgroundColor: colors.background.primary,
-                  borderRadius: borderRadius.lg,
-                  marginBottom: spacing.md,
-                  ...shadows.card,
-                },
-              ]}
-            >
-              {/* Cover Image */}
-              <View
+          <View accessibilityRole="list" accessibilityLabel={`${displayProperties.length} properties`}>
+            {displayProperties.map((property) => (
+              <Pressable
+                key={property.id}
+                onPress={() => router.push(`/property-owner/chairs?property=${property.id}`)}
                 style={[
-                  styles.propertyImage,
-                  { backgroundColor: colors.background.tertiary, borderRadius: borderRadius.md },
+                  styles.propertyCard,
+                  {
+                    backgroundColor: colors.background.primary,
+                    borderRadius: borderRadius.lg,
+                    marginBottom: spacing.md,
+                    ...shadows.card,
+                  },
                 ]}
+                accessibilityRole="button"
+                accessibilityLabel={`${property.name}, ${property.category.replace('_', ' ')} in ${property.city}. ${property.availableChairs} available, ${property.occupiedChairs} occupied${property.pendingRequests > 0 ? `, ${property.pendingRequests} pending requests` : ''}`}
+                accessibilityHint="Double tap to manage chairs for this property"
               >
-                {property.coverImage ? (
-                  <Image source={{ uri: property.coverImage }} style={styles.propertyImage} />
-                ) : (
-                  <VlossomHomeIcon size={32} color={colors.text.muted} />
-                )}
-              </View>
-
-              {/* Info */}
-              <View style={styles.propertyInfo}>
-                <View style={styles.propertyHeader}>
-                  <Text
-                    style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}
-                    numberOfLines={1}
-                  >
-                    {property.name}
-                  </Text>
-                  {property.pendingRequests > 0 && (
-                    <View
-                      style={[
-                        styles.badge,
-                        { backgroundColor: colors.status.warning, borderRadius: borderRadius.pill },
-                      ]}
-                    >
-                      <Text style={[textStyles.caption, { color: colors.white }]}>
-                        {property.pendingRequests}
-                      </Text>
-                    </View>
+                {/* Cover Image */}
+                <View
+                  style={[
+                    styles.propertyImage,
+                    { backgroundColor: colors.background.tertiary, borderRadius: borderRadius.md },
+                  ]}
+                  aria-hidden
+                >
+                  {property.coverImage ? (
+                    <Image source={{ uri: property.coverImage }} style={styles.propertyImage} />
+                  ) : (
+                    <VlossomHomeIcon size={32} color={colors.text.muted} />
                   )}
                 </View>
-                <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
-                  {property.category.replace('_', ' ')} • {property.city}
-                </Text>
 
-                {/* Chair Stats */}
-                <View style={[styles.chairStats, { marginTop: spacing.sm }]}>
-                  <View style={styles.chairStatItem}>
-                    <View
-                      style={[
-                        styles.statusDot,
-                        { backgroundColor: colors.status.success, marginRight: 4 },
-                      ]}
-                    />
-                    <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
-                      {property.availableChairs} available
+                {/* Info */}
+                <View style={styles.propertyInfo} aria-hidden>
+                  <View style={styles.propertyHeader}>
+                    <Text
+                      style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}
+                      numberOfLines={1}
+                    >
+                      {property.name}
                     </Text>
+                    {property.pendingRequests > 0 && (
+                      <View
+                        style={[
+                          styles.badge,
+                          { backgroundColor: colors.status.warning, borderRadius: borderRadius.pill },
+                        ]}
+                      >
+                        <Text style={[textStyles.caption, { color: colors.white }]}>
+                          {property.pendingRequests}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                  <View style={styles.chairStatItem}>
-                    <View
-                      style={[
-                        styles.statusDot,
-                        { backgroundColor: colors.status.warning, marginRight: 4 },
-                      ]}
-                    />
-                    <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
-                      {property.occupiedChairs} occupied
-                    </Text>
+                  <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+                    {property.category.replace('_', ' ')} • {property.city}
+                  </Text>
+
+                  {/* Chair Stats */}
+                  <View style={[styles.chairStats, { marginTop: spacing.sm }]}>
+                    <View style={styles.chairStatItem}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          { backgroundColor: colors.status.success, marginRight: 4 },
+                        ]}
+                      />
+                      <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                        {property.availableChairs} available
+                      </Text>
+                    </View>
+                    <View style={styles.chairStatItem}>
+                      <View
+                        style={[
+                          styles.statusDot,
+                          { backgroundColor: colors.status.warning, marginRight: 4 },
+                        ]}
+                      />
+                      <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
+                        {property.occupiedChairs} occupied
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </Pressable>
-          ))
+              </Pressable>
+            ))}
+          </View>
         )}
       </View>
     </ScrollView>

@@ -1,8 +1,10 @@
 /**
- * Messages List Screen (V6.7.0)
+ * Messages List Screen (V7.2.0)
  *
  * Shows list of user's conversations with unread indicators.
  * Connected to Zustand store for API integration.
+ *
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -77,6 +79,22 @@ export default function MessagesScreen() {
   const renderConversation = ({ item }: { item: ConversationSummary }) => {
     if (!item.participant) return null;
 
+    // Build comprehensive accessibility label
+    const unreadLabel = item.unreadCount > 0
+      ? `${item.unreadCount} unread message${item.unreadCount > 1 ? 's' : ''}`
+      : '';
+    const bookingLabel = item.bookingId ? 'Related to booking' : '';
+    const timeLabel = formatTimeAgo(item.lastMessageAt);
+    const previewLabel = item.lastMessagePreview || 'No messages yet';
+
+    const accessibilityParts = [
+      item.participant.displayName,
+      previewLabel,
+      timeLabel,
+      unreadLabel,
+      bookingLabel,
+    ].filter(Boolean);
+
     return (
       <TouchableOpacity
         style={[
@@ -85,9 +103,13 @@ export default function MessagesScreen() {
         ]}
         onPress={() => router.push(`/messages/${item.id}`)}
         activeOpacity={0.7}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityParts.join(', ')}
+        accessibilityHint="Double tap to open conversation"
       >
         {/* Avatar */}
-        <View style={styles.avatarContainer}>
+        <View style={styles.avatarContainer} aria-hidden>
           {item.participant.avatarUrl ? (
             <Image
               source={{ uri: item.participant.avatarUrl }}
@@ -110,7 +132,7 @@ export default function MessagesScreen() {
         </View>
 
         {/* Content */}
-        <View style={styles.conversationContent}>
+        <View style={styles.conversationContent} aria-hidden>
           <View style={styles.nameRow}>
             <Text
               style={[
@@ -139,7 +161,7 @@ export default function MessagesScreen() {
         </View>
 
         {/* Time & Arrow */}
-        <View style={styles.conversationMeta}>
+        <View style={styles.conversationMeta} aria-hidden>
           <Text style={styles.timeText}>{formatTimeAgo(item.lastMessageAt)}</Text>
           <VlossomChevronRightIcon size={16} color={colors.text.muted} />
         </View>
@@ -150,50 +172,76 @@ export default function MessagesScreen() {
   const renderEmptyState = () => {
     if (conversationsLoading && conversations.length === 0) {
       return (
-        <View style={styles.loadingState}>
-          <ActivityIndicator size="large" color={colors.brand.rose} />
-          <Text style={styles.loadingText}>Loading conversations...</Text>
+        <View
+          style={styles.loadingState}
+          accessible
+          accessibilityRole="alert"
+          accessibilityLabel="Loading conversations"
+          accessibilityLiveRegion="polite"
+        >
+          <ActivityIndicator size="large" color={colors.brand.rose} accessibilityElementsHidden />
+          <Text style={styles.loadingText} aria-hidden>Loading conversations...</Text>
         </View>
       );
     }
 
     if (conversationsError) {
       return (
-        <View style={styles.emptyState}>
-          <View style={styles.emptyIconContainer}>
+        <View
+          style={styles.emptyState}
+          accessible
+          accessibilityRole="alert"
+          accessibilityLabel={`Error: Something went wrong. ${conversationsError}`}
+          accessibilityLiveRegion="assertive"
+        >
+          <View style={styles.emptyIconContainer} aria-hidden>
             <VlossomNotificationsIcon size={32} color={colors.status.error} />
           </View>
-          <Text style={styles.emptyTitle}>Something went wrong</Text>
-          <Text style={styles.emptySubtitle}>{conversationsError}</Text>
+          <Text style={styles.emptyTitle} aria-hidden>Something went wrong</Text>
+          <Text style={styles.emptySubtitle} aria-hidden>{conversationsError}</Text>
           <TouchableOpacity
             style={styles.findStylistsButton}
             onPress={() => fetchConversations(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+            accessibilityHint="Attempts to reload conversations"
           >
-            <Text style={styles.findStylistsText}>Try Again</Text>
+            <Text style={styles.findStylistsText} aria-hidden>Try Again</Text>
           </TouchableOpacity>
         </View>
       );
     }
 
+    const emptyTitle = activeTab === 'unread' ? 'All caught up!' : 'No messages yet';
+    const emptySubtitle = activeTab === 'unread'
+      ? 'You have no unread messages.'
+      : 'Start a conversation by messaging a stylist.';
+
     return (
-      <View style={styles.emptyState}>
-        <View style={styles.emptyIconContainer}>
+      <View
+        style={styles.emptyState}
+        accessible
+        accessibilityRole="text"
+        accessibilityLabel={`${emptyTitle}. ${emptySubtitle}`}
+      >
+        <View style={styles.emptyIconContainer} aria-hidden>
           <VlossomNotificationsIcon size={32} color={colors.brand.rose} />
         </View>
-        <Text style={styles.emptyTitle}>
-          {activeTab === 'unread' ? 'All caught up!' : 'No messages yet'}
+        <Text style={styles.emptyTitle} aria-hidden>
+          {emptyTitle}
         </Text>
-        <Text style={styles.emptySubtitle}>
-          {activeTab === 'unread'
-            ? 'You have no unread messages.'
-            : 'Start a conversation by messaging a stylist.'}
+        <Text style={styles.emptySubtitle} aria-hidden>
+          {emptySubtitle}
         </Text>
         {activeTab === 'all' && (
           <TouchableOpacity
             style={styles.findStylistsButton}
             onPress={() => router.push('/(tabs)/search')}
+            accessibilityRole="button"
+            accessibilityLabel="Find Stylists"
+            accessibilityHint="Opens stylist search"
           >
-            <Text style={styles.findStylistsText}>Find Stylists</Text>
+            <Text style={styles.findStylistsText} aria-hidden>Find Stylists</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -205,27 +253,43 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Filter Tabs */}
-      <View style={styles.tabsContainer}>
-        {(['all', 'unread'] as const).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text
-              style={[styles.tabText, activeTab === tab && styles.activeTabText]}
+      <View
+        style={styles.tabsContainer}
+        accessibilityRole="tablist"
+        accessibilityLabel="Message filters"
+      >
+        {(['all', 'unread'] as const).map((tab) => {
+          const isSelected = activeTab === tab;
+          const tabLabel = tab === 'all'
+            ? 'All messages'
+            : `Unread messages${unreadConversationsCount > 0 ? `, ${unreadConversationsCount} unread` : ''}`;
+
+          return (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, isSelected && styles.activeTab]}
+              onPress={() => setActiveTab(tab)}
+              accessibilityRole="tab"
+              accessibilityLabel={tabLabel}
+              accessibilityState={{ selected: isSelected }}
+              accessibilityHint={isSelected ? 'Currently selected' : 'Double tap to filter'}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-            {tab === 'unread' && unreadConversationsCount > 0 && (
-              <View style={styles.tabBadge}>
-                <Text style={styles.tabBadgeText}>
-                  {unreadConversationsCount}
-                </Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={[styles.tabText, isSelected && styles.activeTabText]}
+                aria-hidden
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+              {tab === 'unread' && unreadConversationsCount > 0 && (
+                <View style={styles.tabBadge} aria-hidden>
+                  <Text style={styles.tabBadgeText}>
+                    {unreadConversationsCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Conversations List */}

@@ -1,11 +1,15 @@
 /**
- * Wallet Flow Layout (V6.8.0)
+ * Wallet Flow Layout (V7.1.0)
  *
  * Stack navigation for wallet-related screens:
  * - Fund (Kotani Pay onramp)
  * - Withdraw (Kotani Pay offramp)
  * - Send (P2P transfer)
  * - Receive (QR code display)
+ * - History (Full transaction history)
+ * - Transaction Details (Individual transaction)
+ * - Rewards (XP, badges, streaks)
+ * - DeFi (Staking pools)
  */
 
 import { Stack } from 'expo-router';
@@ -63,6 +67,30 @@ export default function WalletLayout() {
           title: 'Receive Money',
           presentation: 'modal',
           animation: 'slide_from_bottom',
+        }}
+      />
+      <Stack.Screen
+        name="history"
+        options={{
+          title: 'Transaction History',
+        }}
+      />
+      <Stack.Screen
+        name="transaction/[id]"
+        options={{
+          title: 'Transaction Details',
+        }}
+      />
+      <Stack.Screen
+        name="rewards"
+        options={{
+          title: 'Rewards',
+        }}
+      />
+      <Stack.Screen
+        name="defi"
+        options={{
+          title: 'DeFi',
         }}
       />
     </Stack>

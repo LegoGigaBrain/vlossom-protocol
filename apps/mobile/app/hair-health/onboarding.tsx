@@ -1,5 +1,5 @@
 /**
- * Hair Health Onboarding Wizard (V6.8.0)
+ * Hair Health Onboarding Wizard (V7.2.0)
  *
  * 6-step guided quiz to build hair profile:
  * 1. Pattern Test (air dry behavior)
@@ -8,6 +8,8 @@
  * 4. Strand Thickness (thread comparison)
  * 5. Shrinkage (wet to dry)
  * 6. Visual Confirmation
+ *
+ * Accessibility: Full screen reader support with semantic roles
  */
 
 import {
@@ -173,20 +175,41 @@ export default function HairHealthOnboarding() {
       <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-          <Pressable onPress={handleBack} hitSlop={8}>
+          <Pressable
+            onPress={handleBack}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            accessibilityHint="Returns to previous question"
+          >
             <VlossomBackIcon size={24} color={colors.text.primary} />
           </Pressable>
-          <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+          <Text
+            style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}
+            accessibilityRole="header"
+          >
             Review
           </Text>
-          <Pressable onPress={handleClose} hitSlop={8}>
+          <Pressable
+            onPress={handleClose}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            accessibilityHint="Exits onboarding wizard"
+          >
             <VlossomCloseIcon size={24} color={colors.text.secondary} />
           </Pressable>
         </View>
 
         {/* Progress Bar */}
-        <View style={[styles.progressContainer, { paddingHorizontal: spacing.lg }]}>
-          <View style={[styles.progressTrack, { backgroundColor: colors.surface.light }]}>
+        <View
+          style={[styles.progressContainer, { paddingHorizontal: spacing.lg }]}
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityLabel="Onboarding progress: Complete"
+          accessibilityValue={{ min: 0, max: 100, now: 100 }}
+        >
+          <View style={[styles.progressTrack, { backgroundColor: colors.surface.light }]} aria-hidden>
             <View
               style={[styles.progressFill, { backgroundColor: colors.primary, width: '100%' }]}
             />
@@ -199,11 +222,15 @@ export default function HairHealthOnboarding() {
               styles.confirmationIcon,
               { backgroundColor: colors.tertiary + '20', borderRadius: borderRadius.circle },
             ]}
+            aria-hidden
           >
             <VlossomHealthyIcon size={48} color={colors.tertiary} />
           </View>
 
-          <Text style={[textStyles.h2, { color: colors.text.primary, textAlign: 'center', marginTop: spacing.lg }]}>
+          <Text
+            style={[textStyles.h2, { color: colors.text.primary, textAlign: 'center', marginTop: spacing.lg }]}
+            accessibilityRole="header"
+          >
             Your Hair Profile
           </Text>
           <Text
@@ -213,7 +240,11 @@ export default function HairHealthOnboarding() {
           </Text>
 
           {/* Summary Cards */}
-          <View style={styles.summaryGrid}>
+          <View
+            style={styles.summaryGrid}
+            accessibilityRole="list"
+            accessibilityLabel="Hair profile summary"
+          >
             <SummaryCard
               label="Texture"
               value={getTextureLabel(onboardingData.textureClass as TextureClass)}
@@ -279,11 +310,15 @@ export default function HairHealthOnboarding() {
                 borderRadius: borderRadius.lg,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={profileLoading ? 'Saving profile' : 'Save Profile'}
+            accessibilityState={{ disabled: profileLoading }}
+            accessibilityHint={profileLoading ? 'Please wait' : 'Double tap to save your hair profile'}
           >
             {profileLoading ? (
-              <ActivityIndicator color={colors.white} />
+              <ActivityIndicator color={colors.white} accessibilityLabel="Saving" />
             ) : (
-              <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
+              <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]} aria-hidden>
                 Save Profile
               </Text>
             )}
@@ -294,28 +329,52 @@ export default function HairHealthOnboarding() {
   }
 
   // Question Step
+  const progressPercent = Math.round(((onboardingStep + 1) / TOTAL_STEPS) * 100);
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background.primary }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm }]}>
-        <Pressable onPress={handleBack} hitSlop={8}>
+        <Pressable
+          onPress={handleBack}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={onboardingStep === 0 ? 'Close' : 'Go back'}
+          accessibilityHint={onboardingStep === 0 ? 'Exits onboarding wizard' : 'Returns to previous question'}
+        >
           <VlossomBackIcon size={24} color={colors.text.primary} />
         </Pressable>
-        <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+        <Text
+          style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}
+          accessibilityRole="header"
+          accessibilityLabel={`Step ${onboardingStep + 1} of ${TOTAL_STEPS}`}
+        >
           Step {onboardingStep + 1} of {TOTAL_STEPS}
         </Text>
-        <Pressable onPress={handleClose} hitSlop={8}>
+        <Pressable
+          onPress={handleClose}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+          accessibilityHint="Exits onboarding wizard"
+        >
           <VlossomCloseIcon size={24} color={colors.text.secondary} />
         </Pressable>
       </View>
 
       {/* Progress Bar */}
-      <View style={[styles.progressContainer, { paddingHorizontal: spacing.lg }]}>
-        <View style={[styles.progressTrack, { backgroundColor: colors.surface.light }]}>
+      <View
+        style={[styles.progressContainer, { paddingHorizontal: spacing.lg }]}
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={`Onboarding progress: ${progressPercent}%`}
+        accessibilityValue={{ min: 0, max: 100, now: progressPercent }}
+      >
+        <View style={[styles.progressTrack, { backgroundColor: colors.surface.light }]} aria-hidden>
           <View
             style={[
               styles.progressFill,
-              { backgroundColor: colors.primary, width: `${((onboardingStep + 1) / TOTAL_STEPS) * 100}%` },
+              { backgroundColor: colors.primary, width: `${progressPercent}%` },
             ]}
           />
         </View>
@@ -323,17 +382,25 @@ export default function HairHealthOnboarding() {
 
       <ScrollView style={styles.content} contentContainerStyle={{ padding: spacing.lg }}>
         {/* Question Title */}
-        <Text style={[textStyles.h2, { color: colors.text.primary }]}>
+        <Text
+          style={[textStyles.h2, { color: colors.text.primary }]}
+          accessibilityRole="header"
+        >
           {currentQuestion?.title}
         </Text>
         <Text
           style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.sm }]}
+          nativeID="question-text"
         >
           {currentQuestion?.question}
         </Text>
 
         {/* Options */}
-        <View style={[styles.optionsContainer, { marginTop: spacing.xl }]}>
+        <View
+          style={[styles.optionsContainer, { marginTop: spacing.xl }]}
+          accessibilityRole="radiogroup"
+          accessibilityLabelledBy="question-text"
+        >
           {currentQuestion?.options.map((option) => {
             const isSelected = selectedOption === option.value;
             return (
@@ -350,6 +417,10 @@ export default function HairHealthOnboarding() {
                     marginBottom: spacing.md,
                   },
                 ]}
+                accessibilityRole="radio"
+                accessibilityLabel={option.label}
+                accessibilityState={{ selected: isSelected }}
+                accessibilityHint={isSelected ? 'Currently selected' : 'Double tap to select this option'}
               >
                 <View
                   style={[
@@ -359,6 +430,7 @@ export default function HairHealthOnboarding() {
                       backgroundColor: isSelected ? colors.primary : 'transparent',
                     },
                   ]}
+                  aria-hidden
                 >
                   {isSelected && <View style={styles.optionRadioInner} />}
                 </View>
@@ -367,6 +439,7 @@ export default function HairHealthOnboarding() {
                     textStyles.body,
                     { color: isSelected ? colors.primary : colors.text.primary, flex: 1 },
                   ]}
+                  aria-hidden
                 >
                   {option.label}
                 </Text>
@@ -393,8 +466,12 @@ export default function HairHealthOnboarding() {
               borderRadius: borderRadius.lg,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel="Continue"
+          accessibilityState={{ disabled: !selectedOption }}
+          accessibilityHint={selectedOption ? 'Double tap to proceed to next question' : 'Select an option to continue'}
         >
-          <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
+          <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]} aria-hidden>
             Continue
           </Text>
         </Pressable>
@@ -418,9 +495,12 @@ function SummaryCard({ label, value, colors, borderRadius }: SummaryCardProps) {
         styles.summaryCard,
         { backgroundColor: colors.surface.light, borderRadius: borderRadius.md },
       ]}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={`${label}: ${value || 'Unknown'}`}
     >
-      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>{label}</Text>
-      <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>
+      <Text style={[textStyles.caption, { color: colors.text.tertiary }]} aria-hidden>{label}</Text>
+      <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]} aria-hidden>
         {value || 'Unknown'}
       </Text>
     </View>

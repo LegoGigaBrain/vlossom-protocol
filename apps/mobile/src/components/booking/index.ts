@@ -1,5 +1,5 @@
 /**
- * Booking Components (V6.6.0)
+ * Booking Components (V7.3.0)
  *
  * Reusable components for booking flows
  */
@@ -9,3 +9,10 @@ export type { LocationType, LocationOption, SelectedLocation } from './LocationS
 
 export { ChairSelector, MOCK_PROPERTIES } from './ChairSelector';
 export type { Chair, Property, SelectedChair } from './ChairSelector';
+
+export { TravelPricing, calculateTravelFee } from './TravelPricing';
+export type { TravelPricingProps, TravelFeeBreakdown, TravelMultiplier } from './TravelPricing';
+
+// V7.3: Session Tracking
+export { SessionTracker } from './SessionTracker';
+export type { SessionTrackerProps } from './SessionTracker';

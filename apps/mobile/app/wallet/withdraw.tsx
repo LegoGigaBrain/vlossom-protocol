@@ -8,6 +8,8 @@
  * - Select bank account
  * - Biometric auth required before proceeding
  * - Initiate offramp via Kotani Pay
+ *
+ * V7.2.0: Added accessibility labels for screen reader support
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -84,7 +86,7 @@ export default function WithdrawScreen() {
   // Calculate fees and estimated ZAR
   const feeAmount = amountNumber * FEE_PERCENTAGE + NETWORK_FEE_USDC;
   const netAmount = Math.max(0, amountNumber - feeAmount);
-  const estimatedZar = exchangeRate ? netAmount * exchangeRate.rate : 0;
+  const estimatedZar = exchangeRate ? netAmount * exchangeRate.sellRate : 0;
 
   // Validation
   const isValidAmount =
@@ -208,7 +210,12 @@ export default function WithdrawScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header with Balance */}
-        <View style={[styles.balanceCard, { backgroundColor: colors.background.secondary }]}>
+        <View
+          style={[styles.balanceCard, { backgroundColor: colors.background.secondary }]}
+          accessible
+          accessibilityRole="summary"
+          accessibilityLabel={`Available balance: ${balance?.usdcFormatted || '0.00'} dollars USDC${balance?.fiatValue ? `, approximately R${balance.fiatValue.toFixed(2)} ZAR` : ''}`}
+        >
           <Text style={[textStyles.caption, { color: colors.text.secondary }]}>
             Available Balance
           </Text>
@@ -224,7 +231,12 @@ export default function WithdrawScreen() {
 
         {/* Error Banner */}
         {withdrawError && (
-          <View style={[styles.errorBanner, { backgroundColor: colors.status.errorLight }]}>
+          <View
+            style={[styles.errorBanner, { backgroundColor: colors.status.errorLight }]}
+            accessible
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
             <Text style={[textStyles.bodySmall, { color: colors.status.error }]}>
               {withdrawError}
             </Text>
@@ -234,10 +246,18 @@ export default function WithdrawScreen() {
         {/* Amount Input */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
           <View style={styles.labelRow}>
-            <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
+            <Text
+              style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}
+              nativeID="withdrawAmountLabel"
+            >
               Amount (USDC)
             </Text>
-            <Pressable onPress={handleMax}>
+            <Pressable
+              onPress={handleMax}
+              accessibilityRole="button"
+              accessibilityLabel={`Use maximum amount: ${Math.min(availableBalance, MAX_AMOUNT_USDC).toFixed(2)} dollars`}
+              accessibilityHint="Double tap to set the amount to your maximum withdrawable balance"
+            >
               <Text style={[textStyles.caption, { color: colors.primary }]}>Max</Text>
             </Pressable>
           </View>
@@ -252,7 +272,7 @@ export default function WithdrawScreen() {
               },
             ]}
           >
-            <Text style={[styles.currencyPrefix, { color: colors.text.primary }]}>$</Text>
+            <Text style={[styles.currencyPrefix, { color: colors.text.primary }]} aria-hidden>$</Text>
             <TextInput
               style={[styles.input, { color: colors.text.primary }]}
               value={amount}
@@ -260,12 +280,19 @@ export default function WithdrawScreen() {
               placeholder="0.00"
               placeholderTextColor={colors.text.muted}
               keyboardType="decimal-pad"
+              accessibilityLabel="Withdrawal amount in dollars"
+              accessibilityLabelledBy="withdrawAmountLabel"
+              accessibilityHint={`Enter amount between $${MIN_AMOUNT_USDC} and $${MAX_AMOUNT_USDC.toLocaleString()}`}
             />
           </View>
 
           {/* Validation message */}
           {amountError && (
-            <Text style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}>
+            <Text
+              style={[textStyles.caption, styles.errorText, { color: colors.status.error }]}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
               {amountError}
             </Text>
           )}
@@ -276,45 +303,49 @@ export default function WithdrawScreen() {
           <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
             Select Bank
           </Text>
-          <View style={styles.bankGrid}>
-            {banks.map((bank) => (
-              <Pressable
-                key={bank.code}
-                style={[
-                  styles.bankOption,
-                  {
-                    backgroundColor:
-                      selectedBank === bank.code
-                        ? colors.primarySoft
-                        : colors.background.secondary,
-                    borderRadius: borderRadius.md,
-                    borderColor:
-                      selectedBank === bank.code ? colors.primary : colors.border.default,
-                    borderWidth: 1,
-                  },
-                ]}
-                onPress={() => setSelectedBank(bank.code)}
-              >
-                <Text
+          <View style={styles.bankGrid} accessibilityRole="radiogroup" accessibilityLabel="Bank selection">
+            {banks.map((bank) => {
+              const isSelected = selectedBank === bank.code;
+              return (
+                <Pressable
+                  key={bank.code}
                   style={[
-                    textStyles.bodySmall,
+                    styles.bankOption,
                     {
-                      color:
-                        selectedBank === bank.code ? colors.primary : colors.text.primary,
-                      fontWeight: selectedBank === bank.code ? '600' : '400',
+                      backgroundColor: isSelected ? colors.primarySoft : colors.background.secondary,
+                      borderRadius: borderRadius.md,
+                      borderColor: isSelected ? colors.primary : colors.border.default,
+                      borderWidth: 1,
                     },
                   ]}
+                  onPress={() => setSelectedBank(bank.code)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={bank.name}
+                  accessibilityState={{ checked: isSelected }}
                 >
-                  {bank.name}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={[
+                      textStyles.bodySmall,
+                      {
+                        color: isSelected ? colors.primary : colors.text.primary,
+                        fontWeight: isSelected ? '600' : '400',
+                      },
+                    ]}
+                  >
+                    {bank.name}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
         {/* Account Number */}
         <View style={[styles.section, { paddingHorizontal: spacing.lg }]}>
-          <Text style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}>
+          <Text
+            style={[textStyles.caption, styles.label, { color: colors.text.secondary }]}
+            nativeID="accountNumberLabel"
+          >
             Account Number
           </Text>
           <View
@@ -336,6 +367,9 @@ export default function WithdrawScreen() {
               placeholderTextColor={colors.text.muted}
               keyboardType="number-pad"
               maxLength={16}
+              accessibilityLabel="Bank account number"
+              accessibilityLabelledBy="accountNumberLabel"
+              accessibilityHint="Enter your bank account number, minimum 8 digits"
             />
           </View>
         </View>
@@ -351,6 +385,13 @@ export default function WithdrawScreen() {
                   borderRadius: borderRadius.lg,
                 },
               ]}
+              accessible
+              accessibilityRole="summary"
+              accessibilityLabel={
+                exchangeRate
+                  ? `Withdrawal summary: Amount ${amountNumber.toFixed(2)} dollars, Fee ${feeAmount.toFixed(2)} dollars, You receive R${estimatedZar.toFixed(2)} ZAR. Exchange rate: 1 USD equals R${exchangeRate.sellRate.toFixed(2)}`
+                  : `Withdrawal summary: Amount ${amountNumber.toFixed(2)} dollars, Fee ${feeAmount.toFixed(2)} dollars, Loading exchange rate`
+              }
             >
               <View style={styles.summaryRow}>
                 <Text style={[textStyles.body, { color: colors.text.secondary }]}>
@@ -392,14 +433,14 @@ export default function WithdrawScreen() {
                       <Text style={[textStyles.caption, { color: colors.text.muted }]}>ZAR</Text>
                     </>
                   ) : (
-                    <ActivityIndicator size="small" color={colors.primary} />
+                    <ActivityIndicator size="small" color={colors.primary} accessibilityLabel="Loading exchange rate" />
                   )}
                 </View>
               </View>
 
               {exchangeRate && (
                 <Text style={[textStyles.caption, styles.rateText, { color: colors.text.muted }]}>
-                  Rate: 1 USD = R{exchangeRate.rate.toFixed(2)} ZAR
+                  Rate: 1 USD = R{exchangeRate.sellRate.toFixed(2)} ZAR
                 </Text>
               )}
             </View>
@@ -408,7 +449,11 @@ export default function WithdrawScreen() {
 
         {/* Biometric Info */}
         {biometricAvailable && (
-          <View style={[styles.biometricInfo, { paddingHorizontal: spacing.lg }]}>
+          <View
+            style={[styles.biometricInfo, { paddingHorizontal: spacing.lg }]}
+            accessible
+            accessibilityLabel={`${getBiometricTypeName(biometricType)} authentication will be required to confirm this transaction`}
+          >
             <Text style={[textStyles.caption, { color: colors.text.muted, textAlign: 'center' }]}>
               {getBiometricTypeName(biometricType)} will be required to confirm this transaction
             </Text>
@@ -428,9 +473,19 @@ export default function WithdrawScreen() {
             ]}
             onPress={handleWithdraw}
             disabled={!canProceed}
+            accessibilityRole="button"
+            accessibilityLabel={
+              withdrawLoading || isProcessing
+                ? 'Processing withdrawal'
+                : isValidAmount && hasValidBank
+                  ? `Withdraw ${amountNumber.toFixed(2)} dollars`
+                  : 'Complete all details to withdraw'
+            }
+            accessibilityState={{ disabled: !canProceed }}
+            accessibilityHint={canProceed ? 'Double tap to initiate withdrawal' : 'Fill in all required fields first'}
           >
             {withdrawLoading || isProcessing ? (
-              <ActivityIndicator color={colors.white} />
+              <ActivityIndicator color={colors.white} accessibilityLabel="Processing" />
             ) : (
               <Text style={[textStyles.body, { color: colors.white, fontWeight: '600' }]}>
                 {isValidAmount && hasValidBank
@@ -442,7 +497,11 @@ export default function WithdrawScreen() {
         </View>
 
         {/* Security Note */}
-        <View style={[styles.securityNote, { paddingHorizontal: spacing.lg }]}>
+        <View
+          style={[styles.securityNote, { paddingHorizontal: spacing.lg }]}
+          accessible
+          accessibilityLabel="Withdrawals typically arrive within 1 to 3 business days"
+        >
           <VlossomWalletIcon size={16} color={colors.text.muted} />
           <Text style={[textStyles.caption, { color: colors.text.muted, marginLeft: spacing.xs }]}>
             Withdrawals typically arrive within 1-3 business days.

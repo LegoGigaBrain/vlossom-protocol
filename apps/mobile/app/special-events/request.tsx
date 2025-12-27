@@ -1,5 +1,5 @@
 /**
- * Special Events Request Form (V6.10.0)
+ * Special Events Request Form (V7.2.0)
  *
  * Multi-step form for requesting special event quotes
  * Steps:
@@ -9,6 +9,7 @@
  * 4. Review & Submit
  *
  * V6.10: Added proper submission handling with loading state
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Platform, Alert, ActivityIndicator } from 'react-native';
@@ -190,15 +191,28 @@ export default function SpecialEventsRequestScreen() {
     }
   };
 
+  const stepLabels = {
+    details: 'Event Details',
+    location: 'Location',
+    services: 'Services',
+    review: 'Review',
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background.secondary }]}>
       {/* Progress Steps */}
-      <View style={[styles.progressBar, { paddingHorizontal: spacing.lg, paddingTop: spacing.md }]}>
+      <View
+        style={[styles.progressBar, { paddingHorizontal: spacing.lg, paddingTop: spacing.md }]}
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={`Step ${currentStepIndex + 1} of ${steps.length}: ${stepLabels[step]}`}
+        accessibilityValue={{ min: 0, max: steps.length, now: currentStepIndex + 1 }}
+      >
         {steps.map((s, index) => {
           const isActive = index <= currentStepIndex;
           const isCurrent = s === step;
           return (
-            <View key={s} style={styles.progressStep}>
+            <View key={s} style={styles.progressStep} aria-hidden>
               <View
                 style={[
                   styles.progressDot,
@@ -233,15 +247,26 @@ export default function SpecialEventsRequestScreen() {
         {/* Step 1: Event Details */}
         {step === 'details' && (
           <View>
-            <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}>
+            <Text
+              style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}
+              accessibilityRole="header"
+            >
               Tell us about your event
             </Text>
 
             {/* Category Selection */}
-            <Text style={[textStyles.label, { color: colors.text.secondary, marginBottom: spacing.sm }]}>
+            <Text
+              style={[textStyles.label, { color: colors.text.secondary, marginBottom: spacing.sm }]}
+              nativeID="event-type-label"
+            >
               Event Type *
             </Text>
-            <View style={styles.categoryGrid}>
+            <View
+              style={styles.categoryGrid}
+              accessibilityRole="radiogroup"
+              accessibilityLabelledBy="event-type-label"
+              accessibilityLabel={`Event type selection${formData.category ? `, ${EVENT_CATEGORIES.find((c) => c.id === formData.category)?.label} selected` : ''}`}
+            >
               {EVENT_CATEGORIES.map((cat) => {
                 const isSelected = formData.category === cat.id;
                 return (
@@ -256,12 +281,17 @@ export default function SpecialEventsRequestScreen() {
                         borderRadius: borderRadius.md,
                       },
                     ]}
+                    accessibilityRole="radio"
+                    accessibilityLabel={cat.label}
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityHint={isSelected ? 'Currently selected' : 'Double tap to select'}
                   >
                     <Text
                       style={[
                         textStyles.caption,
                         { color: isSelected ? colors.white : colors.text.secondary },
                       ]}
+                      aria-hidden
                     >
                       {cat.label}
                     </Text>
@@ -276,6 +306,7 @@ export default function SpecialEventsRequestScreen() {
                 textStyles.label,
                 { color: colors.text.secondary, marginTop: spacing.lg, marginBottom: spacing.sm },
               ]}
+              nativeID="event-date-label"
             >
               Event Date *
             </Text>
@@ -293,6 +324,8 @@ export default function SpecialEventsRequestScreen() {
               placeholderTextColor={colors.text.muted}
               value={formData.eventDate}
               onChangeText={(v) => updateFormData('eventDate', v)}
+              accessibilityLabelledBy="event-date-label"
+              accessibilityHint="Required field. Enter date in format like December 25, 2025"
             />
 
             {/* Time */}
@@ -301,6 +334,7 @@ export default function SpecialEventsRequestScreen() {
                 textStyles.label,
                 { color: colors.text.secondary, marginTop: spacing.md, marginBottom: spacing.sm },
               ]}
+              nativeID="event-time-label"
             >
               Preferred Time
             </Text>
@@ -318,6 +352,8 @@ export default function SpecialEventsRequestScreen() {
               placeholderTextColor={colors.text.muted}
               value={formData.eventTime}
               onChangeText={(v) => updateFormData('eventTime', v)}
+              accessibilityLabelledBy="event-time-label"
+              accessibilityHint="Optional. Enter preferred time range"
             />
 
             {/* Number of People */}
@@ -326,6 +362,7 @@ export default function SpecialEventsRequestScreen() {
                 textStyles.label,
                 { color: colors.text.secondary, marginTop: spacing.md, marginBottom: spacing.sm },
               ]}
+              nativeID="people-count-label"
             >
               Number of People
             </Text>
@@ -344,6 +381,8 @@ export default function SpecialEventsRequestScreen() {
               value={formData.numberOfPeople}
               onChangeText={(v) => updateFormData('numberOfPeople', v)}
               keyboardType="number-pad"
+              accessibilityLabelledBy="people-count-label"
+              accessibilityHint="Enter the number of people who need styling"
             />
 
             {/* Description */}
@@ -352,6 +391,7 @@ export default function SpecialEventsRequestScreen() {
                 textStyles.label,
                 { color: colors.text.secondary, marginTop: spacing.md, marginBottom: spacing.sm },
               ]}
+              nativeID="description-label"
             >
               Describe Your Event *
             </Text>
@@ -373,6 +413,8 @@ export default function SpecialEventsRequestScreen() {
               multiline
               numberOfLines={4}
               textAlignVertical="top"
+              accessibilityLabelledBy="description-label"
+              accessibilityHint="Required field. Describe your event details and style preferences"
             />
           </View>
         )}
@@ -380,61 +422,76 @@ export default function SpecialEventsRequestScreen() {
         {/* Step 2: Location */}
         {step === 'location' && (
           <View>
-            <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}>
+            <Text
+              style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}
+              accessibilityRole="header"
+            >
               Where will the styling happen?
             </Text>
 
-            {LOCATION_TYPES.map((loc) => {
-              const isSelected = formData.locationType === loc.id;
-              return (
-                <Pressable
-                  key={loc.id}
-                  onPress={() => updateFormData('locationType', loc.id)}
-                  style={[
-                    styles.locationCard,
-                    {
-                      backgroundColor: isSelected ? colors.accent + '15' : colors.background.primary,
-                      borderColor: isSelected ? colors.accent : colors.border.default,
-                      borderRadius: borderRadius.lg,
-                      marginBottom: spacing.md,
-                      ...shadows.card,
-                    },
-                  ]}
-                >
-                  <View
+            <View
+              accessibilityRole="radiogroup"
+              accessibilityLabel={`Location type selection${formData.locationType ? `, ${LOCATION_TYPES.find((l) => l.id === formData.locationType)?.label} selected` : ''}`}
+            >
+              {LOCATION_TYPES.map((loc) => {
+                const isSelected = formData.locationType === loc.id;
+                return (
+                  <Pressable
+                    key={loc.id}
+                    onPress={() => updateFormData('locationType', loc.id)}
                     style={[
-                      styles.locationIcon,
+                      styles.locationCard,
                       {
-                        backgroundColor: isSelected ? colors.accent + '20' : colors.background.tertiary,
-                        borderRadius: borderRadius.md,
-                      },
-                    ]}
-                  >
-                    {getLocationIcon(loc.icon)}
-                  </View>
-                  <View style={styles.locationInfo}>
-                    <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
-                      {loc.label}
-                    </Text>
-                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
-                      {loc.description}
-                    </Text>
-                  </View>
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      {
+                        backgroundColor: isSelected ? colors.accent + '15' : colors.background.primary,
                         borderColor: isSelected ? colors.accent : colors.border.default,
+                        borderRadius: borderRadius.lg,
+                        marginBottom: spacing.md,
+                        ...shadows.card,
                       },
                     ]}
+                    accessible
+                    accessibilityRole="radio"
+                    accessibilityLabel={`${loc.label}: ${loc.description}`}
+                    accessibilityState={{ selected: isSelected }}
+                    accessibilityHint={isSelected ? 'Currently selected' : 'Double tap to select'}
                   >
-                    {isSelected && (
-                      <View style={[styles.radioInner, { backgroundColor: colors.accent }]} />
-                    )}
-                  </View>
-                </Pressable>
-              );
-            })}
+                    <View
+                      style={[
+                        styles.locationIcon,
+                        {
+                          backgroundColor: isSelected ? colors.accent + '20' : colors.background.tertiary,
+                          borderRadius: borderRadius.md,
+                        },
+                      ]}
+                      aria-hidden
+                    >
+                      {getLocationIcon(loc.icon)}
+                    </View>
+                    <View style={styles.locationInfo} aria-hidden>
+                      <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
+                        {loc.label}
+                      </Text>
+                      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+                        {loc.description}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.radioOuter,
+                        {
+                          borderColor: isSelected ? colors.accent : colors.border.default,
+                        },
+                      ]}
+                      aria-hidden
+                    >
+                      {isSelected && (
+                        <View style={[styles.radioInner, { backgroundColor: colors.accent }]} />
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
 
             {/* Address field for customer_home or venue */}
             {(formData.locationType === 'customer_home' || formData.locationType === 'venue') && (
@@ -444,6 +501,7 @@ export default function SpecialEventsRequestScreen() {
                     textStyles.label,
                     { color: colors.text.secondary, marginTop: spacing.lg, marginBottom: spacing.sm },
                   ]}
+                  nativeID="address-label"
                 >
                   {formData.locationType === 'venue' ? 'Venue Address' : 'Your Address'}
                 </Text>
@@ -465,6 +523,8 @@ export default function SpecialEventsRequestScreen() {
                   multiline
                   numberOfLines={2}
                   textAlignVertical="top"
+                  accessibilityLabelledBy="address-label"
+                  accessibilityHint="Enter the complete address for the event location"
                 />
               </>
             )}
@@ -474,7 +534,10 @@ export default function SpecialEventsRequestScreen() {
         {/* Step 3: Services */}
         {step === 'services' && (
           <View>
-            <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}>
+            <Text
+              style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}
+              accessibilityRole="header"
+            >
               What services do you need?
             </Text>
 
@@ -482,38 +545,49 @@ export default function SpecialEventsRequestScreen() {
               Select all that apply
             </Text>
 
-            {SERVICE_TYPES.map((service) => {
-              const isSelected = formData.services.includes(service.id);
-              return (
-                <Pressable
-                  key={service.id}
-                  onPress={() => toggleService(service.id)}
-                  style={[
-                    styles.serviceRow,
-                    {
-                      backgroundColor: isSelected ? colors.accent + '10' : colors.background.primary,
-                      borderColor: isSelected ? colors.accent : colors.border.default,
-                      borderRadius: borderRadius.md,
-                      marginBottom: spacing.sm,
-                    },
-                  ]}
-                >
-                  <Text style={[textStyles.body, { color: colors.text.primary }]}>{service.label}</Text>
-                  <View
+            <View
+              accessibilityRole="group"
+              accessibilityLabel={`Services selection, ${formData.services.length} selected: ${formData.services.map((s) => SERVICE_TYPES.find((st) => st.id === s)?.label).filter(Boolean).join(', ')}`}
+            >
+              {SERVICE_TYPES.map((service) => {
+                const isSelected = formData.services.includes(service.id);
+                return (
+                  <Pressable
+                    key={service.id}
+                    onPress={() => toggleService(service.id)}
                     style={[
-                      styles.checkbox,
+                      styles.serviceRow,
                       {
-                        backgroundColor: isSelected ? colors.accent : 'transparent',
+                        backgroundColor: isSelected ? colors.accent + '10' : colors.background.primary,
                         borderColor: isSelected ? colors.accent : colors.border.default,
-                        borderRadius: borderRadius.sm,
+                        borderRadius: borderRadius.md,
+                        marginBottom: spacing.sm,
                       },
                     ]}
+                    accessible
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={service.label}
+                    accessibilityState={{ checked: isSelected }}
+                    accessibilityHint={isSelected ? 'Double tap to remove' : 'Double tap to add'}
                   >
-                    {isSelected && <Text style={{ color: colors.white, fontSize: 12 }}>✓</Text>}
-                  </View>
-                </Pressable>
-              );
-            })}
+                    <Text style={[textStyles.body, { color: colors.text.primary }]} aria-hidden>{service.label}</Text>
+                    <View
+                      style={[
+                        styles.checkbox,
+                        {
+                          backgroundColor: isSelected ? colors.accent : 'transparent',
+                          borderColor: isSelected ? colors.accent : colors.border.default,
+                          borderRadius: borderRadius.sm,
+                        },
+                      ]}
+                      aria-hidden
+                    >
+                      {isSelected && <Text style={{ color: colors.white, fontSize: 12 }}>✓</Text>}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
 
             {/* Additional Notes */}
             <Text
@@ -521,6 +595,7 @@ export default function SpecialEventsRequestScreen() {
                 textStyles.label,
                 { color: colors.text.secondary, marginTop: spacing.lg, marginBottom: spacing.sm },
               ]}
+              nativeID="additional-notes-label"
             >
               Additional Notes
             </Text>
@@ -542,6 +617,8 @@ export default function SpecialEventsRequestScreen() {
               multiline
               numberOfLines={3}
               textAlignVertical="top"
+              accessibilityLabelledBy="additional-notes-label"
+              accessibilityHint="Optional. Add any specific styles, references, or special requests"
             />
           </View>
         )}
@@ -549,74 +626,89 @@ export default function SpecialEventsRequestScreen() {
         {/* Step 4: Review */}
         {step === 'review' && (
           <View>
-            <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}>
+            <Text
+              style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.lg }]}
+              accessibilityRole="header"
+            >
               Review Your Request
             </Text>
 
-            <View
-              style={[
-                styles.reviewCard,
-                {
-                  backgroundColor: colors.background.primary,
-                  borderRadius: borderRadius.lg,
-                  ...shadows.card,
-                },
-              ]}
-            >
-              {/* Event Type */}
-              <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]}>
-                <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Event Type</Text>
-                <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
-                  {EVENT_CATEGORIES.find((c) => c.id === formData.category)?.label || 'Not selected'}
-                </Text>
-              </View>
+            {/* Build comprehensive summary for accessibility */}
+            {(() => {
+              const eventType = EVENT_CATEGORIES.find((c) => c.id === formData.category)?.label || 'Not selected';
+              const location = LOCATION_TYPES.find((l) => l.id === formData.locationType)?.label || 'Not selected';
+              const services = formData.services.map((s) => SERVICE_TYPES.find((st) => st.id === s)?.label).filter(Boolean).join(', ');
+              const peopleText = `${formData.numberOfPeople} ${parseInt(formData.numberOfPeople) === 1 ? 'person' : 'people'}`;
+              const dateTime = formData.eventDate + (formData.eventTime ? ` at ${formData.eventTime}` : '');
 
-              {/* Date & Time */}
-              <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]}>
-                <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Date & Time</Text>
-                <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
-                  {formData.eventDate}
-                  {formData.eventTime && ` at ${formData.eventTime}`}
-                </Text>
-              </View>
+              const summaryLabel = `Request summary: ${eventType} event, ${dateTime}, ${peopleText}, Location: ${location}, Services: ${services}`;
 
-              {/* People */}
-              <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]}>
-                <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>People</Text>
-                <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
-                  {formData.numberOfPeople} {parseInt(formData.numberOfPeople) === 1 ? 'person' : 'people'}
-                </Text>
-              </View>
+              return (
+                <View
+                  style={[
+                    styles.reviewCard,
+                    {
+                      backgroundColor: colors.background.primary,
+                      borderRadius: borderRadius.lg,
+                      ...shadows.card,
+                    },
+                  ]}
+                  accessible
+                  accessibilityRole="summary"
+                  accessibilityLabel={summaryLabel}
+                >
+                  {/* Event Type */}
+                  <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]} aria-hidden>
+                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Event Type</Text>
+                    <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
+                      {eventType}
+                    </Text>
+                  </View>
 
-              {/* Location */}
-              <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]}>
-                <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Location</Text>
-                <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
-                  {LOCATION_TYPES.find((l) => l.id === formData.locationType)?.label || 'Not selected'}
-                </Text>
-              </View>
+                  {/* Date & Time */}
+                  <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]} aria-hidden>
+                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Date & Time</Text>
+                    <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
+                      {dateTime}
+                    </Text>
+                  </View>
 
-              {/* Services */}
-              <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]}>
-                <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Services</Text>
-                <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
-                  {formData.services
-                    .map((s) => SERVICE_TYPES.find((st) => st.id === s)?.label)
-                    .filter(Boolean)
-                    .join(', ')}
-                </Text>
-              </View>
+                  {/* People */}
+                  <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]} aria-hidden>
+                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>People</Text>
+                    <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
+                      {peopleText}
+                    </Text>
+                  </View>
 
-              {/* Description */}
-              <View style={styles.reviewDescription}>
-                <Text style={[textStyles.caption, { color: colors.text.tertiary, marginBottom: spacing.xs }]}>
-                  Description
-                </Text>
-                <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
-                  {formData.description}
-                </Text>
-              </View>
-            </View>
+                  {/* Location */}
+                  <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]} aria-hidden>
+                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Location</Text>
+                    <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
+                      {location}
+                    </Text>
+                  </View>
+
+                  {/* Services */}
+                  <View style={[styles.reviewRow, { borderBottomColor: colors.border.default }]} aria-hidden>
+                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>Services</Text>
+                    <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
+                      {services}
+                    </Text>
+                  </View>
+
+                  {/* Description */}
+                  <View style={styles.reviewDescription} aria-hidden>
+                    <Text style={[textStyles.caption, { color: colors.text.tertiary, marginBottom: spacing.xs }]}>
+                      Description
+                    </Text>
+                    <Text style={[textStyles.bodySmall, { color: colors.text.primary }]}>
+                      {formData.description}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })()}
 
             {/* Info Banner */}
             <View
@@ -629,9 +721,12 @@ export default function SpecialEventsRequestScreen() {
                   marginTop: spacing.lg,
                 },
               ]}
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel="What happens next? Stylists will review your request and send custom quotes within 24-48 hours."
             >
               <VlossomGrowingIcon size={20} color={colors.accent} accent />
-              <View style={{ flex: 1, marginLeft: spacing.sm }}>
+              <View style={{ flex: 1, marginLeft: spacing.sm }} aria-hidden>
                 <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
                   What happens next?
                 </Text>
@@ -667,8 +762,11 @@ export default function SpecialEventsRequestScreen() {
               borderRadius: borderRadius.md,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={currentStepIndex === 0 ? 'Cancel' : 'Back'}
+          accessibilityHint={currentStepIndex === 0 ? 'Exits the request form' : 'Returns to previous step'}
         >
-          <Text style={[textStyles.button, { color: colors.text.secondary }]}>
+          <Text style={[textStyles.button, { color: colors.text.secondary }]} aria-hidden>
             {currentStepIndex === 0 ? 'Cancel' : 'Back'}
           </Text>
         </Pressable>
@@ -684,11 +782,21 @@ export default function SpecialEventsRequestScreen() {
               opacity: isSubmitting ? 0.7 : 1,
             },
           ]}
+          accessibilityRole="button"
+          accessibilityLabel={isSubmitting ? 'Submitting request' : step === 'review' ? 'Submit Request' : 'Continue'}
+          accessibilityState={{ disabled: !canProceed() || isSubmitting }}
+          accessibilityHint={
+            !canProceed()
+              ? 'Complete required fields to continue'
+              : step === 'review'
+              ? 'Submits your special event request'
+              : 'Proceeds to next step'
+          }
         >
           {isSubmitting ? (
-            <ActivityIndicator color={colors.white} size="small" />
+            <ActivityIndicator color={colors.white} size="small" accessibilityElementsHidden />
           ) : (
-            <Text style={[textStyles.button, { color: colors.white }]}>
+            <Text style={[textStyles.button, { color: colors.white }]} aria-hidden>
               {step === 'review' ? 'Submit Request' : 'Continue'}
             </Text>
           )}

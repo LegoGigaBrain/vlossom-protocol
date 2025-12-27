@@ -1,8 +1,9 @@
 /**
- * Property Owner Revenue Screen (V6.10.0)
+ * Property Owner Revenue Screen (V7.2.0)
  *
- * Track earnings from chair rentals.
- * V6.10: Wired to real API with period toggle.
+ * Track earnings from chair rentals with visual charts.
+ * V7.1.2: Added revenue chart visualization.
+ * V7.2.0: Full accessibility support with semantic roles
  */
 
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, ActivityIndicator } from 'react-native';
@@ -14,6 +15,7 @@ import {
   VlossomGrowingIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { usePropertyOwnerStore } from '../../src/stores/property-owner';
+import { RevenueChart, type RevenueDataPoint } from '../../src/components/charts';
 
 
 // Format price
@@ -42,6 +44,7 @@ export default function RevenueScreen() {
     revenueLoading,
     revenuePeriod,
     transactions,
+    revenueChartData,
     fetchRevenue,
     setRevenuePeriod,
   } = usePropertyOwnerStore();
@@ -78,9 +81,14 @@ export default function RevenueScreen() {
   // Loading state
   if (revenueLoading && !revenueStats) {
     return (
-      <View style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]}>
+      <View
+        style={[styles.container, styles.loadingContainer, { backgroundColor: colors.background.secondary }]}
+        accessible
+        accessibilityRole="alert"
+        accessibilityLabel="Loading revenue, please wait"
+      >
+        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading" />
+        <Text style={[textStyles.body, { color: colors.text.secondary, marginTop: spacing.md }]} aria-hidden>
           Loading revenue...
         </Text>
       </View>
@@ -96,7 +104,12 @@ export default function RevenueScreen() {
       }
     >
       {/* Stats Cards */}
-      <View style={[styles.statsSection, { padding: spacing.lg }]}>
+      <View
+        style={[styles.statsSection, { padding: spacing.lg }]}
+        accessible
+        accessibilityRole="summary"
+        accessibilityLabel={`Revenue summary: Total earnings ${formatPrice(revenueStats?.totalEarningsCents || 0)}, This ${revenuePeriod} ${formatPrice(revenueStats?.thisPeriodEarningsCents || 0)}${monthChange !== 0 ? `, ${monthChange > 0 ? 'up' : 'down'} ${Math.abs(monthChange)}%` : ''}, Pending payout ${formatPrice(revenueStats?.pendingPayoutCents || 0)}`}
+      >
         {/* Total Earnings */}
         <View
           style={[
@@ -107,6 +120,7 @@ export default function RevenueScreen() {
               ...shadows.card,
             },
           ]}
+          aria-hidden
         >
           <VlossomWalletIcon size={24} color={colors.white} />
           <Text style={[textStyles.caption, { color: colors.white + 'CC', marginTop: spacing.sm }]}>
@@ -118,7 +132,7 @@ export default function RevenueScreen() {
         </View>
 
         {/* Secondary Stats */}
-        <View style={[styles.statsRow, { marginTop: spacing.md }]}>
+        <View style={[styles.statsRow, { marginTop: spacing.md }]} aria-hidden>
           <View
             style={[
               styles.statCard,
@@ -173,7 +187,11 @@ export default function RevenueScreen() {
       </View>
 
       {/* Period Toggle */}
-      <View style={[styles.periodToggle, { paddingHorizontal: spacing.lg }]}>
+      <View
+        style={[styles.periodToggle, { paddingHorizontal: spacing.lg }]}
+        accessibilityRole="tablist"
+        accessibilityLabel="Select time period"
+      >
         {[
           { value: 'week', label: 'Week' },
           { value: 'month', label: 'Month' },
@@ -191,9 +209,14 @@ export default function RevenueScreen() {
                   borderRadius: borderRadius.pill,
                 },
               ]}
+              accessibilityRole="tab"
+              accessibilityLabel={p.label}
+              accessibilityState={{ selected: isActive }}
+              accessibilityHint={isActive ? 'Currently selected' : `Double tap to view ${p.label.toLowerCase()}ly revenue`}
             >
               <Text
                 style={[textStyles.caption, { color: isActive ? colors.white : colors.text.secondary }]}
+                aria-hidden
               >
                 {p.label}
               </Text>
@@ -202,9 +225,50 @@ export default function RevenueScreen() {
         })}
       </View>
 
+      {/* Revenue Chart */}
+      {revenueChartData.length > 0 && (
+        <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
+          <Text
+            style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}
+            accessibilityRole="header"
+          >
+            Revenue Trend
+          </Text>
+          <View
+            style={[
+              styles.chartCard,
+              {
+                backgroundColor: colors.background.primary,
+                borderRadius: borderRadius.lg,
+                ...shadows.card,
+              },
+            ]}
+            accessible
+            accessibilityRole="image"
+            accessibilityLabel={`Revenue trend chart showing ${revenuePeriod}ly data with ${revenueChartData.length} data points`}
+          >
+            <RevenueChart
+              data={revenueChartData as RevenueDataPoint[]}
+              height={200}
+              showLabels
+              showGrid
+              showComparison={revenuePeriod !== 'year'}
+              animated
+              formatValue={(cents) => {
+                if (cents >= 100000) return `R${(cents / 100000).toFixed(1)}K`;
+                return `R${(cents / 100).toFixed(0)}`;
+              }}
+            />
+          </View>
+        </View>
+      )}
+
       {/* Transactions */}
       <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
-        <Text style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}>
+        <Text
+          style={[textStyles.h3, { color: colors.text.primary, marginBottom: spacing.md }]}
+          accessibilityRole="header"
+        >
           Recent Transactions
         </Text>
 
@@ -219,87 +283,101 @@ export default function RevenueScreen() {
           ]}
         >
           {transactions.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Text style={[textStyles.body, { color: colors.text.secondary }]}>
+            <View
+              style={styles.emptyState}
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel="No transactions yet"
+            >
+              <Text style={[textStyles.body, { color: colors.text.secondary }]} aria-hidden>
                 No transactions yet
               </Text>
             </View>
           ) : (
-            transactions.map((tx, index) => {
-              const isIncome = tx.type !== 'PAYOUT';
-              const isLast = index === transactions.length - 1;
+            <View accessibilityRole="list" accessibilityLabel={`${transactions.length} recent transactions`}>
+              {transactions.map((tx, index) => {
+                const isIncome = tx.type !== 'PAYOUT';
+                const isLast = index === transactions.length - 1;
+                const txDescription = tx.type === 'PAYOUT'
+                  ? 'Payout to Bank'
+                  : `${tx.chairName || 'Chair'} rental from ${tx.stylistName || 'Stylist'}`;
 
-              return (
-                <View
-                  key={tx.id}
-                  style={[
-                    styles.transactionRow,
-                    !isLast && { borderBottomWidth: StyleSheet.hairlineWidth },
-                    { borderBottomColor: colors.border.default },
-                  ]}
-                >
+                return (
                   <View
+                    key={tx.id}
                     style={[
-                      styles.txIcon,
-                      {
-                        backgroundColor: isIncome
-                          ? colors.status.success + '20'
-                          : colors.primary + '20',
-                        borderRadius: borderRadius.circle,
-                      },
+                      styles.transactionRow,
+                      !isLast && { borderBottomWidth: StyleSheet.hairlineWidth },
+                      { borderBottomColor: colors.border.default },
                     ]}
+                    accessible
+                    accessibilityRole="listitem"
+                    accessibilityLabel={`${txDescription}, ${isIncome ? 'income' : 'payout'} ${formatPrice(tx.amountCents || 0)}, ${formatDate(tx.createdAt)}, ${tx.status.toLowerCase()}`}
                   >
-                    {isIncome ? (
-                      <VlossomGrowingIcon size={16} color={colors.status.success} />
-                    ) : (
-                      <VlossomWalletIcon size={16} color={colors.primary} />
-                    )}
-                  </View>
-
-                  <View style={styles.txInfo}>
-                    <Text
-                      style={[textStyles.bodySmall, { color: colors.text.primary }]}
-                      numberOfLines={1}
-                    >
-                      {tx.type === 'PAYOUT'
-                        ? 'Payout to Bank'
-                        : `${tx.chairName || 'Chair'} - ${tx.stylistName || 'Stylist'}`}
-                    </Text>
-                    <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
-                      {tx.propertyName || 'Completed'} • {formatDate(tx.createdAt)}
-                    </Text>
-                  </View>
-
-                  <View style={styles.txAmount}>
-                    <Text
+                    <View
                       style={[
-                        textStyles.bodySmall,
+                        styles.txIcon,
                         {
-                          color: isIncome ? colors.status.success : colors.text.primary,
-                          fontWeight: '600',
+                          backgroundColor: isIncome
+                            ? colors.status.success + '20'
+                            : colors.primary + '20',
+                          borderRadius: borderRadius.circle,
                         },
                       ]}
+                      aria-hidden
                     >
-                      {isIncome ? '+' : '-'}
-                      {formatPrice(tx.amountCents || 0)}
-                    </Text>
-                    <Text
-                      style={[
-                        textStyles.caption,
-                        {
-                          color:
-                            tx.status === 'COMPLETED'
-                              ? colors.status.success
-                              : colors.status.warning,
-                        },
-                      ]}
-                    >
-                      {tx.status.toLowerCase()}
-                    </Text>
+                      {isIncome ? (
+                        <VlossomGrowingIcon size={16} color={colors.status.success} />
+                      ) : (
+                        <VlossomWalletIcon size={16} color={colors.primary} />
+                      )}
+                    </View>
+
+                    <View style={styles.txInfo} aria-hidden>
+                      <Text
+                        style={[textStyles.bodySmall, { color: colors.text.primary }]}
+                        numberOfLines={1}
+                      >
+                        {tx.type === 'PAYOUT'
+                          ? 'Payout to Bank'
+                          : `${tx.chairName || 'Chair'} - ${tx.stylistName || 'Stylist'}`}
+                      </Text>
+                      <Text style={[textStyles.caption, { color: colors.text.tertiary }]}>
+                        {tx.propertyName || 'Completed'} • {formatDate(tx.createdAt)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.txAmount} aria-hidden>
+                      <Text
+                        style={[
+                          textStyles.bodySmall,
+                          {
+                            color: isIncome ? colors.status.success : colors.text.primary,
+                            fontWeight: '600',
+                          },
+                        ]}
+                      >
+                        {isIncome ? '+' : '-'}
+                        {formatPrice(tx.amountCents || 0)}
+                      </Text>
+                      <Text
+                        style={[
+                          textStyles.caption,
+                          {
+                            color:
+                              tx.status === 'COMPLETED'
+                                ? colors.status.success
+                                : colors.status.warning,
+                          },
+                        ]}
+                      >
+                        {tx.status.toLowerCase()}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              );
-            })
+                );
+              })}
+            </View>
           )}
         </View>
       </View>
@@ -317,9 +395,12 @@ export default function RevenueScreen() {
               borderRadius: borderRadius.lg,
             },
           ]}
+          accessible
+          accessibilityRole="text"
+          accessibilityLabel={`Pending payout: ${formatPrice(revenueStats?.pendingPayoutCents || 0)}. Payouts are processed every Friday.`}
         >
           <VlossomWalletIcon size={20} color={colors.primary} />
-          <View style={{ flex: 1, marginLeft: spacing.sm }}>
+          <View style={{ flex: 1, marginLeft: spacing.sm }} aria-hidden>
             <Text style={[textStyles.bodySmall, { color: colors.text.primary, fontWeight: '600' }]}>
               Pending: {formatPrice(revenueStats?.pendingPayoutCents || 0)}
             </Text>
@@ -368,6 +449,10 @@ const styles = StyleSheet.create({
   periodChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  chartCard: {
+    padding: 16,
+    overflow: 'hidden',
   },
   transactionsCard: {
     overflow: 'hidden',

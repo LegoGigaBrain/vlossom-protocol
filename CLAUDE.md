@@ -4,11 +4,11 @@
 
 ## Current Version
 
-**V7.0.0** - Security, Admin Panel & UX Hardening (December 20, 2025)
+**V7.3.0** - Production Readiness (December 27, 2025)
 
-**Major Achievement**: Comprehensive security hardening and complete admin panel. JWT migration to httpOnly cookies (XSS protection), refresh token rotation, SIWE nonce fix, rate limit fail-closed mode, and full admin dashboard with 8 pages (users, bookings, sessions, disputes, logs, DeFi, paymaster).
+**Major Achievement**: Production-ready release with push notifications (Expo FCM/APNs), complete stylist mobile experience (availability, requests, profile), real-time session tracking, App Store build configuration (eas.json), and comprehensive security audit checklist.
 
-**Previous**: V6.10.0 - Mobile Parity, V6.9.0 - Calendar Intelligence, V6.8.0 - Mobile Foundation, V6.7.1 - Direct Messaging
+**Previous**: V7.0.0 - Security Hardening, V6.10.0 - Mobile Parity, V6.9.0 - Calendar Intelligence, V6.8.0 - Mobile Foundation
 
 ---
 
@@ -39,14 +39,14 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V7.0.0 |
-| `apps/mobile/` | React Native + Expo mobile app | ✅ V7.0.0 |
+| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V7.3.0 |
+| `apps/mobile/` | React Native + Expo mobile app with Push Notifications | ✅ V7.3.0 |
 | `apps/admin/` | Admin dashboard (8 pages) | ✅ V7.0.0 |
 
 ### `services/` - Backend Services
 | Service | Purpose | Status |
 |---------|---------|--------|
-| `services/api/` | Express REST API | ✅ V7.0.0 |
+| `services/api/` | Express REST API with Push Provider | ✅ V7.3.0 |
 | `services/scheduler/` | Background job scheduler | ✅ V6.4.0 |
 | `services/indexer/` | Blockchain event indexer | ✅ V3.2.0 |
 
