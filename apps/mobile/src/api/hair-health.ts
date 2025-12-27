@@ -130,7 +130,7 @@ export const LEARNING_NODES: { id: LearningNodeId; title: string; description: s
  */
 export async function getHairProfile(): Promise<HairProfile | null> {
   try {
-    const response = await apiRequest<ProfileResponse>('/hair-health/profile');
+    const response = await apiRequest<ProfileResponse>('/api/v1/hair-health/profile');
     return response.data;
   } catch (error) {
     // 404 means no profile yet
@@ -145,9 +145,9 @@ export async function getHairProfile(): Promise<HairProfile | null> {
  * Create hair health profile
  */
 export async function createHairProfile(input: HairProfileCreateInput): Promise<HairProfile> {
-  const response = await apiRequest<ProfileResponse>('/hair-health/profile', {
+  const response = await apiRequest<ProfileResponse>('/api/v1/hair-health/profile', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: input,
   });
   return response.data;
 }
@@ -156,9 +156,9 @@ export async function createHairProfile(input: HairProfileCreateInput): Promise<
  * Update hair health profile
  */
 export async function updateHairProfile(input: HairProfileUpdateInput): Promise<HairProfile> {
-  const response = await apiRequest<ProfileResponse>('/hair-health/profile', {
+  const response = await apiRequest<ProfileResponse>('/api/v1/hair-health/profile', {
     method: 'PATCH',
-    body: JSON.stringify(input),
+    body: input,
   });
   return response.data;
 }
@@ -167,7 +167,7 @@ export async function updateHairProfile(input: HairProfileUpdateInput): Promise<
  * Delete hair health profile
  */
 export async function deleteHairProfile(): Promise<void> {
-  await apiRequest('/hair-health/profile', {
+  await apiRequest('/api/v1/hair-health/profile', {
     method: 'DELETE',
   });
 }
@@ -176,7 +176,7 @@ export async function deleteHairProfile(): Promise<void> {
  * Get learning progress
  */
 export async function getLearningProgress(): Promise<LearningProgressResponse['data']> {
-  const response = await apiRequest<LearningProgressResponse>('/hair-health/learning');
+  const response = await apiRequest<LearningProgressResponse>('/api/v1/hair-health/learning');
   return response.data;
 }
 
@@ -184,7 +184,7 @@ export async function getLearningProgress(): Promise<LearningProgressResponse['d
  * Unlock a learning node
  */
 export async function unlockLearningNode(nodeId: LearningNodeId): Promise<UnlockNodeResponse['data']> {
-  const response = await apiRequest<UnlockNodeResponse>(`/hair-health/learning/${nodeId}`, {
+  const response = await apiRequest<UnlockNodeResponse>(`/api/v1/hair-health/learning/${nodeId}`, {
     method: 'POST',
   });
   return response.data;
@@ -392,7 +392,7 @@ export interface GenerateCalendarResponse {
  * Get personalized ritual plan based on profile
  */
 export async function getRitualPlan(): Promise<RitualPlanResponse['data']> {
-  const response = await apiRequest<RitualPlanResponse>('/hair-health/ritual-plan');
+  const response = await apiRequest<RitualPlanResponse>('/api/v1/hair-health/ritual-plan');
   return response.data;
 }
 
@@ -400,7 +400,7 @@ export async function getRitualPlan(): Promise<RitualPlanResponse['data']> {
  * Get all available ritual templates
  */
 export async function getRitualTemplates(): Promise<RitualRecommendation[]> {
-  const response = await apiRequest<{ data: RitualRecommendation[] }>('/hair-health/ritual-templates');
+  const response = await apiRequest<{ data: RitualRecommendation[] }>('/api/v1/hair-health/ritual-templates');
   return response.data;
 }
 
@@ -411,9 +411,9 @@ export async function generateCalendar(options?: {
   weeksToGenerate?: number;
   replaceExisting?: boolean;
 }): Promise<CalendarGenerateResult> {
-  const response = await apiRequest<GenerateCalendarResponse>('/hair-health/calendar/generate', {
+  const response = await apiRequest<GenerateCalendarResponse>('/api/v1/hair-health/calendar/generate', {
     method: 'POST',
-    body: JSON.stringify(options || {}),
+    body: options || {},
   });
   return response.data;
 }
@@ -422,7 +422,7 @@ export async function generateCalendar(options?: {
  * Get upcoming rituals for the next N days
  */
 export async function getUpcomingRituals(days: number = 14): Promise<UpcomingRitualsResponse['data']> {
-  const response = await apiRequest<UpcomingRitualsResponse>(`/hair-health/calendar/upcoming?days=${days}`);
+  const response = await apiRequest<UpcomingRitualsResponse>(`/api/v1/hair-health/calendar/upcoming?days=${days}`);
   return response.data;
 }
 
@@ -430,7 +430,7 @@ export async function getUpcomingRituals(days: number = 14): Promise<UpcomingRit
  * Get calendar summary for widget display
  */
 export async function getCalendarSummary(): Promise<CalendarSummaryResponse['data']> {
-  const response = await apiRequest<CalendarSummaryResponse>('/hair-health/calendar/summary');
+  const response = await apiRequest<CalendarSummaryResponse>('/api/v1/hair-health/calendar/summary');
   return response.data;
 }
 
@@ -441,9 +441,9 @@ export async function completeCalendarEvent(
   eventId: string,
   quality: 'EXCELLENT' | 'GOOD' | 'ADEQUATE' | 'POOR' = 'GOOD'
 ): Promise<void> {
-  await apiRequest(`/hair-health/calendar/${eventId}/complete`, {
+  await apiRequest(`/api/v1/hair-health/calendar/${eventId}/complete`, {
     method: 'POST',
-    body: JSON.stringify({ quality }),
+    body: { quality },
   });
 }
 
@@ -455,10 +455,10 @@ export async function skipCalendarEvent(
   reason?: string
 ): Promise<{ suggestedMakeup: string | null }> {
   const response = await apiRequest<{ data: { suggestedMakeup: string | null } }>(
-    `/hair-health/calendar/${eventId}/skip`,
+    `/api/v1/hair-health/calendar/${eventId}/skip`,
     {
       method: 'POST',
-      body: JSON.stringify({ reason }),
+      body: { reason },
     }
   );
   return response.data;
@@ -472,10 +472,10 @@ export async function rescheduleCalendarEvent(
   newDate: Date
 ): Promise<{ success: boolean; warnings: string[] }> {
   const response = await apiRequest<{ data: { success: boolean; warnings: string[] } }>(
-    `/hair-health/calendar/${eventId}/reschedule`,
+    `/api/v1/hair-health/calendar/${eventId}/reschedule`,
     {
       method: 'PATCH',
-      body: JSON.stringify({ newDate: newDate.toISOString() }),
+      body: { newDate: newDate.toISOString() },
     }
   );
   return response.data;

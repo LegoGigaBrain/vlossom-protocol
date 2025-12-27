@@ -26,10 +26,23 @@ import {
   type RevenueStats,
   type Transaction,
 } from '../api/property-owner';
+import { getIsDemoMode } from './demo-mode';
+import {
+  MOCK_PROPERTIES,
+  MOCK_RENTAL_REQUESTS,
+  MOCK_PROPERTY_OWNER_STATS,
+} from '../data/mock-data';
 
 // ============================================================================
 // Types
 // ============================================================================
+
+// Chart data type for revenue visualization
+export interface RevenueChartData {
+  label: string;
+  value: number;
+  previousValue?: number;
+}
 
 interface PropertyOwnerState {
   // Properties
@@ -54,6 +67,9 @@ interface PropertyOwnerState {
   revenueStats: RevenueStats | null;
   revenueLoading: boolean;
   revenuePeriod: 'week' | 'month' | 'year';
+
+  // Chart data
+  revenueChartData: RevenueChartData[];
 
   // Transactions
   transactions: Transaction[];
@@ -105,6 +121,8 @@ const initialState = {
   revenueLoading: false,
   revenuePeriod: 'month' as const,
 
+  revenueChartData: [],
+
   transactions: [],
   transactionsLoading: false,
 
@@ -123,6 +141,38 @@ export const usePropertyOwnerStore = create<PropertyOwnerState>((set, get) => ({
    */
   fetchProperties: async () => {
     set({ propertiesLoading: true, propertiesError: null });
+
+    // Demo mode: return mock data
+    if (getIsDemoMode()) {
+      const mockProperties = MOCK_PROPERTIES.map((p) => ({
+        id: p.id,
+        name: p.name,
+        address: p.address,
+        city: p.city,
+        lat: p.lat,
+        lng: p.lng,
+        chairCount: p.chairCount,
+        amenities: p.amenities,
+        operatingHours: p.operatingHours,
+        photos: p.photos,
+        isActive: p.isActive,
+        chairs: p.chairs.map((c) => ({
+          id: c.id,
+          number: c.number,
+          status: c.status,
+          dailyRateCents: c.dailyRateCents,
+          weeklyRateCents: c.weeklyRateCents,
+          currentRenter: c.currentRenter,
+        })),
+      })) as Property[];
+
+      set({
+        properties: mockProperties,
+        stats: MOCK_PROPERTY_OWNER_STATS as PropertyStats,
+        propertiesLoading: false,
+      });
+      return;
+    }
 
     try {
       const properties = await getMyProperties();
@@ -165,6 +215,41 @@ export const usePropertyOwnerStore = create<PropertyOwnerState>((set, get) => ({
   fetchRentalRequests: async (propertyId?: string) => {
     const state = get();
     set({ rentalRequestsLoading: true, rentalRequestsError: null });
+
+    // Demo mode: return mock data
+    if (getIsDemoMode()) {
+      let mockRequests = MOCK_RENTAL_REQUESTS.map((r) => ({
+        id: r.id,
+        propertyId: r.propertyId,
+        propertyName: r.propertyName,
+        chairId: r.chairId,
+        chairNumber: r.chairNumber,
+        stylist: r.stylist,
+        requestedStartDate: r.requestedStartDate,
+        requestedEndDate: r.requestedEndDate,
+        rentalType: r.rentalType,
+        totalAmountCents: r.totalAmountCents,
+        status: r.status,
+        message: r.message,
+        createdAt: r.createdAt,
+      })) as RentalRequest[];
+
+      // Filter by property if specified
+      if (propertyId) {
+        mockRequests = mockRequests.filter((r) => r.propertyId === propertyId);
+      }
+
+      // Filter by status if set
+      if (state.rentalRequestsFilter) {
+        mockRequests = mockRequests.filter((r) => r.status === state.rentalRequestsFilter);
+      }
+
+      set({
+        rentalRequests: mockRequests,
+        rentalRequestsLoading: false,
+      });
+      return;
+    }
 
     try {
       let requests: RentalRequest[];
@@ -302,10 +387,98 @@ export const usePropertyOwnerStore = create<PropertyOwnerState>((set, get) => ({
     const activePeriod = period || get().revenuePeriod;
     set({ revenueLoading: true, revenuePeriod: activePeriod });
 
+    // Generate chart data based on period
+    const generateChartData = (
+      periodType: 'week' | 'month' | 'year',
+      totalCents: number
+    ): RevenueChartData[] => {
+      const now = new Date();
+
+      if (periodType === 'week') {
+        // Last 7 days
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return Array.from({ length: 7 }, (_, i) => {
+          const date = new Date(now);
+          date.setDate(date.getDate() - (6 - i));
+          // Simulate varying daily revenue
+          const baseValue = totalCents / 7;
+          const variance = 0.5 + Math.random();
+          const value = Math.round(baseValue * variance);
+          const prevVariance = 0.4 + Math.random() * 0.8;
+          return {
+            label: days[date.getDay()],
+            value,
+            previousValue: Math.round(value * prevVariance),
+          };
+        });
+      } else if (periodType === 'month') {
+        // Last 4 weeks
+        return Array.from({ length: 4 }, (_, i) => {
+          const baseValue = totalCents / 4;
+          const variance = 0.6 + Math.random() * 0.8;
+          const value = Math.round(baseValue * variance);
+          const prevVariance = 0.5 + Math.random() * 0.7;
+          return {
+            label: `Week ${i + 1}`,
+            value,
+            previousValue: Math.round(value * prevVariance),
+          };
+        });
+      } else {
+        // Year: last 12 months
+        const months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
+        return Array.from({ length: 12 }, (_, i) => {
+          const monthIndex = (now.getMonth() - 11 + i + 12) % 12;
+          const baseValue = totalCents / 12;
+          const variance = 0.5 + Math.random();
+          const value = Math.round(baseValue * variance);
+          const prevVariance = 0.4 + Math.random() * 0.9;
+          return {
+            label: months[monthIndex],
+            value,
+            previousValue: Math.round(value * prevVariance),
+          };
+        });
+      }
+    };
+
+    // Demo mode: generate mock chart data
+    if (getIsDemoMode()) {
+      const mockTotal = activePeriod === 'week' ? 450000 : activePeriod === 'month' ? 1800000 : 21600000;
+      const chartData = generateChartData(activePeriod, mockTotal);
+      set({
+        revenueStats: {
+          period: activePeriod,
+          totalRevenueCents: mockTotal,
+          platformFeeCents: Math.round(mockTotal * 0.1),
+          netRevenueCents: Math.round(mockTotal * 0.9),
+          completedRentals: activePeriod === 'week' ? 8 : activePeriod === 'month' ? 32 : 384,
+        } as RevenueStats,
+        revenueChartData: chartData,
+        revenueLoading: false,
+      });
+      return;
+    }
+
     try {
       const stats = await getRevenueStatsAPI(activePeriod);
+      const chartData = generateChartData(activePeriod, stats.totalRevenueCents);
       set({
         revenueStats: stats,
+        revenueChartData: chartData,
         revenueLoading: false,
       });
     } catch (error) {
@@ -378,6 +551,7 @@ export const selectRentalRequestsFilter = (state: PropertyOwnerState) => state.r
 export const selectRevenueStats = (state: PropertyOwnerState) => state.revenueStats;
 export const selectRevenueLoading = (state: PropertyOwnerState) => state.revenueLoading;
 export const selectRevenuePeriod = (state: PropertyOwnerState) => state.revenuePeriod;
+export const selectRevenueChartData = (state: PropertyOwnerState) => state.revenueChartData;
 export const selectTransactions = (state: PropertyOwnerState) => state.transactions;
 
 export const selectDecisionLoading = (state: PropertyOwnerState) => state.decisionLoading;

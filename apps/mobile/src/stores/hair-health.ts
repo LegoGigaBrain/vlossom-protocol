@@ -26,6 +26,12 @@ import {
   type UpcomingRitual,
   type CalendarGenerateResult,
 } from '../api/hair-health';
+import { getIsDemoMode } from './demo-mode';
+import {
+  MOCK_HAIR_PROFILE,
+  MOCK_CALENDAR_EVENTS,
+  getMockCalendarSummary,
+} from '../data/mock-data';
 
 // ============================================================================
 // Types
@@ -38,6 +44,24 @@ interface CalendarSummary {
   overdueCount: number;
   completedThisWeek: number;
   streakDays: number;
+}
+
+// V7.1 Full Calendar Types
+export type CalendarViewMode = 'month' | 'week' | 'day';
+
+export interface CalendarEventFull {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  date: string; // ISO date (YYYY-MM-DD)
+  time: string; // HH:mm
+  durationMinutes: number;
+  loadLevel: 'LIGHT' | 'STANDARD' | 'HEAVY';
+  isCompleted: boolean;
+  isSkipped: boolean;
+  completedAt?: string;
+  qualityRating?: 'EXCELLENT' | 'GOOD' | 'ADEQUATE' | 'POOR';
 }
 
 interface HairHealthState {
@@ -63,6 +87,12 @@ interface HairHealthState {
   calendarError: string | null;
   hasCalendarEvents: boolean;
 
+  // V7.1 Full Calendar State
+  calendarEvents: CalendarEventFull[];
+  selectedDate: string; // ISO date (YYYY-MM-DD)
+  viewMode: CalendarViewMode;
+  calendarMonth: string; // YYYY-MM for navigation
+
   // Actions - Profile
   fetchProfile: () => Promise<void>;
   createProfile: (input: HairProfileCreateInput) => Promise<HairProfile | null>;
@@ -84,6 +114,13 @@ interface HairHealthState {
   generateCalendarEvents: (weeks?: number) => Promise<CalendarGenerateResult | null>;
   completeRitual: (eventId: string, quality?: 'EXCELLENT' | 'GOOD' | 'ADEQUATE' | 'POOR') => Promise<void>;
   skipRitual: (eventId: string, reason?: string) => Promise<void>;
+
+  // V7.1 Full Calendar Actions
+  fetchCalendarEvents: (startDate: string, endDate: string) => Promise<void>;
+  setSelectedDate: (date: string) => void;
+  setViewMode: (mode: CalendarViewMode) => void;
+  setCalendarMonth: (month: string) => void;
+  getEventsForDate: (date: string) => CalendarEventFull[];
 
   // Reset
   reset: () => void;
@@ -112,6 +149,12 @@ const initialState = {
   calendarLoading: false,
   calendarError: null as string | null,
   hasCalendarEvents: false,
+
+  // V7.1 Full Calendar State
+  calendarEvents: [] as CalendarEventFull[],
+  selectedDate: new Date().toISOString().split('T')[0], // Today
+  viewMode: 'month' as CalendarViewMode,
+  calendarMonth: new Date().toISOString().slice(0, 7), // YYYY-MM
 };
 
 // ============================================================================
@@ -126,6 +169,16 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
    */
   fetchProfile: async () => {
     set({ profileLoading: true, profileError: null });
+
+    // Demo mode: return mock profile
+    if (getIsDemoMode()) {
+      set({
+        profile: MOCK_HAIR_PROFILE as unknown as HairProfile,
+        profileLoading: false,
+        hasProfile: true,
+      });
+      return;
+    }
 
     try {
       const profile = await getHairProfile();
@@ -278,6 +331,24 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
   fetchCalendarSummary: async () => {
     set({ calendarLoading: true, calendarError: null });
 
+    // Demo mode: return mock summary
+    if (getIsDemoMode()) {
+      const mockSummary = getMockCalendarSummary();
+      set({
+        calendarSummary: {
+          nextRitual: mockSummary.nextRitual as UpcomingRitual | null,
+          thisWeekLoad: mockSummary.weeklyLoadPercent,
+          maxWeekLoad: 100,
+          overdueCount: mockSummary.overdueCount,
+          completedThisWeek: mockSummary.completedThisWeek,
+          streakDays: mockSummary.streakDays,
+        },
+        calendarLoading: false,
+        hasCalendarEvents: mockSummary.nextRitual !== null || mockSummary.completedThisWeek > 0,
+      });
+      return;
+    }
+
     try {
       const summary = await getCalendarSummary();
       set({
@@ -298,6 +369,33 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
    */
   fetchUpcomingRituals: async (days: number = 14) => {
     set({ calendarLoading: true });
+
+    // Demo mode: return mock rituals
+    if (getIsDemoMode()) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const endDate = new Date(today.getTime() + days * 24 * 60 * 60 * 1000);
+
+      const mockRituals = MOCK_CALENDAR_EVENTS.filter((e) => {
+        const eventDate = new Date(e.date);
+        return !e.isCompleted && !e.isSkipped && eventDate >= today && eventDate <= endDate;
+      }).map((e) => ({
+        id: e.id,
+        ritualType: e.type,
+        name: e.title,
+        description: e.description,
+        scheduledStart: `${e.date}T${e.time}:00`,
+        durationMinutes: e.durationMinutes,
+        loadLevel: e.loadLevel,
+      })) as UpcomingRitual[];
+
+      set({
+        upcomingRituals: mockRituals,
+        calendarLoading: false,
+        hasCalendarEvents: mockRituals.length > 0,
+      });
+      return;
+    }
 
     try {
       const data = await getUpcomingRituals(days);
@@ -365,6 +463,78 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
     }
   },
 
+  // ==========================================================================
+  // V7.1 Full Calendar Actions
+  // ==========================================================================
+
+  /**
+   * Fetch calendar events for a date range
+   */
+  fetchCalendarEvents: async (startDate: string, endDate: string) => {
+    set({ calendarLoading: true, calendarError: null });
+
+    try {
+      // TODO: Call API when available
+      // const events = await getCalendarEvents(startDate, endDate);
+
+      // For now, fetch upcoming rituals and convert to CalendarEventFull format
+      const data = await getUpcomingRituals(60); // Get 60 days of rituals
+
+      const events: CalendarEventFull[] = data.rituals.map((r) => ({
+        id: r.id,
+        type: r.ritualType || 'RITUAL',
+        title: r.name,
+        description: r.description || '',
+        date: r.scheduledStart.split('T')[0],
+        time: r.scheduledStart.split('T')[1]?.slice(0, 5) || '09:00',
+        durationMinutes: r.durationMinutes || 60,
+        loadLevel: r.loadLevel,
+        isCompleted: false,
+        isSkipped: false,
+      }));
+
+      set({
+        calendarEvents: events,
+        calendarLoading: false,
+        hasCalendarEvents: events.length > 0,
+      });
+    } catch (error) {
+      set({
+        calendarLoading: false,
+        calendarError: error instanceof Error ? error.message : 'Failed to fetch calendar events',
+      });
+    }
+  },
+
+  /**
+   * Set selected date for day view
+   */
+  setSelectedDate: (date: string) => {
+    set({ selectedDate: date });
+  },
+
+  /**
+   * Set calendar view mode
+   */
+  setViewMode: (mode: CalendarViewMode) => {
+    set({ viewMode: mode });
+  },
+
+  /**
+   * Set calendar month for navigation
+   */
+  setCalendarMonth: (month: string) => {
+    set({ calendarMonth: month });
+  },
+
+  /**
+   * Get events for a specific date
+   */
+  getEventsForDate: (date: string) => {
+    const { calendarEvents } = get();
+    return calendarEvents.filter((e) => e.date === date);
+  },
+
   /**
    * Reset store
    */
@@ -391,3 +561,9 @@ export const selectHasCalendarEvents = (state: HairHealthState) => state.hasCale
 export const selectNextRitual = (state: HairHealthState) => state.calendarSummary?.nextRitual ?? null;
 export const selectOverdueCount = (state: HairHealthState) => state.calendarSummary?.overdueCount ?? 0;
 export const selectStreakDays = (state: HairHealthState) => state.calendarSummary?.streakDays ?? 0;
+
+// V7.1 Full Calendar Selectors
+export const selectCalendarEvents = (state: HairHealthState) => state.calendarEvents;
+export const selectSelectedDate = (state: HairHealthState) => state.selectedDate;
+export const selectViewMode = (state: HairHealthState) => state.viewMode;
+export const selectCalendarMonth = (state: HairHealthState) => state.calendarMonth;

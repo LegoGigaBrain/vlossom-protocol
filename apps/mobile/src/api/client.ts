@@ -2,10 +2,11 @@
  * API Client Base (V6.7.0)
  *
  * Base client for making authenticated API requests.
- * Uses expo-secure-store for token storage.
+ * Uses expo-secure-store for token storage on native,
+ * falls back to localStorage on web.
  */
 
-import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 // API URL - should be configured via environment variable
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3002';
@@ -14,36 +15,79 @@ const AUTH_TOKEN_KEY = 'vlossom_auth_token';
 const REFRESH_TOKEN_KEY = 'vlossom_refresh_token';
 
 // ============================================================================
-// Token Management
+// Token Management (Platform-specific)
 // ============================================================================
+
+// Lazy load SecureStore only on native platforms
+let SecureStore: typeof import('expo-secure-store') | null = null;
+
+async function getSecureStore() {
+  if (Platform.OS === 'web') {
+    return null;
+  }
+  if (!SecureStore) {
+    SecureStore = await import('expo-secure-store');
+  }
+  return SecureStore;
+}
 
 export async function getAuthToken(): Promise<string | null> {
   try {
-    return await SecureStore.getItemAsync(AUTH_TOKEN_KEY);
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(AUTH_TOKEN_KEY);
+    }
+    const store = await getSecureStore();
+    return store ? await store.getItemAsync(AUTH_TOKEN_KEY) : null;
   } catch {
     return null;
   }
 }
 
 export async function setAuthToken(token: string): Promise<void> {
-  await SecureStore.setItemAsync(AUTH_TOKEN_KEY, token);
+  if (Platform.OS === 'web') {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    return;
+  }
+  const store = await getSecureStore();
+  if (store) {
+    await store.setItemAsync(AUTH_TOKEN_KEY, token);
+  }
 }
 
 export async function getRefreshToken(): Promise<string | null> {
   try {
-    return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    if (Platform.OS === 'web') {
+      return localStorage.getItem(REFRESH_TOKEN_KEY);
+    }
+    const store = await getSecureStore();
+    return store ? await store.getItemAsync(REFRESH_TOKEN_KEY) : null;
   } catch {
     return null;
   }
 }
 
 export async function setRefreshToken(token: string): Promise<void> {
-  await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, token);
+  if (Platform.OS === 'web') {
+    localStorage.setItem(REFRESH_TOKEN_KEY, token);
+    return;
+  }
+  const store = await getSecureStore();
+  if (store) {
+    await store.setItemAsync(REFRESH_TOKEN_KEY, token);
+  }
 }
 
 export async function clearTokens(): Promise<void> {
-  await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);
-  await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+  if (Platform.OS === 'web') {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    return;
+  }
+  const store = await getSecureStore();
+  if (store) {
+    await store.deleteItemAsync(AUTH_TOKEN_KEY);
+    await store.deleteItemAsync(REFRESH_TOKEN_KEY);
+  }
 }
 
 // ============================================================================
@@ -132,6 +176,10 @@ export async function apiRequest<T>(
 
   // Parse response
   return response.json();
+}
+
+export function getApiUrl(): string {
+  return API_URL;
 }
 
 export { API_URL };

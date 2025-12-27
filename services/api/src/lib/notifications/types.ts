@@ -1,27 +1,16 @@
 /**
  * Notification Types (F4.3)
  * Type definitions for the notification system
+ *
+ * Types use Prisma's enums for consistency.
  */
 
-export type NotificationType =
-  | "BOOKING_CREATED"
-  | "BOOKING_APPROVED"
-  | "BOOKING_DECLINED"
-  | "PAYMENT_CONFIRMED"
-  | "SERVICE_STARTED"
-  | "SERVICE_COMPLETED"
-  | "BOOKING_CANCELLED"
-  | "BOOKING_REMINDER"
-  // V5.0 Phase 4: Real-time session tracking
-  | "SESSION_PROGRESS"
-  | "STYLIST_ARRIVED"
-  | "CUSTOMER_ARRIVED"
-  // V6.7.0: Direct Messaging
-  | "MESSAGE_RECEIVED";
+import type { $Enums } from "@prisma/client";
 
-export type NotificationChannel = "EMAIL" | "SMS" | "IN_APP";
-
-export type NotificationStatus = "PENDING" | "SENT" | "FAILED" | "READ";
+// Export Prisma notification enums as types
+export type NotificationType = $Enums.NotificationType;
+export type NotificationChannel = $Enums.NotificationChannel;
+export type NotificationStatus = $Enums.NotificationStatus;
 
 export interface NotificationMetadata {
   bookingId?: string;
@@ -40,6 +29,14 @@ export interface NotificationMetadata {
   conversationId?: string;
   senderName?: string;
   messagePreview?: string;
+  // V7.2: Special Events
+  eventId?: string;
+  eventTitle?: string;
+  eventDate?: string;
+  eventCategory?: string;
+  quoteAmount?: number;
+  quoteStylistName?: string;
+  quoteValidUntil?: string;
   [key: string]: unknown;
 }
 

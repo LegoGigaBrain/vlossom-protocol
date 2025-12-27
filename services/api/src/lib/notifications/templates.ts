@@ -118,6 +118,53 @@ export function getInAppContent(
           : `${metadata.senderName || "Someone"} sent you a message.`,
       };
 
+    // V7.2: Special Events
+    case "SPECIAL_EVENT_REQUEST_RECEIVED":
+      return {
+        title: "New Special Event Request",
+        body: `A customer is looking for a stylist for "${metadata.eventTitle || "a special event"}" on ${
+          metadata.eventDate ? formatDateTime(metadata.eventDate) : "an upcoming date"
+        }. Submit your quote!`,
+      };
+
+    case "SPECIAL_EVENT_QUOTE_RECEIVED":
+      return {
+        title: "New Quote Received",
+        body: `${metadata.quoteStylistName || "A stylist"} quoted ${
+          metadata.quoteAmount ? formatPrice(metadata.quoteAmount) : "a price"
+        } for your "${metadata.eventTitle || "special event"}". View details to accept or decline.`,
+      };
+
+    case "SPECIAL_EVENT_QUOTE_ACCEPTED":
+      return {
+        title: "Quote Accepted!",
+        body: `Your quote for "${metadata.eventTitle || "a special event"}" has been accepted! Please confirm to proceed with the booking.`,
+      };
+
+    case "SPECIAL_EVENT_CONFIRMED":
+      return {
+        title: "Special Event Confirmed",
+        body: `Your special event "${metadata.eventTitle || "booking"}" on ${
+          metadata.eventDate ? formatDateTime(metadata.eventDate) : "the scheduled date"
+        } is confirmed with ${metadata.quoteStylistName || "your stylist"}.`,
+      };
+
+    case "SPECIAL_EVENT_REMINDER":
+      return {
+        title: "Event Tomorrow",
+        body: `Reminder: Your special event "${metadata.eventTitle || "booking"}" is tomorrow at ${
+          metadata.eventDate ? formatDateTime(metadata.eventDate) : "the scheduled time"
+        }.`,
+      };
+
+    case "SPECIAL_EVENT_CANCELLED":
+      return {
+        title: "Event Cancelled",
+        body: `The special event "${metadata.eventTitle || "booking"}" has been cancelled.${
+          metadata.cancellationReason ? ` Reason: ${metadata.cancellationReason}` : ""
+        }`,
+      };
+
     default:
       return {
         title: "Notification",
@@ -249,6 +296,37 @@ export function getSMSContent(
     // V6.7.0: Direct Messaging
     case "MESSAGE_RECEIVED":
       message = `Vlossom: New message from ${metadata.senderName || "someone"}. Open app to reply.`;
+      break;
+
+    // V7.2: Special Events
+    case "SPECIAL_EVENT_REQUEST_RECEIVED":
+      message = `Vlossom: New special event request for ${
+        metadata.eventDate ? formatDateTime(metadata.eventDate) : "an upcoming date"
+      }. Open app to submit your quote.`;
+      break;
+
+    case "SPECIAL_EVENT_QUOTE_RECEIVED":
+      message = `Vlossom: ${metadata.quoteStylistName || "A stylist"} quoted ${
+        metadata.quoteAmount ? formatPrice(metadata.quoteAmount) : "a price"
+      } for your event. Open app to view.`;
+      break;
+
+    case "SPECIAL_EVENT_QUOTE_ACCEPTED":
+      message = `Vlossom: Great news! Your quote was accepted. Open app to confirm the booking.`;
+      break;
+
+    case "SPECIAL_EVENT_CONFIRMED":
+      message = `Vlossom: Your special event on ${
+        metadata.eventDate ? formatDateTime(metadata.eventDate) : "the scheduled date"
+      } is confirmed!`;
+      break;
+
+    case "SPECIAL_EVENT_REMINDER":
+      message = `Vlossom: Reminder - Your special event is tomorrow! Open app for details.`;
+      break;
+
+    case "SPECIAL_EVENT_CANCELLED":
+      message = `Vlossom: Your special event has been cancelled. Open app for details.`;
       break;
 
     default:

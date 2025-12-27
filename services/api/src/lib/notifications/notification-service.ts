@@ -1,6 +1,8 @@
 /**
  * Notification Service (F4.3)
  * Core orchestration for multi-channel notifications
+ *
+ * V7.3: Added PUSH channel support for mobile notifications
  */
 
 import { Prisma } from "@prisma/client";
@@ -8,6 +10,7 @@ import prisma from "../prisma";
 import logger from "../logger";
 import { sendEmail } from "./email-provider";
 import { sendSMS } from "./sms-provider";
+import { sendPush } from "./push-provider";
 import { getInAppContent, getEmailContent, getSMSContent } from "./templates";
 import type {
   NotificationType,
@@ -78,6 +81,27 @@ export async function sendNotification(
         externalId = await sendSMS(smsContent);
         if (!externalId) {
           sendError = "Failed to send SMS";
+        }
+      } else if (channel === "PUSH") {
+        // V7.3: Send push notification via Expo
+        const pushResult = await sendPush({
+          userId,
+          title,
+          body,
+          data: {
+            ...metadata,
+            notificationType: type, // Include type for client-side handling
+          },
+        });
+        if (pushResult.successCount > 0) {
+          // Use first successful ticket ID as external reference
+          externalId = pushResult.tickets.find((t) => t.status === "ok")?.id || null;
+        } else if (pushResult.tickets.length === 0) {
+          // No push tokens registered - not an error, just skip
+          sendError = null;
+          externalId = null;
+        } else {
+          sendError = "Failed to send push notification";
         }
       } else if (channel === "IN_APP") {
         // In-app notifications are always created
@@ -150,6 +174,9 @@ export async function notifyBookingEvent(
 
   // Add email for all booking events
   channels.push("EMAIL");
+
+  // V7.3: Add PUSH for all booking events (mobile users)
+  channels.push("PUSH");
 
   // Add SMS for critical events
   const criticalEvents: NotificationType[] = [
@@ -278,4 +305,42 @@ export async function markAllAsRead(userId: string): Promise<number> {
     },
   });
   return result.count;
+}
+
+/**
+ * V7.2: Send notification for special event events
+ * Determines appropriate channels based on event type
+ */
+export async function notifySpecialEventEvent(
+  userId: string,
+  type: NotificationType,
+  metadata: NotificationMetadata
+): Promise<NotificationResult> {
+  // Determine channels based on notification type
+  const channels: NotificationChannel[] = ["IN_APP"];
+
+  // Add email for all special event notifications
+  channels.push("EMAIL");
+
+  // V7.3: Add PUSH for all special event notifications (mobile users)
+  channels.push("PUSH");
+
+  // Add SMS for critical special event notifications
+  const criticalEvents: NotificationType[] = [
+    "SPECIAL_EVENT_QUOTE_ACCEPTED",
+    "SPECIAL_EVENT_CONFIRMED",
+    "SPECIAL_EVENT_REMINDER",
+    "SPECIAL_EVENT_CANCELLED",
+  ];
+
+  if (criticalEvents.includes(type)) {
+    channels.push("SMS");
+  }
+
+  return sendNotification({
+    userId,
+    type,
+    channels,
+    metadata,
+  });
 }

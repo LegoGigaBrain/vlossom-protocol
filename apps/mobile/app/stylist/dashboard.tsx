@@ -29,6 +29,7 @@ import {
   VlossomCalendarIcon,
   VlossomGrowingIcon,
   VlossomNotificationsIcon,
+  VlossomSettingsIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { Card, Badge, Avatar, Button, EmptyState } from '../../src/components/ui';
 import {
@@ -461,7 +462,7 @@ export default function StylistDashboardScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => router.push('/settings')}
+              onPress={() => router.push('/stylist/availability')}
               style={[
                 styles.actionCard,
                 {
@@ -470,14 +471,10 @@ export default function StylistDashboardScreen() {
                 },
               ]}
               accessibilityRole="button"
-              accessibilityLabel="Settings"
-              accessibilityHint="Double tap to open settings"
+              accessibilityLabel="Availability"
+              accessibilityHint="Double tap to manage your weekly schedule"
             >
-              <VlossomBackIcon
-                size={28}
-                color={colors.text.secondary}
-                style={{ transform: [{ rotate: '180deg' }] }}
-              />
+              <VlossomSettingsIcon size={28} color={colors.text.secondary} />
               <Text
                 style={[
                   textStyles.bodySmall,
@@ -485,7 +482,7 @@ export default function StylistDashboardScreen() {
                 ]}
                 aria-hidden
               >
-                Settings
+                Availability
               </Text>
             </Pressable>
           </View>

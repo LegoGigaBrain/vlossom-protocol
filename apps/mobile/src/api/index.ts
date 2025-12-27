@@ -37,3 +37,12 @@ export * from './bookings';
 
 // Property Owner API
 export * from './property-owner';
+
+// Rewards API
+export * from './rewards';
+
+// DeFi API
+export * from './defi';
+
+// Reputation API
+export * from './reputation';

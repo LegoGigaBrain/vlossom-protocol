@@ -1,5 +1,5 @@
 /**
- * Vlossom Mobile Root Layout (V7.0.0)
+ * Vlossom Mobile Root Layout (V7.3.0)
  *
  * Provides:
  * - Theme provider
@@ -9,9 +9,10 @@
  * - Splash screen management
  * - Deep link validation
  * - Demo mode indicator banner
+ * - Push notification initialization (V7.3)
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, Pressable } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -25,6 +26,10 @@ import { colors, typography, spacing } from '../src/styles/tokens';
 import { useAuthStore } from '../src/stores/auth';
 import { useDemoModeStore, selectIsDemoMode, selectIsHydrated } from '../src/stores/demo-mode';
 import { validateDeepLink } from '../src/utils/deep-link-validator';
+import {
+  initializePushNotifications,
+  cleanupPushNotifications,
+} from '../src/services/push-notifications';
 
 // Google Fonts - bundled at build time
 import {
@@ -45,22 +50,39 @@ SplashScreen.preventAutoHideAsync();
 /**
  * Demo Mode Banner Component
  * Shows a subtle banner when demo mode is enabled
- * Tapping navigates to settings
+ * V7.2.0: Fixed - only shows tap to disable hint when authenticated
+ * Tapping navigates to settings (only when authenticated)
  */
 function DemoModeBanner() {
   const router = useRouter();
+  const segments = useSegments();
   const insets = useSafeAreaInsets();
   const isDemoMode = useDemoModeStore(selectIsDemoMode);
   const isHydrated = useDemoModeStore(selectIsHydrated);
+  const { toggleDemoMode } = useDemoModeStore();
+  const { isAuthenticated } = useAuthStore();
 
   // Don't show banner until hydrated or if demo mode is off
   if (!isHydrated || !isDemoMode) {
     return null;
   }
 
+  // Check if we're on auth screens
+  const inAuthGroup = segments[0] === '(auth)';
+
+  const handlePress = () => {
+    if (isAuthenticated && !inAuthGroup) {
+      // Navigate to settings if authenticated
+      router.push('/settings');
+    } else {
+      // Just toggle demo mode directly if on auth screens
+      toggleDemoMode();
+    }
+  };
+
   return (
     <Pressable
-      onPress={() => router.push('/settings')}
+      onPress={handlePress}
       style={[
         styles.demoBanner,
         { paddingTop: insets.top > 0 ? insets.top + 4 : 8 },
@@ -69,7 +91,9 @@ function DemoModeBanner() {
       <Text style={styles.demoBannerText}>
         Demo Mode - Using Sample Data
       </Text>
-      <Text style={styles.demoBannerTapHint}>Tap to disable</Text>
+      <Text style={styles.demoBannerTapHint}>
+        {isAuthenticated && !inAuthGroup ? 'Tap to disable' : 'Tap to turn off'}
+      </Text>
     </Pressable>
   );
 }
@@ -83,11 +107,36 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated, isInitialized, initialize } = useAuthStore();
+  const pushInitializedRef = useRef(false);
 
   // Initialize auth state on mount
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  // V7.3: Initialize push notifications when authenticated
+  useEffect(() => {
+    if (isAuthenticated && !pushInitializedRef.current) {
+      pushInitializedRef.current = true;
+      initializePushNotifications()
+        .then((result) => {
+          if (result.success) {
+            console.log('[Push] Initialized successfully', { isNew: result.isNew });
+          } else {
+            console.log('[Push] Initialization skipped or failed:', result.error);
+          }
+        })
+        .catch((error) => {
+          console.error('[Push] Initialization error:', error);
+        });
+    }
+
+    // Cleanup on logout
+    if (!isAuthenticated && pushInitializedRef.current) {
+      pushInitializedRef.current = false;
+      cleanupPushNotifications();
+    }
+  }, [isAuthenticated]);
 
   // V7.0.0 (M-11): Deep link validation handler
   useEffect(() => {

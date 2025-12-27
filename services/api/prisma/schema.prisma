@@ -115,6 +115,25 @@ enum DisputeResolution {
   ESCALATED_TO_LEGAL
 }
 
+// V7.2: Special Events enums
+enum SpecialEventCategory {
+  BRIDAL
+  PHOTOSHOOT
+  CORPORATE
+  PARTY
+  MATRIC_DANCE
+  OTHER
+}
+
+enum SpecialEventStatus {
+  PENDING_QUOTES       // Waiting for stylist quotes
+  QUOTES_RECEIVED      // Has quotes, customer deciding
+  QUOTE_ACCEPTED       // Customer accepted a quote
+  CONFIRMED            // Stylist confirmed
+  COMPLETED
+  CANCELLED
+}
+
 // ============================================================================
 // MODELS
 // ============================================================================
@@ -155,6 +174,9 @@ model User {
   // V5.2: Favorite stylists
   favoritedStylists   FavoriteStylist[] @relation("UserFavorites")
   favoritedBy         FavoriteStylist[] @relation("StylistFavoritedBy")
+
+  // V7.3: Push notification tokens
+  pushTokens          PushToken[]
 
   @@index([walletAddress])
   @@index([email])
@@ -212,6 +234,13 @@ model StylistProfile {
   isAcceptingBookings Boolean       @default(true)
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
+
+  // V7.2: Travel fee preferences
+  travelFeePerKm            Int       @default(500)    // Cents per km (R5.00 default)
+  minTravelFeeAmountCents   Int       @default(3000)   // Minimum R30.00
+  travelFeeIncludedRadius   Int       @default(5)      // Free within 5km
+  travelsOutsideServiceRadius Boolean @default(true)   // Accepts distant bookings
+  maxTravelRadiusKm         Int?                       // NULL = unlimited
 
   // Relations
   user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -295,6 +324,10 @@ model Booking {
   platformFeeCents    BigInt
   stylistPayoutCents  BigInt
   propertyPayoutCents BigInt? @default(0)
+
+  // V7.2: Travel fee (for mobile stylist bookings)
+  travelFeeAmountCents Int?     // Calculated travel fee in cents
+  travelDistanceKm     Float?   // Distance to customer location in km
 
   // Status
   status BookingStatus
@@ -515,12 +548,27 @@ enum NotificationType {
   CUSTOMER_ARRIVED
   // V6.7.0: Direct Messaging
   MESSAGE_RECEIVED
+  // V7.2: Special Events
+  SPECIAL_EVENT_REQUEST_RECEIVED
+  SPECIAL_EVENT_QUOTE_RECEIVED
+  SPECIAL_EVENT_QUOTE_ACCEPTED
+  SPECIAL_EVENT_CONFIRMED
+  SPECIAL_EVENT_REMINDER
+  SPECIAL_EVENT_CANCELLED
 }
 
 enum NotificationChannel {
   EMAIL
   SMS
   IN_APP
+  PUSH // V7.3: Mobile push notifications (FCM/APNs via Expo)
+}
+
+// V7.3: Platform type for push tokens
+enum PushPlatform {
+  IOS
+  ANDROID
+  WEB
 }
 
 enum NotificationStatus {
@@ -560,6 +608,33 @@ model Notification {
   @@index([userId, status])
   @@index([type])
   @@map("notifications")
+}
+
+/// V7.3: Push notification device tokens
+/// Stores FCM/APNs tokens from Expo for mobile push notifications
+model PushToken {
+  id        String       @id @default(uuid())
+  userId    String
+  token     String       @unique // Expo push token (ExponentPushToken[...])
+  platform  PushPlatform
+
+  // Device identification
+  deviceId  String?      // Optional device identifier for multi-device support
+
+  // Token status
+  isActive  Boolean      @default(true)
+  lastUsedAt DateTime?   // Last time a push was sent to this token
+
+  // Timestamps
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  // Relations
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("push_tokens")
 }
 
 // ============================================================================
@@ -1933,5 +2008,85 @@ model StylistClientContext {
   @@index([customerUserId])
   @@index([stylistUserId])
   @@map("stylist_client_contexts")
+}
+
+// ============================================================================
+// SPECIAL EVENTS (V7.2: Phase 3 - Special Events Booking)
+// Reference: docs/vlossom/travel-and-special-events.md
+// ============================================================================
+
+/// V7.2: Special event request from customer (bridal, photoshoot, etc.)
+model SpecialEventRequest {
+  id                String                @id @default(uuid())
+  customerId        String
+
+  // Event details
+  category          SpecialEventCategory
+  title             String
+  description       String?               @db.Text
+  eventDate         DateTime
+  startTime         String                // "09:00" format
+  durationHours     Int
+  guestCount        Int?                  // Number of guests needing service
+
+  // Location
+  locationType      LocationType
+  address           String?
+  locationLat       Float?
+  locationLng       Float?
+  propertyId        String?               // Optional: use existing property
+
+  // Services requested
+  serviceIds        Json                  @default("[]") // string[] - Service IDs
+  serviceNotes      String?               @db.Text       // Special requirements
+
+  // Status
+  status            SpecialEventStatus    @default(PENDING_QUOTES)
+  acceptedQuoteId   String?               @unique        // Which quote was accepted
+
+  // Timestamps
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+
+  // Relations
+  quotes            SpecialEventQuote[]
+  acceptedQuote     SpecialEventQuote?    @relation("AcceptedQuote", fields: [acceptedQuoteId], references: [id])
+
+  @@index([customerId])
+  @@index([status])
+  @@index([eventDate])
+  @@index([category])
+  @@map("special_event_requests")
+}
+
+/// V7.2: Stylist quote for a special event
+model SpecialEventQuote {
+  id                String                @id @default(uuid())
+  requestId         String
+  stylistId         String
+
+  // Quote details
+  totalAmountCents  Int                   // Total price in cents
+  breakdown         Json                  // { services: [], travel: 0, surcharge: 0 }
+  notes             String?               @db.Text
+  validUntil        DateTime
+
+  // Status
+  isAccepted        Boolean               @default(false)
+  isDeclined        Boolean               @default(false)
+  declinedAt        DateTime?
+
+  // Timestamps
+  createdAt         DateTime              @default(now())
+
+  // Relations
+  request           SpecialEventRequest   @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  acceptedByRequest SpecialEventRequest?  @relation("AcceptedQuote")
+
+  @@unique([requestId, stylistId])  // One quote per stylist per request
+  @@index([requestId])
+  @@index([stylistId])
+  @@index([createdAt])
+  @@map("special_event_quotes")
 }
 
