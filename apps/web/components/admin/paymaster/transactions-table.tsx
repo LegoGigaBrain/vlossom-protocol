@@ -168,7 +168,7 @@ export function TransactionsTable({
                         onClick={(e) => e.stopPropagation()}
                       >
                         {formatAddress(tx.txHash)}
-                        <Icon name="external" size="xs" />
+                        <Icon name="link" size="xs" />
                       </a>
                     ) : (
                       <span className="text-gray-400">-</span>

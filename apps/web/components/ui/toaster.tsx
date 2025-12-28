@@ -14,8 +14,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from "./toast";
-import { Icon } from "@/components/icons";
-import type { IconName } from "@/components/icons/types";
+import { Icon, type IconName } from "@/components/icons";
 
 const iconNames: Record<string, IconName | null> = {
   success: "success",
@@ -37,7 +36,7 @@ export function Toaster() {
           <Toast key={id} variant={variant} {...props}>
             <div className="flex gap-3">
               {iconName && (
-                <Icon name={iconName} size="sm" className="shrink-0 mt-0.5" aria-hidden="true" />
+                <Icon name={iconName} size="sm" className="shrink-0 mt-0.5" aria-hidden={true} />
               )}
               <div className="grid gap-1">
                 {title && <ToastTitle>{title}</ToastTitle>}

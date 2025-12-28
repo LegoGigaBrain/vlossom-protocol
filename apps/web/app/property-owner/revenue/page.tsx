@@ -368,7 +368,7 @@ export default function PropertyOwnerRevenuePage() {
               </div>
             ) : transactions.length === 0 ? (
               <div className="py-8 text-center">
-                <Icon name="inbox" size="2xl" className="text-text-muted mx-auto mb-2" />
+                <Icon name="empty" size="2xl" className="text-text-muted mx-auto mb-2" />
                 <p className="text-body text-text-secondary">No transactions yet</p>
                 <p className="text-caption text-text-tertiary">
                   Your earnings will appear here when stylists book your chairs

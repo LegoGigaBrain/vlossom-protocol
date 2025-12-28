@@ -60,14 +60,14 @@ export function CopyButton({
 
   const defaultContent = (
     <>
-      <CopyIcon className="h-4 w-4" aria-hidden="true" />
+      <CopyIcon className="h-4 w-4" aria-hidden={true} />
       <span className="sr-only">Copy to clipboard</span>
     </>
   );
 
   const defaultCopiedContent = (
     <>
-      <CheckIcon className="h-4 w-4" aria-hidden="true" />
+      <CheckIcon className="h-4 w-4" aria-hidden={true} />
       <span className="sr-only">Copied</span>
     </>
   );

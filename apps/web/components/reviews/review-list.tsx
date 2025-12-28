@@ -101,7 +101,7 @@ export function ReviewList({
             onClick={() => setShowFilters(!showFilters)}
             className="text-text-secondary"
           >
-            <Icon name="filter" size="sm" className="mr-1" />
+            <Icon name="search" size="sm" className="mr-1" />
             Filter
             <Icon
               name="chevronDown"

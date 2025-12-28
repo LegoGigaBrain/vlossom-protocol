@@ -93,7 +93,7 @@ function PropertyCard({ property }: PropertyCardProps) {
         {pendingRequests > 0 && (
           <div className="absolute top-3 right-3">
             <span className="px-2 py-1 bg-accent-orange text-white text-caption font-medium rounded flex items-center gap-1">
-              <Icon name="inbox" size="sm" />
+              <Icon name="notifications" size="sm" />
               {pendingRequests}
             </span>
           </div>
@@ -113,7 +113,7 @@ function PropertyCard({ property }: PropertyCardProps) {
         {/* Chair Stats */}
         <div className="flex items-center gap-4 text-caption">
           <div className="flex items-center gap-1.5">
-            <Icon name="chair" size="sm" className="text-text-secondary" />
+            <Icon name="settings" size="sm" className="text-text-secondary" />
             <span className="text-text-secondary">{chairCount} chairs</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -217,13 +217,13 @@ export default function PropertyOwnerDashboardPage() {
             label="Total Chairs"
             value={totalChairs}
             subtext={`${occupiedChairs} occupied`}
-            icon={<Icon name="chair" size="lg" />}
+            icon={<Icon name="settings" size="lg" />}
           />
           <StatCard
             label="Pending Requests"
             value={totalPendingRequests}
             subtext={totalPendingRequests === 1 ? "request" : "requests"}
-            icon={<Icon name="inbox" size="lg" />}
+            icon={<Icon name="notifications" size="lg" />}
           />
           <StatCard
             label="Occupancy Rate"
@@ -289,7 +289,7 @@ export default function PropertyOwnerDashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-accent-orange/20 flex items-center justify-center">
-                <Icon name="inbox" size="md" className="text-accent-orange" />
+                <Icon name="notifications" size="md" className="text-accent-orange" />
               </div>
               <div>
                 <p className="text-body font-medium text-text-primary">

@@ -29,6 +29,7 @@ import {
   RitualSheet,
   type CalendarEvent,
   type Ritual,
+  type EventStatus,
 } from "@/components/calendar";
 import { Icon } from "@/components/icons";
 
@@ -147,7 +148,7 @@ export default function SchedulePage() {
       scheduledStart: ritual.scheduledStart,
       scheduledEnd: ritual.scheduledEnd,
       loadLevel: ritual.loadLevel as "LOW" | "MEDIUM" | "HIGH",
-      status: ritual.isOverdue ? "OVERDUE" : ritual.status,
+      status: (ritual.isOverdue ? "DUE" : ritual.status) as EventStatus,
       requiresRestBuffer: ritual.loadLevel === "HIGH",
     }));
   }, [upcomingRitualsData]);
@@ -176,7 +177,8 @@ export default function SchedulePage() {
         (t) => t.ritualType === event.eventType
       );
       if (template) {
-        setSelectedRitual(template);
+        // Cast to Ritual type - RitualRecommendation is compatible with Ritual for display
+        setSelectedRitual(template as unknown as Ritual);
       } else {
         // Fallback to mock ritual if template not found
         setSelectedRitual(mockRitual);

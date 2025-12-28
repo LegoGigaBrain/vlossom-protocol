@@ -104,7 +104,7 @@ export function DesktopNav({ className }: DesktopNavProps) {
                 <Icon
                   size={20}
                   accent={active}
-                  aria-hidden="true"
+                  aria-hidden={true}
                 />
                 <span className="hidden lg:inline">{item.label}</span>
               </Button>

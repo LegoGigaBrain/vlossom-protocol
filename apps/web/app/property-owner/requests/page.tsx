@@ -420,7 +420,7 @@ export default function PropertyOwnerRequestsPage() {
       ) : filteredRequests.length === 0 ? (
         <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-background-tertiary flex items-center justify-center">
-            <Icon name="inbox" size="2xl" className="text-text-muted" />
+            <Icon name="empty" size="2xl" className="text-text-muted" />
           </div>
           <h3 className="text-body font-medium text-text-primary mb-2">
             {filter === "PENDING"

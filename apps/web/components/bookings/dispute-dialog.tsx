@@ -178,7 +178,7 @@ export function DisputeDialog({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border-default sticky top-0 bg-background-primary">
             <div className="flex items-center gap-2">
-              <Icon name="secure" size="sm" className="text-status-error" />
+              <Icon name="trusted" size="sm" className="text-status-error" />
               <Dialog.Title className="text-lg font-semibold text-text-primary">
                 Open a Dispute
               </Dialog.Title>
@@ -417,7 +417,7 @@ export function DisputeDialog({
 
                   {evidence.length < 5 && (
                     <label className="w-20 h-20 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default cursor-pointer hover:border-brand-rose hover:bg-brand-rose/5 transition-gentle">
-                      <Icon name="upload" size="sm" className="text-text-muted" />
+                      <Icon name="camera" size="sm" className="text-text-muted" />
                       <span className="text-xs text-text-muted mt-1">Upload</span>
                       <input
                         type="file"

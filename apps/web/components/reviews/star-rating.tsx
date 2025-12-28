@@ -75,16 +75,17 @@ export function StarRating({
               aria-label={`${rating} star${rating !== 1 ? "s" : ""}`}
             >
               {/* Star icon with conditional fill */}
-              <Icon
-                name="star"
-                size={sizeMap[size]}
-                weight={isFilled || isHalfFilled ? "fill" : "regular"}
-                className={cn(
-                  isFilled || isHalfFilled ? "text-status-warning" : "text-border-default",
-                  !readonly && "transition-colors"
-                )}
-                style={isHalfFilled ? { clipPath: "inset(0 50% 0 0)" } : undefined}
-              />
+              <span style={isHalfFilled ? { clipPath: "inset(0 50% 0 0)" } : undefined}>
+                <Icon
+                  name="star"
+                  size={sizeMap[size]}
+                  weight={isFilled || isHalfFilled ? "fill" : "regular"}
+                  className={cn(
+                    isFilled || isHalfFilled ? "text-status-warning" : "text-border-default",
+                    !readonly && "transition-colors"
+                  )}
+                />
+              </span>
             </button>
           );
         })}

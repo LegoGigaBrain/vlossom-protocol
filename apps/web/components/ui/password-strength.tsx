@@ -126,7 +126,7 @@ export function PasswordStrength({ password, className }: PasswordStrengthProps)
                 ? strength.color
                 : "bg-background-tertiary"
             }`}
-            aria-hidden="true"
+            aria-hidden={true}
           />
         ))}
       </div>

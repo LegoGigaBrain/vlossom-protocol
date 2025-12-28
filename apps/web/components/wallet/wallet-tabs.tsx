@@ -9,8 +9,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "../../lib/utils";
-import { Icon } from "@/components/icons";
-import type { IconName } from "@/components/icons/types";
+import { Icon, type IconName } from "@/components/icons";
 
 interface WalletTab {
   id: string;
@@ -98,7 +97,7 @@ export function WalletTabs({ className }: WalletTabsProps) {
             )}
             aria-current={isActive ? "page" : undefined}
           >
-            <Icon name={tab.icon} size="sm" aria-hidden="true" />
+            <Icon name={tab.icon} size="sm" aria-hidden={true} />
             <span>{tab.label}</span>
           </Link>
         );

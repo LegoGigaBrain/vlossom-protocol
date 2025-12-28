@@ -155,7 +155,7 @@ export function DeleteAccountDialog({
                 disabled={!canDelete}
                 className="flex-1"
               >
-                <Icon name="trash" size="sm" className="mr-2" />
+                <Icon name="delete" size="sm" className="mr-2" />
                 Delete Account
               </Button>
             </div>

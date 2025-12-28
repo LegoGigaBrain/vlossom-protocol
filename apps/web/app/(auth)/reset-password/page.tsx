@@ -211,7 +211,7 @@ function ResetPasswordContent() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-gentle"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <Icon name="eyeOff" size="md" /> : <Icon name="eye" size="md" />}
+                  {showPassword ? <Icon name="hidden" size="md" /> : <Icon name="visible" size="md" />}
                 </button>
               </div>
               {errors.password && (
@@ -240,7 +240,7 @@ function ResetPasswordContent() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-gentle"
                   aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                 >
-                  {showConfirmPassword ? <Icon name="eyeOff" size="md" /> : <Icon name="eye" size="md" />}
+                  {showConfirmPassword ? <Icon name="hidden" size="md" /> : <Icon name="visible" size="md" />}
                 </button>
               </div>
               {errors.confirmPassword && (

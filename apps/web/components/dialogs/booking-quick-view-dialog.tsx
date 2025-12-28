@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import * as Dialog from "@radix-ui/react-dialog";
 import { format } from "date-fns";
+import { cn } from "../../lib/utils";
 import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
 
@@ -174,7 +175,7 @@ export function BookingQuickViewDialog({
               {booking.location && (
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-brand-rose/10 flex items-center justify-center shrink-0">
-                    <Icon name="pin" size="sm" className="text-brand-rose" />
+                    <Icon name="location" size="sm" className="text-brand-rose" />
                   </div>
                   <div>
                     <p className="text-sm text-text-primary">{booking.location}</p>

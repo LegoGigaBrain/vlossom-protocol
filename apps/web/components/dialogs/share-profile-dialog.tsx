@@ -181,7 +181,7 @@ export function ShareProfileDialog({
                   className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#1DA1F2]/10 flex items-center justify-center">
-                    <Icon name="twitterLogo" size="sm" className="text-[#1DA1F2]" />
+                    <Icon name="share" size="sm" className="text-[#1DA1F2]" />
                   </div>
                   <span className="text-xs text-text-secondary">Twitter</span>
                 </button>
@@ -192,7 +192,7 @@ export function ShareProfileDialog({
                   className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#1877F2]/10 flex items-center justify-center">
-                    <Icon name="facebookLogo" size="sm" className="text-[#1877F2]" />
+                    <Icon name="share" size="sm" className="text-[#1877F2]" />
                   </div>
                   <span className="text-xs text-text-secondary">Facebook</span>
                 </button>
@@ -203,7 +203,7 @@ export function ShareProfileDialog({
                   className="flex flex-col items-center gap-1 p-3 rounded-lg bg-background-tertiary hover:bg-background-secondary transition-gentle"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center">
-                    <Icon name="whatsappLogo" size="sm" className="text-[#25D366]" />
+                    <Icon name="chat" size="sm" className="text-[#25D366]" />
                   </div>
                   <span className="text-xs text-text-secondary">WhatsApp</span>
                 </button>

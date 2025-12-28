@@ -101,7 +101,7 @@ export function BottomNav({ className }: BottomNavProps) {
                   active && !item.isCenter && "scale-105"
                 )}
                 accent={active && !item.isCenter}
-                aria-hidden="true"
+                aria-hidden={true}
               />
               <span className={cn(
                 "mt-1 text-caption",

@@ -112,10 +112,10 @@ export function LocationPermissionDialog({
             <div className="flex justify-center">
               <div className="relative">
                 <div className="w-24 h-24 rounded-full bg-brand-rose/10 flex items-center justify-center">
-                  <Icon name="pin" size="2xl" className="text-brand-rose" />
+                  <Icon name="location" size="2xl" className="text-brand-rose" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-status-success flex items-center justify-center">
-                  <Icon name="navigation" size="sm" className="text-white" />
+                  <Icon name="check" size="sm" className="text-white" />
                 </div>
               </div>
             </div>
@@ -134,7 +134,7 @@ export function LocationPermissionDialog({
             {/* Benefits */}
             <div className="bg-background-tertiary rounded-lg p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <Icon name="pin" size="sm" className="text-brand-rose shrink-0 mt-0.5" />
+                <Icon name="location" size="sm" className="text-brand-rose shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-text-primary">
                     Nearby stylists
@@ -145,7 +145,7 @@ export function LocationPermissionDialog({
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Icon name="navigation" size="sm" className="text-brand-rose shrink-0 mt-0.5" />
+                <Icon name="location" size="sm" className="text-brand-rose shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-text-primary">
                     Accurate directions
@@ -159,7 +159,7 @@ export function LocationPermissionDialog({
 
             {/* Privacy Note */}
             <div className="flex items-start gap-2 text-xs text-text-muted">
-              <Icon name="shield" size="sm" className="shrink-0 mt-0.5" />
+              <Icon name="trusted" size="sm" className="shrink-0 mt-0.5" />
               <p>
                 Your location is only used to find nearby stylists and is never
                 shared with third parties.

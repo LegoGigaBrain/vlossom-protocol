@@ -124,7 +124,7 @@ export function SessionTracker({
       {!isConnected && !isReconnecting && (
         <div className="flex items-center justify-between mb-4 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
           <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
-            <Icon name="web" size="sm" aria-hidden="true" />
+            <Icon name="web" size="sm" aria-hidden={true} />
             <span className="text-sm">Live updates unavailable</span>
           </div>
           <Button
@@ -137,7 +137,7 @@ export function SessionTracker({
             className="h-7 px-2"
             aria-label="Retry connection"
           >
-            <Icon name="refresh" size="xs" className="mr-1" aria-hidden="true" />
+            <Icon name="timer" size="xs" className="mr-1" aria-hidden={true} />
             Retry
           </Button>
         </div>
@@ -145,7 +145,7 @@ export function SessionTracker({
 
       {isReconnecting && (
         <div className="flex items-center gap-2 mb-4 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400">
-          <Icon name="loading" size="sm" className="animate-spin" aria-hidden="true" />
+          <Icon name="timer" size="sm" className="animate-spin" aria-hidden={true} />
           <span className="text-sm">Reconnecting...</span>
         </div>
       )}
@@ -157,7 +157,7 @@ export function SessionTracker({
         </h3>
         {isConnected && (
           <span className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true" />
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden={true} />
             Live
           </span>
         )}
@@ -168,7 +168,7 @@ export function SessionTracker({
         {/* Progress Line */}
         <div
           className="absolute left-4 top-6 w-0.5 h-[calc(100%-3rem)] bg-border-default"
-          aria-hidden="true"
+          aria-hidden={true}
         />
         <div
           className="absolute left-4 top-6 w-0.5 transition-all duration-500 bg-brand-rose"
@@ -176,7 +176,7 @@ export function SessionTracker({
             height: `${getProgressLineHeight(sessionState)}%`,
             maxHeight: "calc(100% - 3rem)",
           }}
-          aria-hidden="true"
+          aria-hidden={true}
         />
 
         {/* Steps */}
@@ -186,7 +186,7 @@ export function SessionTracker({
             stepState="started"
             label="Session Started"
             description="Your stylist has arrived and begun"
-            icon={<Icon name="circle" size="sm" />}
+            icon={<Icon name="empty" size="sm" />}
             activeIcon={<Icon name="check" size="sm" />}
           />
           <SessionStep
@@ -199,7 +199,7 @@ export function SessionTracker({
                 : "Service is being performed"
             }
             icon={<Icon name="clock" size="sm" />}
-            activeIcon={<Icon name="loading" size="sm" className="animate-spin" />}
+            activeIcon={<Icon name="timer" size="sm" className="animate-spin" />}
             showProgress={sessionState === "in_progress"}
             progressPercent={progressPercent}
           />
@@ -218,7 +218,7 @@ export function SessionTracker({
       {sessionState === "in_progress" && eta && eta > 0 && (
         <div className="mt-4 p-3 bg-brand-rose/10 rounded-lg">
           <div className="flex items-center gap-2">
-            <Icon name="clock" size="sm" className="text-brand-rose" aria-hidden="true" />
+            <Icon name="clock" size="sm" className="text-brand-rose" aria-hidden={true} />
             <span className="text-sm font-medium text-brand-rose">
               Estimated completion in {eta} minutes
             </span>
@@ -230,7 +230,7 @@ export function SessionTracker({
       {sessionProgress?.lat && sessionProgress?.lng && sessionState !== "complete" && (
         <div className="mt-4 p-3 bg-background-secondary rounded-lg">
           <div className="flex items-center gap-2 text-text-secondary">
-            <Icon name="pin" size="sm" aria-hidden="true" />
+            <Icon name="location" size="sm" aria-hidden={true} />
             <span className="text-sm">Stylist location available</span>
           </div>
         </div>
@@ -275,7 +275,7 @@ function SessionStep({
           isActive && "bg-brand-rose/20 text-brand-rose",
           isPending && "bg-background-secondary text-text-tertiary"
         )}
-        aria-hidden="true"
+        aria-hidden={true}
       >
         {isCompleted ? activeIcon : isActive ? activeIcon : icon}
       </div>
@@ -325,13 +325,13 @@ function SessionStateIcon({
 
   switch (state) {
     case "not_started":
-      return <Icon name="circle" size={iconSize} className="text-text-tertiary" aria-hidden="true" />;
+      return <Icon name="empty" size={iconSize} className="text-text-tertiary" aria-hidden={true} />;
     case "started":
-      return <Icon name="circle" size={iconSize} className="text-brand-rose" aria-hidden="true" />;
+      return <Icon name="empty" size={iconSize} className="text-brand-rose" aria-hidden={true} />;
     case "in_progress":
-      return <Icon name="loading" size={iconSize} className="text-brand-rose animate-spin" aria-hidden="true" />;
+      return <Icon name="timer" size={iconSize} className="text-brand-rose animate-spin" aria-hidden={true} />;
     case "complete":
-      return <Icon name="check" size={iconSize} className="text-green-500" aria-hidden="true" />;
+      return <Icon name="check" size={iconSize} className="text-green-500" aria-hidden={true} />;
   }
 }
 

@@ -121,7 +121,7 @@ export function BookingReceipt({
         {/* Location */}
         {booking.location && (
           <div className="flex items-start gap-3">
-            <Icon name="pin" size="sm" className="text-text-secondary mt-0.5" />
+            <Icon name="location" size="sm" className="text-text-secondary mt-0.5" />
             <div>
               <p className="font-medium text-text-primary">Location</p>
               <p className="text-sm text-text-secondary">{booking.location}</p>
@@ -202,7 +202,7 @@ export function BookingReceipt({
       <div className="px-6 py-4 flex gap-3">
         {onDownload && (
           <Button variant="outline" onClick={onDownload} className="flex-1">
-            <Icon name="download" size="sm" className="mr-2" />
+            <Icon name="receipt" size="sm" className="mr-2" />
             Download
           </Button>
         )}

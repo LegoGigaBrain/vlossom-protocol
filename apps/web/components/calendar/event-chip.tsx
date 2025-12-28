@@ -12,7 +12,7 @@
 "use client";
 
 import { cn } from "../../lib/utils";
-import { Icon } from "@/components/icons";
+import { Icon, type IconName } from "@/components/icons";
 
 export type EventCategory =
   | "HAIR_RITUAL"
@@ -50,11 +50,11 @@ interface EventChipProps {
   className?: string;
 }
 
-const categoryIcons: Record<EventCategory, string> = {
-  HAIR_RITUAL: "care",
+const categoryIcons: Record<EventCategory, IconName> = {
+  HAIR_RITUAL: "treatment",
   BOOKING_SERVICE: "calendar",
-  EDUCATION_PROMPT: "learning",
-  REST_BUFFER: "resting",
+  EDUCATION_PROMPT: "info",
+  REST_BUFFER: "rest",
   RECOVERY_WINDOW: "favorite",
 };
 
@@ -91,7 +91,7 @@ export function EventChip({
   onClick,
   className,
 }: EventChipProps) {
-  const iconName = categoryIcons[event.eventCategory] || "sparkle";
+  const iconName: IconName = categoryIcons[event.eventCategory] || "sparkle";
   const load = event.loadLevel || "MEDIUM";
   const colors = loadColors[load];
 
@@ -118,7 +118,7 @@ export function EventChip({
       >
         <Icon name={iconName} size="xs" className={colors.text} />
         {event.requiresRestBuffer && (
-          <Icon name="resting" size="xs" className="text-brand-purple" />
+          <Icon name="rest" size="xs" className="text-brand-purple" />
         )}
       </button>
     );
@@ -152,7 +152,7 @@ export function EventChip({
                 {event.title}
               </h4>
               {event.requiresRestBuffer && (
-                <Icon name="resting" size="xs" className="text-brand-purple" />
+                <Icon name="rest" size="xs" className="text-brand-purple" />
               )}
             </div>
             <p className="text-xs text-text-secondary mt-0.5">{timeStr}</p>
@@ -186,7 +186,7 @@ export function EventChip({
         {event.title}
       </span>
       {event.requiresRestBuffer && (
-        <Icon name="resting" size="xs" className="text-brand-purple" />
+        <Icon name="rest" size="xs" className="text-brand-purple" />
       )}
       <span className={cn("w-2 h-2 rounded-full", colors.dot)} />
     </button>

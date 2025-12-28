@@ -118,7 +118,7 @@ export default function WalletHistoryPage() {
             disabled={isLoading}
           >
             <Icon
-              name="refresh"
+              name="timer"
               size="sm"
               className={`mr-2 ${isLoading ? "animate-spin" : ""}`}
             />
@@ -130,7 +130,7 @@ export default function WalletHistoryPage() {
             onClick={handleExport}
             disabled={filteredTransactions.length === 0}
           >
-            <Icon name="download" size="sm" className="mr-2" />
+            <Icon name="receipt" size="sm" className="mr-2" />
             Export
           </Button>
         </div>
@@ -200,7 +200,7 @@ export default function WalletHistoryPage() {
       {/* Transaction List */}
       {isLoading && transactions.length === 0 ? (
         <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
-          <Icon name="refresh" size="lg" className="text-text-tertiary mx-auto mb-4 animate-spin" />
+          <Icon name="timer" size="lg" className="text-text-tertiary mx-auto mb-4 animate-spin" />
           <p className="text-body text-text-secondary">
             Loading transactions...
           </p>
@@ -218,7 +218,7 @@ export default function WalletHistoryPage() {
         filteredTransactions.length === 0 &&
         transactions.length > 0 && (
           <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
-            <Icon name="filter" size="xl" className="text-text-tertiary mx-auto mb-4" />
+            <Icon name="search" size="xl" className="text-text-tertiary mx-auto mb-4" />
             <p className="text-body text-text-secondary mb-2">
               No transactions match your filters
             </p>

@@ -19,7 +19,7 @@ export function CalendarIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Calendar body */}
       <rect
@@ -77,7 +77,7 @@ export function CompletedIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Background circle */}
       <circle cx="60" cy="60" r="45" className="fill-secondary" />
@@ -109,7 +109,7 @@ export function SearchIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Magnifying glass circle */}
       <circle
@@ -160,7 +160,7 @@ export function WalletIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Wallet body */}
       <rect
@@ -207,7 +207,7 @@ export function ScissorsIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Background shape */}
       <ellipse cx="60" cy="60" rx="45" ry="40" className="fill-secondary" />
@@ -254,7 +254,7 @@ export function ReviewsIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Background */}
       <rect x="20" y="30" width="80" height="60" rx="8" className="fill-secondary" />
@@ -288,7 +288,7 @@ export function PropertyIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Roof */}
       <path
@@ -322,7 +322,7 @@ export function MessageIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Speech bubble */}
       <path
@@ -356,7 +356,7 @@ export function InboxIllustration({ className = "" }: IllustrationProps) {
       viewBox="0 0 120 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      aria-hidden={true}
     >
       {/* Main inbox shape */}
       <path

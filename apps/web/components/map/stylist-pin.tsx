@@ -14,9 +14,7 @@
 import Image from "next/image";
 import { cn } from "../../lib/utils";
 import { STYLIST_MODE_COLORS, type StylistMarker } from "../../lib/mapbox";
-import { Icon } from "@/components/icons";
-
-type IconName = string;
+import { Icon, type IconName } from "@/components/icons";
 
 interface StylistPinProps {
   stylist: StylistMarker;
@@ -33,11 +31,12 @@ export function StylistPin({
 }: StylistPinProps) {
   const modeColor = STYLIST_MODE_COLORS[stylist.operatingMode] || STYLIST_MODE_COLORS.FIXED;
 
-  const modeIconName: IconName = {
+  const modeIcons: Record<string, IconName> = {
     FIXED: "location",
     MOBILE: "location",
     HYBRID: "scissors",
-  }[stylist.operatingMode] || "location";
+  };
+  const modeIconName: IconName = modeIcons[stylist.operatingMode] || "location";
 
   return (
     <button
@@ -74,7 +73,7 @@ export function StylistPin({
             name={modeIconName}
             size={isSelected ? "lg" : "sm"}
             className="text-white"
-            aria-hidden="true"
+            aria-hidden={true}
           />
         )}
 
@@ -96,7 +95,7 @@ export function StylistPin({
       {/* Rating Badge (shown when selected) */}
       {isSelected && (
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white rounded-full px-2 py-0.5 shadow-md flex items-center gap-1">
-          <Icon name="star" size="xs" weight="fill" className="text-accent-gold fill-accent-gold" aria-hidden="true" />
+          <Icon name="star" size="xs" weight="fill" className="text-accent-gold fill-accent-gold" aria-hidden={true} />
           <span className="text-xs font-medium text-text-primary">
             {stylist.rating.toFixed(1)}
           </span>
@@ -161,7 +160,7 @@ export function SalonPin({
             name="location"
             size={isSelected ? "lg" : "sm"}
             className="text-white"
-            aria-hidden="true"
+            aria-hidden={true}
           />
         )}
 

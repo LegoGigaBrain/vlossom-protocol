@@ -130,7 +130,7 @@ export function RitualSheet({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <Icon name="care" size="md" className="text-brand-rose" />
+                <Icon name="treatment" size="md" className="text-brand-rose" />
                 <h2 className="text-lg font-display font-semibold text-text-primary">
                   {ritual.name}
                 </h2>

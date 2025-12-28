@@ -32,7 +32,7 @@ const features = [
   {
     title: 'Vetted Professionals',
     description:
-      'Only verified stylists can book your space. Maintain your salon's reputation.',
+      "Only verified stylists can book your space. Maintain your salon's reputation.",
     icon: (
       <svg
         width="24"

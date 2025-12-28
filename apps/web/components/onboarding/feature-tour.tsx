@@ -204,7 +204,7 @@ export function FeatureTour({ userRole, onComplete, onSkip }: FeatureTourProps) 
           className="absolute top-3 right-3 p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
           aria-label="Close tour"
         >
-          <Icon name="close" size="sm" aria-hidden="true" />
+          <Icon name="close" size="sm" aria-hidden={true} />
         </button>
 
         {/* Step indicator */}

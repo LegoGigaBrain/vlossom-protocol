@@ -15,8 +15,8 @@ import { cn } from "../../lib/utils";
 
 const navItems = [
   { href: "/property-owner", label: "Overview", icon: "home" as const },
-  { href: "/property-owner/chairs", label: "Chairs", icon: "chair" as const },
-  { href: "/property-owner/requests", label: "Requests", icon: "inbox" as const },
+  { href: "/property-owner/chairs", label: "Chairs", icon: "settings" as const },
+  { href: "/property-owner/requests", label: "Requests", icon: "notifications" as const },
   { href: "/property-owner/revenue", label: "Revenue", icon: "currency" as const },
 ];
 
@@ -86,7 +86,7 @@ export default function PropertyOwnerLayout({
         {canScrollLeft && (
           <div
             className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background-primary to-transparent z-10 pointer-events-none"
-            aria-hidden="true"
+            aria-hidden={true}
           />
         )}
 
@@ -94,7 +94,7 @@ export default function PropertyOwnerLayout({
         {canScrollRight && (
           <div
             className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background-primary to-transparent z-10 pointer-events-none"
-            aria-hidden="true"
+            aria-hidden={true}
           />
         )}
 

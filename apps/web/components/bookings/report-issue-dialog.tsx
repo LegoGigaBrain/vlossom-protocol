@@ -276,7 +276,7 @@ export function ReportIssueDialog({
                 {/* Upload button */}
                 {images.length < 3 && (
                   <label className="w-20 h-20 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-default cursor-pointer hover:border-brand-rose hover:bg-brand-rose/5 transition-gentle">
-                    <Icon name="upload" size="sm" className="text-text-muted" />
+                    <Icon name="camera" size="sm" className="text-text-muted" />
                     <span className="text-xs text-text-muted mt-1">Upload</span>
                     <input
                       type="file"

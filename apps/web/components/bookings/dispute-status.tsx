@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
-import { Icon } from "@/components/icons";
+import { Icon, type IconName } from "@/components/icons";
 
 export type DisputeStatusType =
   | "PENDING"
@@ -63,7 +63,7 @@ const statusConfig: Record<
   IN_REVIEW: {
     label: "Under Review",
     description: "Our team is actively reviewing your case",
-    iconName: "secure",
+    iconName: "trusted",
     color: "text-status-info",
     bgColor: "bg-status-info/10",
   },

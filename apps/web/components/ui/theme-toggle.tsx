@@ -118,7 +118,7 @@ export function ThemeSelector({ size = "default" }: Pick<ThemeToggleProps, "size
           <div
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
-            aria-hidden="true"
+            aria-hidden={true}
           />
 
           {/* Menu */}

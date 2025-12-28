@@ -119,39 +119,6 @@ export function PaymentStep({
     }
   }, [lockFundsData]);
 
-  // Handle approval confirmation - proceed to lock funds
-  useEffect(() => {
-    if (isApprovalConfirmed && state === "waiting-approval") {
-      // Refetch allowance and proceed to lock funds
-      refetchAllowance().then(() => {
-        lockFunds();
-      });
-    }
-  }, [isApprovalConfirmed, state, refetchAllowance, lockFunds]);
-
-  // Handle lock confirmation - submit to backend
-  useEffect(() => {
-    if (isLockConfirmed && txHash && state === "waiting-lock") {
-      submitToBackend(txHash);
-    }
-  }, [isLockConfirmed, txHash, state, submitToBackend]);
-
-  // Determine if dialog should prevent closing (during critical states)
-  const isProcessing = [
-    "checking-allowance",
-    "approving",
-    "waiting-approval",
-    "locking",
-    "waiting-lock",
-    "confirming",
-    "processing",
-  ].includes(state);
-
-  // Notify parent when processing state changes
-  useEffect(() => {
-    onPreventCloseChange?.(isProcessing);
-  }, [isProcessing, onPreventCloseChange]);
-
   // Convert cents to USDC amount (USDC has 6 decimals, but we display as dollars)
   const amountUSD = amount / 100;
   const walletBalance = wallet?.balance?.usdcFormatted || 0;
@@ -194,18 +161,45 @@ export function PaymentStep({
           onClick: () => window.open(getExplorerTxUrl(confirmedTxHash), "_blank"),
         },
       });
-
-      // Brief delay before calling onSuccess to show success state
-      setTimeout(() => {
-        onSuccess();
-      }, 1500);
+      onSuccess();
     } catch (err) {
       setState("error");
-      const message = getErrorMessage(err);
-      setError(message);
-      toast.error("Failed to confirm payment", { description: message });
+      setError(getErrorMessage(err));
     }
   }, [bookingId, confirmPayment, onSuccess]);
+
+  // Handle approval confirmation - proceed to lock funds
+  useEffect(() => {
+    if (isApprovalConfirmed && state === "waiting-approval") {
+      // Refetch allowance and proceed to lock funds
+      refetchAllowance().then(() => {
+        lockFunds();
+      });
+    }
+  }, [isApprovalConfirmed, state, refetchAllowance, lockFunds]);
+
+  // Handle lock confirmation - submit to backend
+  useEffect(() => {
+    if (isLockConfirmed && txHash && state === "waiting-lock") {
+      submitToBackend(txHash);
+    }
+  }, [isLockConfirmed, txHash, state, submitToBackend]);
+
+  // Determine if dialog should prevent closing (during critical states)
+  const isProcessing = [
+    "checking-allowance",
+    "approving",
+    "waiting-approval",
+    "locking",
+    "waiting-lock",
+    "confirming",
+    "processing",
+  ].includes(state);
+
+  // Notify parent when processing state changes
+  useEffect(() => {
+    onPreventCloseChange?.(isProcessing);
+  }, [isProcessing, onPreventCloseChange]);
 
   const handleConfirmPayment = async () => {
     if (!hasBalance) {
@@ -412,7 +406,7 @@ export function PaymentStep({
               className="w-8 h-8 text-primary animate-spin"
               fill="none"
               viewBox="0 0 24 24"
-              aria-hidden="true"
+              aria-hidden={true}
             >
               <circle
                 className="opacity-25"

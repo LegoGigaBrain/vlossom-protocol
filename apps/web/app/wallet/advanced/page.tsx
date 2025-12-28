@@ -76,7 +76,7 @@ export default function WalletAdvancedPage() {
                 size="sm"
                 onClick={() => setShowQR(!showQR)}
               >
-                <Icon name="qrCode" size="sm" className="mr-2" />
+                <Icon name="receipt" size="sm" className="mr-2" />
                 {showQR ? "Hide" : "Show"} QR Code
               </Button>
               <Button
@@ -89,7 +89,7 @@ export default function WalletAdvancedPage() {
                   )
                 }
               >
-                <Icon name="externalLink" size="sm" className="mr-2" />
+                <Icon name="link" size="sm" className="mr-2" />
                 View on Explorer
               </Button>
             </div>
@@ -100,7 +100,7 @@ export default function WalletAdvancedPage() {
                 <div className="w-48 h-48 bg-background-tertiary rounded-lg flex items-center justify-center mb-4">
                   {/* Placeholder for QR code - would use a QR library in production */}
                   <div className="text-center">
-                    <Icon name="qrCode" size="xl" className="text-text-tertiary mx-auto mb-2" />
+                    <Icon name="receipt" size="xl" className="text-text-tertiary mx-auto mb-2" />
                     <p className="text-caption text-text-tertiary">
                       QR Code for
                     </p>
@@ -174,7 +174,7 @@ export default function WalletAdvancedPage() {
               className="text-brand-rose hover:underline flex items-center gap-1"
             >
               BaseScan
-              <Icon name="externalLink" size="sm" />
+              <Icon name="link" size="sm" />
             </a>
           </div>
         </div>
@@ -183,14 +183,14 @@ export default function WalletAdvancedPage() {
       {/* Account Type */}
       <div className="bg-background-primary rounded-card shadow-vlossom p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Icon name="secure" size="sm" className="text-brand-rose" />
+          <Icon name="locked" size="sm" className="text-brand-rose" />
           <h2 className="text-h2 text-text-primary">Account Type</h2>
         </div>
 
         <div className="p-4 bg-background-secondary rounded-lg mb-4">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-brand-rose/10 rounded-lg">
-              <Icon name="key" size="sm" className="text-brand-rose" />
+              <Icon name="locked" size="sm" className="text-brand-rose" />
             </div>
             <div>
               <p className="text-body font-semibold text-text-primary">

@@ -263,7 +263,7 @@ function PoolCard({
             size="sm"
             onClick={() => onDeposit(pool.id)}
           >
-            <Icon name="send" size="sm" className="mr-1" /> Deposit
+            <Icon name="add" size="sm" className="mr-1" /> Deposit
           </Button>
           {hasDeposit && (
             <Button
@@ -271,7 +271,7 @@ function PoolCard({
               size="sm"
               onClick={() => onWithdraw(pool.id)}
             >
-              <Icon name="receive" size="sm" className="mr-1" /> Withdraw
+              <Icon name="currency" size="sm" className="mr-1" /> Withdraw
             </Button>
           )}
         </div>
@@ -444,7 +444,7 @@ function DepositDialog({
             Cancel
           </Button>
           <Button onClick={handleDeposit} disabled={loading || !amount}>
-            {loading && <Icon name="loading" size="sm" className="mr-2 animate-spin" />}
+            {loading && <Icon name="timer" size="sm" className="mr-2 animate-spin" />}
             Deposit
           </Button>
         </div>
@@ -536,7 +536,7 @@ function WithdrawDialog({
             Cancel
           </Button>
           <Button onClick={handleWithdraw} disabled={loading || !shares}>
-            {loading && <Icon name="loading" size="sm" className="mr-2 animate-spin" />}
+            {loading && <Icon name="timer" size="sm" className="mr-2 animate-spin" />}
             Withdraw
           </Button>
         </div>
@@ -703,7 +703,7 @@ export default function WalletDeFiPage() {
           disabled={refreshing}
         >
           <Icon
-            name="refresh"
+            name="timer"
             size="sm"
             className={`mr-2 ${refreshing ? "animate-spin" : ""}`}
           />
@@ -727,7 +727,7 @@ export default function WalletDeFiPage() {
           <StatCard
             label="Total Deposited"
             value={`$${totalDeposited.toFixed(2)}`}
-            iconName="send"
+            iconName="currency"
           />
           <StatCard
             label="Current Value"

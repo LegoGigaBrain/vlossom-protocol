@@ -6,6 +6,7 @@
 "use client";
 
 import * as React from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   useMyProperties,
@@ -267,7 +268,7 @@ function ChairCardSkeleton() {
   );
 }
 
-export default function PropertyOwnerChairsPage() {
+function PropertyOwnerChairsContent() {
   const searchParams = useSearchParams();
   const selectedPropertyId = searchParams.get("property");
 
@@ -512,7 +513,7 @@ export default function PropertyOwnerChairsPage() {
         // No chairs empty state
         <div className="bg-background-primary rounded-card shadow-vlossom p-8 text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-background-tertiary flex items-center justify-center">
-            <Icon name="chair" size="2xl" className="text-text-muted" />
+            <Icon name="settings" size="2xl" className="text-text-muted" />
           </div>
           <h3 className="text-body font-medium text-text-primary mb-2">
             {filterPropertyId !== "all" || filterStatus !== "all"
@@ -570,5 +571,13 @@ export default function PropertyOwnerChairsPage() {
         isLoading={createChairMutation.isPending || updateChairMutation.isPending}
       />
     </div>
+  );
+}
+
+export default function PropertyOwnerChairsPage() {
+  return (
+    <Suspense fallback={<div className="space-y-6"><h1 className="text-h2 text-text-primary">Chairs</h1><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"><ChairCardSkeleton /><ChairCardSkeleton /><ChairCardSkeleton /></div></div>}>
+      <PropertyOwnerChairsContent />
+    </Suspense>
   );
 }

@@ -64,7 +64,7 @@ export function LogoutConfirmDialog({
             {/* Icon */}
             <div className="flex justify-center">
               <div className="w-16 h-16 rounded-full bg-background-tertiary flex items-center justify-center">
-                <Icon name="signOut" size="lg" className="text-text-secondary" />
+                <Icon name="logout" size="lg" className="text-text-secondary" />
               </div>
             </div>
 
@@ -92,7 +92,7 @@ export function LogoutConfirmDialog({
                 loading={isLoggingOut}
                 className="flex-1"
               >
-                <Icon name="signOut" size="sm" className="mr-2" />
+                <Icon name="logout" size="sm" className="mr-2" />
                 Log Out
               </Button>
             </div>

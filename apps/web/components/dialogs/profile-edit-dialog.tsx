@@ -184,7 +184,7 @@ export function ProfileEditDialog({
                   )}
                   {isUploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
-                      <Icon name="loading" size="md" className="text-white" />
+                      <Icon name="timer" size="md" className="text-white" />
                     </div>
                   )}
                 </div>

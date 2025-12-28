@@ -240,7 +240,7 @@ export default function ConversationPage() {
                       {/* Avatar (for received messages) */}
                       {!isOwn && (
                         <div className="w-8 flex-shrink-0">
-                          {showAvatar && data.conversation.participant?.avatarUrl ? (
+                          {showAvatar && data?.conversation.participant?.avatarUrl ? (
                             <img
                               src={data.conversation.participant.avatarUrl}
                               alt=""
@@ -249,7 +249,7 @@ export default function ConversationPage() {
                           ) : showAvatar ? (
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-rose to-brand-purple flex items-center justify-center">
                               <span className="text-xs font-semibold text-white">
-                                {data.conversation.participant?.displayName.charAt(0) || "?"}
+                                {data?.conversation.participant?.displayName?.charAt(0) || "?"}
                               </span>
                             </div>
                           ) : null}

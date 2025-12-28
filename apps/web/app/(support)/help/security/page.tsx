@@ -122,7 +122,7 @@ export default function SecurityHelpPage() {
           </Link>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-brand-rose/10 flex items-center justify-center">
-              <Icon name="shield" size="lg" className="text-brand-rose" />
+              <Icon name="trusted" size="lg" className="text-brand-rose" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-text-primary">

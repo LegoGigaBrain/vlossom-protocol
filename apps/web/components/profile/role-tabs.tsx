@@ -34,8 +34,8 @@ interface ProfileTab {
 
 const allTabs: ProfileTab[] = [
   { id: "overview", label: "Overview", iconName: "profile" },
-  { id: "stylist", label: "Stylist", iconName: "care", requiredRole: "STYLIST" },
-  { id: "salon", label: "Salon", iconName: "pin", requiredRole: "PROPERTY_OWNER" },
+  { id: "stylist", label: "Stylist", iconName: "treatment", requiredRole: "STYLIST" },
+  { id: "salon", label: "Salon", iconName: "location", requiredRole: "PROPERTY_OWNER" },
 ];
 
 interface RoleTabsProps {
@@ -253,7 +253,7 @@ export function SalonTab({ className }: SalonTabProps) {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          iconName="pin"
+          iconName="location"
           label="Properties"
           value={stats.totalProperties.toString()}
           color="text-brand-purple"

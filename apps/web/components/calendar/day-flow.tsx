@@ -30,7 +30,7 @@ const TIME_BLOCKS = [
   { hour: 6, label: "Morning", iconName: "energy" as const },
   { hour: 12, label: "Afternoon", iconName: "energy" as const },
   { hour: 17, label: "Evening", iconName: "energy" as const },
-  { hour: 21, label: "Night", iconName: "resting" as const },
+  { hour: 21, label: "Night", iconName: "rest" as const },
 ];
 
 export function DayFlow({
@@ -241,7 +241,7 @@ export function DayFlow({
       {/* Empty State */}
       {dayEvents.length === 0 && (
         <div className="text-center py-12 bg-background-primary rounded-xl border border-border-default">
-          <Icon name="resting" size="2xl" className="mx-auto text-text-muted mb-3" />
+          <Icon name="rest" size="2xl" className="mx-auto text-text-muted mb-3" />
           <h4 className="font-medium text-text-primary mb-1">
             A day to breathe
           </h4>

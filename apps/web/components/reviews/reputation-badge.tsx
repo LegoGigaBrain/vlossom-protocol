@@ -26,7 +26,7 @@ const levelConfig: Record<
 > = {
   new: {
     label: "New",
-    iconName: "sparkles",
+    iconName: "sparkle",
     color: "text-text-secondary",
     bgColor: "bg-background-tertiary",
     minScore: 0,
@@ -54,7 +54,7 @@ const levelConfig: Record<
   },
   elite: {
     label: "Elite",
-    iconName: "crown",
+    iconName: "star",
     color: "text-status-warning",
     bgColor: "bg-status-warning/10",
     minScore: 95,

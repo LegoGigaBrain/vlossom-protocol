@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 export const CHAIR_AMENITIES = [
   { id: "wash_basin", label: "Wash Basin", icon: "droplet" as IconName },
   { id: "adjustable_seat", label: "Adjustable Seat", icon: "settings" as IconName },
-  { id: "mirror", label: "Mirror", icon: "eye" as IconName },
+  { id: "mirror", label: "Mirror", icon: "visible" as IconName },
   { id: "lighting", label: "Professional Lighting", icon: "sparkle" as IconName },
   { id: "plug_points", label: "Plug Points", icon: "lightning" as IconName },
   { id: "premium_tools", label: "Premium Tools Included", icon: "scissors" as IconName },

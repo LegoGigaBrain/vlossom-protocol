@@ -102,7 +102,7 @@ export function AvatarUpload({ currentUrl, displayName, onUpload }: AvatarUpload
           {/* Upload Overlay */}
           {isUploading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
-              <Icon name="loading" size="md" className="text-white animate-spin" />
+              <Icon name="timer" size="md" className="text-white animate-spin" />
             </div>
           )}
         </div>

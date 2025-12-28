@@ -32,7 +32,7 @@ const features = [
   {
     title: 'Your Location, Your Choice',
     description:
-      'Get styled at home, at a salon, or anywhere you're comfortable. Mobile stylists come to you.',
+      "Get styled at home, at a salon, or anywhere you're comfortable. Mobile stylists come to you.",
     icon: (
       <svg
         width="24"

@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Icon } from "@/components/icons";
-
-type IconName = string;
+import { Icon, type IconName } from "@/components/icons";
 
 interface WelcomeModalProps {
   userRole: "CUSTOMER" | "STYLIST";
@@ -49,7 +47,7 @@ export function WelcomeModal({
             description: "Your funds are held in escrow until service completion",
           },
           {
-            iconName: "secure",
+            iconName: "trusted",
             title: "Protected Transactions",
             description: "Smart contracts ensure fair payments for everyone",
           },
@@ -66,7 +64,7 @@ export function WelcomeModal({
             description: "Get paid automatically when you complete services",
           },
           {
-            iconName: "secure",
+            iconName: "trusted",
             title: "Build Your Business",
             description: "Showcase your work and grow your client base",
           },
@@ -97,7 +95,7 @@ export function WelcomeModal({
             className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
             aria-label="Close welcome modal"
           >
-            <Icon name="close" size="sm" aria-hidden="true" />
+            <Icon name="close" size="sm" aria-hidden={true} />
           </button>
 
           {/* Content */}

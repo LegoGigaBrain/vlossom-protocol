@@ -80,7 +80,7 @@ export function useLocationTracking(
   });
 
   const watchIdRef = useRef<number | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Check if geolocation is supported
   const isSupported = typeof navigator !== "undefined" && "geolocation" in navigator;

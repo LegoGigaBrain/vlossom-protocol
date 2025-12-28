@@ -243,7 +243,7 @@ export default function ContactPage() {
 
           {/* Submit */}
           <Button type="submit" loading={isSubmitting} className="w-full">
-            <Icon name="send" size="sm" className="mr-2" />
+            <Icon name="email" size="sm" className="mr-2" />
             Send Message
           </Button>
 

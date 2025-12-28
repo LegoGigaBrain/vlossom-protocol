@@ -299,7 +299,7 @@ export function StylistMap({
         <div className="absolute inset-0 flex items-center justify-center p-6">
           <div className="text-center space-y-4 max-w-sm">
             <div className="w-16 h-16 mx-auto bg-background-secondary rounded-full flex items-center justify-center">
-              <Icon name="location" size="xl" className="text-text-tertiary" aria-hidden="true" />
+              <Icon name="location" size="xl" className="text-text-tertiary" aria-hidden={true} />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-text-primary mb-1">
@@ -316,7 +316,7 @@ export function StylistMap({
               className="mx-auto"
               aria-label="Enable location to find stylists"
             >
-              <Icon name="location" size="sm" className={cn("mr-2", isLocating && "animate-pulse")} aria-hidden="true" />
+              <Icon name="location" size="sm" className={cn("mr-2", isLocating && "animate-pulse")} aria-hidden={true} />
               {isLocating ? "Finding location..." : "Use my location"}
             </Button>
           </div>
@@ -362,7 +362,7 @@ export function StylistMap({
           aria-pressed={viewMode === "list"}
           title={viewMode === "map" ? "Switch to list view (Ctrl+L)" : "Switch to map view (Ctrl+L)"}
         >
-          {viewMode === "map" ? <Icon name="menu" size="md" aria-hidden="true" /> : <Icon name="location" size="md" aria-hidden="true" />}
+          {viewMode === "map" ? <Icon name="menu" size="md" aria-hidden={true} /> : <Icon name="location" size="md" aria-hidden={true} />}
         </Button>
       </div>
 
@@ -404,7 +404,7 @@ export function StylistMap({
               `,
               backgroundSize: `${40 * (zoom / 12)}px ${40 * (zoom / 12)}px`,
             }}
-            aria-hidden="true"
+            aria-hidden={true}
           />
 
           {/* Simulated map content area */}
@@ -505,7 +505,7 @@ export function StylistMap({
           {/* Map unavailable notice */}
           <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-background-primary/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-md">
             <p className="text-xs text-text-secondary flex items-center gap-2">
-              <Icon name="location" size="xs" aria-hidden="true" />
+              <Icon name="location" size="xs" aria-hidden={true} />
               Interactive map coming soon
             </p>
           </div>
@@ -524,7 +524,7 @@ export function StylistMap({
             className="w-10 h-10 p-0 bg-background-primary shadow-md"
             aria-label="Find my location"
           >
-            <Icon name="location" size="md" className={cn(isLocating && "animate-pulse")} aria-hidden="true" />
+            <Icon name="location" size="md" className={cn(isLocating && "animate-pulse")} aria-hidden={true} />
           </Button>
 
           {/* Zoom Controls */}
@@ -540,7 +540,7 @@ export function StylistMap({
               className="w-10 h-10 p-0 rounded-none border-b border-border-default"
               aria-label="Zoom in"
             >
-              <Icon name="add" size="md" aria-hidden="true" />
+              <Icon name="add" size="md" aria-hidden={true} />
             </Button>
             <Button
               variant="ghost"
@@ -549,7 +549,7 @@ export function StylistMap({
               className="w-10 h-10 p-0 rounded-none"
               aria-label="Zoom out"
             >
-              <Icon name="close" size="md" aria-hidden="true" />
+              <Icon name="close" size="md" aria-hidden={true} />
             </Button>
           </div>
 
@@ -562,7 +562,7 @@ export function StylistMap({
             aria-label={showSalons ? "Hide salons" : "Show salons"}
             aria-pressed={showSalons}
           >
-            <Icon name="settings" size="md" aria-hidden="true" />
+            <Icon name="settings" size="md" aria-hidden={true} />
           </Button>
         </div>
       )}
@@ -593,7 +593,7 @@ function LegendItem({ color, label }: { color: string; label: string }) {
       <span
         className="w-3 h-3 rounded-full"
         style={{ backgroundColor: color }}
-        aria-hidden="true"
+        aria-hidden={true}
       />
       <span className="text-xs text-text-secondary">{label}</span>
     </div>
@@ -654,7 +654,7 @@ function StylistListItem({
         <span
           className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background-primary"
           style={{ backgroundColor: modeColor }}
-          aria-hidden="true"
+          aria-hidden={true}
         />
       </div>
 
@@ -666,7 +666,7 @@ function StylistListItem({
           </p>
           {stylist.rating && (
             <div className="flex items-center gap-0.5 text-amber-500">
-              <Icon name="star" size="xs" weight="fill" className="fill-current" aria-hidden="true" />
+              <Icon name="star" size="xs" weight="fill" className="fill-current" aria-hidden={true} />
               <span className="text-xs font-medium">{stylist.rating.toFixed(1)}</span>
             </div>
           )}
@@ -714,7 +714,7 @@ function SalonListItem({
     >
       {/* Icon */}
       <div className="w-12 h-12 rounded-lg bg-brand-rose/10 flex items-center justify-center flex-shrink-0">
-        <Icon name="location" size="lg" className="text-brand-rose" aria-hidden="true" />
+        <Icon name="location" size="lg" className="text-brand-rose" aria-hidden={true} />
       </div>
 
       {/* Info */}
@@ -725,7 +725,7 @@ function SalonListItem({
           </p>
           {salon.rating && (
             <div className="flex items-center gap-0.5 text-amber-500">
-              <Icon name="star" size="xs" weight="fill" className="fill-current" aria-hidden="true" />
+              <Icon name="star" size="xs" weight="fill" className="fill-current" aria-hidden={true} />
               <span className="text-xs font-medium">{salon.rating.toFixed(1)}</span>
             </div>
           )}

@@ -82,7 +82,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
           <div
             className="fixed inset-0 z-dropdown"
             onClick={() => setIsOpen(false)}
-            aria-hidden="true"
+            aria-hidden={true}
           />
 
           {/* Dropdown Content */}

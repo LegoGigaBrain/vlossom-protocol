@@ -95,7 +95,7 @@ export default function DashboardLayout({
         {canScrollLeft && (
           <div
             className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background-primary to-transparent z-10 pointer-events-none"
-            aria-hidden="true"
+            aria-hidden={true}
           />
         )}
 
@@ -103,7 +103,7 @@ export default function DashboardLayout({
         {canScrollRight && (
           <div
             className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background-primary to-transparent z-10 pointer-events-none"
-            aria-hidden="true"
+            aria-hidden={true}
           />
         )}
 

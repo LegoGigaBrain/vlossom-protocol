@@ -12,7 +12,7 @@
  * - Smooth transition animations
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { Button } from "../../../components/ui/button";
 import { useToast } from "../../../hooks/use-toast";
@@ -636,7 +636,7 @@ export default function AdminDefiPage() {
                   ? `${(parseFloat(stats.avgAPY) / 100).toFixed(2)}%`
                   : "-"
               }
-              icon="chart"
+              icon="growing"
               isLoading={isLoading}
             />
           </div>
@@ -792,7 +792,7 @@ export default function AdminDefiPage() {
                             </>
                           ) : (
                             <>
-                              <Icon name="play" size="sm" className="mr-1" />
+                              <Icon name="active" size="sm" className="mr-1" />
                               Unpause
                             </>
                           )}
@@ -1182,7 +1182,7 @@ export default function AdminDefiPage() {
                 onClick={handleEmergencyUnpauseAll}
                 className="flex items-center justify-center gap-2 bg-status-success hover:bg-status-success/90"
               >
-                <Icon name="play" size="md" />
+                <Icon name="active" size="md" />
                 Unpause All Pools
               </Button>
             </div>

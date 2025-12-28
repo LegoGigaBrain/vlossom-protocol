@@ -153,13 +153,13 @@ export function ProfileHeader({
           <div className="flex gap-2 mt-2">
             {isStylist && (
               <Badge variant="secondary" className="gap-1">
-                <Icon name="care" size="xs" />
+                <Icon name="treatment" size="xs" />
                 Stylist
               </Badge>
             )}
             {isSalonOwner && (
               <Badge variant="secondary" className="gap-1">
-                <Icon name="pin" size="xs" />
+                <Icon name="location" size="xs" />
                 Salon Owner
               </Badge>
             )}

@@ -11,7 +11,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -85,7 +85,7 @@ const STEPS: { id: FormStep; label: string }[] = [
   { id: "review", label: "Review" },
 ];
 
-export default function SpecialEventsRequestPage() {
+function SpecialEventsRequestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get("category") || "";
@@ -525,5 +525,13 @@ export default function SpecialEventsRequestPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SpecialEventsRequestPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background-secondary py-8 flex items-center justify-center"><div className="animate-pulse text-text-secondary">Loading...</div></div>}>
+      <SpecialEventsRequestContent />
+    </Suspense>
   );
 }

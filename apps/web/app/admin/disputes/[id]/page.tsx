@@ -320,7 +320,7 @@ export default function DisputeDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Icon name="document" size="md" />
+                <Icon name="receipt" size="md" />
                 Description
               </CardTitle>
             </CardHeader>
@@ -334,7 +334,7 @@ export default function DisputeDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Icon name="photo" size="md" />
+                  <Icon name="image" size="md" />
                   Evidence ({dispute.evidenceUrls.length})
                 </CardTitle>
               </CardHeader>
@@ -438,7 +438,7 @@ export default function DisputeDetailPage() {
                       disabled={!newMessage.trim() || isSendingMessage}
                       size="sm"
                     >
-                      <Icon name="send" size="sm" className="mr-2" />
+                      <Icon name="chat" size="sm" className="mr-2" />
                       Send
                     </Button>
                   </div>
@@ -684,7 +684,7 @@ export default function DisputeDetailPage() {
                   href={`/admin/bookings/${dispute.bookingId}`}
                   className="text-sm text-blue-600 hover:underline flex items-center gap-1"
                 >
-                  View Booking <Icon name="externalLink" size="sm" />
+                  View Booking <Icon name="link" size="sm" />
                 </Link>
               </CardContent>
             </Card>

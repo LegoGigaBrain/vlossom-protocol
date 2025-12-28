@@ -44,7 +44,7 @@ const categories: HelpCategory[] = [
     id: "security",
     title: "Account & Security",
     description: "Login, passwords, and account settings",
-    icon: "shield",
+    icon: "trusted",
     href: "/help/security",
     articles: 7,
   },
