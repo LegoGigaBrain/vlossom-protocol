@@ -1,0 +1,26 @@
+{
+  "network": "arbitrum-sepolia",
+  "chainId": 421614,
+  "timestamp": "2025-12-28T02:59:14.919Z",
+  "deployer": "0x65AfAFb64ccdefb29EfC67B2eD323c4e43315895",
+  "entryPoint": "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
+  "usdc": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  "vlossomAccountFactory": "0x1B1FD00ce6CDc46FcdD9be9F4C2948e00Ab694A9",
+  "vlossomPaymaster": "0x9E52B23a6376EAfa89790a637F99371995C0E68c",
+  "escrow": "0xb5ba44265B09679C044Ed60506AE936e35B59Afb",
+  "propertyRegistry": "0xE8395633875F5A11b89D3425C199Dd17e09E7E82",
+  "reputationRegistry": "0xdbDFFC205738d2E3A179AEd2450D9Aec9B4D0577",
+  "gasUsed": {
+    "factory": "2180645",
+    "paymaster": "1356276",
+    "escrow": "1387695",
+    "propertyRegistry": "~1500000",
+    "reputationRegistry": "~1800000",
+    "total": "~9200000"
+  },
+  "ethSpent": {
+    "deployment": "~0.0002",
+    "paymasterFunding": "0.1",
+    "total": "~0.1002"
+  }
+}
