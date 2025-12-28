@@ -159,6 +159,8 @@ export default function AdminDefiPage() {
     lpYieldPercent: 40,
     bufferPercent: 10,
   });
+  const [treasuryAddress, setTreasuryAddress] = useState("");
+  const [treasurySource, setTreasurySource] = useState<"database" | "environment" | "not_configured">("not_configured");
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -201,6 +203,14 @@ export default function AdminDefiPage() {
       if (poolsRes.ok) {
         const data = await poolsRes.json();
         setPools(data.data?.pools || []);
+      }
+
+      // Fetch treasury address
+      const treasuryRes = await fetch("/api/v1/admin/defi/treasury", { headers });
+      if (treasuryRes.ok) {
+        const data = await treasuryRes.json();
+        setTreasuryAddress(data.data?.address || "");
+        setTreasurySource(data.data?.source || "not_configured");
       }
     } catch (error) {
       console.error("Failed to fetch DeFi data:", error);
@@ -301,6 +311,60 @@ export default function AdminDefiPage() {
       console.error("Failed to save fee split:", error);
       toast({
         title: "Failed to save fee split",
+        description: "Please try again",
+        variant: "error",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveTreasuryAddress = async () => {
+    // Validate Ethereum address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(treasuryAddress)) {
+      toast({
+        title: "Invalid address",
+        description: "Please enter a valid Ethereum address",
+        variant: "error",
+      });
+      return;
+    }
+
+    const confirmed = await confirmation.confirm({
+      title: "Update Treasury Address",
+      description: `This will change where platform fees are sent. New address: ${treasuryAddress.slice(0, 10)}...${treasuryAddress.slice(-8)}. Are you absolutely sure?`,
+      confirmLabel: "Update Address",
+      variant: "warning",
+    });
+
+    if (!confirmed) return;
+
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/v1/admin/defi/treasury", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address: treasuryAddress }),
+      });
+
+      if (response.ok) {
+        setTreasurySource("database");
+        toast({
+          title: "Treasury address updated",
+          description: "Platform fees will now be sent to the new address",
+          variant: "success",
+        });
+      } else {
+        throw new Error("Failed to save");
+      }
+    } catch (error) {
+      console.error("Failed to save treasury address:", error);
+      toast({
+        title: "Failed to update treasury address",
         description: "Please try again",
         variant: "error",
       });
@@ -967,6 +1031,73 @@ export default function AdminDefiPage() {
                 {isSaving && <Icon name="timer" size="sm" className="mr-2 animate-spin" />}
                 Save Fee Split
               </Button>
+            </div>
+          </div>
+
+          {/* Treasury Address Configuration */}
+          <div className="bg-background-primary rounded-card shadow-card p-6 lg:col-span-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon name="wallet" size="md" className="text-brand-purple" />
+              <h2 className="text-body font-semibold text-text-primary">
+                Treasury Address
+              </h2>
+            </div>
+            <p className="text-caption text-text-tertiary mb-4">
+              Configure the address where platform fees are sent. This is a critical setting.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-caption font-medium text-text-primary mb-1">
+                  Treasury Address
+                </label>
+                <input
+                  type="text"
+                  value={treasuryAddress}
+                  onChange={(e) => setTreasuryAddress(e.target.value)}
+                  placeholder="0x..."
+                  className="w-full px-3 py-2 bg-background-secondary border border-border-default rounded-input text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-brand-purple/20 focus:border-brand-purple transition-colors duration-fast"
+                />
+                <p className="text-xs text-text-tertiary mt-1">
+                  Current source: <span className={`font-medium ${
+                    treasurySource === "database" ? "text-status-success" :
+                    treasurySource === "environment" ? "text-status-warning" :
+                    "text-status-error"
+                  }`}>{treasurySource}</span>
+                </p>
+              </div>
+
+              {/* Address Preview */}
+              {treasuryAddress && /^0x[a-fA-F0-9]{40}$/.test(treasuryAddress) && (
+                <div className="p-3 bg-background-secondary rounded-lg">
+                  <p className="text-caption text-text-tertiary">Address Preview</p>
+                  <p className="font-mono text-text-primary">
+                    {treasuryAddress.slice(0, 10)}...{treasuryAddress.slice(-8)}
+                  </p>
+                  <a
+                    href={`https://sepolia.arbiscan.io/address/${treasuryAddress}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-brand-purple hover:underline mt-1 inline-block"
+                  >
+                    View on Arbiscan ↗
+                  </a>
+                </div>
+              )}
+
+              <Button
+                onClick={handleSaveTreasuryAddress}
+                disabled={isSaving || !treasuryAddress}
+                variant="primary"
+                className="w-full"
+              >
+                {isSaving && <Icon name="timer" size="sm" className="mr-2 animate-spin" />}
+                Update Treasury Address
+              </Button>
+
+              <p className="text-xs text-status-warning">
+                ⚠️ Changing this address will redirect all future platform fees. Double-check the address before saving.
+              </p>
             </div>
           </div>
 

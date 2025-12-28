@@ -66,9 +66,10 @@ export async function claimFaucet(userId: string): Promise<{
   error?: string;
   nextClaimAt?: Date;
 }> {
-  // Check if on testnet (localhost or Base Sepolia)
+  // Check if on testnet (localhost, Base Sepolia, or Arbitrum Sepolia)
   const chainId = publicClient.chain?.id;
-  if (chainId !== 31337 && chainId !== 84532) {
+  const TESTNET_CHAIN_IDS = [31337, 84532, 421614]; // localhost, Base Sepolia, Arbitrum Sepolia
+  if (!TESTNET_CHAIN_IDS.includes(chainId ?? 0)) {
     return {
       success: false,
       error: "Faucet is only available on testnet",

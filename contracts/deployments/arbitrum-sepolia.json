@@ -4,7 +4,8 @@
   "timestamp": "2025-12-28T03:10:00.000Z",
   "deployer": "0x65AfAFb64ccdefb29EfC67B2eD323c4e43315895",
   "entryPoint": "0x0000000071727De22E5E9d8BAf0edAc6f37da032",
-  "usdc": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  "usdc": "0x67d56A4c0ce977aAd973835b0Fa16d6eAddaCE7d",
+  "circleUsdc": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
   "core": {
     "vlossomAccountFactory": "0x1B1FD00ce6CDc46FcdD9be9F4C2948e00Ab694A9",
     "vlossomPaymaster": "0x9E52B23a6376EAfa89790a637F99371995C0E68c",
@@ -20,5 +21,7 @@
     "communityPoolImpl": "0x58f2f38f9Aed2Af2D4234e27aCA344bC6b38BE29",
     "poolFactory": "0x801c4Fb1c0aCF428848D59b4BD5aB1687C75B7dd"
   },
-  "totalContracts": 11
+  "totalContracts": 11,
+  "mockUsdc": "0x67d56A4c0ce977aAd973835b0Fa16d6eAddaCE7d",
+  "usdcNote": "MockUSDC deployed for testnet faucet functionality"
 }
