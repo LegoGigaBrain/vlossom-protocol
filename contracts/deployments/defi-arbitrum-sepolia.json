@@ -1,0 +1,23 @@
+{
+  "network": "arbitrum-sepolia",
+  "chainId": 421614,
+  "timestamp": "2025-12-28T03:10:00.000Z",
+  "deployer": "0x65AfAFb64ccdefb29EfC67B2eD323c4e43315895",
+  "usdc": "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
+  "treasury": "0x5Fda3cE7bEF86A755c8fd35474D9e1d8ecE9e4aA",
+  "yieldEngine": "0x44fE36117B9983AE7C3465E4275A20C9F842Fd82",
+  "genesisPool": "0x8722EF54892a28007632A7372091f7B770D4FE0b",
+  "smoothingBuffer": "0xfA938DE45e3E0E78C133Ff55d0b5E90691D19F63",
+  "communityPoolImpl": "0x58f2f38f9Aed2Af2D4234e27aCA344bC6b38BE29",
+  "poolFactory": "0x801c4Fb1c0aCF428848D59b4BD5aB1687C75B7dd",
+  "gasUsed": {
+    "treasury": "1257351",
+    "yieldEngine": "1085208",
+    "genesisPool": "1536270",
+    "smoothingBuffer": "1554089",
+    "communityPoolImpl": "1354942",
+    "poolFactory": "1986124",
+    "total": "8773984"
+  },
+  "ethSpent": "~0.0002"
+}
