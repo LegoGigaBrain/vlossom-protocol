@@ -11,35 +11,38 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/types/package.json ./packages/types/
 COPY services/api/package.json ./services/api/
 
-# Install dependencies
+# Install all dependencies (including devDependencies for build)
 RUN pnpm install --frozen-lockfile
 
-# Copy source code
-COPY packages/types ./packages/types
-COPY services/api ./services/api
+# Copy Prisma schema first
+COPY services/api/prisma ./services/api/prisma
 
-# Generate Prisma client and build
+# Generate Prisma client (needs schema but not DATABASE_URL for generation)
 WORKDIR /app/services/api
 RUN pnpm run db:generate
+
+# Copy remaining source code
+WORKDIR /app
+COPY packages/types ./packages/types
+COPY services/api/src ./services/api/src
+COPY services/api/tsconfig.json ./services/api/
+COPY services/api/tsconfig.build.json ./services/api/
+COPY tsconfig.base.json ./
+
+# Build the API
+WORKDIR /app/services/api
 RUN pnpm run build
 
 # Production image
 FROM node:20-alpine AS runner
 
-WORKDIR /app
-
-# Install pnpm for production
-RUN corepack enable && corepack prepare pnpm@9 --activate
-
-# Copy built files
-COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-COPY --from=builder /app/packages/types ./packages/types
-COPY --from=builder /app/services/api/package.json ./services/api/
-COPY --from=builder /app/services/api/dist ./services/api/dist
-COPY --from=builder /app/services/api/node_modules ./services/api/node_modules
-COPY --from=builder /app/services/api/prisma ./services/api/prisma
-
 WORKDIR /app/services/api
+
+# Copy only production files
+COPY --from=builder /app/services/api/dist ./dist
+COPY --from=builder /app/services/api/prisma ./prisma
+COPY --from=builder /app/services/api/node_modules ./node_modules
+COPY --from=builder /app/services/api/package.json ./
 
 # Expose port
 EXPOSE 3002
