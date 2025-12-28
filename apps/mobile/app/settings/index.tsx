@@ -37,6 +37,7 @@ import {
   VlossomHomeIcon,
   VlossomCalendarIcon,
 } from '../../src/components/icons/VlossomIcons';
+import { VlossomWordmark } from '../../src/components/branding';
 import {
   useAuthStore,
   selectUser,
@@ -225,12 +226,7 @@ export default function SettingsScreen() {
         >
           <VlossomBackIcon size={24} color={colors.text.primary} />
         </Pressable>
-        <Text
-          style={[textStyles.h3, { color: colors.text.primary }]}
-          accessibilityRole="header"
-        >
-          Settings
-        </Text>
+        <VlossomWordmark height={24} variant="auto" accessibilityRole="header" />
         <View style={styles.headerSpacer} />
       </View>
 

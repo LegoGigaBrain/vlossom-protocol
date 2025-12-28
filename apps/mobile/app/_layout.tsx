@@ -1,18 +1,19 @@
 /**
- * Vlossom Mobile Root Layout (V7.3.0)
+ * Vlossom Mobile Root Layout (V7.5.0)
  *
  * Provides:
  * - Theme provider
  * - Font loading
  * - Auth state initialization
  * - Navigation stack with auth routing
- * - Splash screen management
+ * - Splash screen management (native + animated)
  * - Deep link validation
  * - Demo mode indicator banner
  * - Push notification initialization (V7.3)
+ * - Animated splash screen with Vlossom icon (V7.5)
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, Pressable } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -30,6 +31,7 @@ import {
   initializePushNotifications,
   cleanupPushNotifications,
 } from '../src/services/push-notifications';
+import { AnimatedSplash } from '../src/components/splash';
 
 // Google Fonts - bundled at build time
 import {
@@ -212,11 +214,20 @@ export default function RootLayout() {
     'SpaceMono': SpaceMono_400Regular,
   });
 
+  // V7.5: Track animated splash visibility
+  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
+
   useEffect(() => {
     if (fontsLoaded || fontError) {
+      // Hide native splash, show animated splash
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError]);
+
+  // Handle animated splash completion
+  const handleSplashComplete = () => {
+    setShowAnimatedSplash(false);
+  };
 
   if (!fontsLoaded && !fontError) {
     return null;
@@ -257,6 +268,10 @@ export default function RootLayout() {
               <Stack.Screen name="settings" options={{ headerShown: false }} />
             </Stack>
           </AuthGuard>
+          {/* V7.5: Animated splash overlay */}
+          {showAnimatedSplash && (
+            <AnimatedSplash onComplete={handleSplashComplete} minDuration={1200} />
+          )}
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

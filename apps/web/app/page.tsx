@@ -1,29 +1,42 @@
-import Link from "next/link";
-import { Button } from "../components/ui/button";
+/**
+ * Landing Page (V7.5.0)
+ *
+ * Marketing landing page for Vlossom Protocol.
+ * Explains what Vlossom is and drives users to launch the app.
+ *
+ * Structure:
+ * - Navbar (fixed)
+ * - Hero with orange "Launch App" CTA
+ * - How It Works (3 steps)
+ * - For Customers (value props)
+ * - For Stylists (value props)
+ * - For Salon Owners (value props)
+ * - Final CTA
+ * - Footer
+ */
 
-export default function HomePage() {
+import {
+  LandingNavbar,
+  HeroSection,
+  HowItWorksSection,
+  ForCustomersSection,
+  ForStylistsSection,
+  ForOwnersSection,
+  CTASection,
+  LandingFooter,
+} from '../components/landing';
+
+export default function LandingPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background-secondary">
-      <div className="text-center space-y-6 px-4">
-        <h1 className="text-h1 text-brand-rose">
-          Vlossom
-        </h1>
-        <p className="text-body text-text-secondary">
-          Where you blossom.
-        </p>
-        <p className="text-caption text-text-muted">
-          V7.4.0 - Base Sepolia Testnet
-        </p>
-
-        <div className="flex gap-4 justify-center mt-8">
-          <Link href="/onboarding">
-            <Button variant="primary">Get Started</Button>
-          </Link>
-          <Link href="/login">
-            <Button variant="outline">Log In</Button>
-          </Link>
-        </div>
-      </div>
+    <main className="min-h-screen bg-white">
+      <LandingNavbar />
+      <HeroSection />
+      <HowItWorksSection />
+      <ForCustomersSection />
+      <ForStylistsSection />
+      <ForOwnersSection />
+      <CTASection />
+      <LandingFooter />
     </main>
   );
 }

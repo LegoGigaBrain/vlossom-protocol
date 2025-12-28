@@ -4,11 +4,24 @@
 
 ## Current Version
 
-**V7.4.0** - Motion System Implementation (December 27, 2025)
+**V7.5.1** - Branding Consistency (December 28, 2025)
 
-**Major Achievement**: Activated the Vlossom motion system (unfold/breathe/settle) across core UI components. Dialog uses organic "unfold" animation, Card and EmptyState use "settle" animation, BookingSuccess uses staggered animations. All respect `prefers-reduced-motion`.
+**Major Achievement**: Added proper favicon and SVG wordmarks across web and mobile platforms for consistent brand presentation. VlossomWordmark component with theme-aware variants now used in landing page, auth screens, and settings.
 
-**Previous**: V7.3.0 - Production Readiness, V7.0.0 - Security Hardening, V6.10.0 - Mobile Parity
+**V7.5.1 Features**:
+- Web favicon (Favicon-purple.svg) configured via Next.js metadata
+- VlossomWordmark replaces plain text in Landing Navbar/Footer
+- Mobile VlossomWordmark.tsx with variant prop (purple/cream/auto)
+- Mobile auth screens (login, signup, forgot-password) use SVG wordmark
+- Mobile settings header uses auto theme-switching wordmark
+
+**V7.5.0 Features**:
+- Mobile animated splash screen with unfold/breathe animations
+- Web marketing landing page (Hero, How It Works, 3 audience sections)
+- Orange "Launch App" CTA used appropriately for growth/celebration
+- Scroll-triggered animations via react-intersection-observer
+
+**Previous**: V7.4.0 - Motion System, V7.3.0 - Production Readiness, V7.0.0 - Security Hardening
 
 ---
 
@@ -39,8 +52,8 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA (customer + stylist + property owner) | ✅ V7.4.0 |
-| `apps/mobile/` | React Native + Expo mobile app with Push Notifications | ✅ V7.4.0 |
+| `apps/web/` | Next.js 14 PWA with Marketing Landing Page | ✅ V7.5.1 |
+| `apps/mobile/` | React Native + Expo with Animated Splash + Branding | ✅ V7.5.1 |
 | `apps/admin/` | Admin dashboard (8 pages) | ✅ V7.0.0 |
 
 ### `services/` - Backend Services

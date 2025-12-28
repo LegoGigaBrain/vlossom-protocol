@@ -28,6 +28,7 @@ import {
   VlossomBackIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { INPUT_LIMITS } from '../../src/utils/input-validation';
+import { VlossomWordmark } from '../../src/components/branding';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -145,7 +146,7 @@ export default function ForgotPasswordScreen() {
         >
           {/* Header */}
           <View style={styles.header} accessible accessibilityRole="header">
-            <Text style={styles.logo}>Vlossom</Text>
+            <VlossomWordmark height={32} variant="purple" style={styles.logo} />
             <Text style={styles.title} accessibilityRole="header">Forgot password?</Text>
             <Text style={styles.subtitle}>
               Enter your email and we'll send you a reset link
@@ -233,9 +234,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxl,
   },
   logo: {
-    fontFamily: typography.fontFamily.display,
-    fontSize: 32,
-    color: colors.brand.rose,
     marginBottom: spacing.lg,
   },
   title: {

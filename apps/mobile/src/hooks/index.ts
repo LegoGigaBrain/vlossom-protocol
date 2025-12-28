@@ -1,5 +1,5 @@
 /**
- * Vlossom Hooks Exports (V7.1.1 Mobile)
+ * Vlossom Hooks Exports (V7.5.0 Mobile)
  */
 
 // Biometric Authentication
@@ -28,3 +28,7 @@ export type {
   UseStaggerAnimationReturn,
   UseFadeOptions,
 } from './useMotion';
+
+// Splash Screen Hooks
+export { useReducedMotion } from './useReducedMotion';
+export { useAnimatedSplash } from './useAnimatedSplash';

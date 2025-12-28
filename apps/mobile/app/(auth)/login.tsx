@@ -24,6 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
 import { useAuthStore } from '../../src/stores/auth';
 import { INPUT_LIMITS } from '../../src/utils/input-validation';
+import { VlossomWordmark } from '../../src/components/branding';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function LoginScreen() {
         >
           {/* Header */}
           <View style={styles.header} accessible accessibilityRole="header">
-            <Text style={styles.logo}>Vlossom</Text>
+            <VlossomWordmark height={32} variant="purple" style={styles.logo} />
             <Text style={styles.title} accessibilityRole="header">Welcome back</Text>
             <Text style={styles.subtitle}>
               Sign in to continue your hair journey
@@ -218,9 +219,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xxl,
   },
   logo: {
-    fontFamily: typography.fontFamily.display,
-    fontSize: 32,
-    color: colors.brand.rose,
     marginBottom: spacing.lg,
   },
   title: {

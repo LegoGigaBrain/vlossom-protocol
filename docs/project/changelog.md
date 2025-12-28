@@ -7,6 +7,100 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.5.1] - 2025-12-28
+
+### V7.5.1: Branding Consistency - COMPLETE ✅
+
+**Goal**: Ensure consistent brand presentation across web and mobile with proper favicon and SVG wordmarks.
+
+---
+
+#### ✅ Web Favicon Configuration
+
+**Files Created:**
+- `apps/web/public/favicon.svg` - Copied from design/brand/logos/Favicon-purple.svg
+
+**Files Modified:**
+- `apps/web/app/layout.tsx` - Added icons metadata for favicon configuration
+
+---
+
+#### ✅ Landing Page Wordmarks
+
+**Files Modified:**
+- `apps/web/components/landing/LandingNavbar.tsx` - VlossomWordmark with variant="auto"
+- `apps/web/components/landing/LandingFooter.tsx` - VlossomWordmark with variant="cream"
+
+**Implementation:**
+- Navbar uses `variant="auto"` for theme-aware switching (purple on light, cream on dark)
+- Footer uses `variant="cream"` for visibility on purple background
+
+---
+
+#### ✅ Mobile Wordmark Components
+
+**Files Created:**
+- `apps/mobile/src/components/branding/VlossomWordmark.tsx` - SVG wordmark with theme support
+- `apps/mobile/src/components/branding/VlossomIcon.tsx` - SVG icon for consistency
+- `apps/mobile/src/components/branding/index.ts` - Barrel export
+
+**VlossomWordmark Props:**
+```typescript
+interface VlossomWordmarkProps {
+  height?: number;        // Default: 24
+  variant?: 'purple' | 'cream' | 'auto';
+  style?: ViewStyle;
+}
+```
+
+**Features:**
+- Uses `react-native-svg` for SVG rendering
+- Aspect ratio 8:1 (width calculated from height)
+- Auto variant uses `useColorScheme()` for theme detection
+- Purple (#311E6B) for light mode, Cream (#EFE3D0) for dark mode
+
+---
+
+#### ✅ Mobile Auth Screen Updates
+
+**Files Modified:**
+- `apps/mobile/app/(auth)/login.tsx` - VlossomWordmark replaces text logo
+- `apps/mobile/app/(auth)/signup.tsx` - VlossomWordmark replaces text logo
+- `apps/mobile/app/(auth)/forgot-password.tsx` - VlossomWordmark replaces text logo
+
+**Changes:**
+- Import VlossomWordmark from branding components
+- Replace `<Text style={styles.logo}>Vlossom</Text>` with `<VlossomWordmark height={32} variant="purple" />`
+- Simplified logo style to only margin (removed font properties)
+
+---
+
+#### ✅ Mobile Settings Header
+
+**Files Modified:**
+- `apps/mobile/app/settings/index.tsx` - VlossomWordmark in header
+
+**Implementation:**
+- Replaced "Settings" text with `<VlossomWordmark height={24} variant="auto" />`
+- Uses auto variant for theme-aware switching
+
+---
+
+#### Files Summary (V7.5.1)
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| Web Assets | 1 | favicon.svg |
+| Web Config | 1 | layout.tsx metadata |
+| Web Components | 2 | LandingNavbar, LandingFooter |
+| Mobile Components | 3 | VlossomWordmark, VlossomIcon, index |
+| Mobile Auth | 3 | login, signup, forgot-password |
+| Mobile Settings | 1 | settings/index |
+
+**Total:** 11 files created/modified
+
+---
+
 ## [7.3.0] - 2025-12-27
 
 ### V7.3.0: Production Readiness - COMPLETE ✅
