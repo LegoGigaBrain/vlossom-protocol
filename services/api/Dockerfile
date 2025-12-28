@@ -14,26 +14,23 @@ COPY tsconfig.base.json ./
 COPY packages/types/package.json ./packages/types/
 COPY services/api/package.json ./services/api/
 
-# Install all dependencies
-RUN pnpm install --frozen-lockfile
+# Install all dependencies (need to update lockfile for new esbuild dep)
+RUN pnpm install --no-frozen-lockfile
 
-# Copy Prisma schema
+# Copy Prisma schema and generate client
 COPY services/api/prisma ./services/api/prisma
-
-# Generate Prisma client with correct node_modules location
 WORKDIR /app/services/api
 RUN npx prisma generate
 
-# Copy source files
+# Copy source files and build script
 WORKDIR /app
 COPY packages/types ./packages/types
 COPY services/api/src ./services/api/src
-COPY services/api/tsconfig.json ./services/api/
-COPY services/api/tsconfig.build.json ./services/api/
+COPY services/api/build.mjs ./services/api/
 
-# Build TypeScript
+# Build with esbuild (fast, no type checking)
 WORKDIR /app/services/api
-RUN pnpm run build
+RUN node build.mjs
 
 # Production image
 FROM node:20-alpine AS runner
@@ -46,7 +43,7 @@ COPY --from=builder /app/services/api/prisma ./prisma
 COPY --from=builder /app/services/api/node_modules ./node_modules
 COPY --from=builder /app/services/api/package.json ./
 
-# Re-generate Prisma client for runtime (ensures correct binary)
+# Re-generate Prisma client for runtime (Alpine binary)
 RUN npx prisma generate
 
 EXPOSE 3002
