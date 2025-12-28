@@ -101,6 +101,189 @@ interface VlossomWordmarkProps {
 
 ---
 
+## [7.5.0] - 2025-12-28
+
+### V7.5.0: Splash Screen & Landing Page - COMPLETE ✅
+
+**Goal**: Add animated mobile splash screen and full marketing landing page to complete MVP user experience.
+
+---
+
+#### ✅ Mobile Animated Splash Screen
+
+**Files Created:**
+- `apps/mobile/src/components/splash/AnimatedSplash.tsx` - Full-screen animated splash component
+- `apps/mobile/src/components/splash/VlossomSplashIcon.tsx` - Cream icon on purple background
+- `apps/mobile/src/components/splash/index.ts` - Barrel export
+- `apps/mobile/src/hooks/useAnimatedSplash.ts` - Animation orchestration hook
+- `apps/mobile/src/hooks/useReducedMotion.ts` - Accessibility check for reduced motion
+
+**Files Modified:**
+- `apps/mobile/app/_layout.tsx` - Integrated AnimatedSplash after native splash hides
+- `apps/mobile/src/hooks/index.ts` - Export new hooks
+
+**Animation Sequence (1s total):**
+- 0-300ms: Fade in + scale (0.8 → 1.0) with unfold easing
+- 300-600ms: Subtle breathe pulse (1.0 → 1.02 → 1.0)
+- 600-1000ms: Hold, then fade out to app
+
+**Features:**
+- Uses `react-native-reanimated` for performant animations
+- Respects `prefers-reduced-motion` (skip scale, use fade only)
+- Background: `#311E6B` (brand purple)
+- Icon: Vlossom cream icon SVG
+
+---
+
+#### ✅ Web Marketing Landing Page
+
+**Files Created:**
+- `apps/web/components/landing/index.ts` - Barrel export
+- `apps/web/components/landing/LandingNavbar.tsx` - Fixed nav with glass effect on scroll
+- `apps/web/components/landing/HeroSection.tsx` - Full-height hero with CTAs
+- `apps/web/components/landing/HowItWorksSection.tsx` - 3-step process (Discover → Book → Blossom)
+- `apps/web/components/landing/ForCustomersSection.tsx` - Customer value props
+- `apps/web/components/landing/ForStylistsSection.tsx` - Stylist value props
+- `apps/web/components/landing/ForOwnersSection.tsx` - Property owner value props
+- `apps/web/components/landing/CTASection.tsx` - Final conversion banner
+- `apps/web/components/landing/LandingFooter.tsx` - Multi-column footer with links
+- `apps/web/components/landing/FeatureCard.tsx` - Reusable feature card component
+- `apps/web/components/landing/AnimatedSection.tsx` - Scroll-triggered animations
+
+**Files Modified:**
+- `apps/web/app/page.tsx` - Replaced with composed landing page
+- `apps/web/package.json` - Added `react-intersection-observer`
+
+**Page Structure:**
+```
+┌─────────────────────────────────────────┐
+│ NAVBAR: Logo | Links | Login            │
+├─────────────────────────────────────────┤
+│ HERO: "Where You Blossom"               │
+│ [Launch App] [Book] [Offer Services]    │
+├─────────────────────────────────────────┤
+│ HOW IT WORKS: Discover → Book → Blossom │
+├─────────────────────────────────────────┤
+│ FOR CUSTOMERS: Value props              │
+├─────────────────────────────────────────┤
+│ FOR STYLISTS: Value props               │
+├─────────────────────────────────────────┤
+│ FOR SALON OWNERS: Value props           │
+├─────────────────────────────────────────┤
+│ CTA: "Ready to blossom?" [Launch App]   │
+├─────────────────────────────────────────┤
+│ FOOTER: Links | Social | Legal          │
+└─────────────────────────────────────────┘
+```
+
+**CTA Routing:**
+| Button | Destination |
+|--------|-------------|
+| "Launch App" (primary) | `/onboarding` |
+| "Book Appointment" | `/search` |
+| "Offer Services" | `/onboarding?role=stylist` |
+
+**Design:**
+- Orange "Launch App" CTA using sacred orange (#FF510D) for growth/celebration
+- Scroll animations: `unfold` for hero, `settle` for scroll reveals
+- Typography: Playfair Display headlines, Inter body
+
+---
+
+#### Files Summary (V7.5.0)
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| Mobile Splash | 3 | AnimatedSplash, VlossomSplashIcon, index |
+| Mobile Hooks | 2 | useAnimatedSplash, useReducedMotion |
+| Mobile Layout | 1 | _layout.tsx integration |
+| Web Landing | 11 | All landing page components |
+| Web Config | 1 | package.json (intersection-observer) |
+
+**Total:** 18+ files created/modified
+
+---
+
+## [7.4.0] - 2025-12-27
+
+### V7.4.0: Motion System Implementation - COMPLETE ✅
+
+**Goal**: Activate the Vlossom motion system (unfold/breathe/settle) across core UI components.
+
+---
+
+#### ✅ Web Tailwind Motion Keyframes
+
+**Files Modified:**
+- `apps/web/tailwind.config.js` - Added motion keyframes
+
+**Keyframes Added:**
+- `unfold` - Organic reveal like petal opening (scale 0.95→1, opacity 0→1)
+- `settle` - Gentle ease into place (translateY 8px→0, opacity 0→1)
+- `breathe` - Subtle scale pulse (1→1.02→1)
+- `petalOpen` - Complex petal unfurling animation
+
+**Animation Classes:**
+- `animate-unfold` - 300ms unfold easing
+- `animate-settle` - 200ms settle easing
+- `animate-breathe` - 2s infinite breathing
+
+---
+
+#### ✅ Component Motion Integration
+
+**Dialog (apps/web/components/ui/dialog.tsx):**
+- Uses `animate-unfold` for organic petal-opening reveal
+- Applied to DialogContent component
+
+**Card (apps/web/components/ui/card.tsx):**
+- Supports optional `animate` prop for settle animation
+- `animate={true}` adds `animate-settle` class
+
+**EmptyState (apps/web/components/ui/empty-state.tsx):**
+- Uses `animate-settle` on mount
+- Provides gentle entry for empty state illustrations
+
+**BookingSuccess (apps/web/components/booking/booking-success.tsx):**
+- Uses `animate-unfold` for main success content
+- Staggered `animate-settle` for detail items
+- Creates celebration flow for booking confirmation
+
+---
+
+#### ✅ Mobile Motion Integration
+
+**Card (apps/mobile/src/components/ui/Card.tsx):**
+- Integrates `useSettleMotion` hook
+- Animated.View with settle transform
+
+**EmptyState (apps/mobile/src/components/ui/EmptyState.tsx):**
+- Uses settle animation via Animated.View
+- Matches web empty state motion
+
+---
+
+#### ✅ Reduced Motion Support
+
+All animations respect `prefers-reduced-motion`:
+- Web: CSS `@media (prefers-reduced-motion: reduce)` disables animations
+- Mobile: `useReducedMotion` hook checks accessibility settings
+- Graceful degradation to instant transitions
+
+---
+
+#### Files Summary (V7.4.0)
+
+| Category | Files | Description |
+|----------|-------|-------------|
+| Web Config | 1 | tailwind.config.js keyframes |
+| Web Components | 4 | dialog, card, empty-state, booking-success |
+| Mobile Components | 2 | Card, EmptyState |
+
+**Total:** 7 files modified
+
+---
+
 ## [7.3.0] - 2025-12-27
 
 ### V7.3.0: Production Readiness - COMPLETE ✅
