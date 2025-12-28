@@ -4,8 +4,11 @@
  *
  * Routes:
  * GET    /api/v1/admin/defi/stats         - Get DeFi statistics
+ * GET    /api/v1/admin/defi/config        - Get current DeFi configuration
  * PUT    /api/v1/admin/defi/apy-params    - Update APY parameters
  * PUT    /api/v1/admin/defi/fee-split     - Update fee split configuration
+ * GET    /api/v1/admin/defi/treasury      - Get treasury address
+ * PUT    /api/v1/admin/defi/treasury      - Update treasury address
  * POST   /api/v1/admin/defi/pools/:id/pause   - Pause a pool
  * POST   /api/v1/admin/defi/pools/:id/unpause - Unpause a pool
  * POST   /api/v1/admin/defi/emergency/pause-all   - Pause all pools
@@ -180,6 +183,10 @@ const feeSplitSchema = z.object({
   { message: "Fee split must total 100%" }
 );
 
+const treasuryAddressSchema = z.object({
+  address: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address"),
+});
+
 /**
  * PUT /fee-split
  * Update fee distribution configuration
@@ -209,6 +216,90 @@ router.put("/fee-split", async (req: Request, res: Response, next: NextFunction)
       success: true,
       message: "Fee split updated",
       data: { split },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return next(createError("VALIDATION_ERROR", error.message));
+    }
+    next(error);
+  }
+});
+
+// ============================================================================
+// Treasury Address Configuration
+// ============================================================================
+
+/**
+ * GET /treasury
+ * Get current treasury address configuration
+ */
+router.get("/treasury", async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const treasuryConfig = await prisma.systemConfig.findUnique({
+      where: { key: "treasury_address" },
+    });
+
+    // Fall back to environment variable if not in database
+    const address = treasuryConfig?.value || process.env.TREASURY_ADDRESS || null;
+
+    res.json({
+      success: true,
+      data: {
+        address,
+        source: treasuryConfig ? "database" : (process.env.TREASURY_ADDRESS ? "environment" : "not_configured"),
+        updatedAt: treasuryConfig?.updatedAt || null,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * PUT /treasury
+ * Update treasury address
+ * WARNING: This affects where platform fees are sent. Double-check the address!
+ */
+router.put("/treasury", async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { address } = treasuryAddressSchema.parse(req.body);
+    const userId = (req as AuthenticatedRequest).userId;
+
+    // Get current address for audit log
+    const currentConfig = await prisma.systemConfig.findUnique({
+      where: { key: "treasury_address" },
+    });
+    const previousAddress = currentConfig?.value || process.env.TREASURY_ADDRESS || "not_set";
+
+    // Update treasury address in database
+    await prisma.systemConfig.upsert({
+      where: { key: "treasury_address" },
+      update: {
+        value: address,
+        updatedAt: new Date(),
+      },
+      create: {
+        key: "treasury_address",
+        value: address,
+      },
+    });
+
+    // Log this critical change
+    logger.warn("CRITICAL: Treasury address updated", {
+      userId,
+      previousAddress,
+      newAddress: address,
+      timestamp: new Date().toISOString(),
+    });
+
+    res.json({
+      success: true,
+      message: "Treasury address updated",
+      data: {
+        address,
+        previousAddress,
+        warning: "Verify this address is correct. Platform fees will now be sent to this address.",
+      },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
