@@ -1,9 +1,10 @@
 [build]
-builder = "dockerfile"
-dockerfilePath = "services/api/Dockerfile"
+builder = "railpack"
+buildCommand = "cd services/api && npx prisma generate && node build.mjs"
+watchPatterns = ["services/api/**", "packages/types/**"]
 
 [deploy]
-startCommand = "node dist/index.js"
+startCommand = "cd services/api && node dist/index.js"
 healthcheckPath = "/api/health"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
