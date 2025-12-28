@@ -4,7 +4,11 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitAny": false,
-    "strict": false
+    "strict": false,
+    "skipLibCheck": true,
+    "noEmit": false,
+    "declaration": false,
+    "declarationMap": false
   },
   "exclude": [
     "node_modules",
