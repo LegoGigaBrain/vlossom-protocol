@@ -17,10 +17,10 @@ COPY services/api/package.json ./services/api/
 # Install all dependencies (need to update lockfile for new esbuild dep)
 RUN pnpm install --no-frozen-lockfile
 
-# Copy Prisma schema and generate client
+# Copy Prisma schema and generate client (pin to v5 to match package.json)
 COPY services/api/prisma ./services/api/prisma
 WORKDIR /app/services/api
-RUN npx prisma generate
+RUN npx prisma@5.7.0 generate
 
 # Copy source files and build script
 WORKDIR /app
@@ -53,9 +53,9 @@ COPY --from=builder /app/services/api/prisma ./services/api/prisma
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile=false
 
-# Generate Prisma client for Alpine
+# Generate Prisma client for Alpine (pin to v5 to match package.json)
 WORKDIR /app/services/api
-RUN npx prisma generate
+RUN npx prisma@5.7.0 generate
 
 EXPOSE 3002
 
