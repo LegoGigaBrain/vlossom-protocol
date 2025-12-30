@@ -35,7 +35,7 @@ export default function EditProfileScreen() {
   const { colors, spacing, borderRadius } = useTheme();
 
   const user = useAuthStore(selectUser);
-  const { updateProfile, updateProfileLoading, updateProfileError } = useAuthStore();
+  const { updateProfile, updateLoading, updateError } = useAuthStore();
 
   const [formData, setFormData] = useState({
     displayName: '',
@@ -96,7 +96,7 @@ export default function EditProfileScreen() {
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error) {
-      Alert.alert('Error', updateProfileError || 'Failed to update profile. Please try again.');
+      Alert.alert('Error', updateError || 'Failed to update profile. Please try again.');
     }
   };
 
@@ -316,7 +316,7 @@ export default function EditProfileScreen() {
             variant="primary"
             fullWidth
             onPress={handleSave}
-            loading={updateProfileLoading}
+            loading={updateLoading}
           />
         </View>
       </View>

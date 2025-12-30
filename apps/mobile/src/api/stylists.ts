@@ -254,7 +254,7 @@ export async function declineBookingRequest(
 ): Promise<void> {
   return apiRequest(`/api/v1/bookings/${requestId}/decline`, {
     method: 'POST',
-    body: JSON.stringify({ reason }),
+    body: { reason },
   });
 }
 

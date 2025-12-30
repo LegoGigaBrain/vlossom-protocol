@@ -658,11 +658,12 @@ function SettingsRow({ icon, title, subtitle, rightElement, onPress, colors, spa
       </View>
       {rightElement || (
         onPress && (
-          <VlossomBackIcon
-            size={16}
-            color={colors.text.muted}
-            style={{ transform: [{ rotate: '180deg' }] }}
-          />
+          <View style={{ transform: [{ rotate: '180deg' }] }}>
+            <VlossomBackIcon
+              size={16}
+              color={colors.text.muted}
+            />
+          </View>
         )
       )}
     </View>

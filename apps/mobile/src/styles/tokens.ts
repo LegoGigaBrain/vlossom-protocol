@@ -28,6 +28,7 @@ export const colors = {
     cream: '#EFE3D0',
     green: '#A9D326',
     rose: '#311E6B', // Maps to primary purple
+    roseLight: '#ADA5C4', // Lighter shade of rose/purple
     clay: '#241552', // Darker shade for hover
   },
 
@@ -49,6 +50,7 @@ export const colors = {
     tertiary: '#9CA3AF',
     muted: '#B8B8B8',
     inverse: '#FFFFFF',
+    disabled: '#B8B8B8',
   },
 
   // Status
@@ -74,6 +76,7 @@ export const colors = {
   border: {
     default: '#E5E5E5',
     subtle: '#F0F0F0',
+    light: '#F5F5F5',
   },
 
   // Dark Mode
@@ -122,8 +125,10 @@ export const typography = {
     h1: 32,
     h2: 24,
     h3: 20,
+    h4: 18,
     xl: 20,
     xxl: 24,
+    lg: 18,
     body: 16,
     base: 16,
     bodySmall: 14,
@@ -164,6 +169,7 @@ export const spacing = {
   md: 12,
   lg: 16,
   xl: 24,
+  xxl: 96,
   '2xl': 32,
   '3xl': 48,
   '4xl': 64,
@@ -179,6 +185,7 @@ export const borderRadius = {
   lg: 16,
   xl: 24,
   pill: 999,
+  full: 999, // Alias for pill
   circle: 9999,
 } as const;
 
@@ -196,6 +203,20 @@ export const shadows = {
     shadowOpacity: 0.04,
     shadowRadius: 16,
     elevation: 2,
+  },
+  medium: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 24,
+    elevation: 4,
   },
   card: {
     shadowColor: '#000',

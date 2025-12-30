@@ -48,10 +48,11 @@ interface CalendarSummary {
 
 // V7.1 Full Calendar Types
 export type CalendarViewMode = 'month' | 'week' | 'day';
+export type CalendarEventType = 'WASH_DAY' | 'DEEP_CONDITION' | 'TRIM' | 'TREATMENT' | 'PROTECTIVE_STYLE';
 
 export interface CalendarEventFull {
   id: string;
-  type: string;
+  type: CalendarEventType;
   title: string;
   description: string;
   date: string; // ISO date (YYYY-MM-DD)
@@ -336,15 +337,15 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
       const mockSummary = getMockCalendarSummary();
       set({
         calendarSummary: {
-          nextRitual: mockSummary.nextRitual as UpcomingRitual | null,
-          thisWeekLoad: mockSummary.weeklyLoadPercent,
+          nextRitual: mockSummary.nextRitual as unknown as UpcomingRitual | null,
+          thisWeekLoad: mockSummary.weeklyLoadPercent ?? 0,
           maxWeekLoad: 100,
           overdueCount: mockSummary.overdueCount,
-          completedThisWeek: mockSummary.completedThisWeek,
+          completedThisWeek: mockSummary.completedThisWeek ?? 0,
           streakDays: mockSummary.streakDays,
         },
         calendarLoading: false,
-        hasCalendarEvents: mockSummary.nextRitual !== null || mockSummary.completedThisWeek > 0,
+        hasCalendarEvents: mockSummary.nextRitual !== null || (mockSummary.completedThisWeek ?? 0) > 0,
       });
       return;
     }
@@ -381,12 +382,14 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
         return !e.isCompleted && !e.isSkipped && eventDate >= today && eventDate <= endDate;
       }).map((e) => ({
         id: e.id,
-        ritualType: e.type,
         name: e.title,
-        description: e.description,
         scheduledStart: `${e.date}T${e.time}:00`,
-        durationMinutes: e.durationMinutes,
+        scheduledEnd: `${e.date}T${e.time}:00`, // Same as start for now
         loadLevel: e.loadLevel,
+        eventType: e.type,
+        status: 'SCHEDULED',
+        isOverdue: false,
+        daysUntil: Math.floor((new Date(e.date).getTime() - today.getTime()) / (24 * 60 * 60 * 1000)),
       })) as UpcomingRitual[];
 
       set({
@@ -482,13 +485,13 @@ export const useHairHealthStore = create<HairHealthState>((set, get) => ({
 
       const events: CalendarEventFull[] = data.rituals.map((r) => ({
         id: r.id,
-        type: r.ritualType || 'RITUAL',
+        type: (r.eventType || 'WASH_DAY') as CalendarEventType,
         title: r.name,
-        description: r.description || '',
+        description: '', // UpcomingRitual doesn't have description
         date: r.scheduledStart.split('T')[0],
         time: r.scheduledStart.split('T')[1]?.slice(0, 5) || '09:00',
-        durationMinutes: r.durationMinutes || 60,
-        loadLevel: r.loadLevel,
+        durationMinutes: 60, // Default duration, UpcomingRitual doesn't have this
+        loadLevel: r.loadLevel as 'LIGHT' | 'HEAVY' | 'STANDARD',
         isCompleted: false,
         isSkipped: false,
       }));

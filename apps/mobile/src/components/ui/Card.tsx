@@ -7,7 +7,7 @@
  * Motion: Supports "settle" animation for gentle arrival into place.
  */
 
-import { View, Pressable, StyleSheet, ViewStyle, Animated } from 'react-native';
+import { View, Pressable, StyleSheet, ViewStyle, Animated, AccessibilityRole } from 'react-native';
 import { useTheme } from '../../styles/theme';
 import { useSettleMotion } from '../../hooks/useMotion';
 
@@ -25,6 +25,13 @@ export interface CardProps {
    * Use for cards that appear dynamically (search results, new items)
    */
   animate?: boolean;
+  /**
+   * Accessibility props
+   */
+  accessible?: boolean;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export function Card({
@@ -35,6 +42,10 @@ export function Card({
   style,
   contentStyle,
   animate = false,
+  accessible,
+  accessibilityRole,
+  accessibilityLabel,
+  accessibilityHint,
 }: CardProps) {
   const { colors, spacing, borderRadius, shadows } = useTheme();
   const { style: settleStyle } = useSettleMotion({ autoPlay: animate });
@@ -74,6 +85,13 @@ export function Card({
     contentStyle,
   ];
 
+  const accessibilityProps = {
+    accessible,
+    accessibilityRole,
+    accessibilityLabel,
+    accessibilityHint,
+  };
+
   // When animation is enabled, wrap in Animated.View
   if (animate) {
     if (onPress) {
@@ -86,6 +104,7 @@ export function Card({
               ...cardStyles,
               pressed && !disabled && styles.pressed,
             ]}
+            {...accessibilityProps}
           >
             <View style={innerContentStyle}>{children}</View>
           </Pressable>
@@ -94,7 +113,7 @@ export function Card({
     }
 
     return (
-      <Animated.View style={[cardStyles, settleStyle]}>
+      <Animated.View style={[cardStyles, settleStyle]} {...accessibilityProps}>
         <View style={innerContentStyle}>{children}</View>
       </Animated.View>
     );
@@ -110,6 +129,7 @@ export function Card({
           ...cardStyles,
           pressed && !disabled && styles.pressed,
         ]}
+        {...accessibilityProps}
       >
         <View style={innerContentStyle}>{children}</View>
       </Pressable>
@@ -117,7 +137,7 @@ export function Card({
   }
 
   return (
-    <View style={cardStyles}>
+    <View style={cardStyles} {...accessibilityProps}>
       <View style={innerContentStyle}>{children}</View>
     </View>
   );

@@ -207,7 +207,7 @@ export function SessionTracker({
         shadows.soft,
         style,
       ]}
-      accessibilityRole="region"
+      accessibilityRole="none"
       accessibilityLabel="Session progress"
     >
       {/* Connection Status Banner */}

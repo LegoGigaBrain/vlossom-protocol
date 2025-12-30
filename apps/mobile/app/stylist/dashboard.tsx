@@ -320,7 +320,6 @@ export default function StylistDashboardScreen() {
                   variant="outlined"
                   style={{ marginTop: spacing.sm }}
                   accessible
-                  accessibilityRole="listitem"
                   accessibilityLabel={`Booking request from ${request.customerName} for ${request.serviceName} on ${new Date(request.requestedDate).toLocaleDateString('en-ZA', { weekday: 'short', month: 'short', day: 'numeric' })} at ${request.requestedTime}. Price: ${formatPrice(parseInt(request.priceAmountCents))}`}
                 >
                   <View style={styles.requestCard} aria-hidden>

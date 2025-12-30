@@ -149,11 +149,12 @@ export default function RevenueScreen() {
             </Text>
             {monthChange !== 0 && (
               <View style={styles.changeRow}>
-                <VlossomGrowingIcon
-                  size={12}
-                  color={monthChange > 0 ? colors.status.success : colors.status.error}
-                  style={monthChange < 0 ? { transform: [{ rotate: '180deg' }] } : undefined}
-                />
+                <View style={monthChange < 0 ? { transform: [{ rotate: '180deg' }] } : undefined}>
+                  <VlossomGrowingIcon
+                    size={12}
+                    color={monthChange > 0 ? colors.status.success : colors.status.error}
+                  />
+                </View>
                 <Text
                   style={[
                     textStyles.caption,
@@ -311,7 +312,6 @@ export default function RevenueScreen() {
                       { borderBottomColor: colors.border.default },
                     ]}
                     accessible
-                    accessibilityRole="listitem"
                     accessibilityLabel={`${txDescription}, ${isIncome ? 'income' : 'payout'} ${formatPrice(tx.amountCents || 0)}, ${formatDate(tx.createdAt)}, ${tx.status.toLowerCase()}`}
                   >
                     <View

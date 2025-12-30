@@ -617,16 +617,17 @@ export const MOCK_TRANSACTIONS: Transaction[] = [
 // Mock Availability Slots - For Booking Flow
 // ============================================================================
 
+// AvailabilitySlot type from API: { time: string; available: boolean }
 export const MOCK_AVAILABILITY_SLOTS = [
-  { startTime: '09:00', endTime: '10:00', available: true },
-  { startTime: '10:00', endTime: '11:00', available: true },
-  { startTime: '11:00', endTime: '12:00', available: false },
-  { startTime: '12:00', endTime: '13:00', available: true },
-  { startTime: '13:00', endTime: '14:00', available: true },
-  { startTime: '14:00', endTime: '15:00', available: true },
-  { startTime: '15:00', endTime: '16:00', available: false },
-  { startTime: '16:00', endTime: '17:00', available: true },
-  { startTime: '17:00', endTime: '18:00', available: true },
+  { time: '09:00', available: true },
+  { time: '10:00', available: true },
+  { time: '11:00', available: false },
+  { time: '12:00', available: true },
+  { time: '13:00', available: true },
+  { time: '14:00', available: true },
+  { time: '15:00', available: false },
+  { time: '16:00', available: true },
+  { time: '17:00', available: true },
 ];
 
 // ============================================================================
@@ -684,3 +685,982 @@ export function getAvailableMockBalance(): number {
 
   return parseFloat(MOCK_WALLET.balance.usdc) - pendingPayments;
 }
+
+// ============================================================================
+// Hair Health Mock Data
+// ============================================================================
+
+export type HairHealthStatus = 'EXCELLENT' | 'GOOD' | 'FAIR' | 'NEEDS_CARE';
+
+export interface HairProfile {
+  id: string;
+  status: HairHealthStatus;
+  healthScore: number; // 0-100
+  hairType: string;
+  porosity: 'LOW' | 'NORMAL' | 'HIGH';
+  lastWashDate: string;
+  lastDeepCondition: string;
+  nextRitualDate: string;
+  streakDays: number;
+  overdueCount: number;
+}
+
+export const MOCK_HAIR_PROFILE: HairProfile = {
+  id: 'mock-hair-profile-1',
+  status: 'GOOD',
+  healthScore: 78,
+  hairType: '4C Natural',
+  porosity: 'HIGH',
+  lastWashDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+  lastDeepCondition: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+  nextRitualDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days from now
+  streakDays: 14,
+  overdueCount: 0,
+};
+
+export interface CalendarEvent {
+  id: string;
+  type: 'WASH_DAY' | 'DEEP_CONDITION' | 'TRIM' | 'TREATMENT' | 'PROTECTIVE_STYLE';
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  durationMinutes: number;
+  loadLevel: 'LIGHT' | 'STANDARD' | 'HEAVY';
+  isCompleted: boolean;
+  isSkipped: boolean;
+}
+
+const calendarNow = new Date();
+const getDateString = (daysFromNow: number) => {
+  const d = new Date(calendarNow);
+  d.setDate(d.getDate() + daysFromNow);
+  return d.toISOString().split('T')[0];
+};
+
+export const MOCK_CALENDAR_EVENTS: CalendarEvent[] = [
+  {
+    id: 'cal-1',
+    type: 'WASH_DAY',
+    title: 'Wash Day',
+    description: 'Weekly hair wash routine',
+    date: getDateString(-3),
+    time: '09:00',
+    durationMinutes: 60,
+    loadLevel: 'STANDARD',
+    isCompleted: true,
+    isSkipped: false,
+  },
+  {
+    id: 'cal-2',
+    type: 'DEEP_CONDITION',
+    title: 'Deep Conditioning',
+    description: 'Intensive moisture treatment',
+    date: getDateString(4),
+    time: '10:00',
+    durationMinutes: 45,
+    loadLevel: 'LIGHT',
+    isCompleted: false,
+    isSkipped: false,
+  },
+  {
+    id: 'cal-3',
+    type: 'WASH_DAY',
+    title: 'Wash Day',
+    description: 'Weekly hair wash routine',
+    date: getDateString(4),
+    time: '09:00',
+    durationMinutes: 60,
+    loadLevel: 'STANDARD',
+    isCompleted: false,
+    isSkipped: false,
+  },
+  {
+    id: 'cal-4',
+    type: 'TREATMENT',
+    title: 'Protein Treatment',
+    description: 'Monthly protein boost',
+    date: getDateString(14),
+    time: '11:00',
+    durationMinutes: 90,
+    loadLevel: 'HEAVY',
+    isCompleted: false,
+    isSkipped: false,
+  },
+  {
+    id: 'cal-5',
+    type: 'TRIM',
+    title: 'Trim Ends',
+    description: 'Quarterly trim for healthy ends',
+    date: getDateString(30),
+    time: '14:00',
+    durationMinutes: 30,
+    loadLevel: 'LIGHT',
+    isCompleted: false,
+    isSkipped: false,
+  },
+];
+
+export interface CalendarSummary {
+  nextRitual: {
+    type: string;
+    title: string;
+    date: string;
+    daysUntil: number;
+    isOverdue?: boolean;
+  } | null;
+  streakDays: number;
+  overdueCount: number;
+  completedThisMonth: number;
+  completedThisWeek?: number;
+  upcomingThisWeek: number;
+  weeklyLoadPercent?: number;
+}
+
+export function getMockCalendarSummary(): CalendarSummary {
+  const now = new Date();
+  const upcoming = MOCK_CALENDAR_EVENTS.filter(
+    (e) => !e.isCompleted && new Date(e.date) > now
+  ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const nextRitual = upcoming[0];
+  const daysUntil = nextRitual
+    ? Math.ceil((new Date(nextRitual.date).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const upcomingThisWeek = upcoming.filter((e) => new Date(e.date) <= weekFromNow).length;
+
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const completedThisMonth = MOCK_CALENDAR_EVENTS.filter(
+    (e) => e.isCompleted && new Date(e.date) >= monthStart
+  ).length;
+
+  return {
+    nextRitual: nextRitual
+      ? {
+          type: nextRitual.type,
+          title: nextRitual.title,
+          date: nextRitual.date,
+          daysUntil,
+          isOverdue: daysUntil < 0,
+        }
+      : null,
+    streakDays: MOCK_HAIR_PROFILE.streakDays,
+    overdueCount: MOCK_HAIR_PROFILE.overdueCount,
+    completedThisMonth,
+    upcomingThisWeek,
+  };
+}
+
+// ============================================================================
+// DeFi Mock Data
+// ============================================================================
+
+export interface DefiPool {
+  id: string;
+  name: string;
+  apy: number;
+  tvl: string;
+  tvlUsd: number;
+  minDeposit: number;
+  lockPeriodDays: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  description: string;
+  userStake: string;
+  userStakeUsd: number;
+  token: string;
+  rewardToken: string;
+  isActive: boolean;
+  maxDeposit: number | null;
+  pendingRewards: string;
+  // API-compatible fields
+  minStake: string;
+  maxStake: string;
+  tier: 'GENESIS' | 'TIER_1' | 'TIER_2' | 'TIER_3';
+}
+
+export interface DefiEarning {
+  id: string;
+  poolId: string;
+  poolName: string;
+  amount: string;
+  amountUsd: number;
+  period: string;
+  earnedAt: string;
+}
+
+export interface DefiState {
+  totalStaked: string;
+  totalStakedUsd: number;
+  totalEarnings: string;
+  totalEarningsUsd: number;
+  currentApy: number;
+}
+
+export const MOCK_DEFI_STATE: DefiState = {
+  totalStaked: '500.00',
+  totalStakedUsd: 500,
+  totalEarnings: '12.50',
+  totalEarningsUsd: 12.50,
+  currentApy: 8.5,
+};
+
+export const MOCK_DEFI_POOLS: DefiPool[] = [
+  {
+    id: 'pool-1',
+    name: 'USDC Stable Pool',
+    description: 'Low risk stable coin staking pool',
+    apy: 5.2,
+    tvl: '1250000',
+    tvlUsd: 1250000,
+    minDeposit: 10,
+    maxDeposit: null,
+    lockPeriodDays: 0,
+    riskLevel: 'LOW',
+    userStake: '200.00',
+    userStakeUsd: 200,
+    token: 'USDC',
+    rewardToken: 'USDC',
+    isActive: true,
+    pendingRewards: '3.25',
+    minStake: '10',
+    maxStake: '100000',
+    tier: 'TIER_1',
+  },
+  {
+    id: 'pool-2',
+    name: 'Beauty Liquidity Pool',
+    description: 'Medium risk beauty protocol liquidity',
+    apy: 12.8,
+    tvl: '450000',
+    tvlUsd: 450000,
+    minDeposit: 50,
+    maxDeposit: null,
+    lockPeriodDays: 30,
+    riskLevel: 'MEDIUM',
+    userStake: '300.00',
+    userStakeUsd: 300,
+    token: 'USDC',
+    rewardToken: 'VLSM',
+    isActive: true,
+    pendingRewards: '8.75',
+    minStake: '50',
+    maxStake: '50000',
+    tier: 'TIER_2',
+  },
+  {
+    id: 'pool-3',
+    name: 'Vlossom Governance Pool',
+    description: 'High APY governance staking',
+    apy: 18.5,
+    tvl: '180000',
+    tvlUsd: 180000,
+    minDeposit: 100,
+    maxDeposit: 10000,
+    lockPeriodDays: 90,
+    riskLevel: 'HIGH',
+    userStake: '0',
+    userStakeUsd: 0,
+    token: 'VLSM',
+    rewardToken: 'VLSM',
+    isActive: true,
+    pendingRewards: '0',
+    minStake: '100',
+    maxStake: '10000',
+    tier: 'GENESIS',
+  },
+];
+
+export const MOCK_DEFI_EARNINGS: DefiEarning[] = [
+  {
+    id: 'earn-1',
+    poolId: 'pool-1',
+    poolName: 'USDC Stable Pool',
+    amount: '0.52',
+    amountUsd: 0.52,
+    period: 'weekly',
+    earnedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'earn-2',
+    poolId: 'pool-2',
+    poolName: 'Beauty Liquidity Pool',
+    amount: '1.28',
+    amountUsd: 1.28,
+    period: 'weekly',
+    earnedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+// ============================================================================
+// Property Owner Mock Data (API-compatible types)
+// ============================================================================
+
+// Chair type matching API
+export interface MockChair {
+  id: string;
+  propertyId: string;
+  name: string;
+  type: 'BRAID_CHAIR' | 'BARBER_CHAIR' | 'STYLING_STATION' | 'NAIL_STATION' | 'LASH_BED' | 'FACIAL_BED' | 'GENERAL';
+  status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'BLOCKED';
+  amenities: string[];
+  hourlyRateCents: number | null;
+  dailyRateCents: number | null;
+  weeklyRateCents: number | null;
+  monthlyRateCents: number | null;
+  perBookingFeeCents: number | null;
+  rentalModesEnabled: ('PER_BOOKING' | 'PER_HOUR' | 'PER_DAY' | 'PER_WEEK' | 'PER_MONTH')[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Legacy fields for backward compatibility
+  number?: number;
+  currentRenter?: { id: string; displayName: string; avatarUrl: string | null } | null;
+}
+
+// Property type matching API
+export interface MockProperty {
+  id: string;
+  ownerId: string;
+  name: string;
+  category: 'LUXURY' | 'BOUTIQUE' | 'STANDARD' | 'HOME_BASED';
+  address: string;
+  city: string;
+  country: string;
+  lat: number;
+  lng: number;
+  description: string | null;
+  operatingHours: Record<string, { open: string; close: string }>;
+  approvalMode: 'FULL_APPROVAL' | 'NO_APPROVAL' | 'CONDITIONAL';
+  images: string[];
+  coverImage: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  chairs: MockChair[];
+  pendingRentalCount?: number;
+  // Legacy fields for backward compatibility
+  chairCount?: number;
+  amenities?: string[];
+  photos?: string[];
+}
+
+// RentalRequest type matching API
+export interface MockRentalRequest {
+  id: string;
+  chairId: string;
+  propertyId: string;
+  stylistId: string;
+  rentalMode: 'PER_BOOKING' | 'PER_HOUR' | 'PER_DAY' | 'PER_WEEK' | 'PER_MONTH';
+  status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
+  startTime: string;
+  endTime: string;
+  totalAmountCents: number;
+  platformFeeCents: number;
+  ownerPayoutCents: number;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  rejectionReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  chair?: { id: string; name: string; type: string };
+  stylist?: { id: string; displayName: string; avatarUrl: string | null };
+  // Legacy fields for backward compatibility
+  propertyName?: string;
+  chairNumber?: number;
+  requestedStartDate?: string;
+  requestedEndDate?: string;
+  rentalType?: 'HOURLY' | 'DAILY' | 'WEEKLY';
+  message?: string;
+}
+
+export interface PropertyOwnerStats {
+  totalProperties: number;
+  totalChairs: number;
+  occupiedChairs: number;
+  availableChairs: number;
+  pendingRequests: number;
+  occupancyRate: number;
+  // Legacy fields
+  activeRentals?: number;
+  monthlyRevenue?: number;
+}
+
+const propertyNow = new Date().toISOString();
+
+export const MOCK_PROPERTIES: MockProperty[] = [
+  {
+    id: 'prop-1',
+    ownerId: 'owner-1',
+    name: 'Rosebank Beauty Studio',
+    category: 'BOUTIQUE',
+    address: 'The Zone @ Rosebank, Johannesburg',
+    city: 'Johannesburg',
+    country: 'South Africa',
+    lat: -26.1466,
+    lng: 28.0437,
+    description: 'A stylish boutique salon in the heart of Rosebank.',
+    operatingHours: {
+      monday: { open: '09:00', close: '18:00' },
+      tuesday: { open: '09:00', close: '18:00' },
+      wednesday: { open: '09:00', close: '18:00' },
+      thursday: { open: '09:00', close: '20:00' },
+      friday: { open: '09:00', close: '20:00' },
+      saturday: { open: '09:00', close: '16:00' },
+    },
+    approvalMode: 'FULL_APPROVAL',
+    images: [],
+    coverImage: null,
+    isActive: true,
+    createdAt: propertyNow,
+    updatedAt: propertyNow,
+    chairCount: 4,
+    amenities: ['WiFi', 'Air Conditioning', 'Parking'],
+    photos: [],
+    pendingRentalCount: 2,
+    chairs: [
+      {
+        id: 'chair-1',
+        propertyId: 'prop-1',
+        name: 'Chair 1',
+        type: 'STYLING_STATION',
+        status: 'OCCUPIED',
+        amenities: ['Mirror', 'Storage'],
+        hourlyRateCents: 5000,
+        dailyRateCents: 35000,
+        weeklyRateCents: 150000,
+        monthlyRateCents: null,
+        perBookingFeeCents: null,
+        rentalModesEnabled: ['PER_HOUR', 'PER_DAY', 'PER_WEEK'],
+        isActive: true,
+        createdAt: propertyNow,
+        updatedAt: propertyNow,
+        number: 1,
+        currentRenter: { id: 'stylist-1', displayName: 'Thandi M.', avatarUrl: null },
+      },
+      {
+        id: 'chair-2',
+        propertyId: 'prop-1',
+        name: 'Chair 2',
+        type: 'BRAID_CHAIR',
+        status: 'AVAILABLE',
+        amenities: ['Mirror', 'Storage', 'Sink'],
+        hourlyRateCents: 6000,
+        dailyRateCents: 40000,
+        weeklyRateCents: 175000,
+        monthlyRateCents: null,
+        perBookingFeeCents: null,
+        rentalModesEnabled: ['PER_HOUR', 'PER_DAY', 'PER_WEEK'],
+        isActive: true,
+        createdAt: propertyNow,
+        updatedAt: propertyNow,
+        number: 2,
+        currentRenter: null,
+      },
+      {
+        id: 'chair-3',
+        propertyId: 'prop-1',
+        name: 'Chair 3',
+        type: 'STYLING_STATION',
+        status: 'OCCUPIED',
+        amenities: ['Mirror'],
+        hourlyRateCents: 5000,
+        dailyRateCents: 35000,
+        weeklyRateCents: null,
+        monthlyRateCents: null,
+        perBookingFeeCents: null,
+        rentalModesEnabled: ['PER_HOUR', 'PER_DAY'],
+        isActive: true,
+        createdAt: propertyNow,
+        updatedAt: propertyNow,
+        number: 3,
+        currentRenter: { id: 'stylist-2', displayName: 'Zinhle K.', avatarUrl: null },
+      },
+      {
+        id: 'chair-4',
+        propertyId: 'prop-1',
+        name: 'Chair 4',
+        type: 'BARBER_CHAIR',
+        status: 'MAINTENANCE',
+        amenities: ['Mirror', 'Clippers'],
+        hourlyRateCents: 4500,
+        dailyRateCents: 30000,
+        weeklyRateCents: null,
+        monthlyRateCents: null,
+        perBookingFeeCents: null,
+        rentalModesEnabled: ['PER_HOUR', 'PER_DAY'],
+        isActive: false,
+        createdAt: propertyNow,
+        updatedAt: propertyNow,
+        number: 4,
+        currentRenter: null,
+      },
+    ],
+  },
+  {
+    id: 'prop-2',
+    ownerId: 'owner-1',
+    name: 'Sandton Home Studio',
+    category: 'HOME_BASED',
+    address: '123 Sandton Drive, Sandton',
+    city: 'Sandton',
+    country: 'South Africa',
+    lat: -26.1076,
+    lng: 28.0567,
+    description: 'Cozy home studio with professional equipment.',
+    operatingHours: {
+      monday: { open: '10:00', close: '17:00' },
+      tuesday: { open: '10:00', close: '17:00' },
+      wednesday: { open: '10:00', close: '17:00' },
+      thursday: { open: '10:00', close: '17:00' },
+      friday: { open: '10:00', close: '17:00' },
+    },
+    approvalMode: 'FULL_APPROVAL',
+    images: [],
+    coverImage: null,
+    isActive: true,
+    createdAt: propertyNow,
+    updatedAt: propertyNow,
+    chairCount: 2,
+    amenities: ['WiFi', 'Parking'],
+    photos: [],
+    pendingRentalCount: 0,
+    chairs: [
+      {
+        id: 'chair-5',
+        propertyId: 'prop-2',
+        name: 'Main Station',
+        type: 'STYLING_STATION',
+        status: 'OCCUPIED',
+        amenities: ['Mirror', 'Storage'],
+        hourlyRateCents: 4000,
+        dailyRateCents: 25000,
+        weeklyRateCents: 100000,
+        monthlyRateCents: null,
+        perBookingFeeCents: null,
+        rentalModesEnabled: ['PER_HOUR', 'PER_DAY', 'PER_WEEK'],
+        isActive: true,
+        createdAt: propertyNow,
+        updatedAt: propertyNow,
+        number: 1,
+        currentRenter: { id: 'stylist-3', displayName: 'Naledi P.', avatarUrl: null },
+      },
+      {
+        id: 'chair-6',
+        propertyId: 'prop-2',
+        name: 'Secondary Station',
+        type: 'GENERAL',
+        status: 'AVAILABLE',
+        amenities: ['Mirror'],
+        hourlyRateCents: 3500,
+        dailyRateCents: 22000,
+        weeklyRateCents: null,
+        monthlyRateCents: null,
+        perBookingFeeCents: null,
+        rentalModesEnabled: ['PER_HOUR', 'PER_DAY'],
+        isActive: true,
+        createdAt: propertyNow,
+        updatedAt: propertyNow,
+        number: 2,
+        currentRenter: null,
+      },
+    ],
+  },
+];
+
+export const MOCK_RENTAL_REQUESTS: MockRentalRequest[] = [
+  {
+    id: 'req-1',
+    chairId: 'chair-2',
+    propertyId: 'prop-1',
+    stylistId: 'stylist-4',
+    rentalMode: 'PER_DAY',
+    status: 'PENDING_APPROVAL',
+    startTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
+    totalAmountCents: 40000,
+    platformFeeCents: 4000,
+    ownerPayoutCents: 36000,
+    approvedAt: null,
+    rejectedAt: null,
+    rejectionReason: null,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    chair: { id: 'chair-2', name: 'Chair 2', type: 'BRAID_CHAIR' },
+    stylist: { id: 'stylist-4', displayName: 'Thandi M.', avatarUrl: null },
+    propertyName: 'Rosebank Beauty Studio',
+    chairNumber: 2,
+    requestedStartDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    requestedEndDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
+    rentalType: 'DAILY',
+    message: 'Would love to rent a chair for a client appointment on Saturday.',
+  },
+  {
+    id: 'req-2',
+    chairId: 'chair-2',
+    propertyId: 'prop-1',
+    stylistId: 'stylist-5',
+    rentalMode: 'PER_DAY',
+    status: 'PENDING_APPROVAL',
+    startTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(),
+    totalAmountCents: 40000,
+    platformFeeCents: 4000,
+    ownerPayoutCents: 36000,
+    approvedAt: null,
+    rejectedAt: null,
+    rejectionReason: null,
+    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+    chair: { id: 'chair-2', name: 'Chair 2', type: 'BRAID_CHAIR' },
+    stylist: { id: 'stylist-5', displayName: 'Zinhle K.', avatarUrl: null },
+    propertyName: 'Rosebank Beauty Studio',
+    chairNumber: 2,
+    requestedStartDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    requestedEndDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(),
+    rentalType: 'DAILY',
+    message: 'Need a full day for multiple bookings.',
+  },
+];
+
+export const MOCK_PROPERTY_OWNER_STATS: PropertyOwnerStats = {
+  totalProperties: 2,
+  totalChairs: 6,
+  occupiedChairs: 3,
+  availableChairs: 2,
+  pendingRequests: 2,
+  occupancyRate: 50,
+  activeRentals: 3,
+  monthlyRevenue: 16500,
+};
+
+// ============================================================================
+// Rewards & Badges Mock Data (API-compatible types)
+// ============================================================================
+
+// Badge type matching API
+export interface Badge {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  iconName: string;
+  category: 'BOOKING' | 'LOYALTY' | 'QUALITY' | 'SPECIAL' | 'COMMUNITY';
+  earnedAt: string | null;
+  earned: boolean;
+  progress?: number; // 0-100
+  requirement?: string;
+  isLocked?: boolean;
+  // Legacy fields for backward compatibility
+  icon?: string;
+}
+
+// Streak type matching API
+export interface Streak {
+  id: string;
+  name: string;
+  description: string;
+  currentStreak: number;
+  longestStreak: number;
+  lastActivityDate: string;
+  isActive: boolean;
+  expiresAt: string | null;
+  reward?: string;
+  currentCount?: number;
+  targetCount?: number;
+  // Legacy fields for backward compatibility
+  lastActivityAt?: string;
+}
+
+// Achievement type matching API
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  xpReward: number;
+  earnedAt: string;
+  category: string;
+  // Legacy fields
+  name?: string;
+}
+
+// RewardsOverview matching API's full structure
+export interface RewardsOverview {
+  user: {
+    xp: number;
+    tier: 'SEED' | 'SPROUT' | 'BLOOM' | 'FLOURISH' | 'EVERGREEN';
+    tierProgress: number;
+    xpToNextTier: number;
+    totalBadges: number;
+    earnedBadges: number;
+    activeStreaks: number;
+    lifetimeAchievements: number;
+    streak: Streak | null;
+    badges: Badge[];
+  };
+  badges: Badge[];
+  streaks: Streak[];
+  recentAchievements: Achievement[];
+  tierInfo: {
+    tier: 'SEED' | 'SPROUT' | 'BLOOM' | 'FLOURISH' | 'EVERGREEN';
+    name: string;
+    minXp: number;
+    maxXp: number;
+    benefits: string[];
+    color: string;
+  };
+  nextTierInfo: {
+    tier: 'SEED' | 'SPROUT' | 'BLOOM' | 'FLOURISH' | 'EVERGREEN';
+    name: string;
+    minXp: number;
+    maxXp: number;
+    benefits: string[];
+    color: string;
+  } | null;
+  // Legacy fields for backward compatibility
+  totalXp?: number;
+  currentLevel?: number;
+  xpToNextLevel?: number;
+  badgesEarned?: number;
+  totalBadges?: number;
+  currentStreak?: number;
+}
+
+export const MOCK_BADGES: Badge[] = [
+  {
+    id: 'badge-1',
+    type: 'FIRST_BOOKING',
+    name: 'First Bloom',
+    description: 'Complete your first booking',
+    iconName: 'flower',
+    category: 'BOOKING',
+    earnedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    earned: true,
+    progress: 100,
+    requirement: 'Complete 1 booking',
+    isLocked: false,
+    icon: 'flower',
+  },
+  {
+    id: 'badge-2',
+    type: 'STREAK_7',
+    name: 'Consistent Care',
+    description: 'Maintain a 7-day streak',
+    iconName: 'calendar',
+    category: 'LOYALTY',
+    earnedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    earned: true,
+    progress: 100,
+    requirement: '7-day hair care streak',
+    isLocked: false,
+    icon: 'calendar',
+  },
+  {
+    id: 'badge-3',
+    type: 'REVIEWER_5',
+    name: 'Super Reviewer',
+    description: 'Leave 5 reviews',
+    iconName: 'star',
+    category: 'QUALITY',
+    earnedAt: null,
+    earned: false,
+    progress: 60,
+    requirement: 'Leave 5 reviews (3/5)',
+    isLocked: false,
+    icon: 'star',
+  },
+  {
+    id: 'badge-4',
+    type: 'LOYAL_CUSTOMER',
+    name: 'Loyal Customer',
+    description: 'Book with the same stylist 3 times',
+    iconName: 'heart',
+    category: 'LOYALTY',
+    earnedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+    earned: true,
+    progress: 100,
+    requirement: 'Book same stylist 3 times',
+    isLocked: false,
+    icon: 'heart',
+  },
+];
+
+export const MOCK_STREAKS: Streak[] = [
+  {
+    id: 'streak-1',
+    name: 'Hair Care',
+    description: 'Log your daily hair care routine',
+    currentStreak: 14,
+    longestStreak: 21,
+    lastActivityDate: new Date().toISOString(),
+    isActive: true,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    reward: '10 XP per day',
+    currentCount: 14,
+    targetCount: 30,
+    lastActivityAt: new Date().toISOString(),
+  },
+  {
+    id: 'streak-2',
+    name: 'Booking',
+    description: 'Book appointments regularly',
+    currentStreak: 3,
+    longestStreak: 5,
+    lastActivityDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    isActive: false,
+    expiresAt: null,
+    reward: '25 XP per booking',
+    currentCount: 3,
+    targetCount: 10,
+    lastActivityAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+export const MOCK_ACHIEVEMENTS: Achievement[] = [
+  {
+    id: 'ach-1',
+    title: 'Welcome to Vlossom',
+    name: 'Welcome to Vlossom',
+    description: 'Create your account',
+    xpReward: 50,
+    earnedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    category: 'ONBOARDING',
+  },
+  {
+    id: 'ach-2',
+    title: 'Profile Complete',
+    name: 'Profile Complete',
+    description: 'Fill out your hair profile',
+    xpReward: 100,
+    earnedAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000).toISOString(),
+    category: 'PROFILE',
+  },
+  {
+    id: 'ach-3',
+    title: 'First Appointment',
+    name: 'First Appointment',
+    description: 'Complete your first booking',
+    xpReward: 200,
+    earnedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    category: 'BOOKING',
+  },
+];
+
+export const MOCK_REWARDS_OVERVIEW: RewardsOverview = {
+  user: {
+    xp: 1250,
+    tier: 'BLOOM',
+    tierProgress: 75,
+    xpToNextTier: 750,
+    totalBadges: 12,
+    earnedBadges: 4,
+    activeStreaks: 1,
+    lifetimeAchievements: 8,
+    streak: MOCK_STREAKS[0],
+    badges: MOCK_BADGES,
+  },
+  badges: MOCK_BADGES,
+  streaks: MOCK_STREAKS,
+  recentAchievements: MOCK_ACHIEVEMENTS,
+  tierInfo: {
+    tier: 'BLOOM',
+    name: 'Bloom',
+    minXp: 500,
+    maxXp: 1999,
+    benefits: ['10% fee discount', 'VIP support', 'Early access features'],
+    color: '#FFB6C1',
+  },
+  nextTierInfo: {
+    tier: 'FLOURISH',
+    name: 'Flourish',
+    minXp: 2000,
+    maxXp: 4999,
+    benefits: ['15% fee discount', 'Dedicated support', 'Beta features'],
+    color: '#DDA0DD',
+  },
+  // Legacy fields
+  totalXp: 1250,
+  currentLevel: 5,
+  xpToNextLevel: 250,
+  badgesEarned: 4,
+  totalBadges: 12,
+  currentStreak: 14,
+};
+
+// ============================================================================
+// Stylist Dashboard Mock Data (for stylist view)
+// ============================================================================
+
+export interface StylistDashboard {
+  totalEarnings: number;
+  pendingPayouts: number;
+  completedBookings: number;
+  upcomingBookings: number;
+  averageRating: number;
+  totalReviews: number;
+}
+
+export const MOCK_STYLIST_DASHBOARD: StylistDashboard = {
+  totalEarnings: 125000, // R1,250 in cents
+  pendingPayouts: 38500,
+  completedBookings: 23,
+  upcomingBookings: 3,
+  averageRating: 4.8,
+  totalReviews: 18,
+};
+
+// ============================================================================
+// Mock User Data
+// ============================================================================
+
+// MockUser matches the API User type for consistency
+export interface MockUser {
+  id: string;
+  email: string | null;
+  displayName: string;
+  avatarUrl: string | null;
+  phone: string | null;
+  role: 'CUSTOMER' | 'STYLIST' | 'PROPERTY_OWNER';
+  roles: ('CUSTOMER' | 'STYLIST' | 'PROPERTY_OWNER')[];
+  walletAddress: string;
+  verificationStatus: 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+}
+
+export const MOCK_USER: MockUser = {
+  id: 'mock-user-self',
+  email: 'demo@vlossom.app',
+  displayName: 'Demo User',
+  avatarUrl: null,
+  phone: '+27 82 000 0000',
+  role: 'CUSTOMER',
+  roles: ['CUSTOMER'],
+  walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+  verificationStatus: 'VERIFIED',
+};
+
+// ============================================================================
+// Mock Stylist Reputation Data
+// ============================================================================
+
+export interface ReputationScoreData {
+  totalScore: number;
+  tpsScore: number;
+  reliabilityScore: number;
+  feedbackScore: number;
+  disputeScore: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  isVerified: boolean;
+}
+
+export const MOCK_STYLIST_REPUTATION: ReputationScoreData = {
+  totalScore: 8500,
+  tpsScore: 8800,
+  reliabilityScore: 8200,
+  feedbackScore: 8500,
+  disputeScore: 9000,
+  completedBookings: 32,
+  cancelledBookings: 2,
+  isVerified: true,
+};

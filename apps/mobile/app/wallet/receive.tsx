@@ -106,9 +106,9 @@ export default function ReceiveScreen() {
 
       if (result) {
         setPaymentRequest({
-          id: result.id,
-          qrCodeUrl: result.qrCodeUrl,
-          deepLink: result.deepLink,
+          id: result.id ?? '',
+          qrCodeUrl: result.qrCodeUrl ?? '',
+          deepLink: result.deepLink ?? '',
         });
       } else {
         Alert.alert('Error', 'Failed to create payment request');

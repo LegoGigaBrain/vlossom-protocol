@@ -451,7 +451,7 @@ export default function AddChairScreen() {
           </Text>
           <View
             style={styles.chipsContainer}
-            accessibilityRole="group"
+            accessible
             accessibilityLabel={`Rental modes, ${modesLabel}`}
             accessibilityLabelledBy="rental-modes-label"
           >
@@ -660,7 +660,7 @@ export default function AddChairScreen() {
         {/* Common Amenities */}
         <View
           style={styles.chipsContainer}
-          accessibilityRole="group"
+          accessible
           accessibilityLabel={`Chair amenities, ${amenitiesLabel}`}
         >
           {COMMON_AMENITIES.map((amenity) => {

@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   demoBannerText: {
-    fontFamily: typography.fontFamily.semiBold,
+    fontFamily: typography.fontFamily.semibold,
     fontSize: typography.fontSize.xs,
     color: colors.text.inverse,
     letterSpacing: 0.5,

@@ -115,17 +115,24 @@ export interface RevenueStats {
   platformFeeCents: number;
   netRevenueCents: number;
   completedRentals: number;
+  // Earnings breakdown
+  totalEarningsCents: number;
+  thisPeriodEarningsCents: number;
+  lastPeriodEarningsCents: number;
+  pendingPayoutCents: number;
 }
 
 export interface Transaction {
   id: string;
   date: string;
-  type: 'RENTAL_PAYOUT' | 'REFUND' | 'ADJUSTMENT';
+  createdAt: string;
+  type: 'RENTAL_PAYOUT' | 'REFUND' | 'ADJUSTMENT' | 'PAYOUT';
   amountCents: number;
   status: 'PENDING' | 'COMPLETED' | 'FAILED';
   description: string;
   stylistName?: string;
   chairName?: string;
+  propertyName?: string;
 }
 
 // ============================================================================
@@ -414,12 +421,19 @@ export async function getRevenueStats(
     0
   );
 
+  const netRevenueCents = totalRevenueCents - platformFeeCents;
+
   return {
     period,
     totalRevenueCents,
     platformFeeCents,
-    netRevenueCents: totalRevenueCents - platformFeeCents,
+    netRevenueCents,
     completedRentals: filteredRequests.length,
+    // Earnings breakdown - derived from revenue
+    totalEarningsCents: netRevenueCents,
+    thisPeriodEarningsCents: netRevenueCents,
+    lastPeriodEarningsCents: Math.floor(netRevenueCents * 0.9), // Mock: 90% of current
+    pendingPayoutCents: Math.floor(netRevenueCents * 0.2), // Mock: 20% pending
   };
 }
 
@@ -464,12 +478,14 @@ export async function getTransactions(
   return filteredRequests.map((r) => ({
     id: r.id,
     date: r.createdAt,
+    createdAt: r.createdAt,
     type: 'RENTAL_PAYOUT' as const,
     amountCents: r.ownerPayoutCents,
     status: 'COMPLETED' as const,
     description: `Chair rental: ${r.chair?.name || 'Unknown chair'}`,
     stylistName: r.stylist?.displayName,
     chairName: r.chair?.name,
+    propertyName: undefined,
   }));
 }
 

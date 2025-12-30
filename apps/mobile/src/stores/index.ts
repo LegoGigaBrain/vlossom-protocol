@@ -2,7 +2,7 @@
  * Stores Exports (V7.1.0)
  */
 
-export { useAuthStore, selectUser, selectIsAuthenticated, selectIsLoading, selectIsInitialized } from './auth';
+export { useAuthStore, selectUser, selectIsAuthenticated, selectIsLoading, selectIsInitialized, selectUserRoles, selectAddRoleLoading } from './auth';
 export { useDemoModeStore, selectIsDemoMode, selectIsHydrated, getIsDemoMode } from './demo-mode';
 export { useWalletStore, selectBalance, selectWallet, selectTransactions, selectFiatConfig } from './wallet';
 export { useMessagesStore } from './messages';

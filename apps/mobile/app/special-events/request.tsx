@@ -546,7 +546,7 @@ export default function SpecialEventsRequestScreen() {
             </Text>
 
             <View
-              accessibilityRole="group"
+              accessible
               accessibilityLabel={`Services selection, ${formData.services.length} selected: ${formData.services.map((s) => SERVICE_TYPES.find((st) => st.id === s)?.label).filter(Boolean).join(', ')}`}
             >
               {SERVICE_TYPES.map((service) => {

@@ -23,7 +23,7 @@ import {
   VlossomAddIcon,
   VlossomSettingsIcon,
   VlossomWalletIcon,
-  VlossomGrowthIcon,
+  VlossomGrowingIcon,
   VlossomFavoriteIcon,
 } from '../../src/components/icons/VlossomIcons';
 import { useWalletStore } from '../../src/stores/wallet';
@@ -252,7 +252,7 @@ export default function WalletScreen() {
           accessibilityHint="View staking options and earn yield on your USDC"
         >
           <View style={[styles.quickAccessIcon, { backgroundColor: colors.primary + '20' }]}>
-            <VlossomGrowthIcon size={24} color={colors.primary} />
+            <VlossomGrowingIcon size={24} color={colors.primary} />
           </View>
           <View style={styles.quickAccessContent}>
             <Text style={[textStyles.body, { color: colors.text.primary, fontWeight: '600' }]}>

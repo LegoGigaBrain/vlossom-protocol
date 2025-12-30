@@ -18,19 +18,25 @@ import { colors } from '../../styles/tokens';
 // Wordmark aspect ratio: approximately 8:1 (width:height in original SVG)
 const ASPECT_RATIO = 8;
 
-interface VlossomWordmarkProps {
+export interface VlossomWordmarkProps {
   /** Height in pixels (width calculated from aspect ratio) */
   height?: number;
   /** Color variant: purple, cream, or auto (theme-aware) */
   variant?: 'purple' | 'cream' | 'auto';
   /** Additional style */
   style?: ViewStyle;
+  /** Accessibility role (for screen readers) */
+  accessibilityRole?: 'image' | 'none' | 'header';
+  /** Accessibility label for screen readers */
+  accessibilityLabel?: string;
 }
 
 export function VlossomWordmark({
   height = 24,
   variant = 'purple',
   style,
+  accessibilityRole = 'image',
+  accessibilityLabel = 'Vlossom',
 }: VlossomWordmarkProps) {
   const colorScheme = useColorScheme();
 
@@ -53,6 +59,8 @@ export function VlossomWordmark({
       height={height}
       viewBox="0 0 1080 1080"
       style={style as object}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
     >
       <Path
         fill={fill}

@@ -340,7 +340,6 @@ export default function StylistEarningsScreen() {
                 variant="outlined"
                 style={{ marginBottom: spacing.sm }}
                 accessible
-                accessibilityRole="listitem"
                 accessibilityLabel={`${earning.service} from ${earning.customer}, ${new Date(earning.date).toLocaleDateString('en-ZA', { month: 'short', day: 'numeric' })}, earned ${formatPrice(earning.amount)}`}
               >
                 <View style={styles.transactionRow} aria-hidden>

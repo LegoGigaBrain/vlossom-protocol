@@ -235,7 +235,7 @@ export async function getUserPositions(): Promise<UserPosition[]> {
  * Deposit (stake) tokens in a pool
  */
 export async function stake(data: StakeRequest): Promise<StakeResponse> {
-  const response = await apiRequest<{ success: boolean; data: StakeResponse }>('/api/v1/liquidity/deposit', {
+  const response = await apiRequest<{ success: boolean; data: Omit<StakeResponse, 'success'> }>('/api/v1/liquidity/deposit', {
     method: 'POST',
     body: data,
   });
@@ -246,7 +246,7 @@ export async function stake(data: StakeRequest): Promise<StakeResponse> {
  * Withdraw (unstake) tokens from a pool
  */
 export async function unstake(data: UnstakeRequest): Promise<UnstakeResponse> {
-  const response = await apiRequest<{ success: boolean; data: UnstakeResponse }>('/api/v1/liquidity/withdraw', {
+  const response = await apiRequest<{ success: boolean; data: Omit<UnstakeResponse, 'success'> }>('/api/v1/liquidity/withdraw', {
     method: 'POST',
     body: { poolId: data.poolId, shares: data.amount },
   });

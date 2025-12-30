@@ -32,6 +32,10 @@ interface SkeletonProps {
    * Disable animation
    */
   noAnimation?: boolean;
+  /**
+   * Shape variant - auto determines based on dimensions
+   */
+  variant?: 'auto' | 'text' | 'circular' | 'rectangular' | 'card';
 }
 
 /**
@@ -43,7 +47,24 @@ export function Skeleton({
   radius = 'md',
   style,
   noAnimation = false,
+  variant = 'auto',
 }: SkeletonProps) {
+  // Determine radius based on variant if not explicitly set
+  const effectiveRadius = (() => {
+    if (radius !== 'md') return radius; // User explicitly set radius
+    switch (variant) {
+      case 'circular':
+        return 'circle';
+      case 'text':
+        return 'sm';
+      case 'rectangular':
+        return 'none';
+      case 'card':
+        return 'lg';
+      default:
+        return radius;
+    }
+  })();
   const shimmerValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -68,14 +89,14 @@ export function Skeleton({
     outputRange: [-200, 200],
   });
 
-  const radiusValue = radius === 'none' ? 0 : borderRadius[radius] || borderRadius.md;
+  const radiusValue = effectiveRadius === 'none' ? 0 : borderRadius[effectiveRadius] || borderRadius.md;
 
   return (
     <View
       style={[
         styles.skeleton,
         {
-          width,
+          width: width as number | `${number}%`,
           height,
           borderRadius: radiusValue,
         },

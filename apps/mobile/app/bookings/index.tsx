@@ -39,7 +39,7 @@ import {
 } from '../../src/api/bookings';
 import { formatPrice } from '../../src/api/stylists';
 import { MOCK_BOOKINGS, getUpcomingMockBookings, getPastMockBookings } from '../../src/data/mock-data';
-import { EmptyState } from '../../src/components/ui/EmptyState';
+import { EmptyState, getEmptyStateProps } from '../../src/components/ui/EmptyState';
 
 type TabFilter = 'upcoming' | 'past' | 'all';
 
@@ -221,11 +221,13 @@ export default function BookingHistoryScreen() {
     return (
       <View style={styles.emptyContainer}>
         <EmptyState
-          preset="noBookings"
+          {...getEmptyStateProps('noBookings')}
           title={emptyMessage}
-          message="Find a stylist and book your first appointment"
-          actionLabel="Find a Stylist"
-          onAction={handleFindStylist}
+          description="Find a stylist and book your first appointment"
+          action={{
+            label: 'Find a Stylist',
+            onPress: handleFindStylist,
+          }}
         />
       </View>
     );

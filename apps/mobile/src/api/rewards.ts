@@ -30,6 +30,7 @@ export interface Badge {
   earned: boolean;
   progress?: number; // 0-100 for partially completed
   requirement?: string;
+  isLocked?: boolean; // True if badge is locked/not yet available
 }
 
 export interface Streak {
@@ -42,6 +43,9 @@ export interface Streak {
   isActive: boolean;
   expiresAt: string | null;
   reward?: string;
+  // Progress tracking
+  currentCount?: number;
+  targetCount?: number;
 }
 
 export interface Achievement {

@@ -25,7 +25,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {
-  VlossomGrowthIcon,
+  VlossomGrowingIcon,
   VlossomWalletIcon,
   VlossomVerifiedIcon,
 } from '../../src/components/icons/VlossomIcons';
@@ -101,7 +101,7 @@ function OverviewCard({
       {/* Header */}
       <View style={styles.overviewHeader} aria-hidden>
         <View style={styles.overviewHeaderLeft}>
-          <VlossomGrowthIcon size={24} color="#fff" />
+          <VlossomGrowingIcon size={24} color="#fff" />
           <Text style={[styles.overviewTitle, { color: '#fff' }]}>DeFi Staking</Text>
         </View>
         <View style={[styles.apyBadge, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
@@ -322,7 +322,6 @@ function EarningsHistory({ earnings, colors, borderRadius }: EarningsHistoryProp
         <View
           key={index}
           accessible
-          accessibilityRole="listitem"
           accessibilityLabel={`${item.period}: plus $${item.amountUsd.toFixed(2)}, ${item.amount} USDC`}
           style={[
             styles.earningsItem,
@@ -392,7 +391,7 @@ export default function DefiScreen() {
           { text: 'Cancel', style: 'cancel' },
           {
             text: 'Stake',
-            onPress: async (amount) => {
+            onPress: async (amount: string | undefined) => {
               if (!amount) return;
               const success = await stakeTokens(poolId, amount);
               if (success) {
@@ -422,7 +421,7 @@ export default function DefiScreen() {
           { text: 'Cancel', style: 'cancel' },
           {
             text: 'Unstake',
-            onPress: async (amount) => {
+            onPress: async (amount: string | undefined) => {
               if (!amount) return;
               const success = await unstakeTokens(poolId, amount);
               if (success) {

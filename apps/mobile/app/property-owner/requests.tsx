@@ -262,7 +262,6 @@ export default function RequestsScreen() {
                     },
                   ]}
                   accessible
-                  accessibilityRole="listitem"
                   accessibilityLabel={`${stylistName} requesting ${chairName}, ${rentalType} rental starting ${formatDate(request.startTime)}, ${amount}, ${statusText}${isProcessing ? ', processing' : ''}`}
                 >
                   {/* Stylist Header */}

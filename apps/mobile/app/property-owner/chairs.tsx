@@ -209,7 +209,6 @@ export default function ChairsScreen() {
                     },
                   ]}
                   accessible
-                  accessibilityRole="listitem"
                   accessibilityLabel={`${chair.name}, ${CHAIR_TYPE_LABELS[chair.type]} at ${chair.propertyName}, ${statusStyle.label}, daily rate ${formatPrice(chair.dailyRateCents || 0)}${amenitiesText}${isUpdating ? ', updating' : ''}`}
                 >
                   {/* Header */}

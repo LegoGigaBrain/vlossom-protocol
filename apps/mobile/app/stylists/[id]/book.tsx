@@ -52,7 +52,7 @@ type BookingStep = 'service' | 'datetime' | 'location' | 'confirm';
  * Warns user if their balance is insufficient for any service
  */
 interface BalanceWarningBannerProps {
-  balance: { usdc: string; zar: string } | null;
+  balance: { usdc: string; zar?: string } | null;
   minServicePrice: number;
   colors: ReturnType<typeof useTheme>['colors'];
   spacing: ReturnType<typeof useTheme>['spacing'];
@@ -412,7 +412,7 @@ export default function BookingScreen() {
 interface ServiceStepProps {
   services: StylistService[];
   onSelect: (service: StylistService) => void;
-  balance: { usdc: string; zar: string } | null;
+  balance: { usdc: string; zar?: string } | null;
   onFundWallet: () => void;
   colors: ReturnType<typeof useTheme>['colors'];
   spacing: ReturnType<typeof useTheme>['spacing'];
@@ -526,9 +526,10 @@ function DateTimeStep({
   }, [selectedDay, stylistId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get time slots from availability (or fallback to default)
+  const fallbackDate = selectedDay !== null ? days[selectedDay] : new Date();
   const timeSlots = availability.length > 0
     ? availability
-    : generateTimeSlots().map(time => ({ time, available: true }));
+    : generateTimeSlots(fallbackDate, 60);
 
   const handleContinue = () => {
     if (selectedDay !== null && selectedTimeSlot) {
@@ -766,7 +767,7 @@ interface ConfirmStepProps {
   date: Date;
   time: string;
   locationChoice: 'stylist' | 'customer';
-  balance: { usdc: string; zar: string } | null;
+  balance: { usdc: string; zar?: string } | null;
   isLoading: boolean;
   onConfirm: () => void;
   colors: ReturnType<typeof useTheme>['colors'];

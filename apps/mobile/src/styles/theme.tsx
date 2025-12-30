@@ -16,6 +16,7 @@ type ColorScheme = 'light' | 'dark';
 
 interface ThemeContextValue {
   colorScheme: ColorScheme;
+  isDark: boolean;
   setColorScheme: (scheme: ColorScheme) => void;
   toggleColorScheme: () => void;
   colors: typeof colors;
@@ -58,16 +59,18 @@ export function ThemeProvider({ children, defaultColorScheme }: ThemeProviderPro
   };
 
   // Build color palette based on scheme
+  // Use the base colors type and override with dark theme values when needed
   const themeColors = colorScheme === 'dark' ? {
     ...colors,
     background: colors.dark.background,
     surface: colors.dark.surface,
     text: colors.dark.text,
     border: colors.dark.border,
-  } : colors;
+  } as unknown as typeof colors : colors;
 
   const value: ThemeContextValue = {
     colorScheme,
+    isDark: colorScheme === 'dark',
     setColorScheme,
     toggleColorScheme,
     colors: themeColors,
@@ -139,6 +142,12 @@ export const textStyles = StyleSheet.create({
     lineHeight: typography.lineHeight.h3,
     fontWeight: typography.fontWeight.semibold,
   },
+  h4: {
+    fontFamily: typography.fontFamily.sans,
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: typography.fontWeight.semibold,
+  },
   body: {
     fontFamily: typography.fontFamily.sans,
     fontSize: typography.fontSize.body,
@@ -168,6 +177,12 @@ export const textStyles = StyleSheet.create({
     fontSize: typography.fontSize.label,
     lineHeight: typography.lineHeight.caption,
     fontWeight: typography.fontWeight.medium,
+  },
+  mono: {
+    fontFamily: typography.fontFamily.mono,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: typography.fontWeight.regular,
   },
 });
 

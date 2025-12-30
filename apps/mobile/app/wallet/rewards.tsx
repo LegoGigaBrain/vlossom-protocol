@@ -24,7 +24,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {
-  VlossomGrowthIcon,
+  VlossomGrowingIcon,
   VlossomCommunityIcon,
   VlossomFavoriteIcon,
   VlossomVerifiedIcon,
@@ -74,7 +74,7 @@ function getBadgeIcon(iconName: string, size: number, color: string) {
       return <VlossomCommunityIcon size={size} color={color} />;
     case 'growth':
     default:
-      return <VlossomGrowthIcon size={size} color={color} />;
+      return <VlossomGrowingIcon size={size} color={color} />;
   }
 }
 
@@ -271,7 +271,9 @@ interface StreakItemProps {
 }
 
 function StreakItem({ streak, colors, borderRadius }: StreakItemProps) {
-  const progress = (streak.currentCount / streak.targetCount) * 100;
+  const currentCount = streak.currentCount ?? 0;
+  const targetCount = streak.targetCount ?? 1;
+  const progress = (currentCount / targetCount) * 100;
 
   // Build accessibility label
   const accessibilityLabel = `${streak.name}, ${streak.currentCount} of ${streak.targetCount} completed, ${Math.round(progress)}% progress. ${streak.description}. Reward: ${streak.reward}`;
@@ -340,7 +342,6 @@ function AchievementItem({ achievement, colors, borderRadius }: AchievementItemP
   return (
     <View
       accessible
-      accessibilityRole="listitem"
       accessibilityLabel={accessibilityLabel}
       style={[
         styles.achievementItem,

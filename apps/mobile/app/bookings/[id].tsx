@@ -331,11 +331,9 @@ export default function BookingDetailScreen() {
               Tap to view profile
             </Text>
           </View>
-          <VlossomBackIcon
-            size={20}
-            color={colors.text.tertiary}
-            style={{ transform: [{ rotate: '180deg' }] }}
-          />
+          <View style={{ transform: [{ rotate: '180deg' }] }}>
+            <VlossomBackIcon size={20} color={colors.text.tertiary} />
+          </View>
         </Pressable>
 
         {/* Service Details */}

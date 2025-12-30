@@ -212,15 +212,31 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
     // Demo mode: return mock stats
     if (getIsDemoMode()) {
       await new Promise((resolve) => setTimeout(resolve, 200));
+      const total = MOCK_BOOKINGS.length;
+      const completed = MOCK_BOOKINGS.filter((b) => b.status === 'COMPLETED').length;
+      const cancelled = MOCK_BOOKINGS.filter((b) => b.status === 'CANCELLED').length;
       set({
         stats: {
-          total: MOCK_BOOKINGS.length,
-          completed: MOCK_BOOKINGS.filter((b) => b.status === 'COMPLETED').length,
-          pending: MOCK_BOOKINGS.filter((b) => b.status === 'PENDING_PAYMENT').length,
-          cancelled: MOCK_BOOKINGS.filter((b) => b.status === 'CANCELLED').length,
-          upcoming: MOCK_BOOKINGS.filter(
-            (b) => b.status === 'CONFIRMED' && new Date(b.scheduledStartTime) >= new Date()
-          ).length,
+          asCustomer: {
+            total,
+            thisMonth: total,
+            completed,
+            cancelled,
+            totalSpentCents: '0',
+          },
+          asStylist: {
+            total: 0,
+            thisMonth: 0,
+            completed: 0,
+            cancelled: 0,
+            grossEarnedCents: '0',
+            netEarnedCents: '0',
+          },
+          combined: {
+            total,
+            thisMonth: total,
+            completed,
+          },
         },
         statsLoading: false,
       });

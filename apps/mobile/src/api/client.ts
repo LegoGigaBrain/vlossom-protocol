@@ -112,7 +112,7 @@ export class APIError extends Error {
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  body?: Record<string, unknown>;
+  body?: object;
   params?: Record<string, string | number | boolean | undefined>;
   requireAuth?: boolean;
 }

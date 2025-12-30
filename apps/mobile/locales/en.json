@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "Vlossom",
+    "tagline": "Where You Blossom"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try Again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done",
+    "next": "Next",
+    "back": "Back",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "close": "Close",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "login": "Log In",
+    "logout": "Log Out",
+    "signup": "Sign Up",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "displayName": "Display Name"
+  },
+  "tabs": {
+    "home": "Home",
+    "search": "Search",
+    "wallet": "Wallet",
+    "notifications": "Notifications",
+    "profile": "Profile"
+  },
+  "booking": {
+    "book": "Book Now",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "cancelled": "Cancelled",
+    "completed": "Completed",
+    "pending": "Pending",
+    "confirmed": "Confirmed"
+  },
+  "wallet": {
+    "balance": "Balance",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "transactions": "Transactions",
+    "send": "Send",
+    "receive": "Receive"
+  },
+  "hairHealth": {
+    "title": "Hair Health",
+    "status": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "fair": "Fair",
+      "needsCare": "Needs Care"
+    },
+    "calendar": "Care Calendar",
+    "streak": "Streak",
+    "nextRitual": "Next Ritual"
+  },
+  "errors": {
+    "network": "Network error. Please check your connection.",
+    "unauthorized": "Please log in to continue.",
+    "notFound": "Not found.",
+    "generic": "Something went wrong. Please try again."
+  }
+}

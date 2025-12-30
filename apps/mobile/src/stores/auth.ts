@@ -241,12 +241,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Create a mock user with the signup data
-      const mockSignupUser: typeof MOCK_USER = {
+      const mockSignupUser = {
         ...MOCK_USER,
         displayName: request.displayName || 'Demo User',
         email: request.email,
-        role: request.role,
-        roles: [request.role],
+        role: request.role as typeof MOCK_USER.role,
+        roles: [request.role] as typeof MOCK_USER.roles,
       };
 
       set({

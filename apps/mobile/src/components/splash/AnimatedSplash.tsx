@@ -53,8 +53,8 @@ export function AnimatedSplash({
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.content, containerStyle]}>
-        <Animated.View style={iconStyle}>
+      <Animated.View style={[styles.content, containerStyle as object]}>
+        <Animated.View style={iconStyle as object}>
           <VlossomSplashIcon
             size={ICON_SIZE}
             color={colors.brand.cream}

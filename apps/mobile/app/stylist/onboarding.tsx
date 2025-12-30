@@ -413,7 +413,6 @@ function BenefitRow({
         },
       ]}
       accessible
-      accessibilityRole="listitem"
       accessibilityLabel={`${title}: ${description}`}
     >
       <View style={styles.benefitIcon} aria-hidden>{icon}</View>
@@ -538,7 +537,7 @@ function SpecialtiesStep({
 
       <View
         style={[styles.specialtiesGrid, { marginTop: spacing.lg }]}
-        accessibilityRole="group"
+        accessible
         accessibilityLabelledBy="specialties-description"
       >
         {SERVICE_CATEGORIES.map((category) => {

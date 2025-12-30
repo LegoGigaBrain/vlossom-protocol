@@ -425,7 +425,6 @@ function BenefitRow({
         },
       ]}
       accessible
-      accessibilityRole="listitem"
       accessibilityLabel={`${title}: ${description}`}
     >
       <View style={styles.benefitIcon} aria-hidden>{icon}</View>
@@ -676,7 +675,7 @@ function LocationStep({
         </Text>
         <View
           style={styles.amenitiesGrid}
-          accessibilityRole="group"
+          accessible
           accessibilityLabel={`Amenities selection, ${amenitiesLabel}`}
           accessibilityLabelledBy="amenities-label"
         >

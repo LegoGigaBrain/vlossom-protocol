@@ -325,16 +325,18 @@ function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutL
   const displayNextRitual = isDemoMode
     ? mockCalendarSummary?.nextRitual
       ? {
-          name: mockCalendarSummary.nextRitual.title,
+          type: mockCalendarSummary.nextRitual.type,
+          title: mockCalendarSummary.nextRitual.title,
+          date: mockCalendarSummary.nextRitual.date,
           daysUntil: mockCalendarSummary.nextRitual.daysUntil,
-          isOverdue: mockCalendarSummary.nextRitual.isOverdue,
         }
       : null
     : nextRitual
     ? {
-        name: nextRitual.name,
+        type: nextRitual.eventType ?? 'RITUAL',
+        title: nextRitual.name,
+        date: nextRitual.scheduledStart ?? new Date().toISOString(),
         daysUntil: nextRitual.daysUntil,
-        isOverdue: nextRitual.isOverdue,
       }
     : null;
   const displayStreakDays = isDemoMode ? mockCalendarSummary?.streakDays ?? 0 : streakDays;

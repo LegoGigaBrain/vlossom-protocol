@@ -28,6 +28,8 @@ export interface WalletBalance {
   usdcFormatted: string;
   fiatValue: number;
   currency: string;
+  /** Fiat equivalent in ZAR */
+  zar?: string;
 }
 
 export interface Transaction {
@@ -79,12 +81,18 @@ export interface PaymentRequest {
 
 export interface CreatePaymentRequestResponse {
   requestId: string;
+  /** Alias for requestId */
+  id?: string;
   recipientAddress: string;
   amount: string;
   amountFormatted: string;
   memo: string | null;
   expiresAt: string;
   qrData: string;
+  /** QR code image URL */
+  qrCodeUrl?: string;
+  /** Deep link for mobile payment apps */
+  deepLink?: string;
 }
 
 // ============================================================================
@@ -133,9 +141,18 @@ export interface ExchangeRate {
 }
 
 export interface OnrampRequest {
-  fiatAmount: number;
+  /** Amount in fiat currency */
+  fiatAmount?: number;
+  /** Alias for fiatAmount (for wallet store compatibility) */
+  amount?: number;
+  /** Currency code (e.g., ZAR) */
   fiatCurrency?: string;
+  /** Alias for fiatCurrency */
+  currency?: string;
+  /** Payment channel */
   paymentChannel?: 'bank_transfer' | 'mobile_money' | 'ussd';
+  /** Alias for paymentChannel */
+  paymentMethod?: 'bank_transfer' | 'mobile_money' | 'ussd' | 'card';
   phoneNumber?: string;
 }
 
@@ -143,6 +160,8 @@ export interface OnrampResponse {
   success: boolean;
   transactionId: string;
   paymentReference: string;
+  /** Alias for paymentReference (for wallet store compatibility) */
+  reference?: string;
   paymentUrl?: string;
   paymentInstructions?: string;
   estimatedCryptoAmount: number;
@@ -157,11 +176,20 @@ export interface OnrampResponse {
 }
 
 export interface OfframpRequest {
-  cryptoAmount: number;
+  /** Amount in crypto */
+  cryptoAmount?: number;
+  /** Alias for cryptoAmount */
+  amount?: number;
   fiatCurrency?: string;
+  /** Alias for fiatCurrency */
+  currency?: string;
   paymentChannel?: 'bank_transfer' | 'mobile_money';
+  /** Alias for paymentChannel */
+  paymentMethod?: 'bank_transfer' | 'mobile_money';
   phoneNumber?: string;
   bankAccount?: string;
+  /** Alias for bankAccount */
+  accountNumber?: string;
   bankCode?: string;
   accountName?: string;
 }
@@ -169,6 +197,8 @@ export interface OfframpRequest {
 export interface OfframpResponse {
   success: boolean;
   transactionId: string;
+  /** Alias for transactionId */
+  reference?: string;
   estimatedFiatAmount: number;
   exchangeRate: number;
   fees: {

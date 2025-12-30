@@ -23,7 +23,7 @@ import {
   PanResponder,
   Image,
 } from 'react-native';
-import { MapView, Marker, PROVIDER_GOOGLE, type Region } from '../../src/components/MapView';
+import { MapView, Marker, PROVIDER_GOOGLE, type Region, type MapViewRef } from '../../src/components/MapView';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
@@ -62,7 +62,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors, spacing, borderRadius, shadows } = useTheme();
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<MapViewRef>(null);
 
   const {
     stylists,

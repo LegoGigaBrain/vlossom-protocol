@@ -49,8 +49,35 @@ export interface EmptyStateAction {
   variant?: 'primary' | 'secondary' | 'outline';
 }
 
+// Preset names type (defined inline to avoid circular reference)
+export type EmptyStatePresetName =
+  | 'noStylists'
+  | 'noServices'
+  | 'noAvailability'
+  | 'noBookings'
+  | 'noHistory'
+  | 'noTransactions'
+  | 'noNotifications'
+  | 'noReviews'
+  | 'noMessages'
+  | 'noSearchResults'
+  | 'noFavorites'
+  | 'networkError'
+  | 'noProperties'
+  | 'bookingCompleted'
+  | 'noDefiPools'
+  | 'noRewards'
+  | 'defi'
+  | 'wallet-history'
+  | 'error'
+  | 'rewards';
+
 // Component props
 export interface EmptyStateProps {
+  /**
+   * Use a preset configuration by name
+   */
+  preset?: EmptyStatePresetName;
   /**
    * Pre-built illustration type
    */
@@ -60,9 +87,9 @@ export interface EmptyStateProps {
    */
   customIllustration?: React.ReactNode;
   /**
-   * Main title text
+   * Main title text (required unless using preset)
    */
-  title: string;
+  title?: string;
   /**
    * Description text below the title
    */
@@ -83,6 +110,14 @@ export interface EmptyStateProps {
    * Additional container styles
    */
   style?: ViewStyle;
+  /**
+   * Action label for simple preset usage
+   */
+  actionLabel?: string;
+  /**
+   * Action handler for simple preset usage
+   */
+  onAction?: () => void;
 }
 
 // Illustration component map
@@ -124,7 +159,8 @@ const sizeStyles = {
 };
 
 export function EmptyState({
-  illustration = 'search',
+  preset,
+  illustration,
   customIllustration,
   title,
   description,
@@ -132,13 +168,24 @@ export function EmptyState({
   secondaryAction,
   size = 'md',
   style,
+  actionLabel,
+  onAction,
 }: EmptyStateProps) {
+  // Apply preset if specified
+  const presetConfig = preset ? emptyStatePresets[preset] : null;
+  const resolvedIllustration = illustration ?? presetConfig?.illustration ?? 'search';
+  const resolvedTitle = title ?? presetConfig?.title ?? '';
+  const resolvedDescription = description ?? presetConfig?.description;
+
+  // Build action from actionLabel/onAction if provided
+  const resolvedAction = action ?? (actionLabel && onAction ? { label: actionLabel, onPress: onAction } : undefined);
+
   const sizeConfig = sizeStyles[size];
-  const IllustrationComponent = illustration !== 'custom' ? illustrations[illustration] : null;
+  const IllustrationComponent = resolvedIllustration !== 'custom' ? illustrations[resolvedIllustration] : null;
   const { style: settleStyle } = useSettleMotion({ autoPlay: true });
 
   // Accessibility: combine title and description for screen readers
-  const accessibilityLabel = description ? `${title}. ${description}` : title;
+  const accessibilityLabel = resolvedDescription ? `${resolvedTitle}. ${resolvedDescription}` : resolvedTitle;
 
   return (
     <Animated.View
@@ -153,7 +200,7 @@ export function EmptyState({
         accessible={false}
         importantForAccessibility="no-hide-descendants"
       >
-        {illustration === 'custom' && customIllustration
+        {resolvedIllustration === 'custom' && customIllustration
           ? customIllustration
           : IllustrationComponent && (
               <IllustrationComponent size={sizeConfig.illustrationSize} />
@@ -166,54 +213,54 @@ export function EmptyState({
           styles.title,
           {
             fontSize: sizeConfig.titleSize,
-            marginBottom: description ? spacing.xs : action ? sizeConfig.gap : 0,
+            marginBottom: resolvedDescription ? spacing.xs : resolvedAction ? sizeConfig.gap : 0,
           },
         ]}
         accessibilityRole="header"
       >
-        {title}
+        {resolvedTitle}
       </Text>
 
       {/* Description */}
-      {description && (
+      {resolvedDescription && (
         <Text
           style={[
             styles.description,
             {
               fontSize: sizeConfig.descriptionSize,
-              marginBottom: action || secondaryAction ? sizeConfig.gap : 0,
+              marginBottom: resolvedAction || secondaryAction ? sizeConfig.gap : 0,
             },
           ]}
           accessibilityRole="text"
         >
-          {description}
+          {resolvedDescription}
         </Text>
       )}
 
       {/* Actions */}
-      {(action || secondaryAction) && (
+      {(resolvedAction || secondaryAction) && (
         <View style={styles.actionsContainer} accessibilityRole="none">
-          {action && (
+          {resolvedAction && (
             <Pressable
-              onPress={action.onPress}
+              onPress={resolvedAction.onPress}
               style={({ pressed }) => [
                 styles.primaryButton,
-                action.variant === 'outline' && styles.outlineButton,
-                action.variant === 'secondary' && styles.secondaryButton,
+                resolvedAction.variant === 'outline' && styles.outlineButton,
+                resolvedAction.variant === 'secondary' && styles.secondaryButton,
                 pressed && styles.buttonPressed,
               ]}
               accessibilityRole="button"
-              accessibilityLabel={action.label}
-              accessibilityHint={`Tap to ${action.label.toLowerCase()}`}
+              accessibilityLabel={resolvedAction.label}
+              accessibilityHint={`Tap to ${resolvedAction.label.toLowerCase()}`}
             >
               <Text
                 style={[
                   styles.primaryButtonText,
-                  action.variant === 'outline' && styles.outlineButtonText,
-                  action.variant === 'secondary' && styles.secondaryButtonText,
+                  resolvedAction.variant === 'outline' && styles.outlineButtonText,
+                  resolvedAction.variant === 'secondary' && styles.secondaryButtonText,
                 ]}
               >
-                {action.label}
+                {resolvedAction.label}
               </Text>
             </Pressable>
           )}
@@ -327,6 +374,42 @@ export const emptyStatePresets: Record<string, EmptyStatePreset> = {
     illustration: 'completed',
     title: 'Booking confirmed!',
     description: "You're all set. We'll send you a reminder before your appointment.",
+  },
+  /** No DeFi pools */
+  noDefiPools: {
+    illustration: 'wallet',
+    title: 'No staking pools',
+    description: 'Staking pools will appear here when available.',
+  },
+  /** No rewards */
+  noRewards: {
+    illustration: 'wallet',
+    title: 'No rewards yet',
+    description: 'Earn rewards by booking stylists and completing appointments.',
+  },
+  /** DeFi alias (same as noDefiPools) */
+  defi: {
+    illustration: 'wallet',
+    title: 'No staking pools',
+    description: 'Staking pools will appear here when available.',
+  },
+  /** Wallet history alias (same as noTransactions) */
+  'wallet-history': {
+    illustration: 'wallet',
+    title: 'No transactions yet',
+    description: 'Your transaction history will appear here once you make a booking.',
+  },
+  /** Error state */
+  error: {
+    illustration: 'inbox',
+    title: 'Something went wrong',
+    description: 'We encountered an error. Please try again later.',
+  },
+  /** Rewards alias (same as noRewards) */
+  rewards: {
+    illustration: 'wallet',
+    title: 'No rewards yet',
+    description: 'Earn rewards by booking stylists and completing appointments.',
   },
 };
 

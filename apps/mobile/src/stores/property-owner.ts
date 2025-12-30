@@ -144,27 +144,8 @@ export const usePropertyOwnerStore = create<PropertyOwnerState>((set, get) => ({
 
     // Demo mode: return mock data
     if (getIsDemoMode()) {
-      const mockProperties = MOCK_PROPERTIES.map((p) => ({
-        id: p.id,
-        name: p.name,
-        address: p.address,
-        city: p.city,
-        lat: p.lat,
-        lng: p.lng,
-        chairCount: p.chairCount,
-        amenities: p.amenities,
-        operatingHours: p.operatingHours,
-        photos: p.photos,
-        isActive: p.isActive,
-        chairs: p.chairs.map((c) => ({
-          id: c.id,
-          number: c.number,
-          status: c.status,
-          dailyRateCents: c.dailyRateCents,
-          weeklyRateCents: c.weeklyRateCents,
-          currentRenter: c.currentRenter,
-        })),
-      })) as Property[];
+      // Mock properties are already API-compatible, just cast
+      const mockProperties = MOCK_PROPERTIES as unknown as Property[];
 
       set({
         properties: mockProperties,
@@ -218,21 +199,8 @@ export const usePropertyOwnerStore = create<PropertyOwnerState>((set, get) => ({
 
     // Demo mode: return mock data
     if (getIsDemoMode()) {
-      let mockRequests = MOCK_RENTAL_REQUESTS.map((r) => ({
-        id: r.id,
-        propertyId: r.propertyId,
-        propertyName: r.propertyName,
-        chairId: r.chairId,
-        chairNumber: r.chairNumber,
-        stylist: r.stylist,
-        requestedStartDate: r.requestedStartDate,
-        requestedEndDate: r.requestedEndDate,
-        rentalType: r.rentalType,
-        totalAmountCents: r.totalAmountCents,
-        status: r.status,
-        message: r.message,
-        createdAt: r.createdAt,
-      })) as RentalRequest[];
+      // Mock rental requests are already API-compatible, just cast
+      let mockRequests = MOCK_RENTAL_REQUESTS as unknown as RentalRequest[];
 
       // Filter by property if specified
       if (propertyId) {
@@ -459,6 +427,7 @@ export const usePropertyOwnerStore = create<PropertyOwnerState>((set, get) => ({
     if (getIsDemoMode()) {
       const mockTotal = activePeriod === 'week' ? 450000 : activePeriod === 'month' ? 1800000 : 21600000;
       const chartData = generateChartData(activePeriod, mockTotal);
+      const lastPeriodTotal = Math.round(mockTotal * 0.85);
       set({
         revenueStats: {
           period: activePeriod,
@@ -466,6 +435,10 @@ export const usePropertyOwnerStore = create<PropertyOwnerState>((set, get) => ({
           platformFeeCents: Math.round(mockTotal * 0.1),
           netRevenueCents: Math.round(mockTotal * 0.9),
           completedRentals: activePeriod === 'week' ? 8 : activePeriod === 'month' ? 32 : 384,
+          totalEarningsCents: Math.round(mockTotal * 0.9),
+          thisPeriodEarningsCents: Math.round(mockTotal * 0.9),
+          lastPeriodEarningsCents: Math.round(lastPeriodTotal * 0.9),
+          pendingPayoutCents: Math.round(mockTotal * 0.15),
         } as RevenueStats,
         revenueChartData: chartData,
         revenueLoading: false,

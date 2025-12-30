@@ -26,6 +26,18 @@ export {
   VlossomFavoriteIcon,
   VlossomSettingsIcon,
   VlossomLocationIcon,
+  VlossomCheckIcon,
+  VlossomChevronRightIcon,
+  VlossomChevronDownIcon,
+  VlossomChevronUpIcon,
+  VlossomVerifiedIcon,
+  VlossomCommunityIcon,
+  VlossomClockIcon,
+  VlossomRefreshIcon,
+  VlossomStarIcon,
+  VlossomEditIcon,
+  VlossomSendIcon,
+  VlossomMessageIcon,
 } from './VlossomIcons';
 
 // =============================================================================

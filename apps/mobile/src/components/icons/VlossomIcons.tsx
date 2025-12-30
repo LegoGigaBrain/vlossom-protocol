@@ -552,3 +552,346 @@ export function VlossomLocationIcon({
     </Svg>
   );
 }
+
+/**
+ * Check Icon - Checkmark for success/confirmation states
+ */
+export function VlossomCheckIcon({
+  size = 24,
+  color = colors.primary,
+  focused,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke={color}
+        strokeWidth="1.5"
+        fill={focused ? `${color}20` : 'none'}
+      />
+      <Path
+        d="M8 12l3 3 5-6"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Chevron Right Icon - Arrow pointing right for navigation
+ */
+export function VlossomChevronRightIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 6l6 6-6 6"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Verified Icon - Badge with checkmark for verified status
+ */
+export function VlossomVerifiedIcon({
+  size = 24,
+  color = colors.primary,
+  focused,
+  accent,
+}: VlossomIconProps) {
+  const fillColor = accent ? colors.accent : color;
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Shield/badge shape */}
+      <Path
+        d="M12 2L4 6v5c0 5.25 3.4 10.15 8 12 4.6-1.85 8-6.75 8-12V6l-8-4z"
+        stroke={fillColor}
+        strokeWidth="1.5"
+        fill={focused ? `${fillColor}20` : 'none'}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Checkmark inside */}
+      <Path
+        d="M8.5 12l2.5 2.5 4.5-5"
+        stroke={fillColor}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Community Icon - Group of connected flowers representing community
+ */
+export function VlossomCommunityIcon({
+  size = 24,
+  color = colors.primary,
+  focused,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Central figure */}
+      <Circle cx="12" cy="8" r="3" stroke={color} strokeWidth="1.5" fill={focused ? `${color}20` : 'none'} />
+      <Path
+        d="M8 20v-1a4 4 0 018 0v1"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      {/* Left figure */}
+      <Circle cx="6" cy="10" r="2" stroke={color} strokeWidth="1.5" opacity={0.7} />
+      <Path
+        d="M3 20v-.5a3 3 0 015 0"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity={0.7}
+      />
+      {/* Right figure */}
+      <Circle cx="18" cy="10" r="2" stroke={color} strokeWidth="1.5" opacity={0.7} />
+      <Path
+        d="M16 19.5a3 3 0 015 0v.5"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity={0.7}
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Clock Icon - Time representation with botanical styling
+ */
+export function VlossomClockIcon({
+  size = 24,
+  color = colors.primary,
+  focused,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Clock face */}
+      <Circle
+        cx="12"
+        cy="12"
+        r="9"
+        stroke={color}
+        strokeWidth="1.5"
+        fill={focused ? `${color}10` : 'none'}
+      />
+      {/* Center dot */}
+      <Circle cx="12" cy="12" r="1.5" fill={color} />
+      {/* Clock hands */}
+      <Path
+        d="M12 7v5l3 3"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Hour marks */}
+      <Path
+        d="M12 4v1M12 19v1M4 12h1M19 12h1"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        opacity={0.5}
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Refresh Icon - Circular arrows for refresh/reload
+ */
+export function VlossomRefreshIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      {/* Circular arrow path */}
+      <Path
+        d="M4 12a8 8 0 018-8c3.37 0 6.27 2.09 7.45 5"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M20 12a8 8 0 01-8 8c-3.37 0-6.27-2.09-7.45-5"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      {/* Arrow heads */}
+      <Path
+        d="M20 4v5h-5"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M4 20v-5h5"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Star Icon - For ratings and favorites
+ */
+export function VlossomStarIcon({
+  size = 24,
+  color = colors.primary,
+  focused,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={focused ? color : 'none'}
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Edit Icon - Pencil for editing
+ */
+export function VlossomEditIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Send Icon - Paper plane for sending messages
+ */
+export function VlossomSendIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M22 2L11 13"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M22 2l-7 20-4-9-9-4 20-7z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Message Icon - Chat bubble for messaging
+ */
+export function VlossomMessageIcon({
+  size = 24,
+  color = colors.primary,
+  focused,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill={focused ? `${color}20` : 'none'}
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Chevron Down Icon - Dropdown indicator
+ */
+export function VlossomChevronDownIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 9l6 6 6-6"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Chevron Up Icon - Collapse indicator
+ */
+export function VlossomChevronUpIcon({
+  size = 24,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M18 15l-6-6-6 6"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

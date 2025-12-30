@@ -352,7 +352,6 @@ export default function HairHealthDashboard() {
               <View
                 key={node.id}
                 accessible
-                accessibilityRole="listitem"
                 accessibilityLabel={`${node.title}, ${isUnlocked ? 'completed' : 'locked'}`}
                 style={[
                   styles.learningCard,

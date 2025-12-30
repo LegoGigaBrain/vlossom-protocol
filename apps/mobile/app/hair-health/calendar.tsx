@@ -140,12 +140,9 @@ export default function CalendarScreen() {
     }
   };
 
-  const handleCompleteRitual = async (eventId: string) => {
-    // Find the ritual to show modal
-    const ritual = events.find((e) => e.id === eventId);
-    if (ritual) {
-      setSelectedRitual(ritual);
-    }
+  const handleCompleteRitual = async (event: CalendarEventFull) => {
+    // Show modal to complete the ritual
+    setSelectedRitual(event);
   };
 
   const handleConfirmComplete = async (quality: 'EXCELLENT' | 'GOOD' | 'ADEQUATE' | 'POOR') => {
@@ -157,7 +154,7 @@ export default function CalendarScreen() {
     }
   };
 
-  const handleSkipRitual = async (eventId: string) => {
+  const handleSkipRitual = async (event: CalendarEventFull) => {
     Alert.alert(
       'Skip Ritual',
       'Are you sure you want to skip this ritual?',
@@ -168,7 +165,7 @@ export default function CalendarScreen() {
           style: 'destructive',
           onPress: async () => {
             if (!isDemoMode) {
-              await skipRitual(eventId);
+              await skipRitual(event.id);
             }
           },
         },
