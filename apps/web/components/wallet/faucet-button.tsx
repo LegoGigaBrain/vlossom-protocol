@@ -94,7 +94,7 @@ export function FaucetButton({ onSuccess, className = "" }: FaucetButtonProps) {
           setNextClaimAt(new Date(result.nextClaimAt));
         }
       }
-    } catch (err) {
+    } catch {
       setError("Network error. Please try again.");
     }
 

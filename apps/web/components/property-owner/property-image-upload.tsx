@@ -106,7 +106,7 @@ export function PropertyImageUpload({
         }
 
         toast.success("Upload successful", `${filesToUpload.length} image(s) uploaded.`);
-      } catch (error) {
+      } catch {
         toast.error("Upload failed", "Please try again.");
       } finally {
         setIsUploading(false);

@@ -18,18 +18,38 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Vlossom - Where You Blossom",
-  description: "Premium beauty services booking platform",
+  description: "Premium beauty services booking platform connecting customers with mobile hair stylists via gasless Web3 payments",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Vlossom",
+  },
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
+  openGraph: {
+    title: "Vlossom - Where You Blossom",
+    description: "Premium beauty services booking platform",
+    siteName: "Vlossom",
+    type: "website",
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
   viewportFit: "cover",
+  themeColor: "#311E6B",
 };
 
 export default function RootLayout({

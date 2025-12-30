@@ -12,16 +12,15 @@ import { useConversation, useSendMessage, useMarkAsRead } from "@/hooks/use-mess
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/utils";
-import { format, isToday, isYesterday, isSameDay } from "date-fns";
+import { format, isToday, isYesterday } from "date-fns";
 
 export default function ConversationPage() {
   const params = useParams();
   const router = useRouter();
   const conversationId = params.id as string;
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
 
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);

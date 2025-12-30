@@ -14,11 +14,10 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -137,8 +136,7 @@ function SpecialEventsRequestContent() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    // TODO: Submit to API
-    console.log("Submitting request:", formData);
+    // TODO: Submit to API - formData will be sent here
 
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));

@@ -13,7 +13,6 @@ import {
   useCreateChair,
   useUpdateChair,
   useDeleteChair,
-  type Property,
   type Chair,
   type ChairStatus,
   type CreateChairRequest,

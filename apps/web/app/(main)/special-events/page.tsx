@@ -292,7 +292,7 @@ export default function SpecialEventsPage() {
 
           <Card>
             <CardContent className="p-0 divide-y divide-border-default">
-              {HOW_IT_WORKS.map((item, index) => (
+              {HOW_IT_WORKS.map((item) => (
                 <div key={item.step} className="flex items-start gap-4 p-6">
                   <div className="w-10 h-10 rounded-full bg-accent-orange/20 flex items-center justify-center flex-shrink-0">
                     <span className="font-bold text-accent-orange">{item.step}</span>

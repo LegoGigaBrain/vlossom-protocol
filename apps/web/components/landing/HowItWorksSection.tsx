@@ -79,7 +79,7 @@ export function HowItWorksSection() {
             How It Works
           </h2>
           <p className="text-body text-text-secondary max-w-2xl mx-auto">
-            Getting your hair done should be simple. Here's how Vlossom makes it
+            Getting your hair done should be simple. Here&apos;s how Vlossom makes it
             happen.
           </p>
         </AnimatedSection>

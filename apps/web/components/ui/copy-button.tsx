@@ -53,7 +53,7 @@ export function CopyButton({
       setTimeout(() => {
         setCopied(false);
       }, copiedDuration);
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy to clipboard");
     }
   }, [textToCopy, successMessage, copiedDuration]);

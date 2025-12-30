@@ -8,7 +8,6 @@
 
 import React from 'react';
 import { AnimatedSection } from './AnimatedSection';
-import { FeatureCard } from './FeatureCard';
 
 const features = [
   {

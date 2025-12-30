@@ -133,7 +133,7 @@ export function ForStylistsSection() {
                 Build Your Empire
               </h2>
               <p className="text-body text-text-secondary mb-8">
-                You're more than just a stylist—you're a business owner. Vlossom
+                You&apos;re more than just a stylist—you&apos;re a business owner. Vlossom
                 gives you the platform to showcase your talent, manage your
                 schedule, and grow your income.
               </p>

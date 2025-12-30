@@ -82,6 +82,16 @@ import {
   Phone,
   Link,
   Globe,
+
+  // Tier C: Social & Brand Icons
+  XLogo,
+  FacebookLogo,
+  InstagramLogo,
+  LinkedinLogo,
+  WhatsappLogo,
+  TiktokLogo,
+  YoutubeLogo,
+
   type Icon as PhosphorIcon,
 } from '@phosphor-icons/react';
 
@@ -203,12 +213,30 @@ export const StateIcons = {
 } as const;
 
 // =============================================================================
+// TIER C: SOCIAL & BRAND ICONS
+// Brand logos for sharing and external links
+// =============================================================================
+
+export const SocialIcons = {
+  // Social Media Platforms
+  twitter: XLogo,       // X (formerly Twitter)
+  x: XLogo,             // Alias for twitter
+  facebook: FacebookLogo,
+  instagram: InstagramLogo,
+  linkedin: LinkedinLogo,
+  whatsapp: WhatsappLogo,
+  tiktok: TiktokLogo,
+  youtube: YoutubeLogo,
+} as const;
+
+// =============================================================================
 // COMBINED ICON MAP
 // =============================================================================
 
 export const Icons = {
   ...NavigationIcons,
   ...StateIcons,
+  ...SocialIcons,
 } as const;
 
 // =============================================================================
@@ -217,6 +245,7 @@ export const Icons = {
 
 export type NavigationIconName = keyof typeof NavigationIcons;
 export type StateIconName = keyof typeof StateIcons;
+export type SocialIconName = keyof typeof SocialIcons;
 export type IconName = keyof typeof Icons;
 
 // Helper to check if an icon name is valid

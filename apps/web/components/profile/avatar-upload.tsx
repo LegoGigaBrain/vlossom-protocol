@@ -64,7 +64,7 @@ export function AvatarUpload({ currentUrl, displayName, onUpload }: AvatarUpload
 
       const data = await response.json();
       await onUpload(data.url);
-    } catch (error) {
+    } catch {
       // Revert preview on error
       setPreviewUrl(currentUrl || null);
       toast.error("Upload failed", "Please try again.");

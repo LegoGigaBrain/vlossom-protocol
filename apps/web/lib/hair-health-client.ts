@@ -33,7 +33,7 @@ export interface HairProfileCreateInput {
   routineType?: RoutineType;
 }
 
-export interface HairProfileUpdateInput extends Partial<HairProfileCreateInput> {}
+export type HairProfileUpdateInput = Partial<HairProfileCreateInput>;
 
 export interface HairProfileResponse {
   id: string;

@@ -9,10 +9,9 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "../../hooks/use-auth";
-import { useMyProperties, type Property, type Chair } from "../../hooks/use-properties";
+import { useMyProperties, type Property } from "../../hooks/use-properties";
 import { Button } from "../../components/ui/button";
 import { Icon } from "../../components/icons";
-import { cn } from "../../lib/utils";
 
 // Stats card component
 interface StatCardProps {
