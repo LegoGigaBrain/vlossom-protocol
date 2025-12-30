@@ -1,6 +1,12 @@
 /**
  * Chain client setup for viem and ERC-4337
- * Provides configured clients for Base mainnet/testnet
+ * Provides configured clients for Base and Arbitrum networks
+ *
+ * Supported chains:
+ * - 8453: Base mainnet
+ * - 84532: Base Sepolia testnet
+ * - 421614: Arbitrum Sepolia testnet
+ * - 31337: Localhost (Hardhat)
  *
  * SECURITY AUDIT (V1.9.0):
  * - M-3: RPC failover transport for resilience
@@ -9,7 +15,7 @@
 
 import { createPublicClient, createWalletClient, http, fallback, type Chain, type PublicClient, type WalletClient, type Transport } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { base, baseSepolia, localhost } from "viem/chains";
+import { base, baseSepolia, localhost, arbitrumSepolia } from "viem/chains";
 
 // Environment variables
 const CHAIN_ID = parseInt(process.env.CHAIN_ID || "8453");
@@ -18,6 +24,7 @@ export const RPC_URL = process.env.RPC_URL || "https://mainnet.base.org";
 const RPC_URL_FALLBACK = process.env.RPC_URL_FALLBACK || (
   CHAIN_ID === 84532 ? "https://base-sepolia.public.blastapi.io" :
   CHAIN_ID === 8453 ? "https://base.llamarpc.com" :
+  CHAIN_ID === 421614 ? "https://arbitrum-sepolia.public.blastapi.io" :
   undefined
 );
 const BUNDLER_URL = process.env.BUNDLER_URL || "";
@@ -32,6 +39,8 @@ export function getChain(): Chain {
       return base;
     case 84532:
       return baseSepolia;
+    case 421614:
+      return arbitrumSepolia;
     case 31337:
       return { ...localhost, id: 31337 };
     default:
