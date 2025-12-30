@@ -88,7 +88,8 @@ app.use(apiSecurityHeaders);
 app.use(correlationIdMiddleware);
 
 // F4.7: CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [
+// Uses CORS_ORIGINS env var (comma-separated list of allowed origins)
+const allowedOrigins = process.env.CORS_ORIGINS?.split(",") || [
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:3003",
