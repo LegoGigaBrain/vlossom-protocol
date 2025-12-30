@@ -1,6 +1,10 @@
 /**
- * Vlossom Icon Library Exports (V6.0 Mobile)
+ * Vlossom Icon Library Exports (V7.5.2 Mobile)
  */
+
+// =============================================================================
+// Botanical Icons (Vlossom brand)
+// =============================================================================
 
 export {
   // Navigation Icons
@@ -18,6 +22,34 @@ export {
   // Utility Icons
   VlossomAddIcon,
   VlossomCloseIcon,
+  VlossomBackIcon,
   VlossomFavoriteIcon,
   VlossomSettingsIcon,
+  VlossomLocationIcon,
 } from './VlossomIcons';
+
+// =============================================================================
+// Social & Sharing Icons (Phosphor)
+// =============================================================================
+
+export {
+  // Social Platform Icons
+  TwitterIcon,
+  XIcon,
+  FacebookIcon,
+  InstagramIcon,
+  LinkedInIcon,
+  WhatsAppIcon,
+  TikTokIcon,
+  YouTubeIcon,
+  // Sharing Utility Icons
+  ShareIcon,
+  CopyIcon,
+  LinkIcon,
+  // Utilities
+  SocialColors,
+  SocialIconMap,
+  SocialIcon,
+  type SocialIconName,
+  type SocialIconProps,
+} from './SocialIcons';
