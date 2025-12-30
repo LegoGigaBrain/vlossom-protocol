@@ -258,7 +258,16 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
       token: accessToken, // For mobile compatibility
     });
   } catch (error) {
-    logger.error("Signup error", { error });
+    // Log detailed error for debugging - Prisma errors don't serialize well
+    const errorDetails = error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      // Prisma-specific properties
+      code: (error as { code?: string }).code,
+      meta: (error as { meta?: unknown }).meta,
+      stack: error.stack?.split('\n').slice(0, 5).join('\n'),
+    } : { error };
+    logger.error("Signup error", errorDetails);
     return next(createError("INTERNAL_ERROR"));
   }
 });
