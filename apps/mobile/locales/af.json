@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "Vlossom",
+    "tagline": "Waar Jy Blom"
+  },
+  "common": {
+    "loading": "Laai tans...",
+    "error": "Iets het verkeerd gegaan",
+    "retry": "Probeer Weer",
+    "cancel": "Kanselleer",
+    "save": "Stoor",
+    "done": "Klaar",
+    "next": "Volgende",
+    "back": "Terug",
+    "confirm": "Bevestig",
+    "delete": "Verwyder",
+    "edit": "Wysig",
+    "search": "Soek",
+    "filter": "Filter",
+    "sort": "Sorteer",
+    "close": "Sluit",
+    "ok": "Goed",
+    "yes": "Ja",
+    "no": "Nee"
+  },
+  "auth": {
+    "login": "Meld Aan",
+    "logout": "Meld Af",
+    "signup": "Registreer",
+    "forgotPassword": "Wagwoord Vergeet?",
+    "resetPassword": "Herstel Wagwoord",
+    "email": "E-pos",
+    "password": "Wagwoord",
+    "confirmPassword": "Bevestig Wagwoord",
+    "displayName": "Vertoonnaam"
+  },
+  "tabs": {
+    "home": "Tuis",
+    "search": "Soek",
+    "wallet": "Beursie",
+    "notifications": "Kennisgewings",
+    "profile": "Profiel"
+  },
+  "booking": {
+    "book": "Bespreek Nou",
+    "upcoming": "Opkomend",
+    "past": "Verlede",
+    "cancelled": "Gekanselleer",
+    "completed": "Voltooi",
+    "pending": "Hangende",
+    "confirmed": "Bevestig"
+  },
+  "wallet": {
+    "balance": "Balans",
+    "deposit": "Deposito",
+    "withdraw": "Onttrek",
+    "transactions": "Transaksies",
+    "send": "Stuur",
+    "receive": "Ontvang"
+  },
+  "hairHealth": {
+    "title": "Haargesondheid",
+    "status": {
+      "excellent": "Uitstekend",
+      "good": "Goed",
+      "fair": "Redelik",
+      "needsCare": "Benodig Versorging"
+    },
+    "calendar": "Versorgingskalender",
+    "streak": "Reeks",
+    "nextRitual": "Volgende Ritueel"
+  },
+  "errors": {
+    "network": "Netwerkfout. Kontroleer asseblief jou verbinding.",
+    "unauthorized": "Meld asseblief aan om voort te gaan.",
+    "notFound": "Nie gevind nie.",
+    "generic": "Iets het verkeerd gegaan. Probeer asseblief weer."
+  }
+}

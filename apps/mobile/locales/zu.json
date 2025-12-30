@@ -1,0 +1,79 @@
+{
+  "app": {
+    "name": "Vlossom",
+    "tagline": "Lapho Uqhakaza Khona"
+  },
+  "common": {
+    "loading": "Iyalayisha...",
+    "error": "Kukhona okungahambi kahle",
+    "retry": "Zama Futhi",
+    "cancel": "Khansela",
+    "save": "Londoloza",
+    "done": "Kuqediwe",
+    "next": "Okulandelayo",
+    "back": "Emuva",
+    "confirm": "Qinisekisa",
+    "delete": "Susa",
+    "edit": "Hlela",
+    "search": "Sesha",
+    "filter": "Hlunga",
+    "sort": "Hlelela",
+    "close": "Vala",
+    "ok": "Kulungile",
+    "yes": "Yebo",
+    "no": "Cha"
+  },
+  "auth": {
+    "login": "Ngena",
+    "logout": "Phuma",
+    "signup": "Bhalisa",
+    "forgotPassword": "Ukhohlwe Iphasiwedi?",
+    "resetPassword": "Setha Kabusha Iphasiwedi",
+    "email": "I-imeyili",
+    "password": "Iphasiwedi",
+    "confirmPassword": "Qinisekisa Iphasiwedi",
+    "displayName": "Igama Lokuboniswa"
+  },
+  "tabs": {
+    "home": "Ikhaya",
+    "search": "Sesha",
+    "wallet": "Isikhwama",
+    "notifications": "Izaziso",
+    "profile": "Iphrofayela"
+  },
+  "booking": {
+    "book": "Buka Manje",
+    "upcoming": "Ezizayo",
+    "past": "Ezedlule",
+    "cancelled": "Zikhanseliwe",
+    "completed": "Ziqediwe",
+    "pending": "Zisalindile",
+    "confirmed": "Ziqinisekisiwe"
+  },
+  "wallet": {
+    "balance": "Ibhalansi",
+    "deposit": "Faka Imali",
+    "withdraw": "Khipha Imali",
+    "transactions": "Ukuhwebelana",
+    "send": "Thumela",
+    "receive": "Yamukela"
+  },
+  "hairHealth": {
+    "title": "Impilo Yezinwele",
+    "status": {
+      "excellent": "Kuhle Kakhulu",
+      "good": "Kuhle",
+      "fair": "Kujwayelekile",
+      "needsCare": "Kudinga Ukunakekelwa"
+    },
+    "calendar": "Ikhalenda Yokunakekela",
+    "streak": "Ukulandelelana",
+    "nextRitual": "Umsebenzi Olandelayo"
+  },
+  "errors": {
+    "network": "Iphutha lenethiwekhi. Sicela uhlole ukuxhumana kwakho.",
+    "unauthorized": "Sicela ungene ukuze uqhubeke.",
+    "notFound": "Ayitholakali.",
+    "generic": "Kukhona okungahambi kahle. Sicela uzame futhi."
+  }
+}
