@@ -73,7 +73,9 @@
 
 ### `contracts/` - Smart Contracts
 - Hardhat project with payment escrow contracts
-- Deployed on Base + Arbitrum
+- **Primary Testnet**: Arbitrum Sepolia (11 contracts including DeFi)
+- Legacy: Base Sepolia (core contracts only)
+- See `contracts/ARBITRUM_SEPOLIA_DEPLOYMENT.md` for addresses
 
 ### `infra/` - Infrastructure
 - Docker Compose for local development
