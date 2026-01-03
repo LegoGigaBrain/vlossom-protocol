@@ -16,7 +16,9 @@ const buttonVariants = cva(
         outline: "border-2 border-brand-rose text-brand-rose hover:bg-brand-rose hover:text-white",
         ghost: "hover:bg-background-tertiary hover:text-text-primary",
         destructive: "bg-status-error text-white hover:bg-status-error/90",
+        danger: "bg-status-error text-white hover:bg-status-error/90", // Alias for mobile parity
         "destructive-outline": "border-2 border-status-error text-status-error hover:bg-status-error hover:text-white",
+        "danger-outline": "border-2 border-status-error text-status-error hover:bg-status-error hover:text-white", // Alias
       },
       size: {
         default: "h-11 px-6 py-2.5",
