@@ -36,9 +36,9 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: "/home", label: "Home", icon: VlossomHome },
-  { path: "/search", label: "Explore", icon: VlossomSearch },
+  { path: "/search", label: "Browse", icon: VlossomSearch },
   { path: "/wallet", label: "Wallet", icon: VlossomWallet },
-  { path: "/notifications", label: "Notifications", icon: VlossomNotifications },
+  { path: "/notifications", label: "Alerts", icon: VlossomNotifications },
   { path: "/profile", label: "Profile", icon: VlossomProfile },
 ];
 
