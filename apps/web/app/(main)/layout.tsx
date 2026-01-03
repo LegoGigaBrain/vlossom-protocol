@@ -1,17 +1,24 @@
 /**
- * Main App Layout (V7.0)
+ * Main App Layout (V8.0)
  *
- * Shared layout for main app pages with responsive navigation:
- * - Mobile (< md): BottomNav fixed at bottom
- * - Desktop (md+): DesktopNav fixed header
+ * Uses AppShell for unified responsive navigation:
+ * - Mobile (< 768px): BottomNav fixed at bottom
+ * - Tablet (768-1024px): Left sidebar (icons) + minimal header
+ * - Desktop (1024px+): Left sidebar (icons + labels) + minimal header
  *
- * Route groups don't affect URLs, so /home, /schedule, /profile still work.
+ * V8.0: Web/Mobile alignment - sidebar navigation matching mobile mental model
  */
 
 "use client";
 
-import { BottomNav } from "@/components/layout/bottom-nav";
-import { DesktopNav, DesktopNavSpacer } from "@/components/layout/desktop-nav";
+import { AppShell } from "@/components/layout/AppShell";
+
+// TODO: Replace with real user data from auth context
+const mockUserData = {
+  balanceCents: 45000, // R450.00
+  userName: "User",
+  avatarUrl: undefined,
+};
 
 export default function MainLayout({
   children,
@@ -19,18 +26,12 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background-secondary dark:bg-background-dark">
-      {/* Desktop header navigation */}
-      <DesktopNav />
-      <DesktopNavSpacer />
-
-      {/* Main content with responsive padding */}
-      <div className="pb-20 md:pb-8">
-        {children}
-      </div>
-
-      {/* Mobile bottom navigation */}
-      <BottomNav />
-    </div>
+    <AppShell
+      balanceCents={mockUserData.balanceCents}
+      userName={mockUserData.userName}
+      avatarUrl={mockUserData.avatarUrl}
+    >
+      {children}
+    </AppShell>
   );
 }

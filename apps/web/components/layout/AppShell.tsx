@@ -45,7 +45,7 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-background-primary dark:bg-background-dark">
+    <div className="h-screen bg-background-primary dark:bg-background-dark overflow-hidden flex flex-col">
       {/* Sidebar - hidden on mobile, visible on tablet+ */}
       <Sidebar />
 
@@ -59,14 +59,16 @@ export function AppShell({
       {/* Main Content Area */}
       <main
         className={cn(
-          // Base styles
-          "min-h-screen",
+          // Full height minus header (64px = h-16)
+          "h-[calc(100vh-4rem)]",
           // Offset for header
-          "pt-16",
+          "mt-16",
           // Offset for sidebar (tablet/desktop)
           "md:ml-16 lg:ml-52",
           // Bottom padding for mobile nav
-          "pb-24 md:pb-0",
+          "pb-20 md:pb-0",
+          // Allow internal scrolling
+          "overflow-auto",
           className
         )}
       >
