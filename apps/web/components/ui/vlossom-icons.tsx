@@ -453,6 +453,323 @@ export const VlossomSettings = React.forwardRef<SVGSVGElement, VlossomIconProps>
 VlossomSettings.displayName = "VlossomSettings";
 
 // =============================================================================
+// MAP PIN ICONS (V8.0 - Uber-Style Map)
+// =============================================================================
+
+export interface MapPinIconProps extends VlossomIconProps {
+  /** Status color override */
+  status?: "available" | "busy" | "offline";
+  /** Enable pulse animation for mobile stylists */
+  animate?: boolean;
+}
+
+/**
+ * Salon Map Pin - Potted Plant 🪴
+ * Meaning: Established salon location, rooted, stable
+ * Usage: Map markers for salons
+ */
+export const VlossomPinSalon = React.forwardRef<SVGSVGElement, MapPinIconProps>(
+  ({ size = 32, className, status, animate: _animate, ...props }, ref) => {
+    const statusColors = {
+      available: "text-status-success",
+      busy: "text-status-warning",
+      offline: "text-text-muted",
+    };
+
+    return (
+      <svg
+        ref={ref}
+        viewBox="0 0 32 40"
+        width={size}
+        height={Number(size) * 1.25}
+        className={cn(
+          "vlossom-map-pin",
+          status && statusColors[status],
+          className
+        )}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+      >
+        {/* Pin body - teardrop shape */}
+        <path
+          d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+          fill="currentColor"
+          fillOpacity={0.15}
+          stroke="currentColor"
+        />
+
+        {/* Pot base */}
+        <path
+          d="M11 20h10l-1.5 4h-7L11 20z"
+          fill="currentColor"
+          fillOpacity={0.3}
+          stroke="currentColor"
+        />
+
+        {/* Pot rim */}
+        <rect x="10" y="18.5" width="12" height="2" rx="0.5" fill="currentColor" opacity={0.5} />
+
+        {/* Plant stem */}
+        <path d="M16 18V13" stroke="currentColor" strokeWidth={2} />
+
+        {/* Leaves - botanical style */}
+        <path d="M16 15c-2-1-4 0-4.5 2s.5 3 2 3c.8 0 1.8-.5 2.5-1.5" fill="currentColor" fillOpacity={0.2} />
+        <path d="M16 15c2-1 4 0 4.5 2s-.5 3-2 3c-.8 0-1.8-.5-2.5-1.5" fill="currentColor" fillOpacity={0.2} />
+        <path d="M16 12c-1.5-2-1-4 .5-4.5s3 .5 3.5 2-.5 2.5-2 2.8c-.7.1-1.5 0-2-.3" fill="currentColor" fillOpacity={0.25} />
+        <path d="M16 12c1.5-2 1-4-.5-4.5s-3 .5-3.5 2 .5 2.5 2 2.8c.7.1 1.5 0 2-.3" fill="currentColor" fillOpacity={0.25} />
+
+        {/* Center dot */}
+        <circle cx="16" cy="13" r="1.5" fill="currentColor" />
+      </svg>
+    );
+  }
+);
+VlossomPinSalon.displayName = "VlossomPinSalon";
+
+/**
+ * Fixed Stylist Map Pin - Hibiscus Flower 🌺
+ * Meaning: Stylist at fixed location (home studio, rented chair)
+ * Usage: Map markers for stylists with fixed locations
+ */
+export const VlossomPinFixed = React.forwardRef<SVGSVGElement, MapPinIconProps>(
+  ({ size = 32, className, status, animate: _animate, ...props }, ref) => {
+    const statusColors = {
+      available: "text-status-success",
+      busy: "text-status-warning",
+      offline: "text-text-muted",
+    };
+
+    return (
+      <svg
+        ref={ref}
+        viewBox="0 0 32 40"
+        width={size}
+        height={Number(size) * 1.25}
+        className={cn(
+          "vlossom-map-pin",
+          status && statusColors[status],
+          className
+        )}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+      >
+        {/* Pin body - teardrop shape */}
+        <path
+          d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+          fill="currentColor"
+          fillOpacity={0.15}
+          stroke="currentColor"
+        />
+
+        {/* Hibiscus center */}
+        <circle cx="16" cy="13" r="2.5" fill="currentColor" />
+
+        {/* 5 hibiscus petals - organic overlapping style */}
+        <path
+          d="M16 6c1 0 2 2 2 3.5S17 11.5 16 11.5 14 11 14 9.5 15 6 16 6z"
+          fill="currentColor"
+          fillOpacity={0.3}
+        />
+        <path
+          d="M22 10c.3.9-.8 2.2-2 2.8s-2.5.3-2.3-.4.7-1.4 1.5-2S21.7 9.1 22 10z"
+          fill="currentColor"
+          fillOpacity={0.3}
+        />
+        <path
+          d="M20 17c-.6.8-2 .8-3 .2s-1.5-1.5-1-1.7 1.3 0 2 .3S20.6 16.2 20 17z"
+          fill="currentColor"
+          fillOpacity={0.3}
+        />
+        <path
+          d="M12 17c.6.8 2 .8 3 .2s1.5-1.5 1-1.7-1.3 0-2 .3S11.4 16.2 12 17z"
+          fill="currentColor"
+          fillOpacity={0.3}
+        />
+        <path
+          d="M10 10c-.3.9.8 2.2 2 2.8s2.5.3 2.3-.4-.7-1.4-1.5-2S10.3 9.1 10 10z"
+          fill="currentColor"
+          fillOpacity={0.3}
+        />
+
+        {/* Stamen details */}
+        <circle cx="16" cy="11" r="0.75" fill="currentColor" opacity={0.6} />
+        <circle cx="14.5" cy="12" r="0.5" fill="currentColor" opacity={0.6} />
+        <circle cx="17.5" cy="12" r="0.5" fill="currentColor" opacity={0.6} />
+      </svg>
+    );
+  }
+);
+VlossomPinFixed.displayName = "VlossomPinFixed";
+
+/**
+ * Mobile Stylist Map Pin - Sunflower 🌼
+ * Meaning: Mobile stylist who travels to clients
+ * Usage: Map markers for mobile stylists (supports animation)
+ */
+export const VlossomPinMobile = React.forwardRef<SVGSVGElement, MapPinIconProps>(
+  ({ size = 32, className, status, animate = false, ...props }, ref) => {
+    const statusColors = {
+      available: "text-status-success",
+      busy: "text-status-warning",
+      offline: "text-text-muted",
+    };
+
+    return (
+      <svg
+        ref={ref}
+        viewBox="0 0 32 40"
+        width={size}
+        height={Number(size) * 1.25}
+        className={cn(
+          "vlossom-map-pin",
+          status && statusColors[status],
+          animate && "animate-breathe",
+          className
+        )}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+      >
+        {/* Pin body - teardrop shape */}
+        <path
+          d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+          fill="currentColor"
+          fillOpacity={0.15}
+          stroke="currentColor"
+        />
+
+        {/* Sunflower center - textured */}
+        <circle cx="16" cy="13" r="3.5" fill="currentColor" />
+        <circle cx="16" cy="13" r="2.5" fill="currentColor" opacity={0.7} />
+
+        {/* 8 sunflower petals - radiating outward */}
+        {/* Top */}
+        <path
+          d="M16 5.5c.8 0 1.5 1.5 1.5 2.5s-.7 1.5-1.5 1.5-1.5-.5-1.5-1.5.7-2.5 1.5-2.5z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+        {/* Top-right */}
+        <path
+          d="M21.5 7.5c.4.6-.2 1.8-1 2.3s-1.8.3-1.7-.3.5-1.2 1.1-1.6 1.2-.8 1.6-.4z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+        {/* Right */}
+        <path
+          d="M23.5 13c0 .8-1.5 1.5-2.5 1.5s-1.5-.7-1.5-1.5.5-1.5 1.5-1.5 2.5.7 2.5 1.5z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+        {/* Bottom-right */}
+        <path
+          d="M21.5 18.5c-.4.6-1.6.2-2.1-.5s-.5-1.6.2-1.7.9.3 1.4.8.9 1 .5 1.4z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+        {/* Bottom */}
+        <path
+          d="M16 20.5c-.8 0-1.5-1.5-1.5-2.5s.7-1.5 1.5-1.5 1.5.5 1.5 1.5-.7 2.5-1.5 2.5z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+        {/* Bottom-left */}
+        <path
+          d="M10.5 18.5c.4.6 1.6.2 2.1-.5s.5-1.6-.2-1.7-.9.3-1.4.8-.9 1-.5 1.4z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+        {/* Left */}
+        <path
+          d="M8.5 13c0-.8 1.5-1.5 2.5-1.5s1.5.7 1.5 1.5-.5 1.5-1.5 1.5-2.5-.7-2.5-1.5z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+        {/* Top-left */}
+        <path
+          d="M10.5 7.5c-.4.6.2 1.8 1 2.3s1.8.3 1.7-.3-.5-1.2-1.1-1.6-1.2-.8-1.6-.4z"
+          fill="currentColor"
+          fillOpacity={0.35}
+        />
+
+        {/* Animated ring for mobile indicator */}
+        {animate && (
+          <circle
+            cx="16"
+            cy="13"
+            r="6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1}
+            opacity={0.3}
+            className="animate-ping"
+          />
+        )}
+
+        {/* Motion lines (indicating movement) */}
+        <path d="M7 10l-2-1" opacity={0.4} strokeWidth={1} />
+        <path d="M7 16l-2 1" opacity={0.4} strokeWidth={1} />
+        <path d="M25 10l2-1" opacity={0.4} strokeWidth={1} />
+        <path d="M25 16l2 1" opacity={0.4} strokeWidth={1} />
+      </svg>
+    );
+  }
+);
+VlossomPinMobile.displayName = "VlossomPinMobile";
+
+/**
+ * Generic Map Pin - Simple botanical marker
+ * Meaning: Generic location
+ * Usage: User location, search results, fallback
+ */
+export const VlossomPinLocation = React.forwardRef<SVGSVGElement, VlossomIconProps>(
+  ({ size = 32, className, accent: _accent, ...props }, ref) => (
+    <svg
+      ref={ref}
+      viewBox="0 0 32 40"
+      width={size}
+      height={Number(size) * 1.25}
+      className={cn("vlossom-map-pin", className)}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      {/* Pin body - teardrop shape */}
+      <path
+        d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+        fill="currentColor"
+        fillOpacity={0.15}
+        stroke="currentColor"
+      />
+
+      {/* Simple flower center */}
+      <circle cx="16" cy="12" r="2.5" fill="currentColor" />
+
+      {/* 4 simple petals */}
+      <path d="M16 6c.6 0 1 1.5 1 2.5s-.4 1.5-1 1.5-1-.5-1-1.5.4-2.5 1-2.5z" fill="currentColor" fillOpacity={0.25} />
+      <path d="M22 12c0 .6-1.5 1-2.5 1s-1.5-.4-1.5-1 .5-1 1.5-1 2.5.4 2.5 1z" fill="currentColor" fillOpacity={0.25} />
+      <path d="M16 18c-.6 0-1-1.5-1-2.5s.4-1.5 1-1.5 1 .5 1 1.5-.4 2.5-1 2.5z" fill="currentColor" fillOpacity={0.25} />
+      <path d="M10 12c0-.6 1.5-1 2.5-1s1.5.4 1.5 1-.5 1-1.5 1-2.5-.4-2.5-1z" fill="currentColor" fillOpacity={0.25} />
+    </svg>
+  )
+);
+VlossomPinLocation.displayName = "VlossomPinLocation";
+
+// =============================================================================
 // EXPORT ALL ICONS
 // =============================================================================
 
@@ -475,6 +792,11 @@ export const VlossomIcons = {
   Close: VlossomClose,
   Favorite: VlossomFavorite,
   Settings: VlossomSettings,
+  // Map Pins (V8.0)
+  PinSalon: VlossomPinSalon,
+  PinFixed: VlossomPinFixed,
+  PinMobile: VlossomPinMobile,
+  PinLocation: VlossomPinLocation,
 };
 
 export default VlossomIcons;

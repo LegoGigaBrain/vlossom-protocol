@@ -4,6 +4,22 @@
 
 ## Current Implementation Status
 
+**V7.5.1 Branding Consistency** (December 28, 2025)
+
+VlossomWordmark.tsx component with theme-aware variants (purple/cream/auto). Auth screens and settings use SVG wordmarks.
+
+**V7.5.0 Splash Screen & Landing** (December 28, 2025)
+
+Animated splash screen with Vlossom icon, unfold/breathe animations, and reduced motion support.
+
+**V7.4.0 Motion System Integration** (December 27, 2025)
+
+Mobile motion hooks: `useSettleMotion`, `useUnfoldMotion` for React Native Animated API.
+
+**V7.3.0 Production Readiness** (December 26, 2025)
+
+Push notifications via Expo Push (FCM/APNs), token registration, app.json v7.3.0, EAS build profiles.
+
 **V7.0.0 Security Hardening & UX Improvements** (December 20, 2025)
 
 Security hardening and enhanced UX across authentication, booking flow, and QR features:
@@ -457,3 +473,42 @@ npm run typecheck
 # Linting
 npm run lint
 ```
+
+---
+
+## Map Implementation (Reference for Web)
+
+The mobile app has the **canonical Uber-like map experience** that web should match.
+
+### Current Implementation
+- **Full-screen Google Maps** (`react-native-maps`)
+- **Color-coded pins** by operating mode:
+  - Green (`#22C55E`) - Fixed location stylists
+  - Amber (`#F59E0B`) - Mobile stylists
+  - Red (`#EF4444`) - Home-call stylists
+- **Bottom sheet booking** - Never leaves map during booking initiation
+- **Quick filters** - Nearby, Today, Mobile, Salon
+
+### Proposed Stylized Map Pins (Future Enhancement)
+
+Replace color-coded circles with botanical icons for stronger brand identity:
+
+| Entity Type | Icon | Color | Symbolism |
+|-------------|------|-------|-----------|
+| Mobile Stylist | 🌼 (5-petal daisy) | Amber `#F59E0B` | Reaching out, movement |
+| Fixed Stylist | 🌺 (hibiscus bloom) | Green `#A9D326` | Rooted, established |
+| Salon | 🪴 (potted plant) | Purple `#311E6B` | Cultivated environment |
+
+**Design Requirements:**
+- SVG icons at `design/brand/icons/map/`
+- Consistent with botanical linework (1.5pt stroke)
+- Clear visibility at map zoom levels
+- Animated pulse for available stylists
+- Cluster support for dense areas
+
+**Files to Create:**
+- `design/brand/icons/map/pin-mobile-stylist.svg`
+- `design/brand/icons/map/pin-fixed-stylist.svg`
+- `design/brand/icons/map/pin-salon.svg`
+
+See `apps/web/CLAUDE.md` for alignment requirements.

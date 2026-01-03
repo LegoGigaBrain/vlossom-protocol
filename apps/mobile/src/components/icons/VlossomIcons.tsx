@@ -895,3 +895,260 @@ export function VlossomChevronUpIcon({
     </Svg>
   );
 }
+
+// =============================================================================
+// MAP PIN ICONS (V8.0 - Uber-Style Map)
+// =============================================================================
+
+interface MapPinIconProps extends VlossomIconProps {
+  /** Status color override */
+  status?: 'available' | 'busy' | 'offline';
+  /** Enable pulse animation for mobile stylists */
+  animate?: boolean;
+}
+
+const statusColors = {
+  available: colors.status.success,
+  busy: colors.status.warning,
+  offline: colors.text.muted,
+};
+
+/**
+ * Salon Map Pin - Potted Plant 🪴
+ * Meaning: Established salon location, rooted, stable
+ * Usage: Map markers for salons
+ */
+export function VlossomPinSalonIcon({
+  size = 32,
+  color = colors.primary,
+  status,
+}: MapPinIconProps) {
+  const pinColor = status ? statusColors[status] : color;
+
+  return (
+    <Svg width={size} height={size * 1.25} viewBox="0 0 32 40" fill="none">
+      {/* Pin body - teardrop shape */}
+      <Path
+        d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+        fill={`${pinColor}25`}
+        stroke={pinColor}
+        strokeWidth="1.5"
+      />
+
+      {/* Pot base */}
+      <Path
+        d="M11 20h10l-1.5 4h-7L11 20z"
+        fill={`${pinColor}40`}
+        stroke={pinColor}
+        strokeWidth="1.5"
+      />
+
+      {/* Plant stem */}
+      <Path d="M16 18V13" stroke={pinColor} strokeWidth="2" />
+
+      {/* Leaves - botanical style */}
+      <Path
+        d="M16 15c-2-1-4 0-4.5 2s.5 3 2 3c.8 0 1.8-.5 2.5-1.5"
+        fill={`${pinColor}30`}
+        stroke={pinColor}
+        strokeWidth="1"
+      />
+      <Path
+        d="M16 15c2-1 4 0 4.5 2s-.5 3-2 3c-.8 0-1.8-.5-2.5-1.5"
+        fill={`${pinColor}30`}
+        stroke={pinColor}
+        strokeWidth="1"
+      />
+      <Path
+        d="M16 12c-1.5-2-1-4 .5-4.5s3 .5 3.5 2-.5 2.5-2 2.8c-.7.1-1.5 0-2-.3"
+        fill={`${pinColor}35`}
+        stroke={pinColor}
+        strokeWidth="1"
+      />
+      <Path
+        d="M16 12c1.5-2 1-4-.5-4.5s-3 .5-3.5 2 .5 2.5 2 2.8c.7.1 1.5 0 2-.3"
+        fill={`${pinColor}35`}
+        stroke={pinColor}
+        strokeWidth="1"
+      />
+
+      {/* Center dot */}
+      <Circle cx="16" cy="13" r="1.5" fill={pinColor} />
+    </Svg>
+  );
+}
+
+/**
+ * Fixed Stylist Map Pin - Hibiscus Flower 🌺
+ * Meaning: Stylist at fixed location (home studio, rented chair)
+ * Usage: Map markers for stylists with fixed locations
+ */
+export function VlossomPinFixedIcon({
+  size = 32,
+  color = colors.primary,
+  status,
+}: MapPinIconProps) {
+  const pinColor = status ? statusColors[status] : color;
+
+  return (
+    <Svg width={size} height={size * 1.25} viewBox="0 0 32 40" fill="none">
+      {/* Pin body - teardrop shape */}
+      <Path
+        d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+        fill={`${pinColor}25`}
+        stroke={pinColor}
+        strokeWidth="1.5"
+      />
+
+      {/* Hibiscus center */}
+      <Circle cx="16" cy="13" r="2.5" fill={pinColor} />
+
+      {/* 5 hibiscus petals - organic overlapping style */}
+      <Path
+        d="M16 6c1 0 2 2 2 3.5S17 11.5 16 11.5 14 11 14 9.5 15 6 16 6z"
+        fill={`${pinColor}40`}
+      />
+      <Path
+        d="M22 10c.3.9-.8 2.2-2 2.8s-2.5.3-2.3-.4.7-1.4 1.5-2S21.7 9.1 22 10z"
+        fill={`${pinColor}40`}
+      />
+      <Path
+        d="M20 17c-.6.8-2 .8-3 .2s-1.5-1.5-1-1.7 1.3 0 2 .3S20.6 16.2 20 17z"
+        fill={`${pinColor}40`}
+      />
+      <Path
+        d="M12 17c.6.8 2 .8 3 .2s1.5-1.5 1-1.7-1.3 0-2 .3S11.4 16.2 12 17z"
+        fill={`${pinColor}40`}
+      />
+      <Path
+        d="M10 10c-.3.9.8 2.2 2 2.8s2.5.3 2.3-.4-.7-1.4-1.5-2S10.3 9.1 10 10z"
+        fill={`${pinColor}40`}
+      />
+
+      {/* Stamen details */}
+      <Circle cx="16" cy="11" r="0.75" fill={pinColor} opacity={0.6} />
+      <Circle cx="14.5" cy="12" r="0.5" fill={pinColor} opacity={0.6} />
+      <Circle cx="17.5" cy="12" r="0.5" fill={pinColor} opacity={0.6} />
+    </Svg>
+  );
+}
+
+/**
+ * Mobile Stylist Map Pin - Sunflower 🌼
+ * Meaning: Mobile stylist who travels to clients
+ * Usage: Map markers for mobile stylists (supports animation)
+ */
+export function VlossomPinMobileIcon({
+  size = 32,
+  color = colors.primary,
+  status,
+}: MapPinIconProps) {
+  const pinColor = status ? statusColors[status] : color;
+
+  return (
+    <Svg width={size} height={size * 1.25} viewBox="0 0 32 40" fill="none">
+      {/* Pin body - teardrop shape */}
+      <Path
+        d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+        fill={`${pinColor}25`}
+        stroke={pinColor}
+        strokeWidth="1.5"
+      />
+
+      {/* Sunflower center - textured */}
+      <Circle cx="16" cy="13" r="3.5" fill={pinColor} />
+      <Circle cx="16" cy="13" r="2.5" fill={pinColor} opacity={0.7} />
+
+      {/* 8 sunflower petals - radiating outward */}
+      {/* Top */}
+      <Path
+        d="M16 5.5c.8 0 1.5 1.5 1.5 2.5s-.7 1.5-1.5 1.5-1.5-.5-1.5-1.5.7-2.5 1.5-2.5z"
+        fill={`${pinColor}45`}
+      />
+      {/* Top-right */}
+      <Path
+        d="M21.5 7.5c.4.6-.2 1.8-1 2.3s-1.8.3-1.7-.3.5-1.2 1.1-1.6 1.2-.8 1.6-.4z"
+        fill={`${pinColor}45`}
+      />
+      {/* Right */}
+      <Path
+        d="M23.5 13c0 .8-1.5 1.5-2.5 1.5s-1.5-.7-1.5-1.5.5-1.5 1.5-1.5 2.5.7 2.5 1.5z"
+        fill={`${pinColor}45`}
+      />
+      {/* Bottom-right */}
+      <Path
+        d="M21.5 18.5c-.4.6-1.6.2-2.1-.5s-.5-1.6.2-1.7.9.3 1.4.8.9 1 .5 1.4z"
+        fill={`${pinColor}45`}
+      />
+      {/* Bottom */}
+      <Path
+        d="M16 20.5c-.8 0-1.5-1.5-1.5-2.5s.7-1.5 1.5-1.5 1.5.5 1.5 1.5-.7 2.5-1.5 2.5z"
+        fill={`${pinColor}45`}
+      />
+      {/* Bottom-left */}
+      <Path
+        d="M10.5 18.5c.4.6 1.6.2 2.1-.5s.5-1.6-.2-1.7-.9.3-1.4.8-.9 1-.5 1.4z"
+        fill={`${pinColor}45`}
+      />
+      {/* Left */}
+      <Path
+        d="M8.5 13c0-.8 1.5-1.5 2.5-1.5s1.5.7 1.5 1.5-.5 1.5-1.5 1.5-2.5-.7-2.5-1.5z"
+        fill={`${pinColor}45`}
+      />
+      {/* Top-left */}
+      <Path
+        d="M10.5 7.5c-.4.6.2 1.8 1 2.3s1.8.3 1.7-.3-.5-1.2-1.1-1.6-1.2-.8-1.6-.4z"
+        fill={`${pinColor}45`}
+      />
+
+      {/* Motion lines (indicating movement) */}
+      <Path d="M7 10l-2-1" stroke={pinColor} strokeWidth="1" opacity={0.4} />
+      <Path d="M7 16l-2 1" stroke={pinColor} strokeWidth="1" opacity={0.4} />
+      <Path d="M25 10l2-1" stroke={pinColor} strokeWidth="1" opacity={0.4} />
+      <Path d="M25 16l2 1" stroke={pinColor} strokeWidth="1" opacity={0.4} />
+    </Svg>
+  );
+}
+
+/**
+ * Generic Map Pin - Simple botanical marker
+ * Meaning: Generic location
+ * Usage: User location, search results, fallback
+ */
+export function VlossomPinLocationIcon({
+  size = 32,
+  color = colors.primary,
+}: VlossomIconProps) {
+  return (
+    <Svg width={size} height={size * 1.25} viewBox="0 0 32 40" fill="none">
+      {/* Pin body - teardrop shape */}
+      <Path
+        d="M16 2C9 2 4 7 4 13c0 8 12 25 12 25s12-17 12-25c0-6-5-11-12-11z"
+        fill={`${color}25`}
+        stroke={color}
+        strokeWidth="1.5"
+      />
+
+      {/* Simple flower center */}
+      <Circle cx="16" cy="12" r="2.5" fill={color} />
+
+      {/* 4 simple petals */}
+      <Path
+        d="M16 6c.6 0 1 1.5 1 2.5s-.4 1.5-1 1.5-1-.5-1-1.5.4-2.5 1-2.5z"
+        fill={`${color}35`}
+      />
+      <Path
+        d="M22 12c0 .6-1.5 1-2.5 1s-1.5-.4-1.5-1 .5-1 1.5-1 2.5.4 2.5 1z"
+        fill={`${color}35`}
+      />
+      <Path
+        d="M16 18c-.6 0-1-1.5-1-2.5s.4-1.5 1-1.5 1 .5 1 1.5-.4 2.5-1 2.5z"
+        fill={`${color}35`}
+      />
+      <Path
+        d="M10 12c0-.6 1.5-1 2.5-1s1.5.4 1.5 1-.5 1-1.5 1-2.5-.4-2.5-1z"
+        fill={`${color}35`}
+      />
+    </Svg>
+  );
+}

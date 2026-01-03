@@ -7,6 +7,332 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [7.5.1] - 2025-12-28 - Branding Consistency
+
+### Summary
+V7.5.1 adds proper favicon and SVG wordmarks across web and mobile platforms for consistent brand presentation.
+
+### Added
+- **Web Favicon** - Favicon-purple.svg configured via Next.js metadata
+- **Landing Page Wordmarks** - VlossomWordmark replaces plain text in Navbar and Footer
+- **Mobile Wordmark Component** - `VlossomWordmark.tsx` with theme-aware variants (purple/cream/auto)
+- **Mobile Auth Screens** - Login, Signup, Forgot Password use SVG wordmark
+- **Mobile Settings Header** - Wordmark with auto theme switching
+
+---
+
+## [7.5.0] - 2025-12-28 - Splash Screen & Landing Page
+
+### Summary
+V7.5.0 delivers animated mobile splash screen and full marketing landing page with scroll animations.
+
+### Added
+- **Mobile Animated Splash** - Branded splash with Vlossom icon, unfold/breathe animations
+- **Web Marketing Landing** - Hero, How It Works, 3 audience sections (Customers, Stylists, Property Owners)
+- **Orange "Launch App" CTA** - Sacred orange used appropriately for growth/celebration
+- **Scroll Animations** - react-intersection-observer for scroll-triggered animations
+- **Reduced Motion Support** - Full accessibility for animation preferences
+
+---
+
+## [7.4.0] - 2025-12-27 - Motion System Integration
+
+### Summary
+V7.4.0 integrates the motion system into core UI components across web and mobile.
+
+### Added
+- **Dialog Animation** - Unfold animation on dialog open
+- **Card Animation** - Settle animation with `animate` prop
+- **EmptyState Animation** - Settle on mount
+- **Mobile Motion Hooks** - `useSettleMotion`, `useUnfoldMotion` for React Native
+
+---
+
+## [7.3.0] - 2025-12-26 - Production Readiness
+
+### Summary
+V7.3.0 prepares the platform for production deployment with push notifications, stylist mobile experience, and app store requirements.
+
+### Added
+- **Stylist Mobile Experience** - Availability management, booking requests queue, profile editor
+- **Real-Time Session Tracker** - Mobile SessionTracker component, active session screens
+- **Push Notifications** - Expo Push integration (FCM/APNs), token registration
+- **App Store Requirements** - app.json v7.3.0, eas.json with all build profiles
+- **Security Audit Checklist** - 12-section comprehensive checklist
+- **Production Environment** - Complete .env.production.example template
+
+---
+
+## [7.0.0] - 2025-12-20 - Security Hardening & Admin Panel
+
+### Summary
+V7.0.0 is a major security release with cookie-based authentication, CSRF protection, and a complete 8-page admin panel.
+
+### Security
+- **Cookie Auth Migration** - JWT moved from localStorage to httpOnly cookies (XSS protection)
+- **Refresh Token Rotation** - 15-min access tokens with secure refresh flow
+- **SIWE Nonce Fix** - Atomic transaction prevents race condition attacks
+- **Rate Limit Fail-Closed** - Returns 503 without Redis in production
+- **Input Validation** - QR address (EIP-55), reset tokens (64 hex), input lengths
+- **Deep Link Security** - Whitelist-based validation
+
+### Added
+- **Admin Dashboard** - Key metrics, quick actions overview
+- **Admin Users** - List, search, freeze/unfreeze/verify with detail panel
+- **Admin Bookings** - Status filters, status change with detail panel
+- **Admin Sessions** - Real-time IN_PROGRESS bookings with progress tracking
+- **Admin Disputes** - Full resolution workflow with 8 resolution types
+- **Admin Audit Logs** - Searchable logs with action/target filters
+- **Admin DeFi Config** - APY params, fee split, emergency controls
+- **Admin Paymaster** - Balance monitoring, gas tracking, alerts
+
+### Tests
+- **API Unit Tests** - auth.test.ts, csrf.test.ts, rate-limiter.test.ts
+- **Integration Tests** - auth.integration.test.ts (login/refresh/logout cycle)
+- **E2E Tests** - auth-v7.spec.ts, property-creation.spec.ts (Playwright)
+
+---
+
+## [6.10.0] - 2025-12-20 - Mobile Parity
+
+### Summary
+V6.10.0 achieves complete mobile feature parity with the web application.
+
+### Added
+- **Booking Flow** - 4-step wizard (service → datetime → location → payment) with real API
+- **Wallet QR Features** - QR scanner (expo-camera) + QR generation (react-native-qrcode-svg)
+- **Auth Screens** - Forgot/reset password with deep linking and password strength indicator
+- **Property Owner Dashboard** - 4 screens wired to API (overview, properties, chairs, revenue)
+- **Special Events** - Request submission with real API integration
+- **Web Calendar** - Schedule page uses real ritual API
+
+---
+
+## [6.9.0] - 2025-12-20 - Calendar Intelligence
+
+### Summary
+V6.9.0 implements the Calendar Intelligence system with personalized ritual plans.
+
+### Added
+- **Ritual Generator** - Profile-based ritual recommendations with 8 archetypes
+- **Calendar Scheduler** - Automatic event generation with weekly load balancing
+- **Smart Calendar Widget** - Web component with upcoming rituals, completion, skipping
+- **Mobile API Integration** - Full calendar intelligence API in mobile app
+- **Mobile Zustand Store** - Calendar state management with actions
+- **10 React Query Hooks** - Full calendar intelligence support
+
+---
+
+## [6.8.0] - 2025-12-20 - Mobile Foundation
+
+### Summary
+V6.8.0 delivers complete mobile app functionality with real API integration across all 5 tabs.
+
+### Added
+- **Sprint 1: Auth & Profile** - Login/signup screens, SecureStore tokens, auth routing
+- **Sprint 2: Wallet Integration** - Real balance, Fund/Withdraw via Kotani Pay, P2P
+- **Sprint 3: Uber-like Home Tab** - Full-screen map with stylist pins, bottom sheet booking
+- **Sprint 4: Stylist Discovery** - Search with filters, stylist detail, 4-step booking flow
+- **Sprint 5: Notifications + Hair Health** - Real notifications, 6-step hair profile wizard
+
+### Mobile Parity Summary
+| Tab | Status |
+|-----|--------|
+| Home | Full-screen map with booking sheet |
+| Search | Real API, filters, infinite scroll |
+| Wallet | Real balance, Fund/Withdraw, P2P |
+| Notifications | Real notifications, filtering |
+| Profile | Real user, Hair Health card |
+
+---
+
+## [6.7.1] - 2025-12-20 - Mobile Messaging API
+
+### Summary
+V6.7.1 connects mobile messaging screens to backend API with Zustand state management.
+
+### Added
+- **API Infrastructure** - Base client with SecureStore token management
+- **Messages API Client** - 8 endpoints for conversations and messages
+- **Zustand Store** - Messages state with optimistic updates
+- **Screen Updates** - Conversations list and thread connected to store
+
+---
+
+## [6.7.0] - 2025-12-20 - Direct Messaging
+
+### Summary
+V6.7.0 implements in-app messaging between customers and stylists.
+
+### Added
+- **Prisma Models** - `Conversation` and `Message` with per-participant tracking
+- **REST API** - 8 endpoints for conversations, messages, read receipts, archive
+- **Notifications** - `MESSAGE_RECEIVED` type with in-app/SMS templates
+- **Web Frontend** - Messages list, conversation threads, React Query hooks
+- **Mobile Frontend** - Conversations list, conversation thread screens
+
+### Design Decision
+Messaging is a supporting feature accessed through stylist profiles and booking pages, NOT in main navigation tabs.
+
+---
+
+## [6.6.0] - 2025-12-19 - Special Events Booking
+
+### Summary
+V6.6.0 implements special events booking flow for weddings, photoshoots, and group styling.
+
+### Added
+- **Mobile Special Events** - Landing page with categories, multi-step request form
+- **Web Special Events** - Matching flow with Quick Actions integration
+- **Reusable Components** - LocationSelector, ChairSelector
+- **E2E Tests** - Comprehensive Playwright test suite
+
+---
+
+## [6.5.1] - 2025-12-19 - Property Owner UI Components
+
+### Summary
+V6.5.1 completes property owner frontend with image upload and chair management.
+
+### Added
+- **Property Image Upload** - Drag-and-drop with cover selection
+- **Amenity Picker** - Multi-select grid (10 presets)
+- **Chair Form Dialog** - 3-step wizard for chair configuration
+- **Property Detail Page** - Full CRUD with image integration
+- **API Client & Hooks** - Complete typed client with React Query
+
+---
+
+## [6.5.0] - 2025-12-18 - Phosphor Icon Migration
+
+### Summary
+V6.5.0 migrates all frontend icons from Lucide to Phosphor for consistent botanical iconography.
+
+### Changed
+- **50+ files migrated** from Lucide to Phosphor icons
+- **Icon Bridge System** - Centralized `Icon` component with semantic naming
+- **Size Standardization** - Consistent tokens (sm, md, lg, xl, 2xl)
+- **Zero Lucide Imports** - Complete removal from `apps/web`
+
+---
+
+## [6.0.0] - 2025-12-17 - Mobile App + Design Handover
+
+### Summary
+V6.0.0 delivers complete design system with botanical icons, animation system, and React Native mobile app foundation.
+
+### Added
+- **Botanical Icon Library** - 28 custom SVG icons in 5 categories
+- **Animation System** - CSS + TypeScript motion utilities (unfold, breathe, settle)
+- **Typography Audit** - Confirmed Playfair/Inter separation
+- **Color Token Audit** - Confirmed brand-rose = Primary Purple
+- **React Native App** - 5-tab navigation with Expo Router
+- **Design Documentation** - STYLE_BLUEPRINT, ICONOGRAPHY_REPORT
+
+---
+
+## [5.3.0] - 2025-12-17 - Mock Data Feature Flag
+
+### Summary
+V5.3.0 adds demo mode with automatic mock data fallback.
+
+### Added
+- **Feature Flag** - `NEXT_PUBLIC_USE_MOCK_DATA=true` for demo mode
+- **Central Mock Data** - `mock-data.ts` with all mock constants
+- **Profile Stats Hooks** - Dashboard, social, rewards with mock fallback
+- **"Demo Data" Badge** - Visual indicator in development mode
+
+---
+
+## [5.2.0] - 2025-12-17 - UX Excellence
+
+### Summary
+V5.2.0 achieves UX score 10/10 with favorites, map improvements, and session tracking.
+
+### Added
+- **Favorites System** - FavoriteStylist model, API, FavoriteButton component
+- **Map V5.2** - Clustering, list view, keyboard nav, reduced motion support
+- **Session Tracker** - Simplified 3-state model with SSE live updates
+- **Rituals API** - Full CRUD for hair rituals (8 endpoints)
+- **Route Group Refactor** - (main) layout with shared BottomNav
+
+---
+
+## [5.1.0] - 2025-12-17 - Frontend Integration
+
+### Summary
+V5.1.0 integrates Hair Health UI with real API data.
+
+### Added
+- **Hair Health Pages** - Dashboard, onboarding wizard, profile editor
+- **Schedule Integration** - Real bookings connected to calendar views
+- **API Clients** - Hair health, stylist context, calendar
+- **Navigation Refactor** - (main) route group with shared layout
+
+---
+
+## [5.0.0] - 2025-12-17 - Hair Health Backend
+
+### Summary
+V5.0.0 implements the Hair Health Intelligence backend system.
+
+### Added
+- **Hair Health Profile System** - 20+ attributes, archetypes, scoring
+- **Intelligence Engine** - Health grades A-F, risk assessment
+- **Recommendations Engine** - Weekly focus, quick wins
+- **Rest Buffer Calculator** - Load assessment, recovery periods
+- **Stylist Context API** - Consent-based profile sharing
+- **Real-Time Booking Updates** - SSE, session progress
+
+---
+
+## [4.0.0] - 2025-12-16 - DeFi Integration
+
+### Summary
+V4.0.0 implements full DeFi liquidity pool system with yield and tier rewards.
+
+### Added
+- **6 Smart Contracts** - Genesis Pool, Community Pool, Factory, Treasury, Yield Engine, Smoothing Buffer
+- **15 Liquidity API Endpoints** - Pools, deposits, withdrawals, yield claims
+- **SDK DeFi Module** - 12 client methods
+- **DeFi Tab** - Deposit/withdraw, yield claims, tier progress
+- **Admin DeFi Console** - APY params, fee split, emergency controls
+- **Tier System** - Top 5%/15%/30% referrers can create pools
+
+---
+
+## [3.4.0] - 2025-12-16 - Pre-Styling Completion
+
+### Summary
+V3.4.0 completes all features before UI/UX styling phase.
+
+### Added
+- **Wallet Tabs** - Overview, DeFi, Rewards, History, Advanced
+- **Kotani Pay Integration** - On-ramp (ZAR → USDC) and off-ramp
+- **Rewards & XP System** - Points, streaks, badges, tier progress
+- **Settings Page** - 6 sections (Account, Display, Notifications, Privacy, Security, Advanced)
+- **Admin Dispute Resolution** - Full workflow with evidence viewer
+- **Admin Financial Dashboard** - Metrics, settlements, refunds, payouts
+- **Admin Property Management** - User actions, property verification
+- **Admin Audit Logs** - Searchable logs with filtering
+
+---
+
+## [3.3.0] - 2025-12-16 - Feature Completion
+
+### Summary
+V3.3.0 completes all user-facing flows and UX pathways.
+
+### Added
+- **Notifications UI** - Bell, dropdown, full page
+- **Reviews & Ratings** - Star rating, badges, review list
+- **Booking Completion Flow** - Confirm, tip, receipt, reschedule
+- **Disputes & Issues** - Report, escalate, track
+- **Utility Dialogs** - Profile edit, delete account, share, etc.
+- **Help Center** - 4 category pages + contact form
+
+---
+
 ## [3.2.0] - 2025-12-16 - SIWE Authentication
 
 ### Summary

@@ -266,10 +266,10 @@
 **Supported Networks:**
 | Network | Chain ID | Status |
 |---------|----------|--------|
-| Base Sepolia | 84532 | ✅ Contracts deployed |
-| Base Mainnet | 8453 | 📝 Config ready |
-| Arbitrum Sepolia | 421614 | 📝 Config ready |
+| Arbitrum Sepolia | 421614 | ✅ **PRIMARY** - 11 contracts deployed (Dec 28, 2025) |
+| Base Sepolia | 84532 | ⚠️ LEGACY - Core contracts only |
 | Arbitrum Mainnet | 42161 | 📝 Config ready |
+| Base Mainnet | 8453 | 📝 Config ready |
 
 ---
 
@@ -453,14 +453,27 @@
 - ✅ Claude Code agent workflow setup (LEGO OS integrated)
 - ✅ PostgreSQL + Prisma schema (wallet models added)
 - ⏳ CI/CD pipeline (GitHub Actions) - pending
-- ✅ Base Sepolia testnet deployment (Dec 13, 2025)
+- ✅ Arbitrum Sepolia deployment (Dec 28, 2025) - **PRIMARY**
+- ✅ Base Sepolia testnet deployment (Dec 13, 2025) - LEGACY
 
-**Deployed Contracts (Base Sepolia Testnet - Chain ID 84532)**:
-- VlossomAccountFactory: `0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d` ([Basescan](https://sepolia.basescan.org/address/0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d#code))
-- VlossomPaymaster: `0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D` ([Basescan](https://sepolia.basescan.org/address/0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D#code))
-- Escrow: `0x925E12051A6badb09D5a8a67aF9dD40ec5725E04` ([Basescan](https://sepolia.basescan.org/address/0x925E12051A6badb09D5a8a67aF9dD40ec5725E04#code))
-- USDC (Circle): `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
-- Deployment Stats: 3.58M gas, 0.3 ETH total cost
+**Deployed Contracts (Arbitrum Sepolia - Chain ID 421614) — PRIMARY**:
+- VlossomAccountFactory: `0x1B1FD00ce6CDc46FcdD9be9F4C2948e00Ab694A9` ([Arbiscan](https://sepolia.arbiscan.io/address/0x1B1FD00ce6CDc46FcdD9be9F4C2948e00Ab694A9#code))
+- VlossomPaymaster: `0x9E52B23a6376EAfa89790a637F99371995C0E68c` ([Arbiscan](https://sepolia.arbiscan.io/address/0x9E52B23a6376EAfa89790a637F99371995C0E68c#code))
+- Escrow: `0xb5ba44265B09679C044Ed60506AE936e35B59Afb` ([Arbiscan](https://sepolia.arbiscan.io/address/0xb5ba44265B09679C044Ed60506AE936e35B59Afb#code))
+- PropertyRegistry: `0xE8395633875F5A11b89D3425C199Dd17e09E7E82`
+- ReputationRegistry: `0xdbDFFC205738d2E3A179AEd2450D9Aec9B4D0577`
+- VlossomTreasury: `0x5Fda3cE7bEF86A755c8fd35474D9e1d8ecE9e4aA`
+- VlossomYieldEngine: `0x44fE36117B9983AE7C3465E4275A20C9F842Fd82`
+- VlossomGenesisPool: `0x8722EF54892a28007632A7372091f7B770D4FE0b`
+- MockUSDC: `0x67d56A4c0ce977aAd973835b0Fa16d6eAddaCE7d`
+- Total: 11 contracts deployed
+- Documentation: See `contracts/ARBITRUM_SEPOLIA_DEPLOYMENT.md`
+
+**Deployed Contracts (Base Sepolia - Chain ID 84532) — LEGACY**:
+> ⚠️ Base Sepolia is deprecated. Use Arbitrum Sepolia for development.
+- VlossomAccountFactory: `0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d`
+- VlossomPaymaster: `0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D`
+- Escrow: `0x925E12051A6badb09D5a8a67aF9dD40ec5725E04`
 - Documentation: See `contracts/BASE_SEPOLIA_DEPLOYMENT.md`
 
 **Deployed Contracts (localhost - Chain ID 31337)**:

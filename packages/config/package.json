@@ -5,6 +5,11 @@
   "exports": {
     "./eslint": "./eslint/index.js",
     "./typescript": "./typescript/base.json",
-    "./tailwind": "./tailwind/index.js"
+    "./tailwind": "./tailwind/index.js",
+    "./map-styles": {
+      "types": "./src/map-styles.ts",
+      "import": "./src/map-styles.ts",
+      "require": "./src/map-styles.ts"
+    }
   }
 }

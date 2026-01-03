@@ -120,6 +120,65 @@ function SkeletonList({ count = 3, className }: { count?: number; className?: st
   );
 }
 
+/**
+ * V8.0 Additional Skeletons for Mobile Parity
+ */
+
+function SkeletonStylistCard({ className }: { className?: string }) {
+  return (
+    <div className={cn("rounded-card border border-border-default p-4 space-y-3", className)}>
+      <div className="flex gap-4">
+        <SkeletonAvatar size={56} />
+        <div className="flex-1 space-y-2">
+          <Skeleton variant="text" className="h-[18px] w-[70%]" />
+          <Skeleton variant="text" className="h-[14px] w-[50%]" />
+          <Skeleton variant="text" className="h-[12px] w-[40%]" />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Skeleton variant="rounded" className="h-7 w-20 rounded-full" />
+        <Skeleton variant="rounded" className="h-7 w-24 rounded-full" />
+        <Skeleton variant="rounded" className="h-7 w-16 rounded-full" />
+      </div>
+    </div>
+  );
+}
+
+function SkeletonBookingCard({ className }: { className?: string }) {
+  return (
+    <div className={cn("rounded-card border border-border-default p-4 space-y-3", className)}>
+      <div className="flex items-center gap-4">
+        <SkeletonAvatar size={48} />
+        <div className="flex-1 space-y-1">
+          <Skeleton variant="text" className="h-4 w-[60%]" />
+          <Skeleton variant="text" className="h-[14px] w-[80%]" />
+        </div>
+        <Skeleton variant="rounded" className="h-6 w-[60px]" />
+      </div>
+      <div className="flex justify-between">
+        <Skeleton variant="text" className="h-[14px] w-[45%]" />
+        <Skeleton variant="text" className="h-[14px] w-[30%]" />
+      </div>
+    </div>
+  );
+}
+
+function SkeletonTransaction({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex items-center gap-4 py-3 border-b border-border-default", className)}>
+      <SkeletonAvatar size={40} />
+      <div className="flex-1 space-y-1">
+        <Skeleton variant="text" className="h-[14px] w-[50%]" />
+        <Skeleton variant="text" className="h-[12px] w-[30%]" />
+      </div>
+      <div className="text-right space-y-1">
+        <Skeleton variant="text" className="h-4 w-[60px]" />
+        <Skeleton variant="text" className="h-[12px] w-10" />
+      </div>
+    </div>
+  );
+}
+
 export {
   Skeleton,
   SkeletonCard,
@@ -128,4 +187,8 @@ export {
   SkeletonButton,
   SkeletonInput,
   SkeletonList,
+  // V8.0 additions for mobile parity
+  SkeletonStylistCard,
+  SkeletonBookingCard,
+  SkeletonTransaction,
 };

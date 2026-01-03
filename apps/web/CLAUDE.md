@@ -4,6 +4,22 @@
 
 ## Current Implementation Status
 
+**V7.5.1 Branding Consistency** (Dec 28, 2025)
+
+Added proper favicon and VlossomWordmark component for consistent brand presentation in Navbar and Footer.
+
+**V7.5.0 Splash Screen & Landing Page** (Dec 28, 2025)
+
+Full marketing landing page with Hero, How It Works, and 3 audience sections. Scroll animations via react-intersection-observer. Orange "Launch App" CTA used appropriately.
+
+**V7.4.0 Motion System Integration** (Dec 27, 2025)
+
+Motion system integrated into Dialog, Card, and EmptyState components with unfold/settle animations.
+
+**V7.3.0 Production Readiness** (Dec 26, 2025)
+
+Security audit checklist, production environment templates, push notification integration.
+
 **V7.0.0 Security Hardening & UX Improvements** (Dec 20, 2025)
 
 Complete security overhaul with cookie-based authentication, CSRF protection, and enhanced UX with balance warnings and improved validation.
@@ -840,3 +856,34 @@ stylistPayoutCents = quoteAmountCents - platformFeeCents
 - All API calls use React Query with appropriate stale times
 - Loading states must use skeleton patterns, not spinners
 - Empty states must be helpful and guide user to action
+
+---
+
+## Known Alignment Issues (Web vs Mobile)
+
+> ⚠️ The following issues need to be addressed to make web feel like an extension of mobile.
+
+### 1. Map Implementation (CRITICAL)
+- **Mobile**: Full-screen Google Maps with real stylist pins, bottom sheet booking (Uber-like)
+- **Web**: Simulated map with CSS grid pattern (placeholder) - has "Interactive map coming soon" notice
+- **Action**: Implement real map using Mapbox GL JS
+
+### 2. Icon System Divergence
+- **Mobile**: Uses 100% Vlossom botanical icons (28 custom SVGs) - `VlossomHome`, `VlossomSearch`, etc.
+- **Web**: Uses Phosphor icons after V6.5.0 migration - generic `<Icon name="home" />` system
+- **STYLE_BLUEPRINT says**: "Generic icon libraries are **forbidden** for navigation and state icons"
+- **Action**: Revert web navigation to use Vlossom botanical icons from `vlossom-icons.tsx`
+
+### 3. Discovery Mental Model
+- **Mobile**: Map-first discovery (Home tab is full-screen map)
+- **Web**: List/grid-first discovery (Home page has simulated map)
+- **STYLE_BLUEPRINT says** for `/app/home`: "Primary influence: Uber (mental model)" with "Full-screen map, Bottom sheet booking overlay"
+- **Action**: Align web home to match mobile's map-first experience
+
+### 4. Proposed Stylized Map Pins
+Future enhancement using botanical icons for map markers:
+- 🌼 **Mobile Stylists** (on the move) - Daisy/reaching flower
+- 🌺 **Fixed Stylists** (at location) - Hibiscus/rooted bloom
+- 🪴 **Salons** (establishments) - Potted plant
+
+See `apps/mobile/CLAUDE.md` for reference implementation.
