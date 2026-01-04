@@ -2,9 +2,11 @@
  * Messages API Client (V6.7.0)
  *
  * Client for direct messaging between users.
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
 
-import { getAuthToken } from "./auth-client";
+import { authFetch } from "./auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -91,17 +93,13 @@ export interface UnreadCountResponse {
 
 /**
  * Get list of user's conversations
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getConversations(params?: {
   limit?: number;
   offset?: number;
   includeArchived?: boolean;
 }): Promise<ConversationsListResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
@@ -109,12 +107,7 @@ export async function getConversations(params?: {
 
   const url = `${API_URL}/api/v1/conversations?${searchParams.toString()}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(url);
 
   if (!response.ok) {
     const error = await response.json();
@@ -126,23 +119,15 @@ export async function getConversations(params?: {
 
 /**
  * Start or get existing conversation with a user
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function startConversation(params: {
   recipientId: string;
   bookingId?: string;
   initialMessage?: string;
 }): Promise<StartConversationResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/conversations`, {
+  const response = await authFetch(`${API_URL}/api/v1/conversations`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(params),
   });
 
@@ -156,6 +141,7 @@ export async function startConversation(params: {
 
 /**
  * Get conversation with messages
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getConversation(
   conversationId: string,
@@ -164,23 +150,13 @@ export async function getConversation(
     before?: string;
   }
 ): Promise<ConversationWithMessagesResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.before) searchParams.set("before", params.before);
 
   const url = `${API_URL}/api/v1/conversations/${conversationId}?${searchParams.toString()}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(url);
 
   if (!response.ok) {
     const error = await response.json();
@@ -192,24 +168,16 @@ export async function getConversation(
 
 /**
  * Send a message in a conversation
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function sendMessage(
   conversationId: string,
   content: string
 ): Promise<SendMessageResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/conversations/${conversationId}/messages`,
     {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ content }),
     }
   );
@@ -224,23 +192,15 @@ export async function sendMessage(
 
 /**
  * Mark all messages in a conversation as read
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function markConversationRead(
   conversationId: string
 ): Promise<{ success: boolean; markedCount: number }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/conversations/${conversationId}/read`,
     {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
     }
   );
 
@@ -254,23 +214,15 @@ export async function markConversationRead(
 
 /**
  * Archive a conversation
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function archiveConversation(
   conversationId: string
 ): Promise<{ success: boolean }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/conversations/${conversationId}/archive`,
     {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
     }
   );
 
@@ -284,23 +236,15 @@ export async function archiveConversation(
 
 /**
  * Unarchive a conversation
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function unarchiveConversation(
   conversationId: string
 ): Promise<{ success: boolean }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/conversations/${conversationId}/archive`,
     {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
     }
   );
 
@@ -314,19 +258,10 @@ export async function unarchiveConversation(
 
 /**
  * Get total unread message count
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getUnreadCount(): Promise<UnreadCountResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/conversations/unread-count`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(`${API_URL}/api/v1/conversations/unread-count`);
 
   if (!response.ok) {
     const error = await response.json();

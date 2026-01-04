@@ -1,11 +1,36 @@
 /**
  * Internal service-to-service authentication middleware
  * Used for internal API calls (e.g., wallet creation on signup)
+ *
+ * V8.0.0 Security Fix: Enforce INTERNAL_AUTH_SECRET in production
  */
 
 import { type Request, type Response, type NextFunction } from "express";
 
-const INTERNAL_AUTH_SECRET = process.env.INTERNAL_AUTH_SECRET || "internal-dev-secret";
+/**
+ * V8.0.0: Validate internal auth secret with production enforcement
+ * Fails fast at startup if not configured in production
+ */
+function getInternalAuthSecret(): string {
+  const secret = process.env.INTERNAL_AUTH_SECRET;
+
+  if (!secret && process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'FATAL: INTERNAL_AUTH_SECRET must be set in production. ' +
+      'Generate a strong random secret (min 32 characters) for internal service authentication.'
+    );
+  }
+
+  if (secret && secret.length < 32) {
+    console.warn(
+      '[Security] INTERNAL_AUTH_SECRET should be at least 32 characters for adequate security'
+    );
+  }
+
+  return secret || 'internal-dev-secret'; // Only allowed in development
+}
+
+const INTERNAL_AUTH_SECRET = getInternalAuthSecret();
 
 /**
  * Extended Request for internal service calls

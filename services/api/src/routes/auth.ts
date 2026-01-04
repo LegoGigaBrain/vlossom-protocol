@@ -1125,12 +1125,13 @@ router.post("/forgot-password", rateLimiters.passwordReset, async (req: Request,
     });
 
     // TODO: Send email via SendGrid
-    // For now, log the reset link (in production, send email)
+    // V8.0.0 Security Fix: Never log password reset links in production
     const resetLink = `${APP_URI}/reset-password?token=${token}`;
     logger.info("Password reset token created", {
       userId: user.id,
       email: user.email,
-      resetLink, // Remove in production
+      // V8.0.0: Only include link in development for debugging
+      ...(process.env.NODE_ENV === 'development' ? { resetLink } : {}),
       expiresAt,
     });
 

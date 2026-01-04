@@ -1,9 +1,11 @@
 /**
  * Booking API Client
  * Handles booking creation, management, and status tracking
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
 
-import { getAuthToken } from "./auth-client";
+import { authFetch, createHeaders } from "./auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -79,17 +81,13 @@ export interface PriceBreakdown {
 
 /**
  * Get bookings for authenticated user
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getBookings(params?: {
   status?: BookingStatus;
   page?: number;
   limit?: number;
 }): Promise<BookingPage> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const searchParams = new URLSearchParams();
   if (params?.status) searchParams.set("status", params.status);
   if (params?.page) searchParams.set("page", params.page.toString());
@@ -97,12 +95,7 @@ export async function getBookings(params?: {
 
   const url = `${API_URL}/api/v1/bookings${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(url);
 
   if (!response.ok) {
     const error = await response.json();
@@ -114,19 +107,10 @@ export async function getBookings(params?: {
 
 /**
  * Get single booking by ID
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getBooking(id: string): Promise<Booking> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/bookings/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(`${API_URL}/api/v1/bookings/${id}`);
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -141,19 +125,11 @@ export async function getBooking(id: string): Promise<Booking> {
 
 /**
  * Create a new booking
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function createBooking(data: CreateBookingRequest): Promise<Booking> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/bookings`, {
+  const response = await authFetch(`${API_URL}/api/v1/bookings`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
@@ -167,23 +143,15 @@ export async function createBooking(data: CreateBookingRequest): Promise<Booking
 
 /**
  * Update booking status (used after payment or cancellation)
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function updateBookingStatus(
   id: string,
   status: BookingStatus,
   escrowTxHash?: string
 ): Promise<Booking> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/bookings/${id}/status`, {
+  const response = await authFetch(`${API_URL}/api/v1/bookings/${id}/status`, {
     method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ status, escrowTxHash }),
   });
 
@@ -198,6 +166,7 @@ export async function updateBookingStatus(
 /**
  * Confirm payment with on-chain escrow verification
  * This endpoint verifies the escrow transaction on-chain before confirming the booking
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function confirmPayment(
   bookingId: string,
@@ -212,17 +181,8 @@ export async function confirmPayment(
     status: number;
   };
 }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/bookings/${bookingId}/confirm-payment`, {
+  const response = await authFetch(`${API_URL}/api/v1/bookings/${bookingId}/confirm-payment`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({
       escrowTxHash,
       skipOnChainVerification: options?.skipOnChainVerification ?? false,
@@ -239,22 +199,14 @@ export async function confirmPayment(
 
 /**
  * Cancel a booking
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function cancelBooking(
   id: string,
   reason?: string
 ): Promise<Booking> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/bookings/${id}/cancel`, {
+  const response = await authFetch(`${API_URL}/api/v1/bookings/${id}/cancel`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({
       reason: reason || "customer_requested",
     }),
@@ -422,19 +374,10 @@ export interface BookingStats {
 
 /**
  * Get booking statistics for the authenticated user
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getBookingStats(): Promise<{ stats: BookingStats }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/bookings/stats`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(`${API_URL}/api/v1/bookings/stats`);
 
   if (!response.ok) {
     const error = await response.json();

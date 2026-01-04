@@ -12,6 +12,8 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import { COOKIE_SECRET } from "./lib/cookie-config";
+import { csrfProtection, ensureCsrfToken } from "./middleware/csrf";
+import { httpsEnforcement, getTrustProxyConfig } from "./middleware/https-enforcement";
 
 /**
  * M-7: Validate required secrets in production
@@ -81,6 +83,13 @@ import { setupSwagger } from "./lib/swagger";
 const app: ReturnType<typeof express> = express();
 const PORT = process.env.PORT || 3002;
 
+// V8.0.0: Trust proxy configuration for running behind load balancers
+// Required for HTTPS enforcement and correct client IP detection
+app.set('trust proxy', getTrustProxyConfig());
+
+// V8.0.0: HTTPS enforcement (redirects HTTP to HTTPS in production)
+app.use(httpsEnforcement());
+
 // F4.7: Security headers (applied to all responses)
 app.use(apiSecurityHeaders);
 
@@ -109,6 +118,14 @@ app.use(cookieParser(COOKIE_SECRET));
 
 // Body parser middleware
 app.use(express.json({ limit: "10mb" })); // Limit payload size
+
+// V8.0.0: CSRF protection
+// 1. Ensure CSRF token cookie exists on all requests (sets cookie if missing)
+app.use(ensureCsrfToken);
+
+// 2. Apply CSRF validation to all state-changing requests (POST, PUT, DELETE, PATCH)
+// Exempts: GET, HEAD, OPTIONS, internal routes, webhooks, and health checks
+app.use(csrfProtection);
 
 // Request logging middleware
 app.use((req, res, next) => {

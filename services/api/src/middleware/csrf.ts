@@ -36,10 +36,13 @@ const CSRF_EXEMPT_METHODS = ['GET', 'HEAD', 'OPTIONS'];
 /**
  * Routes that are exempt from CSRF (webhooks, etc.)
  * These should use alternative authentication (signature verification)
+ * V8.0.0: Added /auth/refresh (cookies-only endpoint, no CSRF needed)
  */
 const CSRF_EXEMPT_PATHS = [
   '/api/v1/internal/', // Internal scheduler routes (use internal auth)
   '/api/v1/fiat/webhook', // Kotani Pay webhooks (use signature verification)
+  '/api/v1/auth/refresh', // Token refresh uses httpOnly cookies only
+  '/api/v1/auth/siwe/challenge', // SIWE challenge is read-only state creation
   '/health', // Health check
 ];
 

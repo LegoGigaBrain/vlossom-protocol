@@ -371,6 +371,10 @@ export function routeRateLimiter(
 
 /**
  * Account lockout tracking for failed login attempts
+ * V8.0.0 Security Fix: Migrated to Redis for distributed lockout
+ *
+ * Uses Redis when available (production) with in-memory fallback (development)
+ * This ensures consistent lockout behavior across multiple API instances
  */
 const loginAttemptStore = new Map<string, { attempts: number; lockedUntil?: number }>();
 
@@ -384,17 +388,76 @@ const DEFAULT_LOCKOUT_CONFIG: AccountLockoutConfig = {
   lockoutDurationMs: 30 * 60 * 1000, // 30 minutes
 };
 
+const LOCKOUT_KEY_PREFIX = 'lockout:';
+const LOCKOUT_WINDOW_SECONDS = Math.floor(DEFAULT_LOCKOUT_CONFIG.lockoutDurationMs / 1000);
+
 /**
- * Record a failed login attempt
+ * V8.0.0: Record a failed login attempt with Redis support
+ * Uses Redis for distributed lockout when available
  */
-export function recordFailedLogin(identifier: string): {
+export async function recordFailedLogin(identifier: string): Promise<{
   locked: boolean;
   remainingAttempts: number;
   lockedUntil?: number;
-} {
+}> {
   const config = DEFAULT_LOCKOUT_CONFIG;
   const now = Date.now();
 
+  // Try Redis first if available
+  if (isRedisAvailable()) {
+    try {
+      const attemptKey = `${LOCKOUT_KEY_PREFIX}attempts:${identifier}`;
+      const lockKey = `${LOCKOUT_KEY_PREFIX}locked:${identifier}`;
+
+      // Check if currently locked in Redis
+      const lockResult = await rateLimitIsBlocked(`${LOCKOUT_KEY_PREFIX}${identifier}`);
+      if (lockResult !== null && lockResult > 0) {
+        return {
+          locked: true,
+          remainingAttempts: 0,
+          lockedUntil: now + (lockResult * 1000),
+        };
+      }
+
+      // Increment attempts in Redis
+      const result = await rateLimitIncrement(attemptKey, LOCKOUT_WINDOW_SECONDS);
+      if (result !== null) {
+        const { count } = result;
+
+        // Check if should lock
+        if (count >= config.maxAttempts) {
+          // Block the account in Redis
+          await rateLimitBlock(`${LOCKOUT_KEY_PREFIX}${identifier}`, LOCKOUT_WINDOW_SECONDS);
+
+          logger.warn("Account locked due to failed login attempts", {
+            event: "account_lockout",
+            identifier: identifier.substring(0, 20) + '...', // Truncate for privacy
+            attempts: count,
+            lockDurationMs: config.lockoutDurationMs,
+            storage: 'redis',
+          });
+
+          return {
+            locked: true,
+            remainingAttempts: 0,
+            lockedUntil: now + config.lockoutDurationMs,
+          };
+        }
+
+        return {
+          locked: false,
+          remainingAttempts: config.maxAttempts - count,
+        };
+      }
+    } catch (error) {
+      logger.warn("Redis lockout error, falling back to in-memory", {
+        event: "lockout_redis_fallback",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  // In-memory fallback (development/single instance)
   let entry = loginAttemptStore.get(identifier);
 
   // Check if currently locked
@@ -421,6 +484,15 @@ export function recordFailedLogin(identifier: string): {
   if (entry.attempts >= config.maxAttempts) {
     entry.lockedUntil = now + config.lockoutDurationMs;
     loginAttemptStore.set(identifier, entry);
+
+    logger.warn("Account locked due to failed login attempts", {
+      event: "account_lockout",
+      identifier: identifier.substring(0, 20) + '...',
+      attempts: entry.attempts,
+      lockDurationMs: config.lockoutDurationMs,
+      storage: 'memory',
+    });
+
     return {
       locked: true,
       remainingAttempts: 0,
@@ -436,21 +508,53 @@ export function recordFailedLogin(identifier: string): {
 }
 
 /**
- * Clear login attempts on successful login
+ * V8.0.0: Clear login attempts on successful login with Redis support
  */
-export function clearLoginAttempts(identifier: string): void {
+export async function clearLoginAttempts(identifier: string): Promise<void> {
+  // Clear from Redis if available
+  if (isRedisAvailable()) {
+    try {
+      const { rateLimitClear } = await import('../lib/redis-client');
+      await rateLimitClear(`${LOCKOUT_KEY_PREFIX}attempts:${identifier}`);
+      await rateLimitClear(`${LOCKOUT_KEY_PREFIX}${identifier}`);
+    } catch (error) {
+      logger.warn("Redis clear lockout error", {
+        event: "lockout_clear_error",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  // Also clear from in-memory (ensures consistency)
   loginAttemptStore.delete(identifier);
 }
 
 /**
- * Check if account is locked
+ * V8.0.0: Check if account is locked with Redis support
  */
-export function isAccountLocked(identifier: string): {
+export async function isAccountLocked(identifier: string): Promise<{
   locked: boolean;
   lockedUntil?: number;
-} {
-  const entry = loginAttemptStore.get(identifier);
+}> {
   const now = Date.now();
+
+  // Check Redis first if available
+  if (isRedisAvailable()) {
+    try {
+      const lockResult = await rateLimitIsBlocked(`${LOCKOUT_KEY_PREFIX}${identifier}`);
+      if (lockResult !== null && lockResult > 0) {
+        return { locked: true, lockedUntil: now + (lockResult * 1000) };
+      }
+    } catch (error) {
+      logger.warn("Redis lock check error", {
+        event: "lockout_check_error",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  // In-memory fallback
+  const entry = loginAttemptStore.get(identifier);
 
   if (entry?.lockedUntil && entry.lockedUntil > now) {
     return { locked: true, lockedUntil: entry.lockedUntil };

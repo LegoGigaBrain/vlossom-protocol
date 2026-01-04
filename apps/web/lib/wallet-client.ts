@@ -1,9 +1,11 @@
 /**
  * Wallet API Client
  * Handles wallet balance, transactions, and operations
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
 
-import { getAuthToken } from "./auth-client";
+import { authFetch } from "./auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -44,18 +46,10 @@ export interface TransactionPage {
 
 /**
  * Get wallet info for authenticated user
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getWallet(): Promise<WalletInfo> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/wallet`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await authFetch(`${API_URL}/api/v1/wallet`);
 
   if (!response.ok) {
     const error = await response.json();
@@ -67,23 +61,14 @@ export async function getWallet(): Promise<WalletInfo> {
 
 /**
  * Get wallet transaction history
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getTransactions(
   page: number = 1,
   limit: number = 20
 ): Promise<TransactionPage> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(
-    `${API_URL}/api/v1/wallet/transactions?page=${page}&limit=${limit}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+  const response = await authFetch(
+    `${API_URL}/api/v1/wallet/transactions?page=${page}&limit=${limit}`
   );
 
   if (!response.ok) {
@@ -123,6 +108,7 @@ export function formatCurrency(
 
 /**
  * Claim testnet USDC from faucet (rate-limited to 1 claim per 24 hours)
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function claimFaucet(): Promise<{
   success: boolean;
@@ -133,17 +119,8 @@ export async function claimFaucet(): Promise<{
   error?: string;
   nextClaimAt?: string;
 }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/wallet/faucet`, {
+  const response = await authFetch(`${API_URL}/api/v1/wallet/faucet`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
   });
 
   const data = await response.json();
@@ -167,6 +144,7 @@ export async function claimFaucet(): Promise<{
 
 /**
  * Send USDC to another wallet address (P2P transfer)
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function sendP2P(
   toAddress: string,
@@ -179,17 +157,8 @@ export async function sendP2P(
   txHash?: string;
   error?: string;
 }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/wallet/transfer`, {
+  const response = await authFetch(`${API_URL}/api/v1/wallet/transfer`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ toAddress, amount, memo }),
   });
 

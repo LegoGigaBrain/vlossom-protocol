@@ -154,7 +154,14 @@ export class AppError extends Error {
 }
 
 /**
+ * V8.0.0: Check if we're in production mode
+ * Used to hide sensitive error details from clients
+ */
+const isProduction = process.env.NODE_ENV === 'production';
+
+/**
  * Create a standardized error response
+ * V8.0.0: In production, only expose error details for safe error types
  */
 function createErrorResponse(code: string, message: string, details?: unknown): ErrorResponse {
   const response: ErrorResponse = {
@@ -163,9 +170,17 @@ function createErrorResponse(code: string, message: string, details?: unknown): 
       message,
     }
   };
+
+  // V8.0.0: Only include details in development or for safe validation errors
   if (details) {
-    response.error.details = details;
+    // Safe to expose: validation errors (user input issues)
+    const safeToExposeDetails = code === 'VALIDATION_ERROR' || code === 'MISSING_FIELD';
+
+    if (!isProduction || safeToExposeDetails) {
+      response.error.details = details;
+    }
   }
+
   return response;
 }
 
@@ -242,6 +257,7 @@ function handlePrismaError(error: Prisma.PrismaClientKnownRequestError): { statu
  * Global error handler middleware
  *
  * This should be the last middleware in the chain.
+ * V8.0.0: Enhanced to hide sensitive details in production
  */
 export function errorHandler(
   err: Error,
@@ -251,14 +267,21 @@ export function errorHandler(
 ) {
   // Log the error with request ID for tracing
   const trackedReq = req as RequestWithTracking;
+
+  // V8.0.0: In production, log full details server-side only
+  // Never expose stack traces or internal details to clients
   logger.error('Unhandled error', {
     requestId: trackedReq.requestId,
     error: err.message,
+    // Only include stack in logs, never in response
     stack: err.stack,
     path: req.path,
     method: req.method,
-    ip: req.ip,
-    userId: trackedReq.userId
+    // V8.0.0: Don't log IP in production for privacy
+    ip: isProduction ? undefined : req.ip,
+    userId: trackedReq.userId,
+    // V8.0.0: Include error type for debugging
+    errorType: err.constructor.name,
   });
 
   // Handle different error types
@@ -268,9 +291,10 @@ export function errorHandler(
   if (err instanceof AppError) {
     // Custom application error
     status = err.statusCode;
+    // V8.0.0: AppError details are developer-controlled, still filter in createErrorResponse
     response = createErrorResponse(err.code, err.message, err.details);
   } else if (err instanceof ZodError) {
-    // Zod validation error
+    // Zod validation error - safe to expose field-level validation issues
     const result = handleZodError(err);
     status = result.status;
     response = result.response;
@@ -284,15 +308,18 @@ export function errorHandler(
     status = 401;
     response = createErrorResponse('UNAUTHORIZED', 'Invalid or expired token');
   } else {
-    // Unknown error - return generic message
+    // V8.0.0: Unknown error - NEVER expose internal details in production
+    // Attackers can use error messages to learn about system internals
     response = createErrorResponse(
       'INTERNAL_ERROR',
-      'An unexpected error occurred',
-      process.env.NODE_ENV === 'development' ? { message: err.message } : undefined
+      isProduction
+        ? 'An unexpected error occurred. Please try again later.'
+        : `An unexpected error occurred: ${err.message}`
     );
   }
 
   // Include request ID in error response for client-side tracing
+  // This allows support to correlate user reports with server logs
   const responseWithRequestId = {
     ...response,
     requestId: trackedReq.requestId
@@ -304,12 +331,15 @@ export function errorHandler(
 
 /**
  * 404 Not Found handler
+ * V8.0.0: Simplified message in production to not reveal URL structure
  */
 export function notFoundHandler(req: Request, res: Response) {
   res.status(404).json({
     ...createErrorResponse(
       'NOT_FOUND',
-      `Route ${req.method} ${req.path} not found`
+      isProduction
+        ? 'Resource not found'
+        : `Route ${req.method} ${req.path} not found`
     ),
     requestId: (req as RequestWithTracking).requestId
   });

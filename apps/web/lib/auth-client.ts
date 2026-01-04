@@ -60,8 +60,9 @@ function getCsrfToken(): string | null {
 
 /**
  * V7.0.0: Create headers with CSRF token for state-changing requests
+ * V8.0.0: Exported for use by other API clients
  */
-function createHeaders(includeContent = true): HeadersInit {
+export function createHeaders(includeContent = true): HeadersInit {
   const headers: HeadersInit = {};
 
   if (includeContent) {
@@ -80,8 +81,9 @@ function createHeaders(includeContent = true): HeadersInit {
 /**
  * V7.0.0: Authenticated fetch with cookie credentials
  * Automatically handles CSRF tokens and 401 refresh
+ * V8.0.0: Exported for use by other API clients
  */
-async function authFetch(
+export async function authFetch(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {

@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+/**
+ * V8.0.0 Security Fix: Correct cookie name matching backend cookie-config.ts
+ * Cookie names from services/api/src/lib/cookie-config.ts
+ */
+const COOKIE_NAMES = {
+  ACCESS_TOKEN: 'vlossom_access',
+  REFRESH_TOKEN: 'vlossom_refresh',
+} as const;
+
 // Define public routes that don't require authentication
-const PUBLIC_ROUTES = ["/", "/login", "/onboarding"];
+const PUBLIC_ROUTES = ["/", "/login", "/onboarding", "/forgot-password", "/reset-password"];
 
 // Protected routes that require authentication
-const PROTECTED_PREFIXES = ["/wallet", "/bookings", "/stylists", "/book", "/stylist"];
+const PROTECTED_PREFIXES = ["/wallet", "/bookings", "/stylists", "/book", "/stylist", "/profile", "/settings", "/messages"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,15 +24,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get auth token from localStorage (client-side only)
-  // For server-side middleware, we check if user is trying to access protected routes
-  // and redirect to login if they don't have a token cookie
+  // V8.0.0 Security Fix: Use correct cookie names from backend
+  // Check for signed access token cookie (name matches backend cookie-config.ts)
+  const accessToken = request.cookies.get(COOKIE_NAMES.ACCESS_TOKEN)?.value;
+  const refreshToken = request.cookies.get(COOKIE_NAMES.REFRESH_TOKEN)?.value;
 
-  const token = request.cookies.get("vlossomToken")?.value;
-
-  // If no token and trying to access protected route, redirect to login
+  // If no tokens and trying to access protected route, redirect to login
   const isProtectedRoute = PROTECTED_PREFIXES.some(prefix => pathname.startsWith(prefix));
-  if (!token && isProtectedRoute) {
+  if (!accessToken && !refreshToken && isProtectedRoute) {
     const url = new URL("/login", request.url);
     url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);

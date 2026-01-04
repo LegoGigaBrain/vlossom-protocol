@@ -1,13 +1,13 @@
 /**
  * MoonPay Client
  * Frontend API client for MoonPay onramp/offramp integration
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+import { authFetch } from "./auth-client";
 
-function getAuthToken(): string | null {
-  return localStorage.getItem("auth_token");
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
 export interface DepositSessionResult {
   success: boolean;
@@ -20,21 +20,15 @@ export interface DepositSessionResult {
 /**
  * Create a deposit session (onramp)
  * Converts fiat to USDC
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function createDepositSession(params: {
   amount: number; // USDC amount
   fiatCurrency: "ZAR" | "USD" | "EUR";
 }): Promise<DepositSessionResult> {
-  const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated" };
-
   try {
-    const response = await fetch(`${API_URL}/api/v1/wallet/moonpay/deposit`, {
+    const response = await authFetch(`${API_URL}/api/v1/wallet/moonpay/deposit`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(params),
     });
 
@@ -53,21 +47,15 @@ export async function createDepositSession(params: {
 /**
  * Create a withdrawal session (offramp)
  * Converts USDC to fiat
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function createWithdrawalSession(params: {
   amount: number; // USDC amount
   fiatCurrency: "ZAR" | "USD" | "EUR";
 }): Promise<DepositSessionResult> {
-  const token = getAuthToken();
-  if (!token) return { success: false, error: "Not authenticated" };
-
   try {
-    const response = await fetch(`${API_URL}/api/v1/wallet/moonpay/withdraw`, {
+    const response = await authFetch(`${API_URL}/api/v1/wallet/moonpay/withdraw`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(params),
     });
 
@@ -85,17 +73,12 @@ export async function createWithdrawalSession(params: {
 
 /**
  * Check MoonPay transaction status
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function checkDepositStatus(sessionId: string) {
-  const token = getAuthToken();
-  if (!token) throw new Error("Not authenticated");
-
   try {
-    const response = await fetch(
-      `${API_URL}/api/v1/wallet/moonpay/status/${sessionId}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
+    const response = await authFetch(
+      `${API_URL}/api/v1/wallet/moonpay/status/${sessionId}`
     );
 
     if (!response.ok) {
@@ -111,6 +94,7 @@ export async function checkDepositStatus(sessionId: string) {
 /**
  * Simulate mock completion (dev only)
  * Triggers the webhook to complete a mock transaction
+ * Note: This endpoint doesn't require auth (webhook simulation)
  */
 export async function simulateMockCompletion(
   sessionId: string,
@@ -140,6 +124,7 @@ export async function simulateMockCompletion(
 /**
  * Simulate mock withdrawal (dev only)
  * Triggers the webhook to complete a mock withdrawal
+ * Note: This endpoint doesn't require auth (webhook simulation)
  */
 export async function simulateMockWithdrawal(
   sessionId: string,
