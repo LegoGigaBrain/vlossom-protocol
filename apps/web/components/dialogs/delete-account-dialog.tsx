@@ -7,6 +7,7 @@ import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 interface DeleteAccountDialogProps {
   open: boolean;
@@ -14,6 +15,9 @@ interface DeleteAccountDialogProps {
   onConfirm?: () => void;
 }
 
+/**
+ * V8.0.0: Migrated to httpOnly cookie auth
+ */
 export function DeleteAccountDialog({
   open,
   onOpenChange,
@@ -30,15 +34,9 @@ export function DeleteAccountDialog({
     setIsDeleting(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`,
+        { method: "DELETE" }
       );
 
       if (!response.ok) {
@@ -49,9 +47,6 @@ export function DeleteAccountDialog({
         "Account deleted",
         "Your account has been permanently deleted"
       );
-
-      // Clear local storage
-      localStorage.removeItem("vlossom_token");
 
       onConfirm?.();
       onOpenChange(false);

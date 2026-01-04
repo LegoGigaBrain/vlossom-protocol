@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 const profileSchema = z.object({
   displayName: z.string().min(2, "Name must be at least 2 characters"),
@@ -82,17 +83,13 @@ export function ProfileEditDialog({
     // Upload
     setIsUploading(true);
     try {
-      const token = localStorage.getItem("vlossom_token");
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/upload/avatar`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/upload/avatar`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body: formData,
         }
       );
@@ -114,15 +111,10 @@ export function ProfileEditDialog({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`,
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             displayName: data.displayName,
           }),

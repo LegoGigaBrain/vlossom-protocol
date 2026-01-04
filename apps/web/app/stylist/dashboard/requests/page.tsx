@@ -14,16 +14,9 @@ import { DeclineDialog } from "../../../../components/dashboard/decline-dialog";
 import { getErrorMessage } from "@/lib/error-utils";
 import { Button } from "@/components/ui/button";
 import { InboxIcon } from "@/components/ui/icons";
+import { authFetch } from "@/lib/auth-client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
-
-function getAuthHeaders(): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
 
 export default function RequestsPage() {
   const queryClient = useQueryClient();
@@ -36,9 +29,8 @@ export default function RequestsPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["stylist-pending-requests"],
     queryFn: async () => {
-      const response = await fetch(
-        `${API_BASE}/api/v1/stylists/bookings?status=PENDING_STYLIST_APPROVAL`,
-        { headers: getAuthHeaders() }
+      const response = await authFetch(
+        `${API_BASE}/api/v1/stylists/bookings?status=PENDING_STYLIST_APPROVAL`
       );
       if (!response.ok) throw new Error("Failed to fetch requests");
       return response.json() as Promise<{ bookings: BookingRequest[]; total: number }>;
@@ -48,9 +40,8 @@ export default function RequestsPage() {
   // Approve mutation
   const approveMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/approve`, {
+      const response = await authFetch(`${API_BASE}/api/v1/bookings/${bookingId}/approve`, {
         method: "POST",
-        headers: getAuthHeaders(),
       });
       if (!response.ok) throw new Error("Failed to approve booking");
       return response.json();
@@ -73,9 +64,8 @@ export default function RequestsPage() {
   // Decline mutation
   const declineMutation = useMutation({
     mutationFn: async ({ bookingId, reason }: { bookingId: string; reason: string }) => {
-      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/decline`, {
+      const response = await authFetch(`${API_BASE}/api/v1/bookings/${bookingId}/decline`, {
         method: "POST",
-        headers: getAuthHeaders(),
         body: JSON.stringify({ reason }),
       });
       if (!response.ok) throw new Error("Failed to decline booking");

@@ -6,6 +6,7 @@ import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 interface ConfirmServiceDialogProps {
   open: boolean;
@@ -58,15 +59,10 @@ export function ConfirmServiceDialog({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}/confirm-completion`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/bookings/${bookingId}/confirm-completion`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             tip: actualTip > 0 ? actualTip : undefined,
           }),

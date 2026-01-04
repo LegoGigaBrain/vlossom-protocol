@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Icon } from "@/components/icons";
+import { authFetch } from "@/lib/auth-client";
 
 interface UserData {
   id: string;
@@ -57,7 +58,6 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
       const params = new URLSearchParams({
         page: currentPage.toString(),
         pageSize: "20",
@@ -66,9 +66,7 @@ export default function AdminUsersPage() {
       if (search) params.append("search", search);
       if (roleFilter) params.append("role", roleFilter);
 
-      const response = await fetch(`/api/v1/admin/users?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await authFetch(`/api/v1/admin/users?${params}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -82,10 +80,7 @@ export default function AdminUsersPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/users/stats/overview", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await authFetch("/api/v1/admin/users/stats/overview");
 
       if (response.ok) {
         const data = await response.json();
@@ -122,13 +117,8 @@ export default function AdminUsersPage() {
     if (!reason) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/v1/admin/users/${userId}/freeze`, {
+      const response = await authFetch(`/api/v1/admin/users/${userId}/freeze`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ reason }),
       });
 
@@ -149,10 +139,8 @@ export default function AdminUsersPage() {
     if (!confirm("Are you sure you want to unfreeze this account?")) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/v1/admin/users/${userId}/unfreeze`, {
+      const response = await authFetch(`/api/v1/admin/users/${userId}/unfreeze`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
@@ -173,13 +161,8 @@ export default function AdminUsersPage() {
     if (!message) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/v1/admin/users/${userId}/warn`, {
+      const response = await authFetch(`/api/v1/admin/users/${userId}/warn`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ message }),
       });
 

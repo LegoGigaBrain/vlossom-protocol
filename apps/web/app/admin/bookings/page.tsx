@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Icon } from "@/components/icons";
+import { authFetch } from "@/lib/auth-client";
 
 interface BookingData {
   id: string;
@@ -62,7 +63,6 @@ export default function AdminBookingsPage() {
 
   const fetchBookings = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
       const params = new URLSearchParams({
         page: currentPage.toString(),
         pageSize: "20",
@@ -70,9 +70,7 @@ export default function AdminBookingsPage() {
 
       if (statusFilter) params.append("status", statusFilter);
 
-      const response = await fetch(`/api/v1/admin/bookings?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await authFetch(`/api/v1/admin/bookings?${params}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -86,10 +84,7 @@ export default function AdminBookingsPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/bookings/stats/overview", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await authFetch("/api/v1/admin/bookings/stats/overview");
 
       if (response.ok) {
         const data = await response.json();

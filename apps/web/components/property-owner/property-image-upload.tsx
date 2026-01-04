@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import { Icon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { authFetch } from "@/lib/auth-client";
 
 interface PropertyImageUploadProps {
   propertyId: string;
@@ -73,7 +74,6 @@ export function PropertyImageUpload({
       setUploadProgress(0);
 
       try {
-        const token = localStorage.getItem("vlossom_token");
         const formData = new FormData();
 
         filesToUpload.forEach((file) => {
@@ -81,13 +81,10 @@ export function PropertyImageUpload({
         });
         formData.append("propertyId", propertyId);
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/upload/property-images`,
+        const response = await authFetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/upload/property-images`,
           {
             method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
             body: formData,
           }
         );

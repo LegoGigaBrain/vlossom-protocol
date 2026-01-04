@@ -20,6 +20,7 @@ import {
   ConfirmationDialog,
   useConfirmation,
 } from "../../../components/ui/confirmation-dialog";
+import { authFetch } from "@/lib/auth-client";
 
 // ============================================================================
 // Types
@@ -177,13 +178,7 @@ export default function AdminDefiPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const token = localStorage.getItem("token");
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
-      const statsRes = await fetch("/api/v1/liquidity/stats", { headers });
+      const statsRes = await authFetch("/api/v1/liquidity/stats");
       if (statsRes.ok) {
         const data = await statsRes.json();
         setStats(
@@ -197,16 +192,14 @@ export default function AdminDefiPage() {
         );
       }
 
-      const poolsRes = await fetch("/api/v1/liquidity/pools?limit=100", {
-        headers,
-      });
+      const poolsRes = await authFetch("/api/v1/liquidity/pools?limit=100");
       if (poolsRes.ok) {
         const data = await poolsRes.json();
         setPools(data.data?.pools || []);
       }
 
       // Fetch treasury address
-      const treasuryRes = await fetch("/api/v1/admin/defi/treasury", { headers });
+      const treasuryRes = await authFetch("/api/v1/admin/defi/treasury");
       if (treasuryRes.ok) {
         const data = await treasuryRes.json();
         setTreasuryAddress(data.data?.address || "");
@@ -241,13 +234,8 @@ export default function AdminDefiPage() {
   const handleSaveAPYParams = async () => {
     setIsSaving(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/defi/apy-params", {
+      const response = await authFetch("/api/v1/admin/defi/apy-params", {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(apyParams),
       });
 
@@ -288,13 +276,8 @@ export default function AdminDefiPage() {
 
     setIsSaving(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/defi/fee-split", {
+      const response = await authFetch("/api/v1/admin/defi/fee-split", {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(feeSplit),
       });
 
@@ -341,13 +324,8 @@ export default function AdminDefiPage() {
 
     setIsSaving(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/defi/treasury", {
+      const response = await authFetch("/api/v1/admin/defi/treasury", {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ address: treasuryAddress }),
       });
 
@@ -390,15 +368,10 @@ export default function AdminDefiPage() {
     if (!confirmed) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
+      const response = await authFetch(
         `/api/v1/admin/defi/pools/${poolId}/${pause ? "pause" : "unpause"}`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
         }
       );
 
@@ -438,13 +411,8 @@ export default function AdminDefiPage() {
     if (!confirmed) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/defi/emergency/pause-all", {
+      const response = await authFetch("/api/v1/admin/defi/emergency/pause-all", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
       });
 
       if (response.ok) {
@@ -479,13 +447,8 @@ export default function AdminDefiPage() {
     if (!confirmed) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/defi/emergency/unpause-all", {
+      const response = await authFetch("/api/v1/admin/defi/emergency/unpause-all", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
       });
 
       if (response.ok) {

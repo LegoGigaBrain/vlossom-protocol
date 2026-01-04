@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Icon } from "@/components/icons";
 import { StatsCards } from "../../../components/admin/paymaster/stats-cards";
 import { AlertsPanel } from "../../../components/admin/paymaster/alerts-panel";
+import { authFetch } from "@/lib/auth-client";
 
 // Lazy load heavy chart and table components
 const GasUsageChart = dynamic(
@@ -39,19 +40,11 @@ export default function PaymasterDashboardPage() {
 
   const fetchData = useCallback(async (page = 1) => {
     try {
-      const token = localStorage.getItem("token");
-      const headers = {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      };
-
       const [statsRes, gasRes, txRes, alertsRes] = await Promise.all([
-        fetch("/api/v1/admin/paymaster/stats", { headers }),
-        fetch("/api/v1/admin/paymaster/gas-usage?days=30", { headers }),
-        fetch(`/api/v1/admin/paymaster/transactions?page=${page}&pageSize=10`, {
-          headers,
-        }),
-        fetch("/api/v1/admin/paymaster/alerts", { headers }),
+        authFetch("/api/v1/admin/paymaster/stats"),
+        authFetch("/api/v1/admin/paymaster/gas-usage?days=30"),
+        authFetch(`/api/v1/admin/paymaster/transactions?page=${page}&pageSize=10`),
+        authFetch("/api/v1/admin/paymaster/alerts"),
       ]);
 
       if (statsRes.ok) {
@@ -104,21 +97,14 @@ export default function PaymasterDashboardPage() {
     emailRecipients?: string;
   }) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/v1/admin/paymaster/alerts/config", {
+      const response = await authFetch("/api/v1/admin/paymaster/alerts/config", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(config),
       });
 
       if (response.ok) {
         // Refresh alerts
-        const alertsRes = await fetch("/api/v1/admin/paymaster/alerts", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const alertsRes = await authFetch("/api/v1/admin/paymaster/alerts");
         if (alertsRes.ok) {
           const alertsData = await alertsRes.json();
           setAlerts(alertsData.alerts);

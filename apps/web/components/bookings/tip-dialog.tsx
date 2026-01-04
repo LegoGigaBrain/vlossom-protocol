@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 interface TipDialogProps {
   open: boolean;
@@ -26,6 +27,9 @@ const presetAmounts = [
   { value: 50, label: "$50" },
 ];
 
+/**
+ * V8.0.0: Migrated to httpOnly cookie auth
+ */
 export function TipDialog({
   open,
   onOpenChange,
@@ -63,18 +67,11 @@ export function TipDialog({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}/tip`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/bookings/${bookingId}/tip`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            amount: tipAmount,
-          }),
+          body: JSON.stringify({ amount: tipAmount }),
         }
       );
 
