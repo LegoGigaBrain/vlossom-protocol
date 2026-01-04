@@ -5,11 +5,15 @@ import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { NotificationDropdown } from "./notification-dropdown";
 import { useAuth } from "../../hooks/use-auth";
+import { authFetch } from "../../lib/auth-client";
 
 interface NotificationBellProps {
   className?: string;
 }
 
+/**
+ * V8.0.0: Migrated to httpOnly cookie auth
+ */
 export function NotificationBell({ className }: NotificationBellProps) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -20,14 +24,8 @@ export function NotificationBell({ className }: NotificationBellProps) {
     if (!user) return;
 
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/unread-count`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/unread-count`
       );
 
       if (response.ok) {
