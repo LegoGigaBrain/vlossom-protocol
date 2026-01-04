@@ -33,6 +33,8 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
     error InsufficientShares();
     error InsufficientLiquidity();
     error NoYieldToClaim();
+    error InsufficientFirstDeposit();
+    error InsufficientOutput();
 
     // ============ Roles ============
 
@@ -73,6 +75,12 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
     uint256 public constant PRECISION = 1e18;
     uint256 public constant INITIAL_SHARE_PRICE = 1e18; // 1 share = 1 USDC initially
 
+    /// @notice Minimum first deposit to prevent donation attacks (C-1 fix)
+    uint256 public constant MIN_FIRST_DEPOSIT = 1000e6; // $1000 USDC
+
+    /// @notice Dead shares burned on first deposit to prevent share price manipulation (C-1 fix)
+    uint256 private constant DEAD_SHARES = 1e9;
+
     // ============ Constructor ============
 
     /**
@@ -104,17 +112,28 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
      * @notice Deposit USDC into the pool
      * @param amount Amount of USDC to deposit (6 decimals)
      * @return shares Number of LP shares minted
+     *
+     * @dev C-1 Security Fix: First deposit requires minimum amount and burns dead shares
+     *      to prevent share price manipulation via donation attack
      */
     function deposit(uint256 amount) external nonReentrant whenNotPaused returns (uint256 shares) {
         if (amount == 0) revert InvalidAmount();
 
         // Calculate shares to mint
         if (totalShares == 0) {
+            // C-1 FIX: Require minimum first deposit to prevent donation attack
+            if (amount < MIN_FIRST_DEPOSIT) revert InsufficientFirstDeposit();
+
             // First deposit: 1 USDC = 1 share (scaled)
             shares = amount * PRECISION / 1e6; // Convert USDC (6 dec) to shares (18 dec)
+
+            // C-1 FIX: Burn dead shares to prevent share price manipulation
+            // This makes the first depositor "pay" a small amount that stays locked forever
+            totalShares += DEAD_SHARES;
+            shares -= DEAD_SHARES;
         } else {
-            // Subsequent deposits: proportional to pool value
-            uint256 poolValue = totalDeposits + yieldReserve;
+            // C-1 FIX: Use actual balance instead of tracked deposits to prevent donation manipulation
+            uint256 poolValue = usdc.balanceOf(address(this));
             shares = (amount * totalShares) / poolValue;
         }
 
@@ -140,20 +159,26 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
     /**
      * @notice Withdraw USDC from the pool
      * @param shares Number of LP shares to burn
+     * @param minAmountOut Minimum USDC to receive (slippage protection)
      * @return amount Amount of USDC returned
+     *
+     * @dev C-2 Security Fix: Added minAmountOut parameter to prevent sandwich attacks
      */
-    function withdraw(uint256 shares) external nonReentrant whenNotPaused returns (uint256 amount) {
+    function withdraw(uint256 shares, uint256 minAmountOut) external nonReentrant whenNotPaused returns (uint256 amount) {
         UserDeposit storage userDep = userDeposits[msg.sender];
         if (shares == 0 || shares > userDep.shares) revert InsufficientShares();
 
         // Accrue any pending yield first
         _accrueUserYield(msg.sender);
 
-        // Calculate USDC amount
-        uint256 poolValue = totalDeposits + yieldReserve;
+        // Calculate USDC amount using actual balance (C-1 fix)
+        uint256 poolValue = usdc.balanceOf(address(this));
         amount = (shares * poolValue) / totalShares;
 
-        if (amount > usdc.balanceOf(address(this))) revert InsufficientLiquidity();
+        // C-2 FIX: Slippage protection
+        if (amount < minAmountOut) revert InsufficientOutput();
+
+        if (amount > poolValue) revert InsufficientLiquidity();
 
         // Effects
         userDep.shares -= shares;

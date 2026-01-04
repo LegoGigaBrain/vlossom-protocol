@@ -43,9 +43,10 @@ interface IVlossomPool {
     /**
      * @notice Withdraw USDC from the pool
      * @param shares Number of LP shares to burn
+     * @param minAmountOut Minimum USDC to receive (slippage protection, C-2 fix)
      * @return amount Amount of USDC returned
      */
-    function withdraw(uint256 shares) external returns (uint256 amount);
+    function withdraw(uint256 shares, uint256 minAmountOut) external returns (uint256 amount);
 
     /**
      * @notice Claim accumulated yield
