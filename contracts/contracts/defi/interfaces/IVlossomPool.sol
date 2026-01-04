@@ -36,6 +36,12 @@ interface IVlossomPool {
     event EmergencyExecuted(bytes32 indexed proposalId, address indexed recipient, uint256 amount);
     event EmergencyCancelled(bytes32 indexed proposalId);
 
+    // H-3 fix: Pool name change event
+    event PoolNameChanged(string oldName, string newName);
+
+    // H-4 fix: Tier parameters update event
+    event TierParamsUpdated(uint8 oldTier, uint8 newTier, uint256 newCap, uint256 newCreatorFeeBps);
+
     // ============ User Functions ============
 
     /**

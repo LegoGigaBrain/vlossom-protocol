@@ -217,13 +217,18 @@ contract VlossomYieldEngine is IYieldEngine, AccessControl {
     }
 
     /**
-     * @notice M-4 fix: Update pool utilization (called by pool or oracle)
+     * @notice M-4 fix + H-1 fix: Update pool utilization (admin/oracle only)
      * @param pool Pool address
      * @param utilization Utilization in basis points (0-10000)
+     *
+     * @dev H-1 Security Fix: Removed pool self-reporting capability.
+     *      Previously pools could self-report utilization, enabling APY manipulation.
+     *      Now only ADMIN_ROLE (oracle/backend) can update utilization based on
+     *      actual on-chain state readings.
      */
     function updatePoolUtilization(address pool, uint256 utilization) external {
-        // Only pool itself or admin can update
-        if (msg.sender != pool && !hasRole(ADMIN_ROLE, msg.sender)) revert Unauthorized();
+        // H-1 FIX: Only admin/oracle can update - pools cannot self-report
+        if (!hasRole(ADMIN_ROLE, msg.sender)) revert Unauthorized();
         if (utilization > BASIS_POINTS) revert InvalidParams();
 
         poolUtilization[pool] = utilization;

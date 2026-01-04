@@ -26,6 +26,7 @@ import {IVlossomAccountFactory} from "../interfaces/IVlossomAccountFactory.sol";
 contract VlossomAccountFactory is IVlossomAccountFactory, Ownable {
     /// @dev Custom errors for gas optimization
     error InvalidOwner();
+    error OwnerAlreadyHasAccount();
 
     /// @notice The VlossomAccount implementation contract (immutable)
     VlossomAccount public immutable override accountImplementation;
@@ -59,17 +60,23 @@ contract VlossomAccountFactory is IVlossomAccountFactory, Ownable {
     }
 
     /// @inheritdoc IVlossomAccountFactory
+    /// @dev H-8 Security Fix: Prevents multiple accounts per owner
+    ///      This fixes the mapping collision where _ownerToAccount would overwrite
     function createAccount(
         bytes32 userId,
         address owner
     ) external override returns (address account) {
         if (owner == address(0)) revert InvalidOwner();
 
-        // Check if already deployed - return existing (idempotent)
+        // Check if already deployed for this userId - return existing (idempotent)
         address existing = _accounts[userId];
         if (existing != address(0)) {
             return existing;
         }
+
+        // H-8 FIX: Check if owner already has an account
+        // This prevents _ownerToAccount from being silently overwritten
+        if (_ownerToAccount[owner] != address(0)) revert OwnerAlreadyHasAccount();
 
         // Use userId as salt for deterministic deployment
         bytes32 salt = userId;

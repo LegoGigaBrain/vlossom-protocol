@@ -30,6 +30,7 @@ contract VlossomPoolFactory is AccessControl {
     error InsufficientTier();
     error InsufficientCreationFee();
     error PoolNameTaken();
+    error PoolNotFound();
 
     // ============ Roles ============
 
@@ -266,6 +267,9 @@ contract VlossomPoolFactory is AccessControl {
      * @notice Set a user's tier (called by backend/validator)
      * @param user User address
      * @param tier User's tier (1, 2, 3, or 0 for no tier)
+     *
+     * @dev H-4 Security Note: After calling this, call syncPoolsToTier()
+     *      to update any pools created by this user
      */
     function setUserTier(address user, uint8 tier) external {
         if (!hasRole(TIER_VALIDATOR_ROLE, msg.sender)) revert InvalidAddress();
@@ -274,6 +278,50 @@ contract VlossomPoolFactory is AccessControl {
         userTiers[user] = tier;
 
         emit UserTierUpdated(user, tier);
+    }
+
+    /**
+     * @notice H-4 fix: Sync pool parameters when creator's tier changes
+     * @param creator Creator address whose pools should be synced
+     * @dev Called by admin after tier downgrade to enforce new limits
+     */
+    function syncPoolsToTier(address creator) external {
+        if (!hasRole(TIER_VALIDATOR_ROLE, msg.sender)) revert InvalidAddress();
+
+        uint8 newTier = userTiers[creator];
+        if (newTier == 0) return; // No tier, nothing to sync
+
+        TierConfig memory newConfig = tierConfigs[newTier];
+        address[] memory userPools = creatorPools[creator];
+
+        for (uint256 i = 0; i < userPools.length; i++) {
+            address poolAddr = userPools[i];
+            VlossomCommunityPool pool = VlossomCommunityPool(poolAddr);
+
+            // Only downgrade if current tier is better than new tier
+            if (pool.tier() < newTier) {
+                pool.updateTierParams(newTier, newConfig.cap, newConfig.creatorFeeBps);
+            }
+        }
+    }
+
+    /**
+     * @notice H-4 fix: Sync a single pool to creator's current tier
+     * @param poolAddr Pool address to sync
+     */
+    function syncPoolToTier(address poolAddr) external {
+        if (!hasRole(TIER_VALIDATOR_ROLE, msg.sender)) revert InvalidAddress();
+
+        uint256 idx = poolIndex[poolAddr];
+        if (pools.length == 0 || pools[idx].poolAddress != poolAddr) revert PoolNotFound();
+
+        PoolRecord memory record = pools[idx];
+        uint8 newTier = userTiers[record.creator];
+
+        if (newTier == 0 || newTier >= record.tier) return; // No downgrade needed
+
+        TierConfig memory newConfig = tierConfigs[newTier];
+        VlossomCommunityPool(poolAddr).updateTierParams(newTier, newConfig.cap, newConfig.creatorFeeBps);
     }
 
     /**

@@ -38,6 +38,8 @@ contract VlossomCommunityPool is IVlossomPool, ReentrancyGuard {
     error AlreadyInitialized();
     error InsufficientFirstDeposit();
     error InsufficientOutput();
+    error InvalidName();
+    error NameTooLong();
 
     // ============ State ============
 
@@ -99,6 +101,9 @@ contract VlossomCommunityPool is IVlossomPool, ReentrancyGuard {
 
     /// @notice Dead shares burned on first deposit (C-1 fix)
     uint256 private constant DEAD_SHARES = 1e9;
+
+    /// @notice H-3 fix: Maximum pool name length
+    uint256 public constant MAX_NAME_LENGTH = 64;
 
     // ============ Modifiers ============
 
@@ -304,9 +309,22 @@ contract VlossomCommunityPool is IVlossomPool, ReentrancyGuard {
     /**
      * @notice Update pool name (creator only)
      * @param _name New name
+     *
+     * @dev H-3 Security Fix: Added name validation
+     * - Name cannot be empty
+     * - Name cannot exceed MAX_NAME_LENGTH (64 characters)
+     * - Emits event for off-chain tracking
      */
     function setName(string memory _name) external onlyCreator {
+        // H-3 FIX: Validate name
+        uint256 nameLength = bytes(_name).length;
+        if (nameLength == 0) revert InvalidName();
+        if (nameLength > MAX_NAME_LENGTH) revert NameTooLong();
+
+        string memory oldName = name;
         name = _name;
+
+        emit PoolNameChanged(oldName, _name);
     }
 
     // ============ Protocol Functions ============
@@ -333,6 +351,22 @@ contract VlossomCommunityPool is IVlossomPool, ReentrancyGuard {
      */
     function setCap(uint256 _cap) external onlyProtocol {
         cap = _cap;
+    }
+
+    /**
+     * @notice H-4 fix: Update pool tier parameters (protocol only)
+     * @param _tier New tier
+     * @param _cap New cap
+     * @param _creatorFeeBps New creator fee in basis points
+     * @dev Called by factory when creator's tier changes
+     */
+    function updateTierParams(uint8 _tier, uint256 _cap, uint256 _creatorFeeBps) external onlyProtocol {
+        uint8 oldTier = tier;
+        tier = _tier;
+        cap = _cap;
+        creatorFeeBps = _creatorFeeBps;
+
+        emit TierParamsUpdated(oldTier, _tier, _cap, _creatorFeeBps);
     }
 
     // ============ Internal Functions ============
