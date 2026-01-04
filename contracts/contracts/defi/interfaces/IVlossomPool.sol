@@ -31,6 +31,11 @@ interface IVlossomPool {
     event PoolPaused(address indexed by);
     event PoolUnpaused(address indexed by);
 
+    // H-2 fix: Emergency withdrawal events with timelock
+    event EmergencyProposed(bytes32 indexed proposalId, address indexed recipient, uint256 executeAfter);
+    event EmergencyExecuted(bytes32 indexed proposalId, address indexed recipient, uint256 amount);
+    event EmergencyCancelled(bytes32 indexed proposalId);
+
     // ============ User Functions ============
 
     /**

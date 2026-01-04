@@ -35,6 +35,9 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
     error NoYieldToClaim();
     error InsufficientFirstDeposit();
     error InsufficientOutput();
+    error EmergencyNotProposed();
+    error EmergencyTimelockNotMet();
+    error EmergencyAlreadyExecuted();
 
     // ============ Roles ============
 
@@ -70,6 +73,14 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
     /// @notice Accumulated yield available for distribution
     uint256 public yieldReserve;
 
+    /// @notice H-2 fix: Emergency withdrawal proposal
+    struct EmergencyProposal {
+        address recipient;
+        uint256 proposedAt;
+        bool executed;
+    }
+    mapping(bytes32 => EmergencyProposal) public emergencyProposals;
+
     // ============ Constants ============
 
     uint256 public constant PRECISION = 1e18;
@@ -80,6 +91,9 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
 
     /// @notice Dead shares burned on first deposit to prevent share price manipulation (C-1 fix)
     uint256 private constant DEAD_SHARES = 1e9;
+
+    /// @notice H-2 fix: Emergency withdrawal timelock (3 days)
+    uint256 public constant EMERGENCY_TIMELOCK = 3 days;
 
     // ============ Constructor ============
 
@@ -300,15 +314,64 @@ contract VlossomGenesisPool is IVlossomPool, AccessControl, ReentrancyGuard, Pau
     }
 
     /**
-     * @notice Emergency withdraw all funds (admin only, for emergencies)
+     * @notice Propose emergency withdrawal (H-2 fix: requires timelock)
      * @param to Recipient address
+     * @return proposalId Unique identifier for this proposal
+     *
+     * @dev H-2 Security Fix: Emergency withdrawals now require 3-day timelock
+     *      to give users time to exit before admin can drain pool
      */
-    function emergencyWithdraw(address to) external {
+    function proposeEmergencyWithdraw(address to) external returns (bytes32 proposalId) {
         if (!hasRole(ADMIN_ROLE, msg.sender)) revert InvalidAddress();
         if (to == address(0)) revert InvalidAddress();
 
+        proposalId = keccak256(abi.encodePacked(to, block.timestamp, msg.sender));
+
+        emergencyProposals[proposalId] = EmergencyProposal({
+            recipient: to,
+            proposedAt: block.timestamp,
+            executed: false
+        });
+
+        emit EmergencyProposed(proposalId, to, block.timestamp + EMERGENCY_TIMELOCK);
+    }
+
+    /**
+     * @notice Execute emergency withdrawal after timelock (H-2 fix)
+     * @param proposalId Proposal ID from proposeEmergencyWithdraw
+     */
+    function executeEmergencyWithdraw(bytes32 proposalId) external {
+        if (!hasRole(ADMIN_ROLE, msg.sender)) revert InvalidAddress();
+
+        EmergencyProposal storage proposal = emergencyProposals[proposalId];
+        if (proposal.proposedAt == 0) revert EmergencyNotProposed();
+        if (proposal.executed) revert EmergencyAlreadyExecuted();
+        if (block.timestamp < proposal.proposedAt + EMERGENCY_TIMELOCK) {
+            revert EmergencyTimelockNotMet();
+        }
+
+        proposal.executed = true;
+
         uint256 balance = usdc.balanceOf(address(this));
-        usdc.safeTransfer(to, balance);
+        usdc.safeTransfer(proposal.recipient, balance);
+
+        emit EmergencyExecuted(proposalId, proposal.recipient, balance);
+    }
+
+    /**
+     * @notice Cancel emergency withdrawal proposal
+     * @param proposalId Proposal ID to cancel
+     */
+    function cancelEmergencyWithdraw(bytes32 proposalId) external {
+        if (!hasRole(ADMIN_ROLE, msg.sender)) revert InvalidAddress();
+
+        EmergencyProposal storage proposal = emergencyProposals[proposalId];
+        if (proposal.proposedAt == 0) revert EmergencyNotProposed();
+        if (proposal.executed) revert EmergencyAlreadyExecuted();
+
+        delete emergencyProposals[proposalId];
+
+        emit EmergencyCancelled(proposalId);
     }
 
     // ============ View Functions ============
