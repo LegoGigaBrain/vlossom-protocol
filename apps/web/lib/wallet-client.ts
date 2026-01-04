@@ -2,10 +2,18 @@
  * Wallet API Client
  * Handles wallet balance, transactions, and operations
  *
- * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
+ * V8.0.0 Security Update:
+ * - Migrated from Bearer tokens to httpOnly cookies
+ * - EIP-55 address validation with viem
  */
 
 import { authFetch } from "./auth-client";
+import {
+  isValidEthereumAddress,
+  toChecksumAddress,
+  sanitizeAddress,
+  formatAddress,
+} from "./address-validation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -145,6 +153,7 @@ export async function claimFaucet(): Promise<{
 /**
  * Send USDC to another wallet address (P2P transfer)
  * V8.0.0: Uses httpOnly cookie auth via authFetch
+ * V8.0.0: Validates and checksums address before sending
  */
 export async function sendP2P(
   toAddress: string,
@@ -157,9 +166,18 @@ export async function sendP2P(
   txHash?: string;
   error?: string;
 }> {
+  // V8.0.0: Validate address before sending
+  const validatedAddress = sanitizeAddress(toAddress);
+  if (!validatedAddress) {
+    return {
+      success: false,
+      error: "Invalid Ethereum address. Please check the address and try again.",
+    };
+  }
+
   const response = await authFetch(`${API_URL}/api/v1/wallet/transfer`, {
     method: "POST",
-    body: JSON.stringify({ toAddress, amount, memo }),
+    body: JSON.stringify({ toAddress: validatedAddress, amount, memo }),
   });
 
   const data = await response.json();
@@ -206,16 +224,21 @@ export function fromUsdcUnits(units: bigint): number {
 }
 
 /**
- * Validate Ethereum address format
+ * Validate Ethereum address with EIP-55 checksum
+ * V8.0.0 Security Fix: Uses viem's isAddress for proper validation
  */
 export function isValidAddress(address: string): boolean {
-  return /^0x[a-fA-F0-9]{40}$/.test(address);
+  return isValidEthereumAddress(address);
 }
 
 /**
  * Truncate address for display (0x1234...5678)
+ * Uses secure formatAddress utility
  */
 export function truncateAddress(address: string): string {
   if (!address || address.length < 10) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  return formatAddress(address, 6, 4);
 }
+
+// Re-export for convenience
+export { toChecksumAddress, sanitizeAddress };

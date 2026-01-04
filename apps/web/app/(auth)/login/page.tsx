@@ -12,10 +12,12 @@ import { Label } from "../../../components/ui/label";
 import { SiweButton, SiweDivider } from "../../../components/auth/siwe-button";
 import { VlossomLogo } from "../../../components/ui/vlossom-logo";
 import Link from "next/link";
+import { validationSchemas, INPUT_LIMITS } from "../../../lib/input-validation";
 
+// V8.0.0: Added max length limits for security
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  email: validationSchemas.email,
+  password: z.string().min(1, "Password is required").max(INPUT_LIMITS.PASSWORD, `Password must be ${INPUT_LIMITS.PASSWORD} characters or less`),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -104,6 +106,7 @@ export default function LoginPage() {
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
+                maxLength={INPUT_LIMITS.EMAIL}
                 aria-describedby={errors.email ? "login-email-error" : undefined}
                 {...register("email")}
                 disabled={isLoading}
@@ -131,6 +134,7 @@ export default function LoginPage() {
                 type="password"
                 placeholder="Enter your password"
                 autoComplete="current-password"
+                maxLength={INPUT_LIMITS.PASSWORD}
                 aria-describedby={errors.password ? "login-password-error" : undefined}
                 {...register("password")}
                 disabled={isLoading}

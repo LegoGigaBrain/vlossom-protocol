@@ -9,9 +9,11 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Icon } from "@/components/icons";
+import { validationSchemas, INPUT_LIMITS } from "../../../lib/input-validation";
 
+// V8.0.0: Added max length limits for security
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: validationSchemas.email,
 });
 
 type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
@@ -142,6 +144,7 @@ export default function ForgotPasswordPage() {
                   type="email"
                   placeholder="you@example.com"
                   className="pl-10"
+                  maxLength={INPUT_LIMITS.EMAIL}
                   {...register("email")}
                   aria-invalid={errors.email ? "true" : "false"}
                 />
