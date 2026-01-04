@@ -84,9 +84,20 @@ export default function HomeScreen() {
   const [region, setRegion] = useState<Region>(DEFAULT_REGION);
   const [activeFilter, setActiveFilter] = useState<string | null>('nearby');
 
-  // Bottom sheet animation
+  // Bottom sheet animation with proper cleanup
   const sheetHeight = useRef(new Animated.Value(SHEET_MIN_HEIGHT)).current;
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
   const [isSheetExpanded, setIsSheetExpanded] = useState(false);
+
+  // Clean up animations on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        animationRef.current.stop();
+        animationRef.current = null;
+      }
+    };
+  }, []);
 
   // Request location permission and get user location
   useEffect(() => {
@@ -139,24 +150,32 @@ export default function HomeScreen() {
     [selectStylist]
   );
 
-  // Sheet animation functions
+  // Sheet animation functions with cleanup
   const expandSheet = useCallback(() => {
     setIsSheetExpanded(true);
-    Animated.spring(sheetHeight, {
+    if (animationRef.current) {
+      animationRef.current.stop();
+    }
+    animationRef.current = Animated.spring(sheetHeight, {
       toValue: SHEET_MAX_HEIGHT,
       useNativeDriver: false,
       friction: 8,
-    }).start();
+    });
+    animationRef.current.start();
   }, [sheetHeight]);
 
   const collapseSheet = useCallback(() => {
     setIsSheetExpanded(false);
     clearSelectedStylist();
-    Animated.spring(sheetHeight, {
+    if (animationRef.current) {
+      animationRef.current.stop();
+    }
+    animationRef.current = Animated.spring(sheetHeight, {
       toValue: SHEET_MIN_HEIGHT,
       useNativeDriver: false,
       friction: 8,
-    }).start();
+    });
+    animationRef.current.start();
   }, [sheetHeight, clearSelectedStylist]);
 
   // Pan responder for sheet dragging
@@ -180,12 +199,16 @@ export default function HomeScreen() {
         } else if (gestureState.dy < -50) {
           expandSheet();
         } else {
-          // Snap back
-          Animated.spring(sheetHeight, {
+          // Snap back with cleanup
+          if (animationRef.current) {
+            animationRef.current.stop();
+          }
+          animationRef.current = Animated.spring(sheetHeight, {
             toValue: isSheetExpanded ? SHEET_MAX_HEIGHT : SHEET_MIN_HEIGHT,
             useNativeDriver: false,
             friction: 8,
-          }).start();
+          });
+          animationRef.current.start();
         }
       },
     })
