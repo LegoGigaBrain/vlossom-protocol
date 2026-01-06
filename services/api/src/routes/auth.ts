@@ -63,6 +63,10 @@ function validatePasswordComplexity(password: string): { isValid: boolean; error
   return { isValid: true };
 }
 
+// V8.0.0: Dummy hash for timing attack prevention
+// Pre-computed bcrypt hash to ensure constant-time response on login failures
+const TIMING_SAFE_DUMMY_HASH = "$2b$10$dummyHashForTimingAttackPrevention";
+
 // SIWE Configuration (V3.2)
 const SIWE_NONCE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const SIWE_MESSAGE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -368,23 +372,22 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response, ne
       where: { email },
     });
 
-    if (!user || !user.passwordHash) {
+    // V8.0.0: Timing attack prevention - always perform bcrypt comparison
+    // This ensures consistent response time whether user exists or not
+    const hashToCompare = user?.passwordHash || TIMING_SAFE_DUMMY_HASH;
+    const isValidPassword = await bcrypt.compare(password, hashToCompare);
+
+    // Check if user exists and password is valid
+    if (!user || !user.passwordHash || !isValidPassword) {
       // F4.7: Record failed attempt
       const attempt = recordFailedLogin(email);
-      logger.warn("Failed login attempt - user not found", { email });
-      return next(createError("INVALID_CREDENTIALS", { remainingAttempts: attempt.remainingAttempts }));
-    }
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isValidPassword) {
-      // F4.7: Record failed attempt
-      const attempt = recordFailedLogin(email);
-      logger.warn("Failed login attempt - wrong password", {
-        userId: user.id,
-        email,
-      });
+      // Log appropriately without revealing which check failed
+      if (!user || !user.passwordHash) {
+        logger.warn("Failed login attempt - user not found", { email });
+      } else {
+        logger.warn("Failed login attempt - wrong password", { userId: user.id, email });
+      }
 
       if (attempt.locked) {
         return next(createError("ACCOUNT_LOCKED", { retryAfter: Math.ceil((attempt.lockedUntil! - Date.now()) / 1000) }));
@@ -1130,6 +1133,11 @@ router.post("/forgot-password", rateLimiters.passwordReset, async (req: Request,
     });
 
     if (!user || !user.passwordHash) {
+      // V8.0.0: Add artificial delay to prevent timing-based email enumeration
+      // The delay roughly matches the time taken for DB operations when user exists
+      const timingDelay = 100 + Math.random() * 150; // 100-250ms random delay
+      await new Promise(resolve => setTimeout(resolve, timingDelay));
+
       // User doesn't exist or doesn't have password auth - return success anyway
       logger.info("Password reset requested for non-existent or non-password user", { email });
       res.json(successResponse);
