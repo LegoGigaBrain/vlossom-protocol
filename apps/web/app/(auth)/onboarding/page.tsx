@@ -13,10 +13,10 @@ import { VlossomLogo } from "../../../components/ui/vlossom-logo";
 import Link from "next/link";
 import { validationSchemas, INPUT_LIMITS } from "../../../lib/input-validation";
 
-// V8.0.0: Added max length limits for security
+// V8.0.0: Added max length limits and password complexity for security
 const signupSchema = z.object({
   email: validationSchemas.email,
-  password: validationSchemas.password,
+  password: validationSchemas.passwordWithComplexity,
   confirmPassword: z.string().max(INPUT_LIMITS.PASSWORD),
   role: z.enum(["CUSTOMER", "STYLIST"]),
   displayName: validationSchemas.displayName.optional(),

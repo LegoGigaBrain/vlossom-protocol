@@ -31,6 +31,38 @@ import { setCsrfCookie, clearCsrfCookie } from "../middleware/csrf";
 const router: ReturnType<typeof Router> = Router();
 const prisma = new PrismaClient();
 
+// V8.0.0: Password complexity requirements
+const PASSWORD_REQUIREMENTS = {
+  minLength: 8,
+  maxLength: 128,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireNumber: true,
+};
+
+/**
+ * Validate password complexity (V8.0.0)
+ * Returns validation result with specific error messages
+ */
+function validatePasswordComplexity(password: string): { isValid: boolean; error?: string } {
+  if (password.length < PASSWORD_REQUIREMENTS.minLength) {
+    return { isValid: false, error: `Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters` };
+  }
+  if (password.length > PASSWORD_REQUIREMENTS.maxLength) {
+    return { isValid: false, error: `Password must be ${PASSWORD_REQUIREMENTS.maxLength} characters or less` };
+  }
+  if (PASSWORD_REQUIREMENTS.requireUppercase && !/[A-Z]/.test(password)) {
+    return { isValid: false, error: "Password must contain at least one uppercase letter" };
+  }
+  if (PASSWORD_REQUIREMENTS.requireLowercase && !/[a-z]/.test(password)) {
+    return { isValid: false, error: "Password must contain at least one lowercase letter" };
+  }
+  if (PASSWORD_REQUIREMENTS.requireNumber && !/[0-9]/.test(password)) {
+    return { isValid: false, error: "Password must contain at least one number" };
+  }
+  return { isValid: true };
+}
+
 // SIWE Configuration (V3.2)
 const SIWE_NONCE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
 const SIWE_MESSAGE_MAX_AGE_MS = 5 * 60 * 1000; // 5 minutes
@@ -182,8 +214,10 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
       return next(createError("MISSING_FIELD", { fields: ["email", "password"] }));
     }
 
-    if (password.length < 8) {
-      return next(createError("WEAK_PASSWORD"));
+    // V8.0.0: Password complexity validation
+    const passwordValidation = validatePasswordComplexity(password);
+    if (!passwordValidation.isValid) {
+      return next(createError("WEAK_PASSWORD", { message: passwordValidation.error }));
     }
 
     if (!role || !["CUSTOMER", "STYLIST"].includes(role)) {
@@ -1206,9 +1240,10 @@ router.post("/reset-password", async (req: Request, res: Response, next: NextFun
       return next(createError("INVALID_RESET_TOKEN"));
     }
 
-    // Validate password strength
-    if (password.length < 8) {
-      return next(createError("WEAK_PASSWORD"));
+    // V8.0.0: Password complexity validation
+    const passwordValidation = validatePasswordComplexity(password);
+    if (!passwordValidation.isValid) {
+      return next(createError("WEAK_PASSWORD", { message: passwordValidation.error }));
     }
 
     // Find valid reset token
@@ -1271,9 +1306,10 @@ router.post("/change-password", authenticate, async (req: AuthenticatedRequest, 
       return next(createError("MISSING_FIELD", { fields: ["currentPassword", "newPassword"] }));
     }
 
-    // Validate new password strength
-    if (newPassword.length < 8) {
-      return next(createError("WEAK_PASSWORD"));
+    // V8.0.0: Password complexity validation
+    const passwordValidation = validatePasswordComplexity(newPassword);
+    if (!passwordValidation.isValid) {
+      return next(createError("WEAK_PASSWORD", { message: passwordValidation.error }));
     }
 
     // Get user
