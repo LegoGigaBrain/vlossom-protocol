@@ -11,6 +11,7 @@ import { PrismaClient, BookingStatus } from "@prisma/client";
  * - Booking reminder notifications
  * - Expired payment request cleanup
  * - SIWE nonce cleanup (V8.0.0)
+ * - Refresh token cleanup (V8.0.0)
  * - Daily stats aggregation
  */
 
@@ -209,6 +210,35 @@ async function cleanupExpiredSiweNonces(): Promise<void> {
 }
 
 /**
+ * V8.0.0: Clean up expired and old revoked refresh tokens
+ * Removes tokens that are:
+ * - Expired more than 30 days ago
+ * - Revoked more than 30 days ago
+ */
+async function cleanupExpiredRefreshTokens(): Promise<void> {
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const result = await prisma.refreshToken.deleteMany({
+      where: {
+        OR: [
+          // Delete expired tokens older than 30 days
+          { expiresAt: { lt: thirtyDaysAgo } },
+          // Delete revoked tokens older than 30 days
+          { revokedAt: { lt: thirtyDaysAgo } },
+        ],
+      },
+    });
+
+    if (result.count > 0) {
+      console.log(`[Scheduler] Cleaned up ${result.count} expired refresh tokens`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error cleaning up refresh tokens:", error);
+  }
+}
+
+/**
  * Trigger reputation recalculation via internal API call
  * Runs every 6 hours to ensure scores are up-to-date
  */
@@ -310,6 +340,7 @@ async function runAllJobs(): Promise<void> {
     await processBookingReminders();
     await cleanupExpiredPaymentRequests();
     await cleanupExpiredSiweNonces(); // V8.0.0: Clean up expired SIWE nonces
+    await cleanupExpiredRefreshTokens(); // V8.0.0: Clean up expired refresh tokens
     await triggerReputationRecalculation();
   } catch (error) {
     console.error("[Scheduler] Error running jobs:", error);

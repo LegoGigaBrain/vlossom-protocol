@@ -27,6 +27,13 @@ import {
   CLEAR_COOKIE_OPTIONS,
 } from "../lib/cookie-config";
 import { setCsrfCookie, clearCsrfCookie } from "../middleware/csrf";
+import {
+  createRefreshToken,
+  rotateRefreshToken,
+  revokeRefreshToken,
+  revokeAllUserTokens,
+  hashToken,
+} from "../lib/token-service";
 
 const router: ReturnType<typeof Router> = Router();
 const prisma = new PrismaClient();
@@ -260,12 +267,18 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
       data: { walletAddress: walletInfo.address },
     });
 
-    // V7.0.0: Generate token pair and set httpOnly cookies
+    // V7.0.0: Generate access token
     const roles = user.roles as string[];
-    const { accessToken, refreshToken } = generateTokenPair(user.id, {
+    const { accessToken } = generateTokenPair(user.id, {
       email: user.email ?? undefined,
       walletAddress: walletInfo.address,
       roles,
+    });
+
+    // V8.0.0: Create database-backed refresh token
+    const { token: refreshToken } = await createRefreshToken(user.id, {
+      userAgent: req.get("User-Agent"),
+      ipAddress: req.ip,
     });
 
     // Set httpOnly cookies
@@ -294,6 +307,7 @@ router.post("/signup", rateLimiters.signup, async (req: Request, res: Response, 
         walletAddress: walletInfo.address,
       },
       token: accessToken, // For mobile compatibility
+      refreshToken, // V8.0.0: Return refresh token for mobile
     });
   } catch (error) {
     // Log detailed error for debugging - Prisma errors don't serialize well
@@ -399,12 +413,18 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response, ne
     // F4.7: Clear failed login attempts on successful login
     clearLoginAttempts(email);
 
-    // V7.0.0: Generate token pair and set httpOnly cookies
+    // V7.0.0: Generate access token
     const roles = user.roles as string[];
-    const { accessToken, refreshToken } = generateTokenPair(user.id, {
+    const { accessToken } = generateTokenPair(user.id, {
       email: user.email ?? undefined,
       walletAddress: user.walletAddress,
       roles,
+    });
+
+    // V8.0.0: Create database-backed refresh token with rotation support
+    const { token: refreshToken } = await createRefreshToken(user.id, {
+      userAgent: req.get("User-Agent"),
+      ipAddress: req.ip,
     });
 
     // Set httpOnly cookies
@@ -430,6 +450,7 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response, ne
         walletAddress: user.walletAddress,
       },
       token: accessToken, // For mobile compatibility
+      refreshToken, // V8.0.0: Return refresh token for mobile (stored in SecureStore)
     });
   } catch (error) {
     logger.error("Login error", { error });
@@ -440,8 +461,15 @@ router.post("/login", rateLimiters.login, async (req: Request, res: Response, ne
 /**
  * POST /api/v1/auth/logout
  * V7.0.0: Clear httpOnly cookies on logout
+ * V8.0.0: Revoke refresh token in database
  */
-router.post("/logout", authenticate, (req: AuthenticatedRequest, res: Response): void => {
+router.post("/logout", authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  // V8.0.0: Revoke the refresh token in the database
+  const refreshToken = req.signedCookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+  if (refreshToken) {
+    await revokeRefreshToken(refreshToken);
+  }
+
   // V7.0.0: Clear all auth cookies
   res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, CLEAR_COOKIE_OPTIONS);
   res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, { ...CLEAR_COOKIE_OPTIONS, path: '/api/v1/auth/refresh' });
@@ -1356,48 +1384,55 @@ router.post("/change-password", authenticate, async (req: AuthenticatedRequest, 
 });
 
 // ============================================================================
-// Token Refresh Routes - V7.0.0
+// Token Refresh Routes - V7.0.0, V8.0.0 Database-backed tokens
 // ============================================================================
 
 /**
  * POST /api/v1/auth/refresh
  * V7.0.0: Refresh access token using refresh token cookie
+ * V8.0.0: Database-backed refresh tokens with rotation and revocation
  * Returns new access token in httpOnly cookie
  */
 router.post("/refresh", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // Get refresh token from signed cookie
-    const refreshToken = req.signedCookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+    // Get refresh token from signed cookie or request body (for mobile)
+    const refreshToken = req.signedCookies?.[COOKIE_NAMES.REFRESH_TOKEN] || req.body?.refreshToken;
 
     if (!refreshToken) {
       return next(createError("UNAUTHORIZED", { message: "Refresh token required" }));
     }
 
-    // Verify refresh token
-    let decoded;
-    try {
-      // Import verifyToken from auth middleware
-      const jwt = await import("jsonwebtoken");
-      const jwtSecret = process.env.JWT_SECRET;
-      if (!jwtSecret) {
-        return next(createError("INTERNAL_ERROR"));
-      }
-      decoded = jwt.default.verify(refreshToken, jwtSecret) as { sub: string; email?: string; walletAddress?: string; roles?: string[] };
-    } catch (error) {
-      logger.warn("Invalid refresh token", { error });
+    // V8.0.0: Rotate refresh token using database-backed validation
+    const rotationResult = await rotateRefreshToken(refreshToken, {
+      userAgent: req.get("User-Agent"),
+      ipAddress: req.ip,
+    });
+
+    if (!rotationResult.success) {
+      logger.warn("Refresh token validation failed", {
+        error: rotationResult.error,
+        ip: req.ip,
+        userAgent: req.get("User-Agent"),
+      });
+
       // Clear invalid cookies
       res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, CLEAR_COOKIE_OPTIONS);
       res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, { ...CLEAR_COOKIE_OPTIONS, path: '/api/v1/auth/refresh' });
+
+      // Token reuse detected - this is a security incident
+      if (rotationResult.error === "Token reuse detected") {
+        return next(createError("UNAUTHORIZED", {
+          message: "Security alert: Your session has been terminated due to suspicious activity. Please log in again.",
+          code: "TOKEN_REUSE_DETECTED",
+        }));
+      }
+
       return next(createError("UNAUTHORIZED", { message: "Invalid refresh token" }));
     }
 
-    if (!decoded.sub) {
-      return next(createError("UNAUTHORIZED", { message: "Invalid token payload" }));
-    }
-
-    // Get user to ensure they still exist
+    // Get user to build new access token
     const user = await prisma.user.findUnique({
-      where: { id: decoded.sub },
+      where: { id: rotationResult.userId },
       select: { id: true, email: true, walletAddress: true, roles: true },
     });
 
@@ -1405,9 +1440,9 @@ router.post("/refresh", async (req: Request, res: Response, next: NextFunction):
       return next(createError("USER_NOT_FOUND"));
     }
 
-    // Generate new token pair (refresh token rotation for security)
+    // Generate new access token
     const roles = user.roles as string[];
-    const { accessToken, refreshToken: newRefreshToken } = generateTokenPair(user.id, {
+    const { accessToken } = generateTokenPair(user.id, {
       email: user.email ?? undefined,
       walletAddress: user.walletAddress,
       roles,
@@ -1415,7 +1450,7 @@ router.post("/refresh", async (req: Request, res: Response, next: NextFunction):
 
     // Set new cookies
     res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, ACCESS_TOKEN_OPTIONS);
-    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, newRefreshToken, REFRESH_TOKEN_OPTIONS);
+    res.cookie(COOKIE_NAMES.REFRESH_TOKEN, rotationResult.newToken!, REFRESH_TOKEN_OPTIONS);
 
     // Ensure CSRF token exists
     setCsrfCookie(res);
@@ -1424,8 +1459,9 @@ router.post("/refresh", async (req: Request, res: Response, next: NextFunction):
 
     res.json({
       message: "Token refreshed successfully",
-      // Return access token for mobile clients
+      // Return tokens for mobile clients
       token: accessToken,
+      refreshToken: rotationResult.newToken, // V8.0.0: Return new refresh token for mobile
     });
   } catch (error) {
     logger.error("Token refresh error", { error });

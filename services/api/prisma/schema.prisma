@@ -167,6 +167,9 @@ model User {
   // Password reset tokens
   passwordResetTokens PasswordResetToken[]
 
+  // V8.0.0: Refresh tokens for secure session management
+  refreshTokens       RefreshToken[]
+
   // V5.0: Hair health context sharing
   customerContexts    StylistClientContext[] @relation("CustomerContexts")
   stylistContexts     StylistClientContext[] @relation("StylistContexts")
@@ -216,6 +219,35 @@ model PasswordResetToken {
   @@index([token])
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+/// V8.0.0: Refresh token for secure token rotation
+/// Stored in database to enable revocation and detect token reuse attacks
+model RefreshToken {
+  id           String    @id @default(uuid())
+  userId       String
+  tokenHash    String    @unique  // SHA-256 hash of the token (never store plaintext)
+  familyId     String              // Token family for rotation detection
+  expiresAt    DateTime
+  revokedAt    DateTime?           // Set when token is revoked
+  replacedById String?   @unique   // Points to the token that replaced this one
+
+  // Device/session info for security auditing
+  userAgent    String?
+  ipAddress    String?
+
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedBy   RefreshToken? @relation("TokenRotation", fields: [replacedById], references: [id])
+  replacesToken RefreshToken? @relation("TokenRotation")
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }
 
 /// Stylist profile data
