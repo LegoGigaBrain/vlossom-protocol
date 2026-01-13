@@ -269,7 +269,7 @@ export async function generateCalendarFromPlan(
             });
             eventsCreated++;
           }
-        } catch (error) {
+        } catch (_error) {
           eventsSkipped++;
         }
       }

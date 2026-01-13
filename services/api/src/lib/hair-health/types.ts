@@ -35,6 +35,7 @@ export interface HairProfileCreateInput {
   routineType?: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface HairProfileUpdateInput extends Partial<HairProfileCreateInput> {}
 
 export interface HairProfileResponse {

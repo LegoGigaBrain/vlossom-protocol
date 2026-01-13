@@ -5,7 +5,7 @@
  * Validates H-1 security fix: httpOnly cookies for XSS protection.
  */
 
-import { type Request, type Response, type NextFunction } from 'express';
+import { type Response, type NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
 // Mock environment before importing auth module

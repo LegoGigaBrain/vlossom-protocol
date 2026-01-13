@@ -1146,7 +1146,7 @@ router.post("/forgot-password", rateLimiters.passwordReset, async (req: Request,
  * V7.0.0 (H-6): Validate reset token before showing form
  * Checks token format, existence, and expiration
  */
-router.get("/reset-password/validate", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+router.get("/reset-password/validate", async (req: Request, res: Response, _next: NextFunction): Promise<void> => {
   try {
     const { token } = req.query;
 

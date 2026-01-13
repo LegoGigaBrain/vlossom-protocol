@@ -549,9 +549,8 @@ function generateWeeklySchedule(
     isRestDay: false,
   }));
 
-  // Track heavy and medium days used
+  // Track heavy days used
   let heavyDaysUsed = 0;
-  let mediumDaysUsed = 0;
 
   // Assign essential rituals first
   const essentialRituals = recommendations.filter((r) => r.priority === "ESSENTIAL");
@@ -577,8 +576,6 @@ function generateWeeklySchedule(
       heavyDaysUsed++;
       // Mark Sunday as rest day after heavy wash day
       schedule[0].isRestDay = true;
-    } else if (washDayRitual.template.loadLevel === "STANDARD") {
-      mediumDaysUsed++;
     }
   }
 
@@ -599,7 +596,6 @@ function generateWeeklySchedule(
       proteinSlot.totalLoad += LOAD_SCORES[proteinRitual.template.loadLevel];
 
       if (proteinRitual.template.loadLevel === "HEAVY") heavyDaysUsed++;
-      else if (proteinRitual.template.loadLevel === "STANDARD") mediumDaysUsed++;
     }
   }
 

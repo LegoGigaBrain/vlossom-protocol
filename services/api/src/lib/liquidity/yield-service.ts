@@ -141,7 +141,7 @@ export async function claimAllYield(userId: string): Promise<ClaimResult[]> {
       try {
         const result = await claimYield(userId, pool.id);
         results.push(result);
-      } catch (error) {
+      } catch (_error) {
         // Skip pools with no yield
       }
     }

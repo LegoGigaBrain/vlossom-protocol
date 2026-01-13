@@ -130,7 +130,7 @@ router.get(
       const heartbeat = setInterval(() => {
         try {
           res.write(`: heartbeat\n\n`);
-        } catch (error) {
+        } catch (_error) {
           clearInterval(heartbeat);
         }
       }, 30000);

@@ -162,7 +162,7 @@ export function createHealthCheckHandler(
       const health = await runHealthChecks(prisma, config);
       const statusCode = health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503;
       res.status(statusCode).json(health);
-    } catch (error) {
+    } catch (_error) {
       res.status(503).json({
         status: "unhealthy",
         version: process.env.npm_package_version || "1.3.0",

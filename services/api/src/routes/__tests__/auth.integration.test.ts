@@ -254,7 +254,7 @@ describe('Auth Routes Integration', () => {
 
       const cookies = loginResponse.headers['set-cookie'] as string[];
       const accessCookie = cookies.find(c => c.includes(COOKIE_NAMES.ACCESS_TOKEN));
-      const accessToken = accessCookie?.split('=')[1]?.split(';')[0];
+      const _accessToken = accessCookie?.split('=')[1]?.split(';')[0];
 
       // Now logout
       const logoutResponse = await request(app)
