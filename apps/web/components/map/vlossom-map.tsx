@@ -225,7 +225,8 @@ export function VlossomMap({
 
       markersRef.current.push(marker);
     });
-  }, [stylists, salons, isMapLoaded, createMarkerElement, onStylistSelect, onSalonSelect]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stylists, isMapLoaded, createMarkerElement, onStylistSelect]);
 
   // Update user location marker
   useEffect(() => {
@@ -400,9 +401,9 @@ function MapLegendItem({ icon, label }: { icon: string; label: string }) {
 // Fallback list view when map is unavailable
 function FallbackMapView({
   stylists,
-  salons,
+  salons: _salons,
   onStylistSelect,
-  onSalonSelect,
+  onSalonSelect: _onSalonSelect,
   userLocation,
 }: {
   stylists: StylistMarker[];
