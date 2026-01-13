@@ -83,7 +83,8 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Clean up expired entries periodically
-setInterval(() => {
+// Use .unref() to allow process to exit cleanly (fixes Jest hanging)
+const cleanupInterval = setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of rateLimitStore.entries()) {
     if (entry.resetAt < now && (!entry.blockedUntil || entry.blockedUntil < now)) {
@@ -91,6 +92,7 @@ setInterval(() => {
     }
   }
 }, 60000); // Clean up every minute
+cleanupInterval.unref();
 
 /**
  * Rate limit configuration
