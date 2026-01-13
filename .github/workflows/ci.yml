@@ -41,6 +41,9 @@ jobs:
           pnpm --filter @vlossom/api exec prisma generate
           pnpm --filter @vlossom/scheduler exec prisma generate
 
+      - name: Compile contracts (for typechain types)
+        run: pnpm --filter @vlossom/contracts compile
+
       - name: Lint
         run: pnpm lint
 
