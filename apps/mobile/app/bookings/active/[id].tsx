@@ -19,13 +19,12 @@ import {
   StyleSheet,
   Pressable,
   ActivityIndicator,
-  Linking,
   Alert,
   ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { MapView, Marker, PROVIDER_GOOGLE } from '../../../src/components/MapView';
 import { useTheme, textStyles } from '../../../src/styles/theme';
 import { spacing, borderRadius, shadows } from '../../../src/styles/tokens';
 import {
