@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { authFetch } from "../../lib/auth-client";
 
 /**
  * Admin Layout (F5.1)
  * Protects admin routes and provides navigation
+ * V8.0.0: Migrated to httpOnly cookie auth
  */
 export default function AdminLayout({
   children,
@@ -21,16 +23,8 @@ export default function AdminLayout({
     // Check if user is authenticated and has admin role
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          router.push("/login?redirect=/admin");
-          return;
-        }
-
-        // Verify admin role (in production, decode JWT or call API)
-        const response = await fetch("/api/v1/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // V8.0.0: Use httpOnly cookie auth via authFetch
+        const response = await authFetch("/api/v1/auth/me");
 
         if (!response.ok) {
           router.push("/login?redirect=/admin");

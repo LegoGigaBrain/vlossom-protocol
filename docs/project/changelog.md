@@ -7,6 +7,187 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [8.0.0] - 2026-01-08
+
+### V8.0.0: Security Audit Fixes - COMPLETE ✅
+
+**Goal**: Resolve all 24 security findings from pre-production security audit across Critical, High, and Medium priorities.
+
+---
+
+#### ✅ CRITICAL Security Fixes (5 items)
+
+**1. CSRF Protection**
+- Applied csurf middleware to all state-changing API routes
+- CSRF token required in X-CSRF-Token header for POST/PUT/DELETE
+- Files: `services/api/src/middleware/csrf.ts`, all route files
+
+**2. Cookie Name Mismatch**
+- Fixed auth middleware to read from ACCESS_TOKEN cookie (was looking at wrong name)
+- Files: `services/api/src/middleware/auth.ts`
+
+**3. Cookie Auth Migration**
+- Updated 13 web API clients to use `credentials: 'include'` for cookie auth
+- Removed all localStorage token handling from web clients
+- Files: `apps/web/lib/*-client.ts`
+
+**4. Address Validation**
+- Replaced insecure custom Keccak256 implementation with viem's isAddress
+- Added EIP-55 checksum validation
+- Files: `apps/mobile/src/utils/address-validation.ts`
+
+**5. Content Security Policy**
+- Added CSP headers via Next.js middleware
+- Configured script-src, style-src, connect-src directives
+- Files: `apps/web/middleware.ts`
+
+---
+
+#### ✅ HIGH Security Fixes (13 items)
+
+**1. CORS X-CSRF-Token**
+- Added X-CSRF-Token to exposedHeaders in CORS config
+- Files: `services/api/src/middleware/cors.ts`
+
+**2. CORS Origin Validation**
+- Fixed allowedOrigins to include protocol prefixes (http://, https://)
+- Files: `services/api/src/middleware/cors.ts`
+
+**3. Internal Auth Enforcement**
+- Throws error if INTERNAL_AUTH_SECRET is missing in production
+- Files: `services/api/src/routes/internal.ts`
+
+**4. Password Reset Logging**
+- Removed reset token from log output to prevent token exposure
+- Files: `services/api/src/routes/auth.ts`
+
+**5. Account Lockout Redis**
+- Migrated from in-memory Map to Redis for distributed lockout tracking
+- Works correctly across multiple API instances
+- Files: `services/api/src/middleware/rate-limiter.ts`
+
+**6. HTTPS Enforcement**
+- Added middleware to redirect HTTP to HTTPS in production
+- Files: `services/api/src/middleware/https.ts`
+
+**7. Error Details Removal**
+- Stripped stack traces and detailed error messages in production
+- Files: `services/api/src/middleware/error-handler.ts`
+
+**8. Mobile Token Refresh**
+- Implemented automatic 401 handling with token refresh
+- Files: `apps/mobile/src/api/client.ts`
+
+**9. Web EIP-55 Validation**
+- Added checksum address validation to web wallet forms
+- Files: `apps/web/lib/validation.ts`
+
+**10. Input Length Limits**
+- Added maxLength constraints to all form inputs
+- Files: `apps/web/components/ui/input.tsx`
+
+**11. Mobile Error Boundaries**
+- Added error boundaries at route and component levels
+- Prevents crashes from propagating
+- Files: `apps/mobile/src/components/ErrorBoundary.tsx`
+
+**12. localStorage Removal**
+- Removed localStorage token fallback, cookies only for web auth
+- Files: `apps/web/lib/auth-client.ts`
+
+**13. Animation Memory Leaks**
+- Fixed useRef cleanup in motion components
+- Files: `apps/web/lib/motion.ts`
+
+---
+
+#### ✅ MEDIUM Security Fixes (6 items)
+
+**1. Password Complexity Requirements**
+- Added validation: 8+ chars, uppercase, lowercase, number
+- Applied to signup, reset-password, change-password endpoints
+- Updated mobile signup with validatePassword function
+- Files: `services/api/src/routes/auth.ts`, `apps/mobile/src/utils/input-validation.ts`
+
+**2. Email Enumeration Timing Attack**
+- Added constant-time responses using dummy bcrypt hash
+- Always performs hash comparison even for non-existent users
+- Artificial delay (100-250ms) for forgot-password on non-existent emails
+- Files: `services/api/src/routes/auth.ts`
+
+**3. SIWE Nonce Cleanup**
+- Added scheduler job to clean up expired SIWE nonces
+- Deletes expired nonces and used nonces older than 1 hour
+- Files: `services/scheduler/src/index.ts`
+
+**4. Request Timeouts**
+- Added 30s timeout to mobile API client
+- Prevents indefinite request hangs
+- Files: `apps/mobile/src/api/client.ts`
+
+**5. Unused Dependencies**
+- Removed lucide-react from web package.json
+- All icons now use Phosphor via Icon bridge
+- Files: `apps/web/package.json`
+
+**6. Refresh Token Database Storage**
+- Created RefreshToken model in Prisma schema
+- Implemented token-service.ts with:
+  - SHA-256 hashing (never store plaintext)
+  - Token rotation with family tracking
+  - Reuse detection (revokes entire family if rotated token reused)
+  - Cleanup job in scheduler
+- Updated auth routes: login creates DB token, logout revokes, refresh rotates
+- Files: `services/api/src/lib/token-service.ts`, `services/api/prisma/schema.prisma`, migration
+
+---
+
+#### Database Migration
+
+**New Table: refresh_tokens**
+```sql
+CREATE TABLE "refresh_tokens" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL,
+    "familyId" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "revokedAt" TIMESTAMP(3),
+    "replacedById" TEXT,
+    "userAgent" TEXT,
+    "ipAddress" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "refresh_tokens_pkey" PRIMARY KEY ("id")
+);
+```
+
+**Indexes:**
+- `refresh_tokens_tokenHash_key` (unique)
+- `refresh_tokens_replacedById_key` (unique)
+- `refresh_tokens_userId_idx`
+- `refresh_tokens_tokenHash_idx`
+- `refresh_tokens_familyId_idx`
+- `refresh_tokens_expiresAt_idx`
+
+---
+
+#### Security Architecture Summary
+
+**Token Management:**
+- Access tokens: 15-minute expiry, httpOnly cookies
+- Refresh tokens: 7-day expiry, SHA-256 hashed in database
+- Token rotation: New token on each refresh, old marked as replaced
+- Reuse detection: If rotated token is reused, entire family revoked
+
+**Authentication Flow:**
+1. Login → Create DB-backed refresh token + access token cookie
+2. API calls → Validate access token from cookie
+3. Token expired → Client calls /api/v1/auth/refresh
+4. Refresh → Validate DB token, rotate, issue new access token
+5. Logout → Revoke refresh token in database
+
+---
+
 ## [7.5.1] - 2025-12-28
 
 ### V7.5.1: Branding Consistency - COMPLETE ✅

@@ -3,36 +3,26 @@
  *
  * Re-exports from src/lib/api.ts for backwards compatibility
  * with components that import from lib/api
+ *
+ * V8.0.0 Security Update: Migrated from localStorage tokens to httpOnly cookies
  */
 
 export * from "../src/lib/api";
 
+import { authFetch } from "./auth-client";
+
 // Generic API client for admin pages
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
-function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("vlossomToken");
-}
-
+/**
+ * V8.0.0: Secure request helper using httpOnly cookies
+ * Uses authFetch which handles credentials and CSRF tokens automatically
+ */
 async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = getToken();
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
-
-  if (token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const response = await authFetch(`${API_URL}${endpoint}`, options);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({

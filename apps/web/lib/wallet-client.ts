@@ -1,9 +1,19 @@
 /**
  * Wallet API Client
  * Handles wallet balance, transactions, and operations
+ *
+ * V8.0.0 Security Update:
+ * - Migrated from Bearer tokens to httpOnly cookies
+ * - EIP-55 address validation with viem
  */
 
-import { getAuthToken } from "./auth-client";
+import { authFetch } from "./auth-client";
+import {
+  isValidEthereumAddress,
+  toChecksumAddress,
+  sanitizeAddress,
+  formatAddress,
+} from "./address-validation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -44,18 +54,10 @@ export interface TransactionPage {
 
 /**
  * Get wallet info for authenticated user
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getWallet(): Promise<WalletInfo> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/wallet`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  const response = await authFetch(`${API_URL}/api/v1/wallet`);
 
   if (!response.ok) {
     const error = await response.json();
@@ -67,23 +69,14 @@ export async function getWallet(): Promise<WalletInfo> {
 
 /**
  * Get wallet transaction history
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getTransactions(
   page: number = 1,
   limit: number = 20
 ): Promise<TransactionPage> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(
-    `${API_URL}/api/v1/wallet/transactions?page=${page}&limit=${limit}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
+  const response = await authFetch(
+    `${API_URL}/api/v1/wallet/transactions?page=${page}&limit=${limit}`
   );
 
   if (!response.ok) {
@@ -123,6 +116,7 @@ export function formatCurrency(
 
 /**
  * Claim testnet USDC from faucet (rate-limited to 1 claim per 24 hours)
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function claimFaucet(): Promise<{
   success: boolean;
@@ -133,17 +127,8 @@ export async function claimFaucet(): Promise<{
   error?: string;
   nextClaimAt?: string;
 }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/wallet/faucet`, {
+  const response = await authFetch(`${API_URL}/api/v1/wallet/faucet`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
   });
 
   const data = await response.json();
@@ -167,6 +152,8 @@ export async function claimFaucet(): Promise<{
 
 /**
  * Send USDC to another wallet address (P2P transfer)
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ * V8.0.0: Validates and checksums address before sending
  */
 export async function sendP2P(
   toAddress: string,
@@ -179,18 +166,18 @@ export async function sendP2P(
   txHash?: string;
   error?: string;
 }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
+  // V8.0.0: Validate address before sending
+  const validatedAddress = sanitizeAddress(toAddress);
+  if (!validatedAddress) {
+    return {
+      success: false,
+      error: "Invalid Ethereum address. Please check the address and try again.",
+    };
   }
 
-  const response = await fetch(`${API_URL}/api/v1/wallet/transfer`, {
+  const response = await authFetch(`${API_URL}/api/v1/wallet/transfer`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ toAddress, amount, memo }),
+    body: JSON.stringify({ toAddress: validatedAddress, amount, memo }),
   });
 
   const data = await response.json();
@@ -237,16 +224,21 @@ export function fromUsdcUnits(units: bigint): number {
 }
 
 /**
- * Validate Ethereum address format
+ * Validate Ethereum address with EIP-55 checksum
+ * V8.0.0 Security Fix: Uses viem's isAddress for proper validation
  */
 export function isValidAddress(address: string): boolean {
-  return /^0x[a-fA-F0-9]{40}$/.test(address);
+  return isValidEthereumAddress(address);
 }
 
 /**
  * Truncate address for display (0x1234...5678)
+ * Uses secure formatAddress utility
  */
 export function truncateAddress(address: string): string {
   if (!address || address.length < 10) return address;
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  return formatAddress(address, 6, 4);
 }
+
+// Re-export for convenience
+export { toChecksumAddress, sanitizeAddress };

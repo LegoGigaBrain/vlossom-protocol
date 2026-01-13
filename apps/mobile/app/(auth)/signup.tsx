@@ -1,10 +1,11 @@
 /**
- * Signup Screen (V6.8.0)
+ * Signup Screen (V8.0.0)
  *
  * Create account with email, password, and role selection.
  * Uses Vlossom design tokens and botanical iconography.
  *
  * V7.0.0 (M-4): Added input length limits for security
+ * V8.0.0: Password complexity validation (uppercase, lowercase, number)
  */
 
 import React, { useState } from 'react';
@@ -23,7 +24,7 @@ import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '../../src/styles/tokens';
 import { useAuthStore } from '../../src/stores/auth';
-import { INPUT_LIMITS } from '../../src/utils/input-validation';
+import { INPUT_LIMITS, validatePassword } from '../../src/utils/input-validation';
 import { VlossomWordmark } from '../../src/components/branding';
 
 type RoleType = 'CUSTOMER' | 'STYLIST';
@@ -49,9 +50,10 @@ export default function SignupScreen() {
       return;
     }
 
-    // Validate password strength
-    if (password.length < 8) {
-      setLocalError('Password must be at least 8 characters');
+    // V8.0.0: Password complexity validation
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      setLocalError(`Password needs: ${passwordValidation.issues.join(', ')}`);
       return;
     }
 
@@ -67,10 +69,11 @@ export default function SignupScreen() {
     }
   };
 
+  // V8.0.0: Form valid only when password meets complexity requirements
   const isFormValid =
     email.trim().length > 0 &&
-    password.length >= 8 &&
-    confirmPassword.length >= 8;
+    validatePassword(password).isValid &&
+    password === confirmPassword;
 
   const displayError = localError || signupError;
 
@@ -213,7 +216,7 @@ export default function SignupScreen() {
                       clearErrors();
                     }
                   }}
-                  placeholder="At least 8 characters"
+                  placeholder="8+ chars, uppercase, lowercase, number"
                   placeholderTextColor={colors.text.muted}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
@@ -223,7 +226,7 @@ export default function SignupScreen() {
                   maxLength={INPUT_LIMITS.PASSWORD}
                   accessibilityLabel="Password"
                   accessibilityLabelledBy="passwordLabel"
-                  accessibilityHint="Create a password with at least 8 characters"
+                  accessibilityHint="Create a password with at least 8 characters, one uppercase, one lowercase, and one number"
                 />
                 <TouchableOpacity
                   style={styles.showPasswordButton}

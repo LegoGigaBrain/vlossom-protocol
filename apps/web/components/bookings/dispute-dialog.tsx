@@ -12,6 +12,7 @@ import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { Input } from "../ui/input";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 const resolutionOptions = [
   { value: "full_refund", label: "Full refund", description: "Request a complete refund" },
@@ -122,7 +123,6 @@ export function DisputeDialog({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
       const formData = new FormData();
       formData.append("bookingId", bookingId);
       formData.append("reason", data.reason);
@@ -137,13 +137,10 @@ export function DisputeDialog({
         formData.append("evidence", file);
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/disputes`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/disputes`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body: formData,
         }
       );

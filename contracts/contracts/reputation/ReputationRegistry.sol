@@ -31,6 +31,10 @@ contract ReputationRegistry is Ownable, ReentrancyGuard, Pausable {
     error UnauthorizedSubmitter();
     error ActorNotFound();
     error ArrayLengthMismatch();
+    error BatchTooLarge();
+
+    /// @notice H-6 fix: Maximum batch size to prevent DoS
+    uint256 public constant MAX_BATCH_SIZE = 100;
 
     /// @notice Actor type in the marketplace
     enum ActorType {
@@ -307,6 +311,10 @@ contract ReputationRegistry is Ownable, ReentrancyGuard, Pausable {
     ) external onlyAuthorized nonReentrant whenNotPaused {
         // Validate array lengths
         uint256 length = actors.length;
+
+        // H-6 FIX: Enforce maximum batch size to prevent DoS attacks
+        if (length > MAX_BATCH_SIZE) revert BatchTooLarge();
+
         if (
             length != bookingIds.length ||
             length != actorTypes.length ||

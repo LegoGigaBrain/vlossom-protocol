@@ -6,12 +6,16 @@ import { NotificationItem, type Notification } from "./notification-item";
 import { Skeleton } from "../ui/skeleton";
 import { EmptyState } from "../ui/empty-state";
 import { Icon } from "@/components/icons";
+import { authFetch } from "../../lib/auth-client";
 
 interface NotificationDropdownProps {
   onClose: () => void;
   onMarkAllRead: () => void;
 }
 
+/**
+ * V8.0.0: Migrated to httpOnly cookie auth
+ */
 export function NotificationDropdown({ onClose, onMarkAllRead }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,14 +25,8 @@ export function NotificationDropdown({ onClose, onMarkAllRead }: NotificationDro
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const token = localStorage.getItem("vlossom_token");
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/notifications?limit=5`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const response = await authFetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications?limit=5`
         );
 
         if (response.ok) {
@@ -49,15 +47,9 @@ export function NotificationDropdown({ onClose, onMarkAllRead }: NotificationDro
   const handleMarkAllRead = async () => {
     setIsMarkingAll(true);
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/read-all`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/read-all`,
+        { method: "POST" }
       );
 
       if (response.ok) {
@@ -77,15 +69,9 @@ export function NotificationDropdown({ onClose, onMarkAllRead }: NotificationDro
   // Mark single notification as read
   const handleMarkRead = async (id: string) => {
     try {
-      const token = localStorage.getItem("vlossom_token");
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/${id}/read`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/${id}/read`,
+        { method: "POST" }
       );
 
       // Update local state

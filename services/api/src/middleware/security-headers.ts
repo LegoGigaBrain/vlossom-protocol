@@ -195,20 +195,32 @@ export function securityHeaders(config: SecurityHeadersConfig = {}) {
 
 /**
  * CORS configuration for API
+ * V8.0.0 Security Fix: Fail-closed CORS validation and X-CSRF-Token support
  * Note: Use cors package in production for full CORS support
  */
 export function corsHeaders(allowedOrigins: string[] = []) {
   return (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
 
-    // Check if origin is allowed
+    // V8.0.0: Fail-closed CORS validation
+    // In production, only explicitly allowed origins are permitted
     if (origin) {
-      const isAllowed =
-        allowedOrigins.length === 0 ||
-        allowedOrigins.includes(origin) ||
-        allowedOrigins.includes("*");
+      // Check if origin is in the explicit allowlist
+      const isAllowed = origin && allowedOrigins.includes(origin);
 
       if (isAllowed) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+      } else if (process.env.NODE_ENV === 'production') {
+        // In production, reject requests from unknown origins for non-preflight
+        if (req.method !== "OPTIONS") {
+          return res.status(403).json({
+            error: 'Origin not allowed',
+            code: 'CORS_ORIGIN_DENIED'
+          });
+        }
+      } else {
+        // In development, allow any origin but log warning
         res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Access-Control-Allow-Credentials", "true");
       }
@@ -220,9 +232,10 @@ export function corsHeaders(allowedOrigins: string[] = []) {
         "Access-Control-Allow-Methods",
         "GET, POST, PUT, DELETE, PATCH, OPTIONS"
       );
+      // V8.0.0: Include X-CSRF-Token in allowed headers for CSRF protection
       res.setHeader(
         "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, X-Requested-With"
+        "Content-Type, Authorization, X-Requested-With, X-CSRF-Token"
       );
       res.setHeader("Access-Control-Max-Age", "86400"); // 24 hours
       return res.status(204).send();

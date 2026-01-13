@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
 import { Icon } from "@/components/icons";
+import { authFetch } from "../../lib/auth-client";
 
 interface AvatarUploadProps {
   currentUrl?: string | null;
@@ -43,17 +44,13 @@ export function AvatarUpload({ currentUrl, displayName, onUpload }: AvatarUpload
     // Upload to server
     setIsUploading(true);
     try {
-      const token = localStorage.getItem("vlossom_token");
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/upload/avatar`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/upload/avatar`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body: formData,
         }
       );

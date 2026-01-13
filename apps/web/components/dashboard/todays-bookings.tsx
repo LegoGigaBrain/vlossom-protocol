@@ -17,16 +17,9 @@ import {
 import { StartServiceDialog } from "./start-service-dialog";
 import { CompleteServiceDialog } from "./complete-service-dialog";
 import { CompletionSuccess } from "./completion-success";
+import { authFetch } from "../../lib/auth-client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
-
-function getAuthHeaders(): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
 
 export function TodaysBookings() {
   const queryClient = useQueryClient();
@@ -43,9 +36,8 @@ export function TodaysBookings() {
     queryKey: ["todays-active-bookings"],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
-      const response = await fetch(
-        `${API_BASE}/api/v1/stylists/bookings?status=CONFIRMED,IN_PROGRESS&date=${today}`,
-        { headers: getAuthHeaders() }
+      const response = await authFetch(
+        `${API_BASE}/api/v1/stylists/bookings?status=CONFIRMED,IN_PROGRESS&date=${today}`
       );
       if (!response.ok) throw new Error("Failed to fetch bookings");
       return response.json() as Promise<{ bookings: ActiveBooking[] }>;
@@ -56,9 +48,8 @@ export function TodaysBookings() {
   // Start service mutation
   const startMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/start`, {
+      const response = await authFetch(`${API_BASE}/api/v1/bookings/${bookingId}/start`, {
         method: "POST",
-        headers: getAuthHeaders(),
       });
       if (!response.ok) throw new Error("Failed to start service");
       return response.json();
@@ -74,9 +65,8 @@ export function TodaysBookings() {
   // Complete service mutation
   const completeMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/complete`, {
+      const response = await authFetch(`${API_BASE}/api/v1/bookings/${bookingId}/complete`, {
         method: "POST",
-        headers: getAuthHeaders(),
       });
       if (!response.ok) throw new Error("Failed to complete service");
       return response.json();

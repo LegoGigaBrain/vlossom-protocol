@@ -11,13 +11,15 @@ import { Label } from "../../../components/ui/label";
 import { PasswordStrength } from "../../../components/ui/password-strength";
 import { VlossomLogo } from "../../../components/ui/vlossom-logo";
 import Link from "next/link";
+import { validationSchemas, INPUT_LIMITS } from "../../../lib/input-validation";
 
+// V8.0.0: Added max length limits and password complexity for security
 const signupSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
+  email: validationSchemas.email,
+  password: validationSchemas.passwordWithComplexity,
+  confirmPassword: z.string().max(INPUT_LIMITS.PASSWORD),
   role: z.enum(["CUSTOMER", "STYLIST"]),
-  displayName: z.string().optional(),
+  displayName: validationSchemas.displayName.optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -119,6 +121,7 @@ export default function OnboardingPage() {
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
+                maxLength={INPUT_LIMITS.EMAIL}
                 aria-describedby={errors.email ? "email-error" : undefined}
                 {...register("email")}
                 disabled={isLoading}
@@ -140,6 +143,7 @@ export default function OnboardingPage() {
                 type="text"
                 placeholder="How you'd like to be called"
                 autoComplete="name"
+                maxLength={INPUT_LIMITS.DISPLAY_NAME}
                 {...register("displayName")}
                 disabled={isLoading}
               />
@@ -153,6 +157,7 @@ export default function OnboardingPage() {
                 type="password"
                 placeholder="At least 8 characters"
                 autoComplete="new-password"
+                maxLength={INPUT_LIMITS.PASSWORD}
                 aria-describedby={errors.password ? "password-error" : "password-strength"}
                 {...register("password")}
                 disabled={isLoading}
@@ -173,6 +178,7 @@ export default function OnboardingPage() {
                 type="password"
                 placeholder="Re-enter your password"
                 autoComplete="new-password"
+                maxLength={INPUT_LIMITS.PASSWORD}
                 aria-describedby={errors.confirmPassword ? "confirm-password-error" : undefined}
                 {...register("confirmPassword")}
                 disabled={isLoading}

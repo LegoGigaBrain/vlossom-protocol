@@ -1,9 +1,12 @@
 /**
  * Ethereum Address Validation Utilities
  * V7.0.0: Implements proper EIP-55 checksum validation (H-5)
+ * V8.0.0: Security Fix - Use viem for proper Keccak256 hashing
  *
  * Security: Prevents sending funds to invalid or malformed addresses
  */
+
+import { isAddress, getAddress } from 'viem';
 
 /**
  * Validate basic address format (0x prefix + 40 hex chars)
@@ -14,77 +17,46 @@ function isValidAddressFormat(address: string): boolean {
 }
 
 /**
- * Calculate Keccak256 hash using basic implementation
- * Note: For production, consider using a proper crypto library
- * This is a simplified version for address validation
- */
-function keccak256Hash(input: string): string {
-  // Simple implementation for checksum validation
-  // Uses the same algorithm as Ethereum for address checksums
-  const bytes = input.toLowerCase();
-
-  // Simple hash for demonstration - in production use viem/ethers
-  let hash = '';
-  for (let i = 0; i < bytes.length; i++) {
-    const charCode = bytes.charCodeAt(i);
-    hash += ((charCode * 31 + i) % 16).toString(16);
-  }
-
-  // Pad or truncate to 40 chars
-  while (hash.length < 40) {
-    hash += '0';
-  }
-  return hash.slice(0, 40);
-}
-
-/**
  * EIP-55 checksum address conversion
- * Converts lowercase address to checksummed version
+ * V8.0.0: Uses viem's getAddress for proper Keccak256-based checksumming
+ *
+ * @param address - The address to convert to checksum format
+ * @returns checksummed address or null if invalid
  */
 export function toChecksumAddress(address: string): string | null {
   if (!isValidAddressFormat(address)) return null;
 
-  const lowerAddress = address.slice(2).toLowerCase();
-  const hash = keccak256Hash(lowerAddress);
-
-  let checksumAddress = '0x';
-  for (let i = 0; i < lowerAddress.length; i++) {
-    const char = lowerAddress[i];
-    // If hash char is >= 8, uppercase the address char
-    if (parseInt(hash[i], 16) >= 8) {
-      checksumAddress += char.toUpperCase();
-    } else {
-      checksumAddress += char;
-    }
+  try {
+    // viem's getAddress throws on invalid address
+    return getAddress(address);
+  } catch {
+    return null;
   }
-
-  return checksumAddress;
 }
 
 /**
  * Validate Ethereum address with EIP-55 checksum
  * V7.0.0 Security Fix (H-5)
+ * V8.0.0: Uses viem's isAddress for proper validation
  *
  * @param address - The address to validate
  * @returns true if valid, false otherwise
  */
 export function isValidEthereumAddress(address: string): boolean {
-  // Basic format check
-  if (!isValidAddressFormat(address)) {
-    return false;
-  }
+  // viem's isAddress validates both format and EIP-55 checksum
+  return isAddress(address, { strict: false });
+}
 
-  // If all lowercase or all uppercase, accept it (no checksum)
-  const lowerAddress = address.slice(2).toLowerCase();
-  const upperAddress = address.slice(2).toUpperCase();
-
-  if (address.slice(2) === lowerAddress || address.slice(2) === upperAddress) {
-    return true;
-  }
-
-  // Mixed case - validate EIP-55 checksum
-  const checksummed = toChecksumAddress(address);
-  return checksummed === address;
+/**
+ * Strict address validation (requires valid checksum for mixed-case)
+ * V8.0.0: Uses viem's isAddress with strict mode
+ *
+ * @param address - The address to validate
+ * @returns true if valid with proper checksum, false otherwise
+ */
+export function isValidChecksumAddress(address: string): boolean {
+  // strict mode rejects mixed-case addresses that don't have valid checksum
+  return isAddress(address, { strict: true });
 }
 
 /**

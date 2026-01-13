@@ -11,6 +11,7 @@ import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 const issueCategories = [
   { value: "no_show", label: "Stylist didn't show up" },
@@ -117,7 +118,6 @@ export function ReportIssueDialog({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
       const formData = new FormData();
       formData.append("bookingId", bookingId);
       formData.append("category", data.category);
@@ -126,13 +126,10 @@ export function ReportIssueDialog({
         formData.append("images", image);
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/issues`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/issues`,
         {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body: formData,
         }
       );

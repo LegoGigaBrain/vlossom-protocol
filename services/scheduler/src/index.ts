@@ -10,6 +10,8 @@ import { PrismaClient, BookingStatus } from "@prisma/client";
  * - Auto-confirm bookings after 24h timeout
  * - Booking reminder notifications
  * - Expired payment request cleanup
+ * - SIWE nonce cleanup (V8.0.0)
+ * - Refresh token cleanup (V8.0.0)
  * - Daily stats aggregation
  */
 
@@ -179,6 +181,64 @@ async function cleanupExpiredPaymentRequests(): Promise<void> {
 }
 
 /**
+ * V8.0.0: Clean up expired SIWE nonces
+ * Removes nonces older than their expiration time to prevent DB bloat
+ * and ensure replay protection remains effective
+ */
+async function cleanupExpiredSiweNonces(): Promise<void> {
+  try {
+    const result = await prisma.siweNonce.deleteMany({
+      where: {
+        OR: [
+          // Delete expired nonces
+          { expiresAt: { lt: new Date() } },
+          // Also delete used nonces older than 1 hour (already used, safe to remove)
+          {
+            isUsed: true,
+            createdAt: { lt: new Date(Date.now() - 60 * 60 * 1000) },
+          },
+        ],
+      },
+    });
+
+    if (result.count > 0) {
+      console.log(`[Scheduler] Cleaned up ${result.count} expired SIWE nonces`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error cleaning up SIWE nonces:", error);
+  }
+}
+
+/**
+ * V8.0.0: Clean up expired and old revoked refresh tokens
+ * Removes tokens that are:
+ * - Expired more than 30 days ago
+ * - Revoked more than 30 days ago
+ */
+async function cleanupExpiredRefreshTokens(): Promise<void> {
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const result = await prisma.refreshToken.deleteMany({
+      where: {
+        OR: [
+          // Delete expired tokens older than 30 days
+          { expiresAt: { lt: thirtyDaysAgo } },
+          // Delete revoked tokens older than 30 days
+          { revokedAt: { lt: thirtyDaysAgo } },
+        ],
+      },
+    });
+
+    if (result.count > 0) {
+      console.log(`[Scheduler] Cleaned up ${result.count} expired refresh tokens`);
+    }
+  } catch (error) {
+    console.error("[Scheduler] Error cleaning up refresh tokens:", error);
+  }
+}
+
+/**
  * Trigger reputation recalculation via internal API call
  * Runs every 6 hours to ensure scores are up-to-date
  */
@@ -279,6 +339,8 @@ async function runAllJobs(): Promise<void> {
     await processAutoConfirmJobs();
     await processBookingReminders();
     await cleanupExpiredPaymentRequests();
+    await cleanupExpiredSiweNonces(); // V8.0.0: Clean up expired SIWE nonces
+    await cleanupExpiredRefreshTokens(); // V8.0.0: Clean up expired refresh tokens
     await triggerReputationRecalculation();
   } catch (error) {
     console.error("[Scheduler] Error running jobs:", error);

@@ -1,7 +1,11 @@
 /**
  * Property Owner API Client
  * Handles property management, chair inventory, and rental operations
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
+
+import { authFetch, createHeaders } from "./auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -129,34 +133,6 @@ export interface UploadImageResponse {
 // ============================================================================
 
 /**
- * Get auth token from localStorage
- */
-function getAuthToken(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  return localStorage.getItem("vlossomToken");
-}
-
-/**
- * Build fetch headers with authentication
- */
-function buildHeaders(includeContentType = true): HeadersInit {
-  const headers: HeadersInit = {};
-  const token = getAuthToken();
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  if (includeContentType) {
-    headers["Content-Type"] = "application/json";
-  }
-
-  return headers;
-}
-
-/**
  * Handle API response errors
  */
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -176,64 +152,58 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 /**
  * Get all properties owned by the current user
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getMyProperties(): Promise<Property[]> {
-  const response = await fetch(`${API_URL}/api/v1/properties/my/all`, {
-    headers: buildHeaders(),
-  });
-
+  const response = await authFetch(`${API_URL}/api/v1/properties/my/all`);
   return handleResponse<Property[]>(response);
 }
 
 /**
  * Get single property by ID with full details
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getProperty(id: string): Promise<Property> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${id}`, {
-    headers: buildHeaders(),
-  });
-
+  const response = await authFetch(`${API_URL}/api/v1/properties/${id}`);
   return handleResponse<Property>(response);
 }
 
 /**
  * Create a new property
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function createProperty(
   data: CreatePropertyRequest
 ): Promise<Property> {
-  const response = await fetch(`${API_URL}/api/v1/properties`, {
+  const response = await authFetch(`${API_URL}/api/v1/properties`, {
     method: "POST",
-    headers: buildHeaders(),
     body: JSON.stringify(data),
   });
-
   return handleResponse<Property>(response);
 }
 
 /**
  * Update an existing property
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function updateProperty(
   id: string,
   data: UpdatePropertyRequest
 ): Promise<Property> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${id}`, {
+  const response = await authFetch(`${API_URL}/api/v1/properties/${id}`, {
     method: "PUT",
-    headers: buildHeaders(),
     body: JSON.stringify(data),
   });
-
   return handleResponse<Property>(response);
 }
 
 /**
  * Delete a property
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function deleteProperty(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/api/v1/properties/${id}`, {
+  const response = await authFetch(`${API_URL}/api/v1/properties/${id}`, {
     method: "DELETE",
-    headers: buildHeaders(),
   });
 
   if (!response.ok) {
@@ -250,55 +220,53 @@ export async function deleteProperty(id: string): Promise<void> {
 
 /**
  * Create a new chair for a property
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function createChair(
   propertyId: string,
   data: CreateChairRequest
 ): Promise<Chair> {
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/properties/${propertyId}/chairs`,
     {
       method: "POST",
-      headers: buildHeaders(),
       body: JSON.stringify(data),
     }
   );
-
   return handleResponse<Chair>(response);
 }
 
 /**
  * Update an existing chair
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function updateChair(
   propertyId: string,
   chairId: string,
   data: UpdateChairRequest
 ): Promise<Chair> {
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/properties/${propertyId}/chairs/${chairId}`,
     {
       method: "PUT",
-      headers: buildHeaders(),
       body: JSON.stringify(data),
     }
   );
-
   return handleResponse<Chair>(response);
 }
 
 /**
  * Delete a chair
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function deleteChair(
   propertyId: string,
   chairId: string
 ): Promise<void> {
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/properties/${propertyId}/chairs/${chairId}`,
     {
       method: "DELETE",
-      headers: buildHeaders(),
     }
   );
 
@@ -316,6 +284,7 @@ export async function deleteChair(
 
 /**
  * Upload a property image
+ * V8.0.0: Uses httpOnly cookie auth via credentials: 'include'
  */
 export async function uploadPropertyImage(
   propertyId: string,
@@ -324,13 +293,16 @@ export async function uploadPropertyImage(
   const formData = new FormData();
   formData.append("image", file);
 
+  // For file uploads, we need to use fetch directly with credentials
+  // since authFetch adds Content-Type which breaks multipart/form-data
+  const headers = createHeaders(false); // Don't include Content-Type for FormData
+
   const response = await fetch(
     `${API_URL}/api/v1/upload/property/${propertyId}`,
     {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
+      credentials: "include",
+      headers,
       body: formData,
     }
   );
@@ -340,16 +312,16 @@ export async function uploadPropertyImage(
 
 /**
  * Delete a property image by public ID
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function deletePropertyImage(
   propertyId: string,
   publicId: string
 ): Promise<void> {
-  const response = await fetch(
+  const response = await authFetch(
     `${API_URL}/api/v1/upload/property/${propertyId}/${encodeURIComponent(publicId)}`,
     {
       method: "DELETE",
-      headers: buildHeaders(),
     }
   );
 
@@ -363,6 +335,7 @@ export async function deletePropertyImage(
 
 /**
  * Set property cover image
+ * V8.0.0: Uses httpOnly cookie auth via credentials: 'include'
  */
 export async function setPropertyCoverImage(
   propertyId: string,
@@ -371,13 +344,15 @@ export async function setPropertyCoverImage(
   const formData = new FormData();
   formData.append("image", file);
 
+  // For file uploads, we need to use fetch directly with credentials
+  const headers = createHeaders(false); // Don't include Content-Type for FormData
+
   const response = await fetch(
     `${API_URL}/api/v1/upload/property/${propertyId}/cover`,
     {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
-      },
+      credentials: "include",
+      headers,
       body: formData,
     }
   );

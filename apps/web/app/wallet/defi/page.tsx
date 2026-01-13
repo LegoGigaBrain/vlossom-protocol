@@ -18,6 +18,7 @@ import {
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { useToast } from "../../../hooks/use-toast";
+import { authFetch } from "@/lib/auth-client";
 
 // ============================================================================
 // Types (matching SDK types)
@@ -63,17 +64,9 @@ interface GlobalStats {
 // ============================================================================
 
 async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002/api/v1";
-  const token = typeof window !== "undefined" ? localStorage.getItem("vlossom_token") : null;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
-  const res = await fetch(`${baseUrl}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options?.headers,
-    },
-  });
+  const res = await authFetch(`${baseUrl}/api/v1${path}`, options);
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "API Error");

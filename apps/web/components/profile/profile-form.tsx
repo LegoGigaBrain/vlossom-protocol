@@ -9,15 +9,14 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { toast } from "../../hooks/use-toast";
 import { getErrorMessage } from "../../lib/error-utils";
+import { authFetch } from "../../lib/auth-client";
+import { validationSchemas, INPUT_LIMITS } from "../../lib/input-validation";
 
+// V8.0.0: Added max length limits for security
 const profileSchema = z.object({
-  displayName: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
-  phone: z
-    .string()
-    .regex(/^\+?[0-9]{10,15}$/, "Please enter a valid phone number")
-    .optional()
-    .or(z.literal("")),
+  displayName: validationSchemas.displayName,
+  email: validationSchemas.email.optional().or(z.literal("")),
+  phone: validationSchemas.phone.or(z.literal("")),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -52,15 +51,11 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+      // V8.0.0: Uses httpOnly cookie auth via authFetch
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/me`,
         {
           method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             displayName: data.displayName,
             email: data.email || null,
@@ -90,6 +85,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
         <Input
           id="displayName"
           placeholder="Your name"
+          maxLength={INPUT_LIMITS.DISPLAY_NAME}
           {...register("displayName")}
           aria-invalid={errors.displayName ? "true" : "false"}
         />
@@ -105,6 +101,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
           id="email"
           type="email"
           placeholder="you@example.com"
+          maxLength={INPUT_LIMITS.EMAIL}
           {...register("email")}
           aria-invalid={errors.email ? "true" : "false"}
         />
@@ -123,6 +120,7 @@ export function ProfileForm({ user, onSuccess }: ProfileFormProps) {
           id="phone"
           type="tel"
           placeholder="+27 12 345 6789"
+          maxLength={INPUT_LIMITS.PHONE}
           {...register("phone")}
           aria-invalid={errors.phone ? "true" : "false"}
         />

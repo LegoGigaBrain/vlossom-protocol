@@ -316,9 +316,16 @@ contract PropertyRegistry is Ownable, ReentrancyGuard, Pausable {
     }
 
     /**
-     * @notice Resolve a dispute (M-2 fix)
+     * @notice Resolve a dispute (M-2 fix + H-5 fix)
      * @param propertyId Property under dispute
      * @param upholdSuspension True to proceed with suspension, false to cancel
+     *
+     * @dev H-5 Security Fix: Even when dispute is rejected (upholdSuspension=true),
+     *      the original 24-hour timelock must still be enforced. This prevents
+     *      admin from bypassing the timelock by:
+     *      1. Requesting suspension
+     *      2. Waiting for owner to dispute
+     *      3. Immediately resolving dispute as "upheld"
      */
     function resolveDispute(bytes32 propertyId, bool upholdSuspension) external onlyOwner {
         SuspensionRequest storage request = suspensionRequests[propertyId];
@@ -326,7 +333,12 @@ contract PropertyRegistry is Ownable, ReentrancyGuard, Pausable {
         if (!request.disputed) revert NoActiveDispute();
 
         if (upholdSuspension) {
-            // Execute suspension immediately (dispute rejected)
+            // H-5 FIX: Still enforce timelock even when dispute is rejected
+            if (block.timestamp < request.requestedAt + SUSPENSION_DELAY) {
+                revert SuspensionDelayNotMet();
+            }
+
+            // Execute suspension (dispute rejected, timelock satisfied)
             PropertyRecord storage record = properties[propertyId];
             PropertyStatus previousStatus = record.status;
             record.status = PropertyStatus.Suspended;

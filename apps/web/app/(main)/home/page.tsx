@@ -1,5 +1,5 @@
 /**
- * Home Page - Map-First Discovery (V5.3)
+ * Home Page - Map-First Discovery (V8.0)
  *
  * Full-screen map experience with stylist pins and quick booking.
  * - Map with color-coded stylist markers (from API with mock fallback)
@@ -7,6 +7,8 @@
  * - Quick filters (availability, service type, distance)
  * - Search overlay
  * - Feature flag: NEXT_PUBLIC_USE_MOCK_DATA=true for demo mode
+ *
+ * V8.0: Updated to work within AppShell layout (sidebar + header)
  *
  * Reference: docs/vlossom/15-frontend-ux-flows.md Section 13
  */
@@ -90,7 +92,7 @@ export default function HomePage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="fixed inset-0 flex flex-col bg-background-primary">
+      <div className="h-full w-full flex flex-col bg-background-primary">
         <div className="p-4">
           <Skeleton className="h-14 rounded-2xl" />
         </div>
@@ -100,7 +102,7 @@ export default function HomePage() {
             <p className="text-sm text-text-secondary">Finding stylists near you...</p>
           </div>
         </div>
-        
+
       </div>
     );
   }
@@ -108,7 +110,7 @@ export default function HomePage() {
   // Error state
   if (error) {
     return (
-      <div className="fixed inset-0 flex flex-col bg-background-primary">
+      <div className="h-full w-full flex flex-col bg-background-primary">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-sm">
             <Icon name="calmError" size="2xl" className="text-status-error mx-auto mb-4" />
@@ -124,13 +126,13 @@ export default function HomePage() {
             </Button>
           </div>
         </div>
-        
+
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background-primary">
+    <div className="h-full w-full flex flex-col bg-background-primary relative">
       {/* Search Bar - Fixed at top */}
       <div className="absolute top-0 left-0 right-0 z-40 p-4 pointer-events-none">
         <div className="pointer-events-auto">

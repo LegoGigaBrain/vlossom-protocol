@@ -31,6 +31,17 @@ interface IVlossomPool {
     event PoolPaused(address indexed by);
     event PoolUnpaused(address indexed by);
 
+    // H-2 fix: Emergency withdrawal events with timelock
+    event EmergencyProposed(bytes32 indexed proposalId, address indexed recipient, uint256 executeAfter);
+    event EmergencyExecuted(bytes32 indexed proposalId, address indexed recipient, uint256 amount);
+    event EmergencyCancelled(bytes32 indexed proposalId);
+
+    // H-3 fix: Pool name change event
+    event PoolNameChanged(string oldName, string newName);
+
+    // H-4 fix: Tier parameters update event
+    event TierParamsUpdated(uint8 oldTier, uint8 newTier, uint256 newCap, uint256 newCreatorFeeBps);
+
     // ============ User Functions ============
 
     /**
@@ -43,9 +54,10 @@ interface IVlossomPool {
     /**
      * @notice Withdraw USDC from the pool
      * @param shares Number of LP shares to burn
+     * @param minAmountOut Minimum USDC to receive (slippage protection, C-2 fix)
      * @return amount Amount of USDC returned
      */
-    function withdraw(uint256 shares) external returns (uint256 amount);
+    function withdraw(uint256 shares, uint256 minAmountOut) external returns (uint256 amount);
 
     /**
      * @notice Claim accumulated yield

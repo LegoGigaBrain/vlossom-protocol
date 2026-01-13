@@ -46,6 +46,7 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     error RecoveryDelayNotMet();
     error InsufficientApprovals();
     error InvalidNewOwner();
+    error RecoveryInProgress();
 
     /// @notice Maximum number of guardians per account
     uint256 public constant MAX_GUARDIANS = 5;
@@ -201,8 +202,13 @@ contract VlossomAccount is BaseAccount, TokenCallbackHandler, UUPSUpgradeable, I
     }
 
     /// @inheritdoc IVlossomAccount
+    /// @dev H-7 Security Fix: Cannot remove guardians during active recovery
+    ///      This prevents owner from making recovery uncompletable by removing approving guardians
     function removeGuardian(address guardian) external override onlyAccountOwner {
         if (!_guardians[guardian]) revert GuardianNotFound();
+
+        // H-7 FIX: Block guardian removal during active recovery
+        if (_recoveryRequest.isActive) revert RecoveryInProgress();
 
         _guardians[guardian] = false;
         _guardianCount--;

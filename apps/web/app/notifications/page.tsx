@@ -9,9 +9,13 @@ import { EmptyState } from "../../components/ui/empty-state";
 import { ErrorState } from "../../components/ui/error-state";
 import { useAuth } from "../../hooks/use-auth";
 import { Icon } from "@/components/icons";
+import { authFetch } from "../../lib/auth-client";
 
 const ITEMS_PER_PAGE = 10;
 
+/**
+ * V8.0.0: Migrated to httpOnly cookie auth
+ */
 export default function NotificationsPage() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
@@ -38,20 +42,14 @@ export default function NotificationsPage() {
     setError(null);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
       const params = new URLSearchParams({
         page: page.toString(),
         limit: ITEMS_PER_PAGE.toString(),
         ...(filter === "unread" && { unreadOnly: "true" }),
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications?${params}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications?${params}`
       );
 
       if (!response.ok) {
@@ -77,15 +75,9 @@ export default function NotificationsPage() {
   const handleMarkAllRead = async () => {
     setIsMarkingAll(true);
     try {
-      const token = localStorage.getItem("vlossom_token");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/read-all`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/read-all`,
+        { method: "POST" }
       );
 
       if (response.ok) {
@@ -103,15 +95,9 @@ export default function NotificationsPage() {
   // Mark single notification as read
   const handleMarkRead = async (id: string) => {
     try {
-      const token = localStorage.getItem("vlossom_token");
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/${id}/read`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/notifications/${id}/read`,
+        { method: "POST" }
       );
 
       setNotifications((prev) =>

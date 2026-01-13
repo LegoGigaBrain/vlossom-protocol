@@ -1,6 +1,7 @@
 /**
  * Settings - Security Page
  * V3.4: Authentication methods and security settings
+ * V8.0.0: Added input length limits for security
  */
 
 "use client";
@@ -21,6 +22,7 @@ import { LinkedAccounts } from "../../../components/settings/linked-accounts";
 import { Skeleton } from "../../../components/ui/skeleton";
 import { toast } from "../../../hooks/use-toast";
 import { Icon } from "@/components/icons";
+import { INPUT_LIMITS } from "../../../lib/input-validation";
 
 export default function SecuritySettingsPage() {
   const { user, isLoading } = useAuth();
@@ -147,6 +149,7 @@ export default function SecuritySettingsPage() {
                     id="current"
                     type="password"
                     value={passwordForm.current}
+                    maxLength={INPUT_LIMITS.PASSWORD}
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, current: e.target.value })
                     }
@@ -159,6 +162,7 @@ export default function SecuritySettingsPage() {
                     id="new"
                     type="password"
                     value={passwordForm.new}
+                    maxLength={INPUT_LIMITS.PASSWORD}
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, new: e.target.value })
                     }
@@ -171,6 +175,7 @@ export default function SecuritySettingsPage() {
                     id="confirm"
                     type="password"
                     value={passwordForm.confirm}
+                    maxLength={INPUT_LIMITS.PASSWORD}
                     onChange={(e) =>
                       setPasswordForm({ ...passwordForm, confirm: e.target.value })
                     }

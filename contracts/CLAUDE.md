@@ -129,26 +129,60 @@ Default parameters:
 
 ## Deployed Contracts
 
-### Base Sepolia Testnet (Chain ID 84532)
-Deployed: Dec 13, 2025
+### Arbitrum Sepolia Testnet (Chain ID 421614) — PRIMARY
+Deployed: Dec 28, 2025 | **11 contracts** | Full DeFi stack
 
-- **VlossomAccountFactory**: `0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d`
-  - [View on Basescan](https://sepolia.basescan.org/address/0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d#code)
+**Core Contracts:**
+- **VlossomAccountFactory**: `0x1B1FD00ce6CDc46FcdD9be9F4C2948e00Ab694A9`
+  - [View on Arbiscan](https://sepolia.arbiscan.io/address/0x1B1FD00ce6CDc46FcdD9be9F4C2948e00Ab694A9#code)
   - Creates deterministic AA wallets using CREATE2
 
-- **VlossomPaymaster**: `0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D`
-  - [View on Basescan](https://sepolia.basescan.org/address/0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D#code)
+- **VlossomPaymaster**: `0x9E52B23a6376EAfa89790a637F99371995C0E68c`
+  - [View on Arbiscan](https://sepolia.arbiscan.io/address/0x9E52B23a6376EAfa89790a637F99371995C0E68c#code)
   - Sponsors gas for user operations
-  - Current balance: 0.3 ETH
 
-- **Escrow**: `0x925E12051A6badb09D5a8a67aF9dD40ec5725E04`
-  - [View on Basescan](https://sepolia.basescan.org/address/0x925E12051A6badb09D5a8a67aF9dD40ec5725E04#code)
+- **Escrow**: `0xb5ba44265B09679C044Ed60506AE936e35B59Afb`
+  - [View on Arbiscan](https://sepolia.arbiscan.io/address/0xb5ba44265B09679C044Ed60506AE936e35B59Afb#code)
   - Holds USDC during booking lifecycle
 
-- **USDC (Circle)**: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
+- **PropertyRegistry**: `0xE8395633875F5A11b89D3425C199Dd17e09E7E82`
+  - [View on Arbiscan](https://sepolia.arbiscan.io/address/0xE8395633875F5A11b89D3425C199Dd17e09E7E82#code)
+  - Property and chair rental management
+
+- **ReputationRegistry**: `0xdbDFFC205738d2E3A179AEd2450D9Aec9B4D0577`
+  - [View on Arbiscan](https://sepolia.arbiscan.io/address/0xdbDFFC205738d2E3A179AEd2450D9Aec9B4D0577#code)
+  - On-chain reputation anchoring
+
+**DeFi Contracts:**
+- **VlossomTreasury**: `0x5Fda3cE7bEF86A755c8fd35474D9e1d8ecE9e4aA`
+- **VlossomYieldEngine**: `0x44fE36117B9983AE7C3465E4275A20C9F842Fd82`
+- **VlossomGenesisPool**: `0x8722EF54892a28007632A7372091f7B770D4FE0b`
+- **VlossomSmoothingBuffer**: `0xfA938DE45e3E0E78C133Ff55d0b5E90691D19F63`
+- **VlossomCommunityPoolImpl**: `0x58f2f38f9Aed2Af2D4234e27aCA344bC6b38BE29`
+- **VlossomPoolFactory**: `0x801c4Fb1c0aCF428848D59b4BD5aB1687C75B7dd`
+
+**Tokens & Infrastructure:**
+- **MockUSDC**: `0x67d56A4c0ce977aAd973835b0Fa16d6eAddaCE7d` (testnet faucet)
+- **Circle USDC**: `0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d`
 - **EntryPoint (v0.7)**: `0x0000000071727De22E5E9d8BAf0edAc6f37da032`
 
-**Deployment Info**: See `BASE_SEPOLIA_DEPLOYMENT.md` for full details
+**Deployment Info**: See `ARBITRUM_SEPOLIA_DEPLOYMENT.md` for full details
+
+---
+
+### Base Sepolia Testnet (Chain ID 84532) — LEGACY
+Deployed: Dec 13, 2025 | Core contracts only (no DeFi)
+
+> ⚠️ **Note**: Base Sepolia deployment is deprecated. Use Arbitrum Sepolia for all development.
+
+- **VlossomAccountFactory**: `0x1118fA7895A0b9Ae2Ed51F1BC355CFd2c606882d`
+- **VlossomPaymaster**: `0x66Af4b4c3935C185F832cf2B38A88dABA22cCD8D`
+- **Escrow**: `0x925E12051A6badb09D5a8a67aF9dD40ec5725E04`
+- **USDC (Circle)**: `0x036CbD53842c5426634e7929541eC2318f3dCF7e`
+
+**Deployment Info**: See `BASE_SEPOLIA_DEPLOYMENT.md` for details
+
+---
 
 ### Localhost (Chain ID 31337)
 - Escrow: `0x5FC8d32690cc91D4c39d9d3abcBD16989F875707`
@@ -162,25 +196,30 @@ pnpm compile    # Compile contracts
 pnpm test       # Run tests
 pnpm node       # Start local node
 
-# Base Sepolia Deployment
-npx hardhat run scripts/deploy-base-sepolia.ts --network base-sepolia
+# Arbitrum Sepolia Deployment (PRIMARY)
+npx hardhat run scripts/deploy-arbitrum-sepolia.ts --network arbitrum-sepolia
+npx hardhat run scripts/deploy-defi-arbitrum.ts --network arbitrum-sepolia
+npx hardhat run scripts/deploy-mockusdc-arbitrum.ts --network arbitrum-sepolia
 
-# DeFi Deployment
-npx hardhat run scripts/deploy-defi.ts --network base-sepolia
-
-# Configure Paymaster DeFi Whitelist (after both deployments)
-npx hardhat run scripts/configure-paymaster-defi.ts --network base-sepolia
+# Configure Paymaster DeFi Whitelist
+npx hardhat run scripts/configure-paymaster-defi.ts --network arbitrum-sepolia
 
 # Contract Verification
-npx hardhat verify --network base-sepolia <ADDRESS> <CONSTRUCTOR_ARGS>
+npx hardhat verify --network arbitrum-sepolia <ADDRESS> <CONSTRUCTOR_ARGS>
+
+# Base Sepolia (LEGACY - not recommended)
+npx hardhat run scripts/deploy-base-sepolia.ts --network base-sepolia
 ```
 
 ## Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `deploy-base-sepolia.ts` | Deploy core contracts (Factory, Paymaster, Escrow) |
-| `deploy-defi.ts` | Deploy DeFi contracts (Pool, Treasury, Factory, etc.) |
+| `deploy-arbitrum-sepolia.ts` | Deploy core contracts to Arbitrum Sepolia (PRIMARY) |
+| `deploy-defi-arbitrum.ts` | Deploy DeFi contracts to Arbitrum Sepolia |
+| `deploy-mockusdc-arbitrum.ts` | Deploy MockUSDC for testnet faucet |
+| `deploy-base-sepolia.ts` | Deploy core contracts to Base Sepolia (LEGACY) |
+| `deploy-defi.ts` | Deploy DeFi contracts (generic) |
 | `deploy-aa.ts` | Deploy AA infrastructure locally |
 | `deploy-escrow.ts` | Deploy Escrow contract |
 | `deploy-property-registry.ts` | Deploy property/rental registry |

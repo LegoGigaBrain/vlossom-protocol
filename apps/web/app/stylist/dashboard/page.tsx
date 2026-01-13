@@ -12,6 +12,7 @@ import { StatsCards } from "../../../components/dashboard/stats-cards";
 import { UpcomingBookings } from "../../../components/dashboard/upcoming-bookings";
 import { PendingRequestsPreview } from "../../../components/dashboard/pending-requests-preview";
 import { TodaysBookings } from "../../../components/dashboard/todays-bookings";
+import { authFetch } from "@/lib/auth-client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -23,13 +24,8 @@ export default function StylistDashboardPage() {
   // Approve booking mutation
   const approveMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/approve`, {
+      const response = await authFetch(`${API_BASE}/api/v1/bookings/${bookingId}/approve`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
       });
       if (!response.ok) throw new Error("Failed to approve booking");
       return response.json();
@@ -42,13 +38,8 @@ export default function StylistDashboardPage() {
   // Decline booking mutation
   const declineMutation = useMutation({
     mutationFn: async (bookingId: string) => {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/v1/bookings/${bookingId}/decline`, {
+      const response = await authFetch(`${API_BASE}/api/v1/bookings/${bookingId}/decline`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ reason: "Schedule conflict" }),
       });
       if (!response.ok) throw new Error("Failed to decline booking");

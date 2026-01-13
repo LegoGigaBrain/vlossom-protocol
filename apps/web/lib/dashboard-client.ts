@@ -1,5 +1,11 @@
-// Dashboard API Client
-// Reference: docs/specs/stylist-dashboard/MILESTONE-3-PLAN.md
+/**
+ * Dashboard API Client
+ * Reference: docs/specs/stylist-dashboard/MILESTONE-3-PLAN.md
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
+ */
+
+import { authFetch } from "./auth-client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -125,14 +131,6 @@ export interface PayoutHistoryItem {
 // HELPER
 // ============================================================================
 
-function getAuthHeaders(): HeadersInit {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: "Request failed" }));
@@ -145,10 +143,11 @@ async function handleResponse<T>(response: Response): Promise<T> {
 // DASHBOARD API
 // ============================================================================
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function fetchDashboard(): Promise<DashboardData> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/dashboard`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/dashboard`);
   return handleResponse<DashboardData>(response);
 }
 
@@ -156,38 +155,45 @@ export async function fetchDashboard(): Promise<DashboardData> {
 // SERVICES API
 // ============================================================================
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function fetchServices(): Promise<{ services: StylistService[]; total: number }> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/services`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/services`);
   return handleResponse(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function createService(input: CreateServiceInput): Promise<StylistService> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/services`, {
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/services`, {
     method: "POST",
-    headers: getAuthHeaders(),
     body: JSON.stringify(input),
   });
   return handleResponse<StylistService>(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function updateService(
   id: string,
   input: Partial<CreateServiceInput>
 ): Promise<StylistService> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/services/${id}`, {
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/services/${id}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(input),
   });
   return handleResponse<StylistService>(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function deleteService(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/services/${id}`, {
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/services/${id}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: "Delete failed" }));
@@ -199,35 +205,42 @@ export async function deleteService(id: string): Promise<void> {
 // AVAILABILITY API
 // ============================================================================
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function fetchAvailability(): Promise<AvailabilityData> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/availability`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/availability`);
   return handleResponse<AvailabilityData>(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function updateAvailability(schedule: WeeklySchedule): Promise<AvailabilityData> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/availability`, {
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/availability`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify({ schedule }),
   });
   return handleResponse<AvailabilityData>(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function addException(exception: DateException): Promise<{ exceptions: DateException[] }> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/availability/exceptions`, {
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/availability/exceptions`, {
     method: "POST",
-    headers: getAuthHeaders(),
     body: JSON.stringify(exception),
   });
   return handleResponse(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function removeException(date: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/availability/exceptions/${date}`, {
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/availability/exceptions/${date}`, {
     method: "DELETE",
-    headers: getAuthHeaders(),
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: "Delete failed" }));
@@ -239,17 +252,20 @@ export async function removeException(date: string): Promise<void> {
 // PROFILE API
 // ============================================================================
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function fetchProfile(): Promise<StylistProfile> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/profile`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/profile`);
   return handleResponse<StylistProfile>(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function updateProfile(input: Partial<StylistProfile>): Promise<StylistProfile> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/profile`, {
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/profile`, {
     method: "PUT",
-    headers: getAuthHeaders(),
     body: JSON.stringify(input),
   });
   return handleResponse<StylistProfile>(response);
@@ -259,22 +275,27 @@ export async function updateProfile(input: Partial<StylistProfile>): Promise<Sty
 // EARNINGS API
 // ============================================================================
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function fetchEarnings(): Promise<EarningsSummary> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/earnings`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/earnings`);
   return handleResponse<EarningsSummary>(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function fetchEarningsTrend(
   period: "week" | "month" | "year" = "week"
 ): Promise<{ period: string; data: EarningsTrendData[] }> {
-  const response = await fetch(`${API_BASE}/api/v1/stylists/earnings/trend?period=${period}`, {
-    headers: getAuthHeaders(),
-  });
+  const response = await authFetch(`${API_BASE}/api/v1/stylists/earnings/trend?period=${period}`);
   return handleResponse(response);
 }
 
+/**
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
+ */
 export async function fetchPayoutHistory(
   page: number = 1,
   limit: number = 10
@@ -282,9 +303,8 @@ export async function fetchPayoutHistory(
   payouts: PayoutHistoryItem[];
   pagination: { page: number; limit: number; total: number; hasMore: boolean };
 }> {
-  const response = await fetch(
-    `${API_BASE}/api/v1/stylists/earnings/history?page=${page}&limit=${limit}`,
-    { headers: getAuthHeaders() }
+  const response = await authFetch(
+    `${API_BASE}/api/v1/stylists/earnings/history?page=${page}&limit=${limit}`
   );
   return handleResponse(response);
 }

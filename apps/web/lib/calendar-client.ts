@@ -3,9 +3,11 @@
  *
  * Calendar-specific functions for schedule integration.
  * Extends booking-client with calendar view support.
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
 
-import { getAuthToken } from "./auth-client";
+import { authFetch } from "./auth-client";
 import type {
   Booking,
   BookingStylist,
@@ -50,17 +52,13 @@ export interface CalendarBookingsResponse {
 
 /**
  * Get bookings for a date range (for calendar views)
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getCalendarBookings(params: {
   from: Date;
   to: Date;
   role?: "customer" | "stylist" | "all";
 }): Promise<CalendarBookingsResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const searchParams = new URLSearchParams();
   searchParams.set("from", params.from.toISOString());
   searchParams.set("to", params.to.toISOString());
@@ -69,12 +67,7 @@ export async function getCalendarBookings(params: {
 
   const url = `${API_URL}/api/v1/bookings?${searchParams.toString()}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(url);
 
   if (!response.ok) {
     const error = await response.json();
@@ -86,15 +79,11 @@ export async function getCalendarBookings(params: {
 
 /**
  * Get upcoming bookings (confirmed, in progress)
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getUpcomingBookings(
   limit = 10
 ): Promise<CalendarBookingsResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const now = new Date().toISOString();
   const searchParams = new URLSearchParams();
   searchParams.set("from", now);
@@ -106,12 +95,7 @@ export async function getUpcomingBookings(
 
   const url = `${API_URL}/api/v1/bookings?${searchParams.toString()}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(url);
 
   if (!response.ok) {
     const error = await response.json();

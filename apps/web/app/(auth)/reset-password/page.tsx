@@ -12,16 +12,13 @@ import { Label } from "../../../components/ui/label";
 import { PasswordStrength } from "../../../components/ui/password-strength";
 import { toast } from "../../../hooks/use-toast";
 import { Icon } from "@/components/icons";
+import { validationSchemas, INPUT_LIMITS } from "../../../lib/input-validation";
 
+// V8.0.0: Added max length limits for security
 const resetPasswordSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
-    confirmPassword: z.string(),
+    password: validationSchemas.passwordWithComplexity,
+    confirmPassword: z.string().max(INPUT_LIMITS.PASSWORD),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -202,6 +199,7 @@ function ResetPasswordContent() {
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter new password"
                   className="pl-10 pr-10"
+                  maxLength={INPUT_LIMITS.PASSWORD}
                   {...register("password")}
                   aria-invalid={errors.password ? "true" : "false"}
                 />
@@ -231,6 +229,7 @@ function ResetPasswordContent() {
                   type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm new password"
                   className="pl-10 pr-10"
+                  maxLength={INPUT_LIMITS.PASSWORD}
                   {...register("confirmPassword")}
                   aria-invalid={errors.confirmPassword ? "true" : "false"}
                 />

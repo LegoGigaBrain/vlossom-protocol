@@ -5,6 +5,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Icon } from "@/components/icons";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 interface LogoutConfirmDialogProps {
   open: boolean;
@@ -12,6 +13,10 @@ interface LogoutConfirmDialogProps {
   onConfirm?: () => void;
 }
 
+/**
+ * V8.0.0: Migrated to httpOnly cookie auth
+ * Logout now calls server to clear cookies
+ */
 export function LogoutConfirmDialog({
   open,
   onOpenChange,
@@ -23,8 +28,10 @@ export function LogoutConfirmDialog({
     setIsLoggingOut(true);
 
     try {
-      // Clear local storage
-      localStorage.removeItem("vlossom_token");
+      // V8.0.0: Call server to clear httpOnly cookies
+      await authFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/logout`, {
+        method: "POST",
+      });
 
       toast.success("Logged out", "You have been logged out successfully");
 

@@ -7,6 +7,7 @@ import { Icon } from "@/components/icons";
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
 import { toast } from "../../hooks/use-toast";
+import { authFetch } from "../../lib/auth-client";
 
 interface TimeSlot {
   time: string;
@@ -51,15 +52,9 @@ export function RescheduleDialog({
     setSelectedTime(null);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
       const dateStr = format(date, "yyyy-MM-dd");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/stylists/${stylistId}/availability?date=${dateStr}&duration=${serviceDuration}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/stylists/${stylistId}/availability?date=${dateStr}&duration=${serviceDuration}`
       );
 
       if (response.ok) {
@@ -95,17 +90,12 @@ export function RescheduleDialog({
     setIsSubmitting(true);
 
     try {
-      const token = localStorage.getItem("vlossom_token");
       const newDateTime = `${format(selectedDate, "yyyy-MM-dd")}T${selectedTime}:00`;
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}/reschedule`,
+      const response = await authFetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/bookings/${bookingId}/reschedule`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
           body: JSON.stringify({
             scheduledStartTime: newDateTime,
           }),

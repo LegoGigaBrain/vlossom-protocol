@@ -1,5 +1,5 @@
 /**
- * Vlossom Mobile Root Layout (V7.5.0)
+ * Vlossom Mobile Root Layout (V8.0.0)
  *
  * Provides:
  * - Theme provider
@@ -11,6 +11,7 @@
  * - Demo mode indicator banner
  * - Push notification initialization (V7.3)
  * - Animated splash screen with Vlossom icon (V7.5)
+ * - Error boundary for crash recovery (V8.0)
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -32,6 +33,7 @@ import {
   cleanupPushNotifications,
 } from '../src/services/push-notifications';
 import { AnimatedSplash } from '../src/components/splash';
+import { ErrorBoundary } from '../src/components/ui/ErrorBoundary';
 
 // Google Fonts - bundled at build time
 import {
@@ -229,47 +231,49 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <StatusBar style="auto" />
-          <DemoModeBanner />
-          <AuthGuard>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: colors.background.primary },
-                animation: 'slide_from_right',
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="booking/[id]"
-                options={{
-                  presentation: 'modal',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-              <Stack.Screen
-                name="wallet"
-                options={{
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <StatusBar style="auto" />
+            <DemoModeBanner />
+            <AuthGuard>
+              <Stack
+                screenOptions={{
                   headerShown: false,
-                  presentation: 'modal',
-                  animation: 'slide_from_bottom',
+                  contentStyle: { backgroundColor: colors.background.primary },
+                  animation: 'slide_from_right',
                 }}
-              />
-              <Stack.Screen name="bookings" options={{ headerShown: false }} />
-              <Stack.Screen name="settings" options={{ headerShown: false }} />
-            </Stack>
-          </AuthGuard>
-          {/* V7.5: Animated splash overlay */}
-          {showAnimatedSplash && (
-            <AnimatedSplash onComplete={handleSplashComplete} minDuration={1200} />
-          )}
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+              >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="booking/[id]"
+                  options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen
+                  name="wallet"
+                  options={{
+                    headerShown: false,
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+                <Stack.Screen name="bookings" options={{ headerShown: false }} />
+                <Stack.Screen name="settings" options={{ headerShown: false }} />
+              </Stack>
+            </AuthGuard>
+            {/* V7.5: Animated splash overlay */}
+            {showAnimatedSplash && (
+              <AnimatedSplash onComplete={handleSplashComplete} minDuration={1200} />
+            )}
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 

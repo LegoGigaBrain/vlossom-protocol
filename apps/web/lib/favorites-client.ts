@@ -2,9 +2,11 @@
  * Favorites API Client (V5.2)
  *
  * Client for managing user's favorite stylists.
+ *
+ * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
 
-import { getAuthToken } from "./auth-client";
+import { authFetch } from "./auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 
@@ -58,28 +60,19 @@ export interface FavoriteCountResponse {
 
 /**
  * Get list of user's favorite stylists
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getFavorites(params?: {
   limit?: number;
   offset?: number;
 }): Promise<FavoritesListResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
 
   const url = `${API_URL}/api/v1/favorites?${searchParams.toString()}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(url);
 
   if (!response.ok) {
     const error = await response.json();
@@ -91,6 +84,7 @@ export async function getFavorites(params?: {
 
 /**
  * Add a stylist to favorites
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function addFavorite(stylistId: string): Promise<{
   success: boolean;
@@ -101,17 +95,8 @@ export async function addFavorite(stylistId: string): Promise<{
     favoritedAt: string;
   };
 }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/favorites`, {
+  const response = await authFetch(`${API_URL}/api/v1/favorites`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify({ stylistId }),
   });
 
@@ -125,21 +110,13 @@ export async function addFavorite(stylistId: string): Promise<{
 
 /**
  * Remove a stylist from favorites
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function removeFavorite(
   stylistId: string
 ): Promise<{ success: boolean }> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/favorites/${stylistId}`, {
+  const response = await authFetch(`${API_URL}/api/v1/favorites/${stylistId}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
   });
 
   if (!response.ok) {
@@ -152,21 +129,12 @@ export async function removeFavorite(
 
 /**
  * Check if a stylist is favorited
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function checkFavoriteStatus(
   stylistId: string
 ): Promise<FavoriteStatusResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/favorites/${stylistId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(`${API_URL}/api/v1/favorites/${stylistId}`);
 
   if (!response.ok) {
     const error = await response.json();
@@ -178,19 +146,10 @@ export async function checkFavoriteStatus(
 
 /**
  * Get count of user's favorites
+ * V8.0.0: Uses httpOnly cookie auth via authFetch
  */
 export async function getFavoritesCount(): Promise<FavoriteCountResponse> {
-  const token = getAuthToken();
-  if (!token) {
-    throw new Error("Not authenticated");
-  }
-
-  const response = await fetch(`${API_URL}/api/v1/favorites/count`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await authFetch(`${API_URL}/api/v1/favorites/count`);
 
   if (!response.ok) {
     const error = await response.json();

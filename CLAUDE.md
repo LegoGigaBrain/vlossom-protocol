@@ -4,24 +4,22 @@
 
 ## Current Version
 
-**V7.5.1** - Branding Consistency (December 28, 2025)
+**V8.0.0** - Security Audit Fixes (January 8, 2026)
 
-**Major Achievement**: Added proper favicon and SVG wordmarks across web and mobile platforms for consistent brand presentation. VlossomWordmark component with theme-aware variants now used in landing page, auth screens, and settings.
+**Major Achievement**: Resolved all 24 security findings from the pre-production security audit. All authentication, input validation, and infrastructure security issues have been addressed with production-ready implementations.
 
-**V7.5.1 Features**:
-- Web favicon (Favicon-purple.svg) configured via Next.js metadata
-- VlossomWordmark replaces plain text in Landing Navbar/Footer
-- Mobile VlossomWordmark.tsx with variant prop (purple/cream/auto)
-- Mobile auth screens (login, signup, forgot-password) use SVG wordmark
-- Mobile settings header uses auto theme-switching wordmark
+**V8.0.0 Security Fixes**:
+- CRITICAL: CSRF protection, cookie auth migration, CSP headers, address validation
+- HIGH: Redis-backed account lockout, HTTPS enforcement, token refresh, error sanitization
+- MEDIUM: Password complexity, email enumeration timing fix, refresh tokens in database
+- Database-backed refresh tokens with rotation and reuse detection
+- SIWE nonce and refresh token cleanup scheduler jobs
 
-**V7.5.0 Features**:
-- Mobile animated splash screen with unfold/breathe animations
-- Web marketing landing page (Hero, How It Works, 3 audience sections)
-- Orange "Launch App" CTA used appropriately for growth/celebration
-- Scroll-triggered animations via react-intersection-observer
+**Key Files Created**:
+- `services/api/src/lib/token-service.ts` - Secure token management
+- `services/api/prisma/migrations/20260106000000_add_refresh_tokens/migration.sql`
 
-**Previous**: V7.4.0 - Motion System, V7.3.0 - Production Readiness, V7.0.0 - Security Hardening
+**Previous**: V7.5.1 - Branding Consistency, V7.5.0 - Splash Screen, V7.0.0 - Security Hardening
 
 ---
 
@@ -52,15 +50,15 @@
 ### `apps/` - Application Frontends
 | App | Purpose | Status |
 |-----|---------|--------|
-| `apps/web/` | Next.js 14 PWA with Marketing Landing Page | ✅ V7.5.1 |
-| `apps/mobile/` | React Native + Expo with Animated Splash + Branding | ✅ V7.5.1 |
+| `apps/web/` | Next.js 14 PWA with Marketing Landing Page | ✅ V8.0.0 |
+| `apps/mobile/` | React Native + Expo with Animated Splash + Branding | ✅ V8.0.0 |
 | `apps/admin/` | Admin dashboard (8 pages) | ✅ V7.0.0 |
 
 ### `services/` - Backend Services
 | Service | Purpose | Status |
 |---------|---------|--------|
-| `services/api/` | Express REST API with Push Provider | ✅ V7.3.0 |
-| `services/scheduler/` | Background job scheduler | ✅ V6.4.0 |
+| `services/api/` | Express REST API with Push Provider | ✅ V8.0.0 |
+| `services/scheduler/` | Background job scheduler | ✅ V8.0.0 |
 | `services/indexer/` | Blockchain event indexer | ✅ V3.2.0 |
 
 ### `packages/` - Shared Code
@@ -73,7 +71,9 @@
 
 ### `contracts/` - Smart Contracts
 - Hardhat project with payment escrow contracts
-- Deployed on Base + Arbitrum
+- **Primary Testnet**: Arbitrum Sepolia (11 contracts including DeFi)
+- Legacy: Base Sepolia (core contracts only)
+- See `contracts/ARBITRUM_SEPOLIA_DEPLOYMENT.md` for addresses
 
 ### `infra/` - Infrastructure
 - Docker Compose for local development
@@ -275,6 +275,52 @@
 ---
 
 ## Recent Updates
+
+### V8.0.0 Changes (Security Audit Fixes - January 2026)
+
+**All 24 Security Findings Resolved:**
+
+**CRITICAL Fixes (5 items):**
+- ✅ CSRF middleware applied to all state-changing API routes
+- ✅ Cookie name mismatch fixed in auth middleware
+- ✅ 13 web API clients migrated to cookie auth (credentials: 'include')
+- ✅ Mobile address validation replaced with viem isAddress (EIP-55)
+- ✅ Content Security Policy headers added via Next.js middleware
+
+**HIGH Fixes (13 items):**
+- ✅ X-CSRF-Token added to CORS exposed headers
+- ✅ CORS origin validation fixed with protocol prefixes
+- ✅ INTERNAL_AUTH_SECRET enforced in production
+- ✅ Password reset token removed from log output
+- ✅ Account lockout migrated to Redis for distributed tracking
+- ✅ HTTPS enforcement middleware added
+- ✅ Error details removed from production responses
+- ✅ Mobile token refresh with automatic 401 handling
+- ✅ EIP-55 address validation added to web wallet forms
+- ✅ Input length limits added to all web form inputs
+- ✅ Mobile error boundaries at route and component levels
+- ✅ localStorage token fallback removed (cookies only)
+- ✅ Animation memory leaks fixed in motion components
+
+**MEDIUM Fixes (6 items):**
+- ✅ Password complexity requirements (8+ chars, upper, lower, number)
+- ✅ Email enumeration timing attack fixed with constant-time responses
+- ✅ SIWE nonce cleanup job added to scheduler
+- ✅ Request timeouts added to mobile API client
+- ✅ Unused lucide-react dependency removed
+- ✅ Refresh tokens stored in database with rotation and reuse detection
+
+**Key Files Created:**
+- `services/api/src/lib/token-service.ts` - Secure refresh token management
+- `services/api/prisma/migrations/20260106000000_add_refresh_tokens/migration.sql` - RefreshToken table
+
+**Security Architecture:**
+- Access tokens: 15-min expiry in httpOnly cookies
+- Refresh tokens: 7-day expiry, SHA-256 hashed in database
+- Token rotation on each refresh with family tracking
+- Reuse detection revokes entire token family
+
+---
 
 ### V7.0.0 Changes (Security Hardening & UX Improvements)
 
