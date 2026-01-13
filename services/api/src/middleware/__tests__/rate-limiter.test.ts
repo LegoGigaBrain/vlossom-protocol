@@ -458,50 +458,50 @@ describe('Rate Limiter Middleware', () => {
       clearLoginAttempts('locked@example.com');
     });
 
-    it('should track failed login attempts', () => {
-      const result1 = recordFailedLogin('test@example.com');
+    it('should track failed login attempts', async () => {
+      const result1 = await recordFailedLogin('test@example.com');
       expect(result1.locked).toBe(false);
       expect(result1.remainingAttempts).toBe(4);
 
-      const result2 = recordFailedLogin('test@example.com');
+      const result2 = await recordFailedLogin('test@example.com');
       expect(result2.locked).toBe(false);
       expect(result2.remainingAttempts).toBe(3);
     });
 
-    it('should lock account after 5 failed attempts', () => {
+    it('should lock account after 5 failed attempts', async () => {
       for (let i = 0; i < 4; i++) {
-        const result = recordFailedLogin('locked@example.com');
+        const result = await recordFailedLogin('locked@example.com');
         expect(result.locked).toBe(false);
       }
 
-      const result = recordFailedLogin('locked@example.com');
+      const result = await recordFailedLogin('locked@example.com');
       expect(result.locked).toBe(true);
       expect(result.remainingAttempts).toBe(0);
       expect(result.lockedUntil).toBeDefined();
     });
 
-    it('should return locked status for locked account', () => {
+    it('should return locked status for locked account', async () => {
       for (let i = 0; i < 5; i++) {
-        recordFailedLogin('locked@example.com');
+        await recordFailedLogin('locked@example.com');
       }
 
-      const status = isAccountLocked('locked@example.com');
+      const status = await isAccountLocked('locked@example.com');
       expect(status.locked).toBe(true);
       expect(status.lockedUntil).toBeDefined();
     });
 
-    it('should clear attempts on successful login', () => {
-      recordFailedLogin('test@example.com');
-      recordFailedLogin('test@example.com');
+    it('should clear attempts on successful login', async () => {
+      await recordFailedLogin('test@example.com');
+      await recordFailedLogin('test@example.com');
 
       clearLoginAttempts('test@example.com');
 
-      const status = isAccountLocked('test@example.com');
+      const status = await isAccountLocked('test@example.com');
       expect(status.locked).toBe(false);
     });
 
-    it('should return not locked for unknown accounts', () => {
-      const status = isAccountLocked('unknown@example.com');
+    it('should return not locked for unknown accounts', async () => {
+      const status = await isAccountLocked('unknown@example.com');
       expect(status.locked).toBe(false);
     });
   });
