@@ -15,7 +15,6 @@ import { useRouter } from 'expo-router';
 import { useTheme, textStyles } from '../../src/styles/theme';
 import {
   VlossomSettingsIcon,
-  VlossomHealthyIcon,
   VlossomCalendarIcon,
   VlossomFavoriteIcon,
   VlossomWalletIcon,
@@ -35,7 +34,7 @@ import {
   selectIsDemoMode,
   useStylistsStore,
 } from '../../src/stores';
-import { MOCK_BOOKINGS, getUpcomingMockBookings, MOCK_HAIR_PROFILE, getMockCalendarSummary } from '../../src/data/mock-data';
+import { getUpcomingMockBookings, MOCK_HAIR_PROFILE, getMockCalendarSummary } from '../../src/data/mock-data';
 import { formatPrice } from '../../src/api/stylists';
 import { getBookingStatusLabel, getBookingStatusColor } from '../../src/api/bookings';
 import {
@@ -287,7 +286,7 @@ interface OverviewTabProps {
 function OverviewTab({ colors, spacing, borderRadius, shadows, onLogout, logoutLoading }: OverviewTabProps) {
   const isDemoMode = useDemoModeStore(selectIsDemoMode);
   const bookings = useBookingsStore(selectBookings);
-  const nextBooking = useBookingsStore(selectNextBooking);
+  const _nextBooking = useBookingsStore(selectNextBooking); // Reserved for future "next appointment" feature
   const { fetchBookings, fetchStats } = useBookingsStore();
 
   // Hair Health store

@@ -286,5 +286,4 @@ export async function removeRole(request: AddRoleRequest): Promise<AddRoleRespon
   });
 }
 
-// Re-export APIError for convenience
-export { APIError };
+// Note: APIError is exported from client.ts via index.ts

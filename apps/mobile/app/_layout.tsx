@@ -121,15 +121,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (isAuthenticated && !pushInitializedRef.current) {
       pushInitializedRef.current = true;
       initializePushNotifications()
-        .then((result) => {
-          if (result.success) {
-            console.log('[Push] Initialized successfully', { isNew: result.isNew });
-          } else {
-            console.log('[Push] Initialization skipped or failed:', result.error);
-          }
+        .then((_result) => {
+          // Push notification initialization completed
+          // Success: _result.success, isNew: _result.isNew
+          // Skipped/failed: _result.error
         })
-        .catch((error) => {
-          console.error('[Push] Initialization error:', error);
+        .catch((_error) => {
+          // Push initialization error - non-critical, app continues
         });
     }
 
@@ -146,13 +144,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       const result = validateDeepLink(event.url);
 
       if (!result.isValid) {
-        console.warn('[DeepLink] Blocked invalid deep link:', event.url, result.error);
-        // Don't navigate for invalid links
+        // Invalid deep link blocked - don't navigate
         return;
       }
 
       // Link is valid, Expo Router will handle navigation
-      console.log('[DeepLink] Validated:', result.path, result.params);
     };
 
     // Subscribe to deep link events
@@ -162,9 +158,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     Linking.getInitialURL().then((url) => {
       if (url) {
         const result = validateDeepLink(url);
-        if (!result.isValid) {
-          console.warn('[DeepLink] Initial URL blocked:', url, result.error);
-        }
+        // If invalid, link is silently blocked - Expo Router won't navigate
+        void result.isValid;
       }
     });
 

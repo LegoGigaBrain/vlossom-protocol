@@ -27,7 +27,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useStylistsStore, selectStylists, selectFilters, selectUserLocation } from '../../src/stores';
 import {
-  formatPrice,
   formatPriceRange,
   formatDistance,
   getOperatingModeLabel,

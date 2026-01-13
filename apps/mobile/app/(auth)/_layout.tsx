@@ -9,7 +9,7 @@ import { Stack } from 'expo-router';
 import { useTheme } from '../../src/styles/theme';
 
 export default function AuthLayout() {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
 
   return (
     <Stack

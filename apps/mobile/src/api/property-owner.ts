@@ -539,5 +539,4 @@ export function formatChairRate(chair: Chair): string {
   return 'Rate TBD';
 }
 
-// Re-export error type
-export { APIError };
+// Note: APIError is exported from client.ts via index.ts

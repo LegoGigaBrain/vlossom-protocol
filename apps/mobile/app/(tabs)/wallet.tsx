@@ -371,7 +371,7 @@ interface TransactionItemProps {
   spacing: ReturnType<typeof useTheme>['spacing'];
 }
 
-function TransactionItem({ transaction, colors, borderRadius, spacing }: TransactionItemProps) {
+function TransactionItem({ transaction, colors }: TransactionItemProps) {
   const isReceive = transaction.type === 'RECEIVE' || transaction.type === 'DEPOSIT';
   const sign = isReceive ? '+' : '-';
   const amountColor = isReceive ? tokenColors.status.success : colors.text.primary;

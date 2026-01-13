@@ -444,5 +444,4 @@ export function isInsufficientBalanceError(error: unknown): boolean {
   return false;
 }
 
-// Re-export APIError
-export { APIError };
+// Note: APIError is exported from client.ts via index.ts
