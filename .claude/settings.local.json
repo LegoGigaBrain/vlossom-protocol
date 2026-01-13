@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm build:*)",
+      "Bash(pnpm --filter @vlossom/web build:*)",
+      "Bash(curl:*)",
+      "Bash(pnpm dev)",
+      "Bash(timeout:*)",
+      "Bash(git add:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx expo export:*)",
+      "Bash(npx eslint:*)",
+      "Bash(git push:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm --filter @vlossom/mobile exec tsc:*)",
+      "Bash(pnpm run dev)",
+      "Bash(npx expo start:*)",
+      "Bash(git commit:*)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm install:*)",
+      "Bash(git reset:*)",
+      "Bash(pnpm --filter @vlossom/sdk typecheck:*)",
+      "Bash(grep:*)",
+      "Bash(git checkout:*)",
+      "Bash(npx prisma migrate deploy:*)",
+      "Bash(pnpm:*)",
+      "Bash(npx prisma migrate status)",
+      "Bash(railway:*)",
+      "Bash(npm install:*)",
+      "Bash(vercel whoami:*)",
+      "Bash(vercel:*)"
+    ]
+  }
+}
