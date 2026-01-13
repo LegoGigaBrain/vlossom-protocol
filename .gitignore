@@ -165,3 +165,5 @@ playwright-report/
 # Vercel
 .vercel
 .env*.local
+*.local.json
+tmpclaude-*
