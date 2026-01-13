@@ -28,15 +28,18 @@
 
 export { version } from './version';
 
-// Core client
+// Core client - import for local use
+import { VlossomClient as VlossomClientClass } from './client';
 export { VlossomClient, VlossomApiError } from './client';
 export type { VlossomClientConfig, ApiResponse, ApiError } from './client';
 
-// Auth module
+// Auth module - import for local use
+import { createAuthModule as createAuth } from './auth';
 export { createAuthModule } from './auth';
 export type { AuthModule, User, LoginParams, SignupParams, AuthResponse } from './auth';
 
-// Bookings module
+// Bookings module - import for local use
+import { createBookingsModule as createBookings } from './bookings';
 export { createBookingsModule } from './bookings';
 export type {
   BookingsModule,
@@ -48,7 +51,8 @@ export type {
   PaginatedBookings,
 } from './bookings';
 
-// Wallet module
+// Wallet module - import for local use
+import { createWalletModule as createWallet } from './wallet';
 export { createWalletModule } from './wallet';
 export type {
   WalletModule,
@@ -128,13 +132,13 @@ export interface Vlossom {
  * ```
  */
 export function createVlossom(config?: import('./client').VlossomClientConfig): Vlossom {
-  const client = new VlossomClient(config);
+  const client = new VlossomClientClass(config);
 
   return {
     client,
-    auth: createAuthModule(client),
-    bookings: createBookingsModule(client),
-    wallet: createWalletModule(client),
+    auth: createAuth(client),
+    bookings: createBookings(client),
+    wallet: createWallet(client),
     stylists: createStylistsModule(client),
     defi: createDefiModule(client),
   };
