@@ -69,10 +69,10 @@ interface VlossomMapProps {
  */
 export function VlossomMap({
   stylists,
-  salons: _salons = [],
+  salons = [],
   selectedStylistId: _selectedStylistId,
   onStylistSelect,
-  onSalonSelect: _onSalonSelect,
+  onSalonSelect,
   userLocation,
   className,
   center = MAP_DEFAULTS.center,

@@ -101,7 +101,7 @@ export function AppHeader({
         {/* Right: Wallet Balance + Avatar */}
         <div className="flex items-center gap-3">
           {/* Theme Toggle */}
-          <ThemeSelector size="sm" variant="icon" />
+          <ThemeSelector size="sm" />
 
           {/* Wallet Balance - Fiat First */}
           <Button
