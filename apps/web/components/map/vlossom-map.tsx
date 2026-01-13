@@ -24,9 +24,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import {
-  VlossomPinSalon,
-  VlossomPinFixed,
-  VlossomPinMobile,
+  VlossomPinSalon as _VlossomPinSalon,
+  VlossomPinFixed as _VlossomPinFixed,
+  VlossomPinMobile as _VlossomPinMobile,
   VlossomPinLocation,
 } from "@/components/ui/vlossom-icons";
 import { Button } from "@/components/ui/button";
@@ -69,10 +69,10 @@ interface VlossomMapProps {
  */
 export function VlossomMap({
   stylists,
-  salons = [],
-  selectedStylistId,
+  salons: _salons = [],
+  selectedStylistId: _selectedStylistId,
   onStylistSelect,
-  onSalonSelect,
+  onSalonSelect: _onSalonSelect,
   userLocation,
   className,
   center = MAP_DEFAULTS.center,

@@ -5,7 +5,7 @@
  * V8.0.0 Security Update: Migrated from Bearer tokens to httpOnly cookies
  */
 
-import { authFetch, createHeaders } from "./auth-client";
+import { authFetch } from "./auth-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
 

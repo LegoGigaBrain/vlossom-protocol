@@ -15,7 +15,7 @@
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
-import { AppHeader, AppHeaderSpacer } from "./AppHeader";
+import { AppHeader } from "./AppHeader";
 import { BottomNav } from "./bottom-nav";
 
 interface AppShellProps {
